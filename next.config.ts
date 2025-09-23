@@ -1,0 +1,31 @@
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  images: {
+  remotePatterns: [
+    {
+      protocol: 'https',
+      hostname: 'staging.workit.co.ke',
+      pathname: '/**',
+    },
+    {
+      protocol: 'https',
+      hostname: 'cms.workit.co.ke',
+      pathname: '/**',
+    },
+    {
+      protocol: 'https',
+      hostname: 'api.workit.co.ke',
+      pathname: '/**',
+    },
+  ],
+},
+
+  env: {
+    WOOCOMMERCE_API_URL: process.env.NEXT_PUBLIC_WOOCOMMERCE_API_URL,
+    WOOCOMMERCE_CONSUMER_KEY: process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_KEY,
+    WOOCOMMERCE_CONSUMER_SECRET: process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_SECRET,
+  },
+};
+
+export default nextConfig;
