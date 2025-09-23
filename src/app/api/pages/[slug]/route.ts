@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const { slug } = await params;
     const wordpressUrl = process.env.NEXT_PUBLIC_WORDPRESS_URL;
-    const response = await fetch(`${wordpressUrl}/wp-json/wp/v2/pages?slug=${params.slug}`);
+    const response = await fetch(`${wordpressUrl}/wp-json/wp/v2/pages?slug=${slug}`);
 
     if (!response.ok) {
       return NextResponse.json({ error: 'Failed to fetch page' }, { status: response.status });
