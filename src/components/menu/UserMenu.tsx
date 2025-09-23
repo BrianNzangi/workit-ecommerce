@@ -7,12 +7,14 @@ import {
   UserButton,
   SignedIn,
   SignedOut,
+  useUser,
 } from '@clerk/nextjs';
 import Link from 'next/link';
 import { CircleUser } from 'lucide-react';
 
 export default function UserMenu() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const { user } = useUser();
 
   const handleDashboardNavigation = (section: string) => {
     // Navigate to dashboard with section parameter
@@ -38,10 +40,11 @@ export default function UserMenu() {
             <Link href="/help" className="block w-full text-left p-2 hover:bg-gray-100">Help & Support</Link>
           </SignedOut>
           <SignedIn>
-            <div className="border-b border-gray-200 mb-2">
-              <div className="px-2 py-1 text-sm font-medium text-gray-700">
-                My Account
+            <div className="border-b border-gray-200 mb-2 flex items-center justify-between px-2 py-1">
+              <div className="text-sm font-medium text-gray-700">
+                {user?.firstName ? `${user.firstName}'s Account` : 'My Account'}
               </div>
+              <UserButton />
             </div>
             <button
               onClick={() => handleDashboardNavigation('dashboard')}
@@ -67,9 +70,6 @@ export default function UserMenu() {
             >
               Account Settings
             </button>
-            <div className="border-t border-gray-200 not-first: p-2">
-              <UserButton />
-            </div>
           </SignedIn>
         </div>
       )}
