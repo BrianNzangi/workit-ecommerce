@@ -120,3 +120,26 @@ export async function getWooCommerceOrdersByCustomer(customerId: number) {
     return [];
   }
 }
+
+export async function updateWooCommerceCustomerBilling(customerId: number, billingData: {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  address_1: string;
+  city: string;
+  state: string;
+  postcode: string;
+  country: string;
+}) {
+  try {
+    const response = await woo.put(`/customers/${customerId}`, {
+      billing: billingData
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error('Error updating WooCommerce customer billing:', error);
+    throw error;
+  }
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,22 +23,73 @@ interface BillingAddressData {
 export function BillingAddress() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [billingAddress, setBillingAddress] = useState<BillingAddressData>({
-    first_name: "John",
-    last_name: "Doe",
-    email: "john.doe@example.com",
-    phone: "+254 712 345 678",
-    address_1: "123 Main Street",
-    city: "Nairobi",
-    county: "Nairobi",
-    postcode: "00100",
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone: "",
+    address_1: "",
+    city: "",
+    county: "",
+    postcode: "",
     country: "Kenya",
   });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const [editData, setEditData] = useState<BillingAddressData>(billingAddress);
 
-  const handleSave = () => {
-    setBillingAddress(editData);
-    setIsDialogOpen(false);
+  useEffect(() => {
+    const fetchBillingAddress = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/customer');
+        const data = await response.json();
+
+        if (data.success) {
+          setBillingAddress(data.billing);
+          setEditData(data.billing);
+        } else {
+          setError(data.error || 'Failed to load billing address');
+        }
+      } catch (err) {
+        console.error('Error fetching billing address:', err);
+        setError('Failed to load billing address');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBillingAddress();
+  }, []);
+
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      const response = await fetch('/api/customer', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ billing: editData }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setBillingAddress(data.billing);
+        setIsDialogOpen(false);
+        // Clear any previous errors
+        setError(null);
+      } else {
+        alert(data.error || 'Failed to save billing address');
+      }
+    } catch (error) {
+      console.error('Error saving billing address:', error);
+      alert('Failed to save billing address. Please try again.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleCancel = () => {
@@ -57,16 +108,43 @@ export function BillingAddress() {
         <h2 className="text-xl font-semibold mb-6">Billing Address</h2>
 
         <div className="flex-1">
-          <div className="space-y-2">
-            <p className="text-lg font-medium text-gray-900">
-              {billingAddress.first_name} {billingAddress.last_name}
-            </p>
-            <p className="text-gray-600">
-              {billingAddress.address_1}, {billingAddress.city}, {billingAddress.county}
-            </p>
-            <p className="text-gray-600">Phone Number: {billingAddress.phone}</p>
-            <p className="text-gray-600">Email: {billingAddress.email}</p>
-          </div>
+          {loading ? (
+            <div className="space-y-2">
+              <div className="h-5 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+          ) : error ? (
+            <div className="text-center text-gray-500">
+              <p>{error}</p>
+              <p className="text-sm mt-2">Please add your billing information.</p>
+            </div>
+          ) : !billingAddress.first_name && !billingAddress.last_name ? (
+            <div className="text-center text-gray-500">
+              <p>No billing address set up yet.</p>
+              <p className="text-sm mt-2">Click edit to add your billing information.</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <p className="text-lg font-medium text-gray-900">
+                {billingAddress.first_name} {billingAddress.last_name}
+              </p>
+              {billingAddress.address_1 && (
+                <p className="text-gray-600">
+                  {billingAddress.address_1}
+                  {billingAddress.city && `, ${billingAddress.city}`}
+                  {billingAddress.county && `, ${billingAddress.county}`}
+                </p>
+              )}
+              {billingAddress.phone && (
+                <p className="text-gray-600">Phone: {billingAddress.phone}</p>
+              )}
+              {billingAddress.email && (
+                <p className="text-gray-600">Email: {billingAddress.email}</p>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="mt-auto pt-4">
@@ -209,11 +287,15 @@ export function BillingAddress() {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={handleCancel}>
+            <Button variant="outline" onClick={handleCancel} disabled={saving}>
               Cancel
             </Button>
-            <Button onClick={handleSave} className="bg-[#0046BE] text-white">
-              Save Changes
+            <Button
+              onClick={handleSave}
+              className="bg-[#0046BE] text-white"
+              disabled={saving}
+            >
+              {saving ? 'Saving...' : 'Save Changes'}
             </Button>
           </DialogFooter>
         </DialogContent>
