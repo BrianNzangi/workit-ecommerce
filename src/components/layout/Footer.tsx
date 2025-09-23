@@ -5,7 +5,7 @@ import { FaFacebookF, FaInstagram, FaTwitter, FaYoutube } from 'react-icons/fa'
 export default function Footer() {
   return (
     <footer className="bg-[#202020] text-gray-300 font-[DM_SANS] ">
-      <div className="container mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-4 gap-10">
+      <div className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-8 py-12 grid grid-cols-1 md:grid-cols-4 gap-10">
         {/* Row 1 - ABOUT */}
         <div>
           <h3 className="text-white font-semibold mb-4">ABOUT</h3>
@@ -72,7 +72,7 @@ export default function Footer() {
 
       {/* Bottom bar */}
       <div className="border-t border-gray-700">
-        <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row items-center justify-between">
+        <div className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-8 py-6 flex flex-col md:flex-row items-center justify-between">
           <p className="text-sm text-gray-400">&copy; 2025 Workit. All rights reserved.</p>
           <div className="flex space-x-5 mt-4 md:mt-0">
             <a href="#" aria-label="Facebook" className="hover:text-white"><FaFacebookF /></a>
