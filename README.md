@@ -240,7 +240,7 @@ The easiest way to deploy is using [Vercel](https://vercel.com):
 
 ## 📄 License
 
-This project is private and proprietary to Workit Electronics.
+This project is private and proprietary to Workit Enterprises.
 
 ## 📞 Support
 

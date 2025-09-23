@@ -28,7 +28,7 @@ export default function Header() {
     <header id="site-header">
       {/* Top Bar */}
       <div className="bg-white font-[DM_SANS] text-[#1F2323]">
-        <div className="container mx-auto p-4 flex items-center justify-between gap-4 flex-wrap md:flex-nowrap">
+        <div className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-8 py-4 flex items-center justify-between gap-4 flex-wrap md:flex-nowrap">
           {/* Logo */}
           <Link href="/" className="inline-block relative w-[150px] sm:w-[180px] md:w-[200px] lg:w-[120px] xl:w-[150px] h-auto">
             <Image
@@ -126,7 +126,7 @@ export default function Header() {
 
       {/* Row 2: Categories & Links (desktop only) */}
       <div className="bg-white border-b border-gray-200 hidden md:block">
-        <div className="container mx-auto p-4 flex justify-between items-center">
+        <div className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-8 py-4 flex justify-between items-center">
           <MegaMenu />
         </div>
       </div>
