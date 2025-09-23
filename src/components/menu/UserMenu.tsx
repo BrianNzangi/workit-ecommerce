@@ -43,7 +43,7 @@ export default function UserMenu() {
                 onClick={() => handleDashboardNavigation('dashboard')}
                 className="block w-full text-left p-2 hover:bg-gray-100 font-medium"
               >
-                Dashboard
+                My Account
               </button>
             </div>
             <button
