@@ -37,7 +37,7 @@ export default function Footer() {
             <li><a href="#" className="hover:text-white">Returns & Claims</a></li>
             <li><a href="#" className="hover:text-white">Contact Us</a></li>
             <li>
-              <button className="mt-2 w-full bg-white text-black text-sm font-medium py-2 px-4 rounded hover:bg-gray-200 transition">
+              <button className="mt-2 w-36 bg-white text-black text-sm font-medium py-2 px-4 rounded hover:bg-gray-200 transition">
                 Contact Us
               </button>
             </li>
