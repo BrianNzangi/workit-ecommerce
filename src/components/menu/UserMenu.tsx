@@ -39,13 +39,16 @@ export default function UserMenu() {
           </SignedOut>
           <SignedIn>
             <div className="border-b border-gray-200 mb-2">
-              <button
-                onClick={() => handleDashboardNavigation('dashboard')}
-                className="block w-full text-left p-2 hover:bg-gray-100 font-medium"
-              >
+              <div className="px-2 py-1 text-sm font-medium text-gray-700">
                 My Account
-              </button>
+              </div>
             </div>
+            <button
+              onClick={() => handleDashboardNavigation('dashboard')}
+              className="block w-full text-left p-2 hover:bg-gray-100 text-sm"
+            >
+              My Dashboard
+            </button>
             <button
               onClick={() => handleDashboardNavigation('orders')}
               className="block w-full text-left p-2 hover:bg-gray-100 text-sm"
