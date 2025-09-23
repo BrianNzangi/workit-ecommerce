@@ -23,7 +23,7 @@ export default function UserMenu() {
   };
 
   return (
-    <div className="relative flex flex-col items-center cursor-pointer">
+    <div className="relative flex flex-col items-center">
       <button onClick={() => setIsAuthOpen(!isAuthOpen)} className="flex flex-col items-center">
         <CircleUser className="h-6 w-6" />
         <span>Account</span>
@@ -40,33 +40,33 @@ export default function UserMenu() {
             <Link href="/help" className="block w-full text-left p-2 hover:bg-gray-100">Help & Support</Link>
           </SignedOut>
           <SignedIn>
-            <div className="border-b border-gray-200 mb-2 flex items-center justify-between px-2 py-1">
+            <div className="border-b border-gray-200 mb-2 flex items-center justify-start gap-2 px-4 py-3">
+              <UserButton />
               <div className="text-sm font-medium text-gray-700">
                 {user?.firstName ? `${user.firstName}'s Account` : 'My Account'}
               </div>
-              <UserButton />
             </div>
             <button
               onClick={() => handleDashboardNavigation('dashboard')}
-              className="block w-full text-left p-2 hover:bg-gray-100 text-sm"
+              className="block w-full text-left px-4 py-3 hover:bg-gray-100 text-sm"
             >
               My Dashboard
             </button>
             <button
               onClick={() => handleDashboardNavigation('orders')}
-              className="block w-full text-left p-2 hover:bg-gray-100 text-sm"
+              className="block w-full text-left px-4 py-3 hover:bg-gray-100 text-sm"
             >
               Order History
             </button>
             <button
               onClick={() => handleDashboardNavigation('track-order')}
-              className="block w-full text-left p-2 hover:bg-gray-100 text-sm"
+              className="block w-full text-left px-4 py-3 hover:bg-gray-100 text-sm"
             >
               Track Order
             </button>
             <button
               onClick={() => handleDashboardNavigation('settings')}
-              className="block w-full text-left p-2 hover:bg-gray-100 text-sm"
+              className="block w-full text-left px-4 py-3 hover:bg-gray-100 text-sm"
             >
               Account Settings
             </button>
