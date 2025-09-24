@@ -24,8 +24,8 @@ const banners: Banner[] = [
     subtext: 'Grab the best deals today!',
     ctaText: 'Shop Now',
     ctaLink: '#',
-    desktopBg: '/banners/homelapbanner.webp',
-    mobileBg: '/banners/mobilelapbanner.webp',
+    desktopBg: '/banners/homelapbanner.jpg',
+    mobileBg: '/banners/mobilelapbanner.jpg',
   },
   {
     id: 2,
@@ -33,8 +33,8 @@ const banners: Banner[] = [
     subtext: 'Upgrade your home at low prices.',
     ctaText: 'Shop Appliances',
     ctaLink: '#',
-    desktopBg: '/banners/homesmbanner.webp',
-    mobileBg: '/banners/mobilesmbanner.webp',
+    desktopBg: '/banners/homesmbanner.jpg',
+    mobileBg: '/banners/mobilesmbanner.jpg',
   },
   {
     id: 3,
@@ -42,8 +42,8 @@ const banners: Banner[] = [
     subtext: 'Latest devices at amazing discounts.',
     ctaText: 'Explore Gadgets',
     ctaLink: '#',
-    desktopBg: '/banners/homespbanner.webp',
-    mobileBg: '/banners/mobilespbanner.webp',
+    desktopBg: '/banners/homespbanner.jpg',
+    mobileBg: '/banners/mobilespbanner.jpg',
   },
   {
     id: 4,
@@ -51,8 +51,8 @@ const banners: Banner[] = [
     subtext: 'Discover more savings.',
     ctaText: 'Shop Now',
     ctaLink: '#',
-    desktopBg: '/banners/homeswbanner.webp',
-    mobileBg: '/banners/mobileswbanner.webp',
+    desktopBg: '/banners/homeswbanner.jpg',
+    mobileBg: '/banners/mobileswbanner.jpg',
   },
 ];
 
