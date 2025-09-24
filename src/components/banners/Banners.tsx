@@ -30,6 +30,7 @@ export default function Banners() {
               fill
               className="object-cover object-center rounded-sm"
               priority={index === 0}
+              unoptimized
             />
           </div>
         ))}

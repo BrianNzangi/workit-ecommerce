@@ -162,6 +162,7 @@ export default function HomeBanner() {
               className="object-cover hidden sm:block"
               priority={currentSlide === 0}
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
+              unoptimized
             />
             <Image
               src={slide.mobileBg}
@@ -170,6 +171,7 @@ export default function HomeBanner() {
               className="object-cover sm:hidden"
               priority={currentSlide === 0}
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
+              unoptimized
             />
             <Link
               href={slide.ctaLink}
