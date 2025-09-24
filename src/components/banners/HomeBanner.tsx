@@ -73,7 +73,7 @@ export default function HomeBanner() {
       intervalRef.current = setInterval(() => {
         setDirection('left');
         setCurrentSlide((prev) => (prev + 1) % banners.length);
-      }, 5000);
+      }, 8000);
     } else {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
