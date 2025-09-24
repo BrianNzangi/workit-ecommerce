@@ -141,7 +141,7 @@ export default function HomeBanner() {
   return (
     <section className="container mx-auto px-3 sm:px-6 md:px-2 lg:px-8 xl:px-8 2xl:px-8 pt-4 mb-6">
       <div 
-        className="relative w-full rounded-sm overflow-hidden group aspect-[16/9] sm:aspect-[20/9] md:aspect-[3/1] lg:aspect-[4/1] xl:aspect-[5/1] bg-gray-200"
+        className="relative w-full overflow-hidden group aspect-[16/9] sm:aspect-[20/9] md:aspect-[3/1] lg:aspect-[4/1] xl:aspect-[5/1] bg-gray-200"
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
@@ -185,14 +185,14 @@ export default function HomeBanner() {
           className="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 bg-black/30 hover:bg-black/60 text-white p-2 sm:p-3 rounded-full transition-all duration-300 opacity-0 group-hover:opacity-100 focus:opacity-100 z-20"
           aria-label="Previous slide"
         >
-          <ChevronLeft size={20} className="sm:w-6 sm:h-6" />
+          <ChevronLeft size={20} className="sm:w-4 sm:h-4" />
         </button>
         <button
           onClick={nextSlide}
           className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 bg-black/30 hover:bg-black/60 text-white p-2 sm:p-3 rounded-full transition-all duration-300 opacity-0 group-hover:opacity-100 focus:opacity-100 z-20"
           aria-label="Next slide"
         >
-          <ChevronRight size={20} className="sm:w-6 sm:h-6" />
+          <ChevronRight size={20} className="sm:w-4 sm:h-4" />
         </button>
       </div>
     </section>

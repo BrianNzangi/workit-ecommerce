@@ -65,7 +65,7 @@ export default function TopCategoriesGrid() {
         className="block"
       >
         {/* Image Container */}
-        <div className="relative w-full aspect-[4/3] sm:aspect-[3/2] overflow-hidden rounded sm:rounded-sm bg-gray-100 mb-2 sm:mb-3">
+        <div className="relative w-full aspect-[4/3] sm:aspect-[3/2] overflow-hidden bg-gray-100 mb-2 sm:mb-3">
           {cat.image ? (
             <Image
               src={cat.image.src}

@@ -7,9 +7,9 @@ import "./globals.css";
 import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "Workit: The Ultimate Electronics Store for All Your Needs",
+  title: "Shop Phones, Laptops & Gadgets Online for less on Workit",
   description:
-    "Discover top-quality electronics, unbeatable prices, and exceptional customer service at Workit. Shop now for the latest gadgets and accessories!",
+    "Find the best deals on phones, laptops, TVs, and accessories at Workit. Trusted electronics store with fast delivery and reliable customer support.",
 };
 
 export default function RootLayout({
@@ -22,7 +22,7 @@ export default function RootLayout({
     "@type": "Organization",
     name: "Workit Electronics",
     url: "https://www.workit.co.ke",
-    logo: "https://www.workit.co.ke/logo.png", // update with your actual logo URL
+    logo: "https://www.workit.co.ke/workit-logo.svg",
     sameAs: [
       "https://www.facebook.com/workit",
       "https://www.instagram.com/workit",
@@ -31,7 +31,7 @@ export default function RootLayout({
     contactPoint: [
       {
         "@type": "ContactPoint",
-        telephone: "+254-798-918-159", // update if needed
+        telephone: "+254 796-053143",
         contactType: "customer service",
         areaServed: "KE",
         availableLanguage: ["en"],
