@@ -61,6 +61,7 @@ export default function HomeBanner() {
   const [isPlaying, setIsPlaying] = useState(true);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [direction, setDirection] = useState<'left' | 'right'>('left');
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Minimum swipe distance
@@ -70,6 +71,7 @@ export default function HomeBanner() {
   useEffect(() => {
     if (isPlaying) {
       intervalRef.current = setInterval(() => {
+        setDirection('left');
         setCurrentSlide((prev) => (prev + 1) % banners.length);
       }, 5000);
     } else {
@@ -87,10 +89,12 @@ export default function HomeBanner() {
 
   // ---------------- Navigation functions ----------------
   const nextSlide = () => {
+    setDirection('left');
     setCurrentSlide((prev) => (prev + 1) % banners.length);
   };
 
   const prevSlide = () => {
+    setDirection('right');
     setCurrentSlide((prev) => (prev - 1 + banners.length) % banners.length);
   };
 
@@ -154,6 +158,10 @@ export default function HomeBanner() {
           <motion.div
             key={currentSlide}
             className="absolute inset-0"
+            initial={{ x: direction === 'left' ? 300 : -300, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: direction === 'left' ? -300 : 300, opacity: 0 }}
+            transition={{ duration: 0.8, ease: "easeInOut" }}
           >
             <Image
               src={slide.desktopBg}
