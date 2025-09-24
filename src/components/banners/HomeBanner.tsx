@@ -24,8 +24,8 @@ const banners: Banner[] = [
     subtext: 'Grab the best deals today!',
     ctaText: 'Shop Now',
     ctaLink: '#',
-    desktopBg: '/banners/homelapbanner.jpg',
-    mobileBg: '/banners/mobilelapbanner.jpg',
+    desktopBg: '/banners/homelapbanner.webp',
+    mobileBg: '/banners/mobilelapbanner.webp',
   },
   {
     id: 2,
@@ -33,8 +33,8 @@ const banners: Banner[] = [
     subtext: 'Upgrade your home at low prices.',
     ctaText: 'Shop Appliances',
     ctaLink: '#',
-    desktopBg: '/banners/homesmbanner.jpg',
-    mobileBg: '/banners/mobilesmbanner.jpg',
+    desktopBg: '/banners/homesmbanner.webp',
+    mobileBg: '/banners/mobilesmbanner.webp',
   },
   {
     id: 3,
@@ -42,8 +42,8 @@ const banners: Banner[] = [
     subtext: 'Latest devices at amazing discounts.',
     ctaText: 'Explore Gadgets',
     ctaLink: '#',
-    desktopBg: '/banners/homespbanner.jpg',
-    mobileBg: '/banners/mobilespbanner.jpg',
+    desktopBg: '/banners/homespbanner.webp',
+    mobileBg: '/banners/mobilespbanner.webp',
   },
   {
     id: 4,
@@ -51,8 +51,8 @@ const banners: Banner[] = [
     subtext: 'Discover more savings.',
     ctaText: 'Shop Now',
     ctaLink: '#',
-    desktopBg: '/banners/homeswbanner.jpg',
-    mobileBg: '/banners/mobileswbanner.jpg',
+    desktopBg: '/banners/homeswbanner.webp',
+    mobileBg: '/banners/mobileswbanner.webp',
   },
 ];
 
@@ -145,7 +145,7 @@ export default function HomeBanner() {
   return (
     <section className="container mx-auto px-3 sm:px-6 md:px-2 lg:px-8 xl:px-8 2xl:px-8 pt-4 mb-6">
       <div 
-        className="relative w-full overflow-hidden group aspect-[16/9] sm:aspect-[20/9] md:aspect-[3/1] lg:aspect-[4/1] xl:aspect-[5/1] bg-gray-200"
+        className="relative w-full overflow-hidden group aspect-[16/9] sm:aspect-[20/9] md:aspect-[3/1] lg:aspect-[4/1] xl:aspect-[5/1] bg-gray-100"
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
