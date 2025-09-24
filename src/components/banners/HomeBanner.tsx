@@ -158,10 +158,10 @@ export default function HomeBanner() {
           <motion.div
             key={currentSlide}
             className="absolute inset-0"
-            initial={{ x: direction === 'left' ? 300 : -300, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: direction === 'left' ? -300 : 300, opacity: 0 }}
-            transition={{ duration: 0.8, ease: "easeInOut" }}
+            initial={{ x: direction === 'left' ? 300 : -300 }}
+            animate={{ x: 0 }}
+            exit={{ x: direction === 'left' ? -300 : 300 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
           >
             <Image
               src={slide.desktopBg}
