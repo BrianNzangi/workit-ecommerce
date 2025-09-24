@@ -50,7 +50,16 @@ export default function MegaMenu() {
     }
   }, []);
 
-  if (loading) return <div>Loading menu...</div>;
+  if (loading) return (
+    <div className="flex space-x-4">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <div
+          key={i}
+          className="h-8 w-30 bg-gray-200 animate-pulse"
+        ></div>
+      ))}
+    </div>
+  );
 
   const categoriesWithChildren = categories
     .filter((parent) => parent.children && parent.children.length > 0)

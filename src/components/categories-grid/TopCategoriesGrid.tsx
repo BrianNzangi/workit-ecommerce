@@ -50,10 +50,10 @@ export default function TopCategoriesGrid() {
 
   const renderSkeleton = () => (
     <div className="group animate-pulse">
-      <div className="w-full aspect-[4/3] sm:aspect-[3/2] bg-gray-200 rounded-lg mb-2 sm:mb-3" />
+      <div className="w-full aspect-[4/3] sm:aspect-[3/2] bg-gray-200 mb-2 sm:mb-3" />
       <div className="space-y-1 sm:space-y-2">
-        <div className="h-3 sm:h-4 w-3/4 bg-gray-200 rounded" />
-        <div className="h-3 sm:h-4 w-1/2 bg-gray-200 rounded sm:hidden" />
+        <div className="h-3 sm:h-4 w-3/4 bg-gray-200" />
+        <div className="h-3 sm:h-4 w-1/2 bg-gray-200" />
       </div>
     </div>
   );
