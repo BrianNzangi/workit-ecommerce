@@ -110,7 +110,7 @@ export default function ProductCard({
           {discount && (
             <div className="absolute top-0.5 left-0.5">
               <span
-                className="inline-block bg-red-400 font-['DM_Sans'] text-white text-xs font-semibold px-2 py-1.5 rounded-sm"
+                className="inline-block bg-[#92ffff] font-['DM_Sans'] text-[#1F2323] text-xs font-semibold px-2 py-1.5 rounded-sm"
                 aria-label={`Save ${discount} percent`}
               >
                 {discount}% OFF

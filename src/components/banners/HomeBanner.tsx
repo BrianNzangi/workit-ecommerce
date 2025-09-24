@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -12,8 +13,8 @@ interface Banner {
   subtext: string;
   ctaText: string;
   ctaLink: string;
-  bg: string;
-  fg?: string;
+  desktopBg: string;
+  mobileBg: string;
 }
 
 const banners: Banner[] = [
@@ -23,7 +24,8 @@ const banners: Banner[] = [
     subtext: 'Grab the best deals today!',
     ctaText: 'Shop Now',
     ctaLink: '#',
-    bg: '/banners/banner1.webp',
+    desktopBg: '/banners/homelapbanner.jpg',
+    mobileBg: '/banners/mobilelapbanner.jpg',
   },
   {
     id: 2,
@@ -31,7 +33,8 @@ const banners: Banner[] = [
     subtext: 'Upgrade your home at low prices.',
     ctaText: 'Shop Appliances',
     ctaLink: '#',
-    bg: '/banners/banner2.webp',
+    desktopBg: '/banners/homesmbanner.jpg',
+    mobileBg: '/banners/mobilesmbanner.jpg',
   },
   {
     id: 3,
@@ -39,7 +42,17 @@ const banners: Banner[] = [
     subtext: 'Latest devices at amazing discounts.',
     ctaText: 'Explore Gadgets',
     ctaLink: '#',
-    bg: '/banners/banner3.webp',
+    desktopBg: '/banners/homespbanner.jpg',
+    mobileBg: '/banners/mobilespbanner.jpg',
+  },
+  {
+    id: 4,
+    headline: 'Latest Deals',
+    subtext: 'Discover more savings.',
+    ctaText: 'Shop Now',
+    ctaLink: '#',
+    desktopBg: '/banners/homeswbanner.jpg',
+    mobileBg: '/banners/mobileswbanner.jpg',
   },
 ];
 
@@ -143,12 +156,25 @@ export default function HomeBanner() {
             className="absolute inset-0"
           >
             <Image
-              src={slide.bg}
+              src={slide.desktopBg}
               alt={slide.headline}
               fill
-              className="object-cover"
+              className="object-cover hidden sm:block"
               priority={currentSlide === 0}
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
+            />
+            <Image
+              src={slide.mobileBg}
+              alt={slide.headline}
+              fill
+              className="object-cover sm:hidden"
+              priority={currentSlide === 0}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
+            />
+            <Link
+              href={slide.ctaLink}
+              className="absolute inset-0 z-10"
+              aria-label={slide.ctaText}
             />
           </motion.div>
         </AnimatePresence>
@@ -168,22 +194,6 @@ export default function HomeBanner() {
         >
           <ChevronRight size={20} className="sm:w-6 sm:h-6" />
         </button>
-
-        {/* Dots indicator - Responsive sizing */}
-        <div className="absolute bottom-3 sm:bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-20">
-          {banners.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => goToSlide(index)}
-              className={`h-2 w-2 sm:h-3 sm:w-3 rounded-full transition-all duration-300 ${
-                currentSlide === index 
-                  ? 'bg-[#1F2323] scale-125' 
-                  : 'bg-[#1F2323]/60 hover:bg-white/80'
-              }`}
-              aria-label={`Go to slide ${index + 1}`}
-            />
-          ))}
-        </div>
       </div>
     </section>
   );
