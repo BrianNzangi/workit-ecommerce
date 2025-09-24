@@ -30,7 +30,7 @@ const config = {
     },
     extend: {
       colors: {
-        primary: "#0046BE",
+        primary: "#0066ff",
         secondary: "#1F2323",
       },
       fontFamily: {

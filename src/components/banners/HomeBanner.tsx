@@ -98,9 +98,7 @@ export default function HomeBanner() {
     setCurrentSlide((prev) => (prev - 1 + banners.length) % banners.length);
   };
 
-  const goToSlide = (index: number) => {
-    setCurrentSlide(index);
-  };
+
 
   // ---------------- Touch handlers ----------------
   const onTouchStart = (e: React.TouchEvent) => {

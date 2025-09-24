@@ -1,7 +1,7 @@
 // src/app/api/customer/route.ts
 import { NextResponse } from 'next/server';
 import { auth, currentUser } from '@clerk/nextjs/server';
-import { getWooCommerceCustomerByEmail, updateWooCommerceCustomerBilling, getOrCreateWooCommerceCustomer } from '@/lib/woocommerce';
+import { updateWooCommerceCustomerBilling, getOrCreateWooCommerceCustomer } from '@/lib/woocommerce';
 
 export async function GET() {
   try {

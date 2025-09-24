@@ -10,7 +10,7 @@ export default function Footer() {
         <div>
           <h3 className="text-white font-semibold mb-4">ABOUT</h3>
           <ul className="space-y-2 text-sm">
-            <li><a href="#" className="hover:text-white">About Workit</a></li>
+            <li><a href="/about-workit" className="hover:text-white">About Workit</a></li>
             <li><a href="#" className="hover:text-white">Our Blog</a></li>
             <li><a href="#" className="hover:text-white">Customer Reviews</a></li>
             <li><a href="#" className="hover:text-white">We Are Hiring!</a></li>
