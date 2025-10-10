@@ -7,13 +7,20 @@ import AboutWorkit from '@/components/home/AboutWorkit';
 import FeaturedBlogs from '@/components/blog/FeaturedBlogs';
 
 export default async function Home() {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-
   const fetchCollection = async (slug: string): Promise<CollectionType> => {
     try {
-      const res = await fetch(`${baseUrl}/api/home-collection?slug=${slug}`, { next: { revalidate: 60 } });
+      const res = await fetch(`/api/home-collection?slug=${slug}`, { next: { revalidate: 60 } });
       if (!res.ok) throw new Error(`Failed to fetch collection ${slug}`);
-      const data = await res.json();
+
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (jsonErr) {
+        console.error(`Failed to parse JSON for slug: ${slug}`, jsonErr);
+        console.log('Raw response:', text.substring(0, 500));
+        throw new Error(`Invalid JSON response for ${slug}`);
+      }
 
       // Ensure the returned structure matches our type
       return {

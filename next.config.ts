@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   remotePatterns: [
     {
       protocol: 'https',
-      hostname: 'cms.workit.co.ke',
+      hostname: 'staging.workit.co.ke',
       pathname: '/**',
     },
     {

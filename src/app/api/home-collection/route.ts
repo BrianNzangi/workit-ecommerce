@@ -22,38 +22,57 @@ const categoryMap: Record<string, number> = {};
 
 async function fetchCategoryMap() {
   if (Object.keys(categoryMap).length) return categoryMap;
-  
-  const res = await woo.get('products/categories', { params: { per_page: 100 } });
-  res.data.forEach((cat: any) => {
-    // Only parent categories that match COLLECTION_SLUGS
-    if (cat.parent === 0 && COLLECTION_SLUGS.includes(cat.slug)) {
-      categoryMap[cat.slug] = cat.id;
+
+  try {
+    const res = await woo.get('products/categories', { params: { per_page: 100 } });
+    if (res.data && Array.isArray(res.data)) {
+      res.data.forEach((cat: any) => {
+        // Only parent categories that match COLLECTION_SLUGS
+        if (cat.parent === 0 && COLLECTION_SLUGS.includes(cat.slug)) {
+          categoryMap[cat.slug] = cat.id;
+        }
+      });
+    } else {
+      console.error('Invalid categories response:', res.data);
     }
-  });
-  
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+  }
+
   return categoryMap;
 }
 
 async function fetchProductsByCategoryId(categoryId: number): Promise<Product[]> {
-  const res = await woo.get('products', { params: { category: categoryId, per_page: 20 } });
-  return res.data.map((p: any) => ({
-    id: p.id,
-    name: p.name,
-    slug: p.slug,
-    link: p.permalink,
-    price: p.price,
-    regular_price: p.regular_price,
-    image: p.images?.[0]?.src || '',
-    attributes: p.attributes?.map((a: any) => ({
-      id: a.id,
-      name: a.name,
-      slug: a.slug,
-      options: a.options || [],
-    })),
-    tags: p.tags?.map((t: any) => ({ id: t.id, name: t.name, slug: t.slug })),
-    stock_status: p.stock_status,
-    on_sale: p.on_sale,
-  }));
+  try {
+    const res = await woo.get('products', { params: { category: categoryId, per_page: 20 } });
+    if (res.data && Array.isArray(res.data)) {
+      return res.data.map((p: any) => ({
+        id: p.id,
+        name: p.name,
+        slug: p.slug,
+        type: p.type || 'simple',
+        link: p.permalink,
+        price: p.price,
+        regular_price: p.regular_price,
+        image: p.images?.[0]?.src || '',
+        attributes: p.attributes?.map((a: any) => ({
+          id: a.id,
+          name: a.name,
+          slug: a.slug,
+          options: a.options || [],
+        })),
+        tags: p.tags?.map((t: any) => ({ id: t.id, name: t.name, slug: t.slug })),
+        stock_status: p.stock_status,
+        on_sale: p.on_sale,
+      }));
+    } else {
+      console.error('Invalid products response for category', categoryId, ':', res.data);
+      return [];
+    }
+  } catch (error) {
+    console.error('Error fetching products for category', categoryId, ':', error);
+    return [];
+  }
 }
 
 export async function GET(req: Request) {
