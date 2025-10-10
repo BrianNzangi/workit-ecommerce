@@ -32,7 +32,7 @@ export default function BlogPageClient() {
   const renderBlogsWithBanners = () => {
     if (loading) {
       return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="animate-pulse">
               <div className="w-full h-[240px] bg-gray-200 rounded-3xl mb-4"></div>
@@ -63,7 +63,7 @@ export default function BlogPageClient() {
 
       // Add blogs in grid layout
       elements.push(
-        <div key={`blogs-${i}`} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div key={`blogs-${i}`} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
           {blogsInSection.map(blog => (
             <BlogCard
               key={blog.id}
@@ -88,15 +88,17 @@ export default function BlogPageClient() {
   };
 
   return (
-    <section className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-12 py-6 font-[DM_SANS]">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-4">Blog</h1>
-        <p className="text-gray-600 text-lg">
-          Stay updated with the latest tech news, product reviews, and insights from Workit.
-        </p>
-      </div>
+    <div className="bg-[#F8F9FC]">
+      <section className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-12 py-6 font-[DM_SANS]">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-4">Blog</h1>
+          <p className="text-gray-600 text-lg">
+            Stay updated with the latest tech news, product reviews, and insights from Workit.
+          </p>
+        </div>
 
-      {renderBlogsWithBanners()}
-    </section>
+        {renderBlogsWithBanners()}
+      </section>
+    </div>
   );
 }
