@@ -14,7 +14,7 @@ export default async function CollectionPage({ params }: Props) {
   // Fetch all categories using API route
   let categories: Category[] = []
   try {
-    const categoriesRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/categories`, {
+    const categoriesRes = await fetch(`${process.env.NEXT_PUBLIC_FRONTEND_BASE_URL || 'http://localhost:3000'}/api/categories`, {
       cache: 'force-cache'
     })
     
@@ -37,7 +37,7 @@ export default async function CollectionPage({ params }: Props) {
   if (category) {
     try {
       const productsRes = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/products?category=${category.id}&per_page=20`,
+        `${process.env.NEXT_PUBLIC_FRONTEND_BASE_URL || 'http://localhost:3000'}/api/products?category=${category.id}&per_page=20`,
         { cache: 'force-cache' }
       )
       
