@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import BlogPostClient from '././BlogPostClient';
 
 interface PageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -16,6 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function BlogPostPage({ params }: PageProps) {
-  return <BlogPostClient slug={params.slug} />;
+export default async function BlogPostPage({ params }: PageProps) {
+  const { slug } = await params;
+  return <BlogPostClient slug={slug} />;
 }
