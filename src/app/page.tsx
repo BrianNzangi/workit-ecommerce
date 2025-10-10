@@ -7,9 +7,13 @@ import AboutWorkit from '@/components/home/AboutWorkit';
 import FeaturedBlogs from '@/components/blog/FeaturedBlogs';
 
 export default async function Home() {
+  const baseUrl = process.env.NODE_ENV === 'development'
+    ? 'http://localhost:3000'
+    : 'https://workit.co.ke';
+
   const fetchCollection = async (slug: string): Promise<CollectionType> => {
     try {
-      const res = await fetch(`/api/home-collection?slug=${slug}`, { next: { revalidate: 60 } });
+      const res = await fetch(`${baseUrl}/api/home-collection?slug=${slug}`, { next: { revalidate: 60 } });
       if (!res.ok) throw new Error(`Failed to fetch collection ${slug}`);
 
       const text = await res.text();
