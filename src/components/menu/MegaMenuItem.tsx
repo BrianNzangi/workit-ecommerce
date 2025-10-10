@@ -34,7 +34,7 @@ export default function MegaMenuItem({ title, image, href }: MegaMenuItemProps) 
       </a>
 
       {/* Text below image */}
-      <div className="p-2 text-sm font-semibold text-gray-800 group-hover:text-primary transition text-center">
+      <div className="py-2 text-sm font-semibold text-gray-800 group-hover:text-primary transition text-start">
         {he.decode(title)}
       </div>
     </div>
