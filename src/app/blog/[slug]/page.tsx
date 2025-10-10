@@ -7,7 +7,7 @@ interface PageProps {
   };
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata(): Promise<Metadata> {
   // For now, return default metadata
   // In a real app, fetch the blog post and use its data
   return {
