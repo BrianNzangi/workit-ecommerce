@@ -12,7 +12,7 @@ export default function CareersPage() {
 
       <p className="text-gray-700 text-start mb-6">
         Workit is a fast-growing electronics store based in Nairobi, Kenya, focused on helping customers
-        find the best deals on phones, laptops, TVs, and accessories. As we continue to expand, we're always on the lookout
+        find the best deals on phones, laptops, TVs, and accessories. As we continue to expand, {'we\'re'} always on the lookout
         for passionate, talented individuals who want to make a real impact in e-commerce and technology retail.
       </p>
 
@@ -22,7 +22,7 @@ export default function CareersPage() {
       </p>
 
       <p className="text-gray-700 text-start mb-6">
-        While we don't have any open positions at the moment, we're constantly growing.
+        While we {'don\'t'} have any open positions at the moment, {'we\'re'} constantly growing.
         Please check back soon or follow us on social media to stay updated on new opportunities.
       </p>
 

@@ -19,11 +19,11 @@ export default function ReviewsPage() {
       <p className="text-gray-700 text-start mb-6">
         Over the years, Workit has built a reputation as a dependable source for genuine electronics and fast delivery
         across Kenya. We work with verified suppliers and trusted partners to ensure every customer gets quality tech at unbeatable prices.
-        Whether you're upgrading your smartphone or shopping for a new appliance, we're here to make your experience smooth and satisfying.
+        Whether {'you\'re'} upgrading your smartphone or shopping for a new appliance, {'we\'re'} here to make your experience smooth and satisfying.
       </p>
 
       <p className="text-gray-700 text-start mb-6">
-        Our customers inspire us to do better every day. Their satisfaction is what drives us and soon, you'll be able to read their
+        Our customers inspire us to do better every day. Their satisfaction is what drives us and soon, {'you\'ll'} be able to read their
         honest reviews and experiences right here.
       </p>
 
