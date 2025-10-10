@@ -12,10 +12,10 @@ interface BlogCardProps {
   image: string;
 }
 
-export default function BlogCard({ title, link, category, image }: BlogCardProps) {
+export default function BlogCard({ title, slug, category, image }: BlogCardProps) {
   return (
     <Link
-      href={link}
+      href={`/blog/${slug}`}
       className="group block w-[280px] rounded-xs overflow-hidden"
     >
       <div className="relative w-full h-[240px]"> {/* Adjusted card height */}

@@ -10,7 +10,7 @@ export async function GET() {
   try {
     // Fetch latest 10 posts with necessary fields
     const res = await axios.get(
-      `${WORDPRESS_API}/posts?_fields=id,title,slug,link,featured_media,categories,date&per_page=10&_embed`
+      `${WORDPRESS_API}/posts?_fields=id,title,slug,link,featured_media,categories,date,content&per_page=10&_embed`
     );
     const posts = res.data;
 
@@ -46,6 +46,7 @@ export async function GET() {
           category: categories[0],   // main category (first)
           categories,                // all categories
           image,
+          content: p.content?.rendered || '',
           date: p.date,              // ISO string for sorting
         };
       })
