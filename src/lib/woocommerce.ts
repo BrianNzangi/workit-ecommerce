@@ -3,10 +3,44 @@ import axios from "axios";
 const woo = axios.create({
   baseURL: `${process.env.NEXT_PUBLIC_WORDPRESS_URL}/wp-json/wc/v3`,
   auth: {
-    username: process.env.WC_CONSUMER_KEY!,
-    password: process.env.WC_CONSUMER_SECRET!,
+    username: process.env.WOOCOMMERCE_CONSUMER_KEY!,
+    password: process.env.WOOCOMMERCE_CONSUMER_SECRET!,
   },
 });
+
+// Add response interceptor for better error logging
+woo.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response) {
+      // Server responded with error status
+      console.error('WooCommerce API Error:', {
+        status: error.response.status,
+        statusText: error.response.statusText,
+        url: error.config?.url,
+        method: error.config?.method,
+        data: error.response.data,
+        headers: error.response.headers,
+      });
+
+      if (error.response.status === 401) {
+        console.error('Authentication failed. Check WooCommerce consumer key and secret.');
+        console.error('Environment variables:', {
+          WOOCOMMERCE_CONSUMER_KEY: process.env.WOOCOMMERCE_CONSUMER_KEY ? 'Set' : 'Not set',
+          WOOCOMMERCE_CONSUMER_SECRET: process.env.WOOCOMMERCE_CONSUMER_SECRET ? 'Set' : 'Not set',
+          NEXT_PUBLIC_WORDPRESS_URL: process.env.NEXT_PUBLIC_WORDPRESS_URL,
+        });
+      }
+    } else if (error.request) {
+      // Network error
+      console.error('WooCommerce API Network Error:', error.request);
+    } else {
+      // Other error
+      console.error('WooCommerce API Error:', error.message);
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default woo;
 
