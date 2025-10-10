@@ -16,7 +16,7 @@ export default function BlogCard({ title, link, category, image }: BlogCardProps
   return (
     <Link
       href={link}
-      className="group block w-[280px] rounded-3xl overflow-hidden"
+      className="group block w-[280px] rounded-xs overflow-hidden"
     >
       <div className="relative w-full h-[240px]"> {/* Adjusted card height */}
         {image ? (

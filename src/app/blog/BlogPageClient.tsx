@@ -88,7 +88,7 @@ export default function BlogPageClient() {
   };
 
   return (
-    <div className="bg-[#F8F9FC]">
+    <div className="bg-[#E8EAED]">
       <section className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-12 py-6 font-[DM_SANS]">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-4">Blog</h1>
