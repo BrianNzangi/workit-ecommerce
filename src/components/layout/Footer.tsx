@@ -14,7 +14,7 @@ export default function Footer() {
             <li><a href="/about-workit" className="hover:text-white">About Workit</a></li>
             <li><Link href="/blog" className="hover:text-white">Our Blog</Link></li>
             <li><Link href="/reviews" className="hover:text-white">Customer Reviews</Link></li>
-            <li><a href="#" className="hover:text-white">We Are Hiring!</a></li>
+            <li><Link href="/careers" className="hover:text-white">We Are Hiring!</Link></li>
           </ul>
         </div>
 
