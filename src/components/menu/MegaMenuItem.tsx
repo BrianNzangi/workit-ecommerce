@@ -14,23 +14,25 @@ export default function MegaMenuItem({ title, image, href }: MegaMenuItemProps) 
   return (
     <a
       href={href}
-      className="group relative block aspect-[4/2] w-full bg-gray-100 rounded-md overflow-hidden transition"
+      className="group block w-full bg-gray-100 rounded-md overflow-hidden transition"
     >
-      {image ? (
-        <Image
-          src={image}
-          alt={title}
-          fill
-          className="object-cover transition-transform duration-300 group-hover:scale-105"
-        />
-      ) : (
-        <div className="flex items-center justify-center w-full h-full text-gray-400 text-sm">
-          No image available
-        </div>
-      )}
+      <div className="relative aspect-[4/2] w-full">
+        {image ? (
+          <Image
+            src={image}
+            alt={title}
+            fill
+            className="object-cover transition-transform duration-300 group-hover:scale-105 rounded-t-md"
+          />
+        ) : (
+          <div className="flex items-center justify-center w-full h-full text-gray-400 text-sm">
+            No image available
+          </div>
+        )}
+      </div>
 
-      {/* Bottom-left overlay text */}
-      <div className="absolute bottom-2 left-2 text-sm font-semibold text-white bg-black/70 px-2 py-1 rounded">
+      {/* Text below image */}
+      <div className="p-2 text-sm font-semibold text-gray-800 group-hover:text-primary transition">
         {he.decode(title)}
       </div>
     </a>

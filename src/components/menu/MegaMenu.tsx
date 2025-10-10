@@ -93,7 +93,7 @@ export default function MegaMenu() {
       {/* Full-width dropdown */}
       {activeParent && (
         <div
-          className="fixed left-0 right-0 bg-white shadow-lg z-50"
+          className="fixed left-0 right-0 bg-white shadow-lg z-50 -mt-2"
           style={{ top: dropdownTop }}
           onMouseLeave={() => setActiveParent(null)}
         >
@@ -102,7 +102,7 @@ export default function MegaMenu() {
             <h3 className="text-medium font-semibold text-[#1F2323] font-[DM_SANS] mb-4">
               Categories
             </h3>
-            <ul className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
+            <ul className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
               {[...(activeParent.children || [])]
                 .sort((a, b) => sortByOrder(a.name, b.name))
                 .map((child) => {
