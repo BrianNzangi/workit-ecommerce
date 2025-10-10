@@ -8,6 +8,7 @@ interface Category {
   slug: string;
   parent: number;
   count: number;
+  description?: string;
   children?: Category[];
 }
 

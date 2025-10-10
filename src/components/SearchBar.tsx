@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Search } from 'lucide-react';
+import Image from 'next/image';
 
 interface Product {
   id: number;
@@ -93,10 +94,12 @@ export default function SearchBar() {
                 className="flex items-center p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
               >
                 {product.images && product.images[0] && (
-                  <img
+                  <Image
                     src={product.images[0].src}
                     alt={product.name}
-                    className="w-12 h-12 object-cover rounded mr-3"
+                    width={48}
+                    height={48}
+                    className="object-cover rounded mr-3"
                   />
                 )}
                 <div className="flex-1">

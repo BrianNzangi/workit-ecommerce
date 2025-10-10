@@ -1,6 +1,33 @@
+import type { Metadata } from 'next';
 import { SignIn } from '@clerk/nextjs';
 import Link from 'next/link';
 import Image from 'next/image';
+
+export const metadata: Metadata = {
+  title: "Sign In - Workit",
+  description: "Sign in to your Workit account to manage your profile, orders, and preferences.",
+  robots: "noindex, nofollow",
+  openGraph: {
+    title: "Sign In - Workit",
+    description: "Sign in to your Workit account to manage your profile, orders, and preferences.",
+    url: "https://www.workit.co.ke/sign-in",
+    siteName: "Workit",
+    type: "website",
+    images: [
+      {
+        url: "/workit-logo.png",
+        width: 1200,
+        height: 630,
+        alt: "Sign In - Workit",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Sign In - Workit",
+    description: "Sign in to your Workit account to manage your profile, orders, and preferences.",
+  },
+};
 
 export default function SignInPage() {
   return (

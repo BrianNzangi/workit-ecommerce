@@ -6,6 +6,7 @@ export interface Category {
   slug: string;
   parent: number;           // 0 if top-level
   count: number;            // number of products in this category
+  description?: string;     // category description from WooCommerce
   children?: Category[];    // nested subcategories
 }
 
