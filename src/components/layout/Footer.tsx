@@ -37,9 +37,9 @@ export default function Footer() {
             <li><a href="/help-center" className="hover:text-white">Help Center</a></li>
             <li><a href="" className="hover:text-white">Returns & Claims</a></li>
             <li>
-              <button className="mt-2 w-36 bg-white text-black text-sm font-medium py-2 px-2 rounded-xs hover:bg-gray-200 transition">
+              <Link href="/help-center" className="mt-2 w-36 bg-white text-black text-sm font-medium py-2 px-2 rounded-xs hover:bg-gray-200 transition inline-block text-center">
                 Contact Us
-              </button>
+              </Link>
             </li>
             {/* <li><a href="/help-center" className="hover:text-white">Sell on Workit</a></li> */}
           </ul>
