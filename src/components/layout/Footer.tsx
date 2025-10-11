@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { FaFacebookF, FaInstagram, FaTwitter, FaYoutube } from 'react-icons/fa'
+import { FaFacebookF, FaInstagram, FaTiktok } from 'react-icons/fa'
 
 export default function Footer() {
   return (
@@ -75,10 +75,9 @@ export default function Footer() {
         <div className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-8 py-6 flex flex-col md:flex-row items-center justify-between">
           <p className="text-sm text-gray-400">&copy; 2025 Workit. All rights reserved.</p>
           <div className="flex space-x-5 mt-4 md:mt-0">
-            <a href="#" aria-label="Facebook" className="hover:text-white"><FaFacebookF /></a>
-            <a href="#" aria-label="Instagram" className="hover:text-white"><FaInstagram /></a>
-            <a href="#" aria-label="Twitter" className="hover:text-white"><FaTwitter /></a>
-            <a href="#" aria-label="YouTube" className="hover:text-white"><FaYoutube /></a>
+            <a href="https://www.facebook.com/shopworkitkenya" aria-label="Facebook" className="hover:text-white"><FaFacebookF /></a>
+            <a href="https://www.instagram.com/shopworkitkenya/" aria-label="Instagram" className="hover:text-white"><FaInstagram /></a>
+            <a href="https://www.youtube.com/@shopworkitkenya" aria-label="YouTube" className="hover:text-white"><FaTiktok /></a>
           </div>
         </div>
       </div>
