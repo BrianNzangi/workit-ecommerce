@@ -166,7 +166,7 @@ export default function HomeBanner() {
               alt={slide.headline}
               fill
               className="object-cover hidden sm:block"
-              priority={currentSlide === 0}
+              priority
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
               unoptimized
             />
@@ -175,7 +175,7 @@ export default function HomeBanner() {
               alt={slide.headline}
               fill
               className="object-cover sm:hidden"
-              priority={currentSlide === 0}
+              priority
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
               unoptimized
             />
