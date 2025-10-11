@@ -55,6 +55,7 @@ const config: Config = {
         },
         accent: {
           900: "#1C9737",
+          800: "#E8EAED",
         },
       },
       fontFamily: {

@@ -1,12 +1,15 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import Image from "next/image"
-import { buildBreadcrumbs, Breadcrumb, Category } from "@/utils/breadcrumbs"
+import { buildBreadcrumbs, findL2Category, Breadcrumb, Category } from "@/utils/breadcrumbs"
 import he from "he"
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa"
 import ProductInfo from "@/components/product/ProductInfo"
+import ProductFeatures from "@/components/product/ProductFeatures"
+import ColProductCard from "@/components/product/ColProductCard"
 import { Product } from "@/types/product"
+
 
 export default function ProductPage({
   product,
@@ -22,6 +25,19 @@ export default function ProductPage({
 
   const [selectedIdx, setSelectedIdx] = useState(0)
   const images = product.images || []
+
+  const [similarItems, setSimilarItems] = useState<Product[]>([])
+  const [similarItemsLoading, setSimilarItemsLoading] = useState(true)
+  const [similarItemsError, setSimilarItemsError] = useState<string | null>(null)
+
+  const [alsoViewed, setAlsoViewed] = useState<Product[]>([])
+  const [alsoViewedLoading, setAlsoViewedLoading] = useState(true)
+  const [alsoViewedError, setAlsoViewedError] = useState<string | null>(null)
+
+  // Helper function to check if product belongs to android-smartphones collection
+  const isAndroidSmartphoneProduct = (product: Product): boolean => {
+    return product.categories?.some(category => category.slug === 'android-smartphones') || false
+  }
 
   // Variation-aware price (falls back to base price)
   const effectivePrice =
@@ -45,107 +61,333 @@ export default function ProductPage({
     setSelectedIdx((prev) => (prev === 0 ? images.length - 1 : prev - 1))
   }
 
-  return (
-    <main className="container mx-auto max-w-7xl px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-4 mb-8 font-['DM_Sans'] mt-8">
-      {/* Breadcrumbs */}
-      <nav className="mb-6 text-sm text-gray-500 flex items-center gap-2">
-        {breadcrumbs.map((crumb, idx) => {
-          const crumbName = he.decode(crumb.name)
-          return (
-            <React.Fragment key={crumb.url}>
-              {idx > 0 && <span className="px-1">/</span>}
-              {idx < breadcrumbs.length - 1 ? (
-                <a href={crumb.url} className="hover:underline">
-                  {crumbName}
-                </a>
-              ) : (
-                <span className="text-gray-700 font-medium">{crumbName}</span>
-              )}
-            </React.Fragment>
-          )
-        })}
-      </nav>
+  // Fetch similar items from all categories the product belongs to
+  useEffect(() => {
+    const fetchSimilarItems = async () => {
+      try {
+        setSimilarItemsLoading(true)
+        setSimilarItemsError(null)
 
-      <div className="flex flex-col md:flex-row gap-6">
-        {/* Column A (Gallery + Description) */}
-        <div className="w-full md:w-3/4 lg:w-2/3 flex flex-col gap-6">
-          {/* Image gallery */}
-          <div className="flex gap-4 bg-white p-4 rounded-sm">
-            {/* Thumbnails - vertical */}
-            <div className="flex flex-col gap-2 overflow-y-auto max-h-[608px]">
-              {images.slice(0, 6).map((img, idx) => (
-                <div
-                  key={img.id || `${img.src}-${idx}`}
-                  className={`w-20 h-20 bg-gray-100 cursor-pointer ${
-                    selectedIdx === idx
-                      ? "border-2 border-black"
-                      : "opacity-80 hover:opacity-100"
-                  }`}
-                  onClick={() => setSelectedIdx(idx)}
+        const productCategories = product.categories || []
+        const allSimilarProducts: Product[] = []
+        const seenIds = new Set<number>()
+
+        // First, check if product belongs to android-smartphones collection and prioritize it
+        if (isAndroidSmartphoneProduct(product)) {
+          console.log('Fetching similar items from android-smartphones collection for product:', product.name)
+          const response = await fetch(`/api/products/similar?collectionSlug=android-smartphones&excludeProductId=${product.id}&limit=8`)
+          const data = await response.json()
+          const collectionProducts = data.products || []
+          collectionProducts.forEach((prod: Product) => {
+            if (!seenIds.has(prod.id)) {
+              seenIds.add(prod.id)
+              allSimilarProducts.push(prod)
+            }
+          })
+        }
+
+        // Fetch from all other categories the product belongs to
+        for (const category of productCategories) {
+          // Skip android-smartphones if already fetched
+          if (category.slug === 'android-smartphones') continue
+
+          console.log('Fetching similar items for category:', category.name, '(ID:', category.id + ')')
+
+          try {
+            const response = await fetch(`/api/products/similar?categoryId=${category.id}&excludeProductId=${product.id}&limit=8`)
+            const data = await response.json()
+            const categoryProducts = data.products || []
+            categoryProducts.forEach((prod: Product) => {
+              if (!seenIds.has(prod.id)) {
+                seenIds.add(prod.id)
+                allSimilarProducts.push(prod)
+              }
+            })
+          } catch (error) {
+            console.error(`Error fetching products for category ${category.name}:`, error)
+            // Continue with other categories
+          }
+
+          // Limit to 8 products total
+          if (allSimilarProducts.length >= 8) break
+        }
+
+        // If still no products and no android-smartphones, try L2 category as fallback
+        if (allSimilarProducts.length === 0 && !isAndroidSmartphoneProduct(product)) {
+          const l2Category = findL2Category(product.categories || [], allCategories || [])
+          if (l2Category) {
+            console.log('Fallback: Fetching similar items for L2 category:', l2Category.name, '(ID:', l2Category.id + ')')
+            const response = await fetch(`/api/products/similar?categoryId=${l2Category.id}&excludeProductId=${product.id}&limit=8`)
+            const data = await response.json()
+            const l2Products = data.products || []
+            l2Products.forEach((prod: Product) => {
+              if (!seenIds.has(prod.id)) {
+                seenIds.add(prod.id)
+                allSimilarProducts.push(prod)
+              }
+            })
+          }
+        }
+
+        // Limit to 5 products
+        setSimilarItems(allSimilarProducts.slice(0, 5))
+      } catch (error) {
+        console.error('Error fetching similar items:', error)
+        setSimilarItemsError('Failed to load similar items')
+        setSimilarItems([])
+      } finally {
+        setSimilarItemsLoading(false)
+      }
+    }
+
+    fetchSimilarItems()
+  }, [product, allCategories])
+
+  // Fetch "People Also Viewed" items from all categories the product belongs to
+  useEffect(() => {
+    const fetchAlsoViewed = async () => {
+      try {
+        setAlsoViewedLoading(true)
+        setAlsoViewedError(null)
+
+        const productCategories = product.categories || []
+        const allAlsoViewedProducts: Product[] = []
+        const seenIds = new Set<number>()
+
+        // First, check if product belongs to android-smartphones collection and prioritize it
+        if (isAndroidSmartphoneProduct(product)) {
+          console.log('Fetching also viewed items from android-smartphones collection for product:', product.name)
+          const response = await fetch(`/api/products/similar?collectionSlug=android-smartphones&excludeProductId=${product.id}&limit=8`)
+          const data = await response.json()
+          const collectionProducts = data.products || []
+          collectionProducts.forEach((prod: Product) => {
+            if (!seenIds.has(prod.id)) {
+              seenIds.add(prod.id)
+              allAlsoViewedProducts.push(prod)
+            }
+          })
+        }
+
+        // Fetch from all other categories the product belongs to
+        for (const category of productCategories) {
+          // Skip android-smartphones if already fetched
+          if (category.slug === 'android-smartphones') continue
+
+          console.log('Fetching also viewed items for category:', category.name, '(ID:', category.id + ')')
+
+          try {
+            const response = await fetch(`/api/products/similar?categoryId=${category.id}&excludeProductId=${product.id}&limit=8`)
+            const data = await response.json()
+            const categoryProducts = data.products || []
+            categoryProducts.forEach((prod: Product) => {
+              if (!seenIds.has(prod.id)) {
+                seenIds.add(prod.id)
+                allAlsoViewedProducts.push(prod)
+              }
+            })
+          } catch (error) {
+            console.error(`Error fetching products for category ${category.name}:`, error)
+            // Continue with other categories
+          }
+
+          // Limit to 5 products total
+          if (allAlsoViewedProducts.length >= 5) break
+        }
+
+        // If still no products and no android-smartphones, try L2 category as fallback
+        if (allAlsoViewedProducts.length === 0 && !isAndroidSmartphoneProduct(product)) {
+          const l2Category = findL2Category(product.categories || [], allCategories || [])
+          if (l2Category) {
+            console.log('Fallback: Fetching also viewed items for L2 category:', l2Category.name, '(ID:', l2Category.id + ')')
+            const response = await fetch(`/api/products/similar?categoryId=${l2Category.id}&excludeProductId=${product.id}&limit=8`)
+            const data = await response.json()
+            const l2Products = data.products || []
+            l2Products.forEach((prod: Product) => {
+              if (!seenIds.has(prod.id)) {
+                seenIds.add(prod.id)
+                allAlsoViewedProducts.push(prod)
+              }
+            })
+          }
+        }
+
+        // Limit to 5 products
+        setAlsoViewed(allAlsoViewedProducts.slice(0, 5))
+      } catch (error) {
+        console.error('Error fetching also viewed items:', error)
+        setAlsoViewedError('Failed to load also viewed items')
+        setAlsoViewed([])
+      } finally {
+        setAlsoViewedLoading(false)
+      }
+    }
+
+    fetchAlsoViewed()
+  }, [product, allCategories])
+
+  return (
+    <main className="font-['DM_Sans'] mt-8">
+      {/* Product Content Container */}
+      <div className="container mx-auto max-w-7xl px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-4 mb-8">
+        {/* Breadcrumbs */}
+        <nav className="mb-6 text-sm text-gray-500 flex items-center gap-2">
+          {breadcrumbs.map((crumb, idx) => {
+            const crumbName = he.decode(crumb.name)
+            return (
+              <React.Fragment key={crumb.url}>
+                {idx > 0 && <span className="px-1">/</span>}
+                {idx < breadcrumbs.length - 1 ? (
+                  <a href={crumb.url} className="hover:underline">
+                    {crumbName}
+                  </a>
+                ) : (
+                  <span className="text-gray-700 font-medium">{crumbName}</span>
+                )}
+              </React.Fragment>
+            )
+          })}
+        </nav>
+
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Column A (Gallery + Description) */}
+          <div className="w-full md:w-3/4 lg:w-2/3 flex flex-col gap-4">
+            {/* Image gallery */}
+            <div className="flex flex-col md:flex-row gap-4 bg-white p-4 rounded-sm">
+              {/* Thumbnails */}
+              <div className="flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-y-auto md:max-h-[608px]">
+                {images.slice(0, 6).map((img, idx) => (
+                  <div
+                    key={img.id || `${img.src}-${idx}`}
+                    className={`w-16 h-16 md:w-20 md:h-20 bg-gray-100 cursor-pointer ${
+                      selectedIdx === idx
+                        ? "border-2 border-black"
+                        : "opacity-80 hover:opacity-100"
+                    }`}
+                    onClick={() => setSelectedIdx(idx)}
+                  >
+                    <Image
+                      src={img.src}
+                      alt={`${product.name} thumbnail ${idx + 1}`}
+                      width={80}
+                      height={80}
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                ))}
+              </div>
+
+              {/* Main image */}
+              <div className="flex-1 flex items-center bg-gray-100 justify-center relative">
+                <button
+                  onClick={prevImage}
+                  className="absolute left-2 bg-white shadow rounded-full p-2 z-10"
                 >
-                  <Image
-                    src={img.src}
-                    alt={`${product.name} thumbnail ${idx + 1}`}
-                    width={80}
-                    height={80}
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-              ))}
+                  <FaChevronLeft />
+                </button>
+                <Image
+                  src={images[selectedIdx]?.src || "/public/file.svg"}
+                  alt={product.name}
+                  width={800}
+                  height={608}
+                  className="h-[400px] md:h-[608px] w-auto object-contain"
+                />
+                <button
+                  onClick={nextImage}
+                  className="absolute right-2 bg-white shadow rounded-full p-2 z-10"
+                >
+                  <FaChevronRight />
+                </button>
+              </div>
             </div>
 
-            {/* Main image */}
-            <div className="flex-1 flex items-center bg-gray-100 justify-center relative">
-              <button
-                onClick={prevImage}
-                className="absolute left-2 bg-white shadow rounded-full p-2 z-10"
-              >
-                <FaChevronLeft />
-              </button>
-              <Image
-                src={images[selectedIdx]?.src || "/public/file.svg"}
-                alt={product.name}
-                width={800}
-                height={608}
-                className="h-[608px] w-auto object-contain"
-              />
-              <button
-                onClick={nextImage}
-                className="absolute right-2 bg-white shadow rounded-full p-2 z-10"
-              >
-                <FaChevronRight />
-              </button>
+            {/* Features & Details */}
+            <ProductFeatures shortDescription={product.short_description || ''} />
+
+            {/* More about this item */}
+            {product.description && (
+              <section className="mt-2">
+                <h2 className="text-xl font-semibold mb-2">
+                  More about this item
+                </h2>
+                <div
+                  className="prose max-w-none text-gray-700 text-md leading-relaxed"
+                  dangerouslySetInnerHTML={{
+                    __html: he.decode(
+                      product.description
+                        .replace(/<a[^>]*>.*?<\/a>/g, '') // Remove links
+                        .replace(/https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9-]+\.[a-zA-Z]{2,}[^\s]*/g, '') // Remove URLs
+                        .replace(/:/g, '') // Remove colons
+                        .trim()
+                    ),
+                  }}
+                />
+              </section>
+            )}
+          </div>
+
+          {/* Column B (Sticky Info) */}
+          <ProductInfo
+            product={product}
+            effectivePrice={effectivePrice}
+            effectiveOriginalPrice={effectiveOriginalPrice}
+          />
+        </div>
+      </div>
+
+      {/* Similar Items and People Also Viewed Section - Full Width Background */}
+      <section className="bg-accent-800 py-12 mt-12 w-full">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-8 xl:px-10 2xl:px-4 gap-4">
+          {/* Similar Items Section */}
+          <div className="pb-12">
+            <h2 className="text-2xl font-semibold text-secondary-900 mb-2">Similar Items You Might Like</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              {similarItemsLoading ? (
+                // Loading skeleton
+                Array.from({ length: 5 }).map((_, idx) => (
+                  <div key={idx} className="bg-gray-300 animate-pulse rounded-xs h-90"></div>
+                ))
+              ) : similarItemsError ? (
+                <p className="text-red-300 col-span-full text-center">
+                  {similarItemsError}
+                </p>
+              ) : similarItems.length > 0 ? (
+                similarItems.map((item) => (
+                  <ColProductCard key={item.id} {...item} />
+                ))
+              ) : (
+                <p className="text-gray-300 col-span-full text-center">
+                  No similar items available.
+                </p>
+              )}
             </div>
           </div>
 
-          {/* More about this item */}
-          {product.description && (
-            <section className="mt-6">
-              <h2 className="text-xl font-semibold mb-2">
-                More about this item
-              </h2>
-              <div
-                className="prose max-w-none text-gray-700 text-sm leading-relaxed"
-                dangerouslySetInnerHTML={{
-                  __html: product.description
-                    .replace(/&/g, "&")
-                    .replace(/</g, "<")
-                    .replace(/>/g, ">")
-                    .replace(/<img/g, '<img style="width: 70%; height: auto;" ')
-                    .trim(),
-                }}
-              />
-            </section>
-          )}
+          {/* People Also Viewed Section */}
+          <div>
+            <h2 className="text-2xl font-semibold text-secondary-900 mb-2">People Who Viewed This Item Also Viewed</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+              {alsoViewedLoading ? (
+                // Loading skeleton
+                Array.from({ length: 5 }).map((_, idx) => (
+                  <div key={idx} className="bg-gray-300 animate-pulse rounded-xs h-90"></div>
+                ))
+              ) : alsoViewedError ? (
+                <p className="text-red-300 col-span-full text-center">
+                  {alsoViewedError}
+                </p>
+              ) : alsoViewed.length > 0 ? (
+                alsoViewed.map((item) => (
+                  <ColProductCard key={item.id} {...item} />
+                ))
+              ) : (
+                <p className="text-gray-300 col-span-full text-center">
+                  No related items available.
+                </p>
+              )}
+            </div>
+          </div>
         </div>
-
-        {/* Column B (Sticky Info) */}
-        <ProductInfo
-          product={product}
-          effectivePrice={effectivePrice}
-          effectiveOriginalPrice={effectiveOriginalPrice}
-        />
-      </div>
+      </section>
     </main>
   )
 }

@@ -101,8 +101,8 @@ export default function ProductInfo({
   return (
     <div className="w-full md:w-1/4 lg:w-1/3 sticky top-24 self-start">
       <div className="rounded-sm bg-white flex flex-col gap-4 mt-2">
-        <h1 className="text-lg text-[#1F2323] font-bold -mb-4">{product.name}</h1>
-        <div className="text-sm text-[#0046BE]">
+        <h1 className="text-lg text-secondary-900 font-bold -mb-4">{product.name}</h1>
+        <div className="text-sm text-primary-900">
           Brand: {product.brand || "N/A"}
         </div>
 
@@ -146,8 +146,8 @@ export default function ProductInfo({
                    className={`border px-4 py-2 text-sm text-left transition-colors
                      ${
                        isActive
-                         ? "border-primary bg-[#0046BE]/20 ring ring-[#0046BE] text-[#1F2323]"
-                         : "border-gray-300 hover:border-[#0046BE] text-sm font-light"
+                         ? "border-primary bg-primary-900/20 ring ring-primary-900 text-secondary-900"
+                         : "border-gray-300 hover:border-primary-900 text-sm font-light"
                      }
                    `}
                  >
@@ -192,7 +192,7 @@ export default function ProductInfo({
 
         {/* Buttons */}
         <button
-          className="bg-[#0046BE] text-white font-medium px-6 py-3 transition hover:bg-[#0034a0] w-full"
+          className="bg-primary-900 text-white font-medium px-6 py-3 transition hover:bg-primary-800 w-full"
           onClick={handleBuyNow}
         >
           Buy Now
@@ -200,13 +200,13 @@ export default function ProductInfo({
         <div className="flex gap-2">
           <button
             onClick={handleAddToCart}
-            className="border border-[#1F2323] text-[#1F2323] font-medium px-6 py-2 hover:bg-[#1F2323]/10 transition flex-1"
+            className="border border-secondary-900 text-secondary-900 font-medium px-6 py-2 hover:bg-secondary-100 transition flex-1"
           >
             Add to Cart
           </button>
           <button
             onClick={handleWishlist}
-            className="border border-[#1F2323] text-[#1F2323] font-medium px-6 py-2 hover:bg-[#1F2323]/10 transition flex-1"
+            className="border border-secondary-900 text-secondary-900 font-medium px-6 py-2 hover:bg-secondary-100 transition flex-1"
           >
             Wishlist
           </button>

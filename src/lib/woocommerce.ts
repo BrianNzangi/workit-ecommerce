@@ -177,3 +177,64 @@ export async function updateWooCommerceCustomerBilling(customerId: number, billi
     throw error;
   }
 }
+
+// Product fetching functions
+export async function getProductsByCategory(categoryId: number, excludeProductId?: number, limit: number = 10) {
+  try {
+    const params: any = {
+      category: categoryId,
+      per_page: limit + 1, // Fetch one extra to account for excluding current product
+      status: 'publish',
+    };
+
+    const response = await woo.get('/products', { params });
+    let products = response.data;
+
+    // Filter out the current product if specified
+    if (excludeProductId) {
+      products = products.filter((product: any) => product.id !== excludeProductId);
+    }
+
+    // Limit the results
+    return products.slice(0, limit);
+  } catch (error) {
+    console.error('Error fetching products by category:', error);
+    return [];
+  }
+}
+
+export async function getProductsByCollection(collectionSlug: string, excludeProductId?: number, limit: number = 10) {
+  try {
+    // First get the collection (category) by slug
+    const categoryRes = await woo.get('products/categories', { params: { slug: collectionSlug } });
+    const category = categoryRes.data?.[0];
+
+    if (!category) {
+      console.error(`Collection "${collectionSlug}" not found`);
+      return [];
+    }
+
+    // Fetch products for this collection, sorted by menu_order (ascending)
+    const params: any = {
+      category: category.id,
+      per_page: limit + 1, // Fetch one extra to account for excluding current product
+      status: 'publish',
+      orderby: 'menu_order',
+      order: 'asc',
+    };
+
+    const response = await woo.get('/products', { params });
+    let products = response.data;
+
+    // Filter out the current product if specified
+    if (excludeProductId) {
+      products = products.filter((product: any) => product.id !== excludeProductId);
+    }
+
+    // Limit the results
+    return products.slice(0, limit);
+  } catch (error) {
+    console.error('Error fetching products by collection:', error);
+    return [];
+  }
+}
