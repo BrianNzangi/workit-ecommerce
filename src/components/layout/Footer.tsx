@@ -36,13 +36,12 @@ export default function Footer() {
             <li><a href="#" className="hover:text-white">Track My Order</a></li>
             <li><a href="/help-center" className="hover:text-white">Help Center</a></li>
             <li><a href="" className="hover:text-white">Returns & Claims</a></li>
-            <li><a href="#" className="hover:text-white">Contact Us</a></li>
             <li>
-              <button className="mt-2 w-36 bg-white text-black text-sm font-medium py-2 px-4 rounded hover:bg-gray-200 transition">
+              <button className="mt-2 w-36 bg-white text-black text-sm font-medium py-2 px-2 rounded-xs hover:bg-gray-200 transition">
                 Contact Us
               </button>
             </li>
-            <li><a href="#" className="hover:text-white">Sell on Workit</a></li>
+            {/* <li><a href="/help-center" className="hover:text-white">Sell on Workit</a></li> */}
           </ul>
         </div>
 
@@ -53,21 +52,21 @@ export default function Footer() {
             <input
               type="email"
               placeholder="Enter your email"
-              className="px-4 py-2 rounded bg-gray-800 text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="px-4 py-2 rounded-xs bg-secondary-800 text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
             />
             <button
               type="submit"
-              className="bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 transition"
+              className="bg-primary-900 text-white py-2 px-4 rounded-xs hover:bg-primary-800 transition"
             >
               Subscribe
             </button>
           </form>
           <p className="text-xs mt-3 text-gray-400">
-            By subscribing, you accept our Privacy Policy
+            By subscribing, you accept our <Link href="/privacy-policy" className="hover:text-white underline">Privacy Policy</Link>
           </p>
-          <p className="text-xs mt-1 text-gray-500">
+          {/** <p className="text-xs mt-1 text-gray-500">
             This site is protected by reCAPTCHA and the Google Privacy Policy and Terms of Service apply.
-          </p>
+          </p>**/}
         </div>
       </div>
 
