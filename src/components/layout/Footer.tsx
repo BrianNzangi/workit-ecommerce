@@ -35,7 +35,7 @@ export default function Footer() {
           <ul className="space-y-2 text-sm">
             <li><Link href="/dashboard" className="hover:text-white">Track My Order</Link></li>
             <li><a href="/help-center" className="hover:text-white">Help Center</a></li>
-            <li><a href="" className="hover:text-white">Returns & Claims</a></li>
+            <li><a href="/returns-claims" className="hover:text-white">Returns & Claims</a></li>
             <li>
               <Link href="/help-center" className="mt-2 w-36 bg-white text-black text-sm font-medium py-2 px-2 rounded-xs hover:bg-gray-200 transition inline-block text-center">
                 Contact Us
