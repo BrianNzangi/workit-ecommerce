@@ -13,24 +13,10 @@ interface CheckoutClientProps {
   user: User;
 }
 
-// Paystack global type declaration
+// Paystack global type declaration (for dynamic loading)
 declare global {
   interface Window {
-    PaystackPop: {
-      setup: (config: {
-        key: string;
-        email: string;
-        amount: number;
-        currency: string;
-        ref: string;
-        onClose: () => void;
-        callback: (response: { trxref: string; reference: string }) => void;
-        mobile_money?: {
-          phone: string;
-          provider: string;
-        };
-      }) => { openIframe: () => void };
-    };
+    PaystackPop: any;
   }
 }
 

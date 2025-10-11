@@ -182,39 +182,51 @@ export const useCheckout = (user: User) => {
   };
 
   const processPaystackPayment = async (order: { id: string; total: string }) => {
-    const paystack = window.PaystackPop;
-    if (!paystack) throw new Error("Paystack script not loaded");
-
     const amount = formatPaystackAmount(parseFloat(order.total));
 
     return new Promise<void>((resolve, reject) => {
-      // Prepare Paystack config
-      const config: any = {
-        key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!,
-        email: stepData.billing.email || user.email,
-        amount,
-        currency: "KES",
-        ref: `order-${order.id}-${Date.now()}`,
-        onClose: () => {
-          setLoading(false);
-          reject(new Error("Payment popup closed"));
-        },
-        callback: (response: PaystackResponse) => {
-          clearCart();
-          window.location.href = `/checkout/success?trxref=${response.trxref}&reference=${response.reference}&orderId=${order.id}`;
-          resolve();
-        },
-      };
+      // Dynamically load Paystack script
+      const script = document.createElement("script");
+      script.src = "https://js.paystack.co/v1/inline.js";
+      script.async = true;
+      script.onload = () => {
+        const paystack = (window as any).PaystackPop;
+        if (!paystack) {
+          reject(new Error("Paystack script failed to load"));
+          return;
+        }
 
-      // Add mobile money details for MPESA and Airtel
-      if ((stepData.payment.method === 'mpesa' || stepData.payment.method === 'airtel') && stepData.payment.phoneNumber) {
-        config.mobile_money = {
-          phone: stepData.payment.phoneNumber,
-          provider: stepData.payment.method === 'mpesa' ? 'mpesa' : 'airtel',
+        // Prepare Paystack config
+        const config: any = {
+          key: process.env.NEXT_PUBLIC_PAYSTACK_KEY!,
+          email: stepData.billing.email || user.email,
+          amount,
+          currency: "KES",
+          ref: `order-${order.id}-${Date.now()}`,
+          onClose: () => {
+            setLoading(false);
+            reject(new Error("Payment popup closed"));
+          },
+          callback: (response: PaystackResponse) => {
+            clearCart();
+            window.location.href = `/checkout/success?trxref=${response.trxref}&reference=${response.reference}&orderId=${order.id}`;
+            resolve();
+          },
         };
-      }
 
-      paystack.setup(config).openIframe();
+        // Add mobile money details for MPESA and Airtel
+        if ((stepData.payment.method === 'mpesa' || stepData.payment.method === 'airtel') && stepData.payment.phoneNumber) {
+          config.mobile_money = {
+            phone: stepData.payment.phoneNumber,
+            provider: stepData.payment.method === 'mpesa' ? 'mpesa' : 'airtel',
+          };
+        }
+
+        const handler = paystack.setup(config);
+        handler.openIframe();
+      };
+      script.onerror = () => reject(new Error("Failed to load Paystack script"));
+      document.body.appendChild(script);
     });
   };
 
