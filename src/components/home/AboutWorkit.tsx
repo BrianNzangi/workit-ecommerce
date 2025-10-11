@@ -8,7 +8,7 @@ export default function AboutWorkit() {
       {/* START ADVERTISER: Awin (USD) from awin.com */}
       <div className="flex justify-center gap-6 mb-12">
         <a rel="sponsored" href="https://www.awin1.com/cread.php?s=531761&v=4032&q=173734&r=2523901">
-          <Image src="https://www.awin1.com/cshow.php?s=531761&v=4032&q=173734&r=2523901" width={120} height={60} alt="Awin advertiser" style={{ border: '0' }} />
+          <Image src="https://www.awin1.com/cshow.php?s=531761&v=4032&q=173734&r=2523901" width={720} height={90} alt="Awin advertiser" style={{ border: '0' }} />
         </a>
       </div>
       {/* END ADVERTISER: Awin (USD) from awin.com */}
