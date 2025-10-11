@@ -77,7 +77,7 @@ export default function Footer() {
           <div className="flex space-x-5 mt-4 md:mt-0">
             <a href="https://www.facebook.com/shopworkitkenya" aria-label="Facebook" className="hover:text-white"><FaFacebookF /></a>
             <a href="https://www.instagram.com/shopworkitkenya/" aria-label="Instagram" className="hover:text-white"><FaInstagram /></a>
-            <a href="https://www.youtube.com/@shopworkitkenya" aria-label="YouTube" className="hover:text-white"><FaTiktok /></a>
+            {/** <a href="https://www.tiktok.com/@shopworkitkenya" aria-label="TikTok" className="hover:text-white"><FaTiktok /></a> **/}
           </div>
         </div>
       </div>
