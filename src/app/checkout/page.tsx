@@ -40,15 +40,13 @@ export default async function CheckoutPage() {
         src="https://js.paystack.co/v1/inline.js"
         strategy="afterInteractive"
       />
-      <form onSubmit={(e) => e.preventDefault()}>
-        <CheckoutClient
-          user={{
-            id: user.id,
-            name: `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim(),
-            email: user.emailAddresses?.[0]?.emailAddress || "",
-          }}
-        />
-      </form>
+      <CheckoutClient
+        user={{
+          id: user.id,
+          name: `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim(),
+          email: user.emailAddresses?.[0]?.emailAddress || "",
+        }}
+      />
     </>
   )
 }
