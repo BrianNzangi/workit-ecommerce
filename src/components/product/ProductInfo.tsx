@@ -164,7 +164,7 @@ export default function ProductInfo({
         {/* Stock + Qty */}
         <div className="text-green-600 text-lg font-bold">In Stock</div>
         <div className="flex items-center gap-3">
-          <div className="flex items-center border border-gray-300 rounded-sm bg-gray-50">
+          <div className="flex items-center border border-gray-300 rounded-xs bg-gray-50">
             <button
               type="button"
               onClick={() => setQuantity((q) => Math.max(1, q - 1))}

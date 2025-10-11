@@ -26,7 +26,7 @@ export default function UserMenu() {
     <div className="relative flex flex-col items-center">
       <button onClick={() => setIsAuthOpen(!isAuthOpen)} className="flex flex-col items-center">
         <CircleUser className="h-6 w-6" />
-        <span>Account</span>
+        <span className='text-lg font-medium'>Account</span>
       </button>
       {isAuthOpen && (
         <div className="absolute top-10 right-0 w-56 bg-white border border-gray-100 shadow-sm z-10">

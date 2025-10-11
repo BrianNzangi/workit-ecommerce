@@ -143,76 +143,26 @@ export default function ProductPage({
     fetchSimilarItems()
   }, [product, allCategories])
 
-  // Fetch "People Also Viewed" items from all categories the product belongs to
+  // Fetch random "People Also Viewed" items
   useEffect(() => {
     const fetchAlsoViewed = async () => {
       try {
         setAlsoViewedLoading(true)
         setAlsoViewedError(null)
 
-        const productCategories = product.categories || []
-        const allAlsoViewedProducts: Product[] = []
-        const seenIds = new Set<number>()
+        // Fetch random products from the general products endpoint
+        const response = await fetch('/api/products?per_page=20')
+        const data = await response.json()
+        const allProducts = data.products || []
 
-        // First, check if product belongs to android-smartphones collection and prioritize it
-        if (isAndroidSmartphoneProduct(product)) {
-          console.log('Fetching also viewed items from android-smartphones collection for product:', product.name)
-          const response = await fetch(`/api/products/similar?collectionSlug=android-smartphones&excludeProductId=${product.id}&limit=8`)
-          const data = await response.json()
-          const collectionProducts = data.products || []
-          collectionProducts.forEach((prod: Product) => {
-            if (!seenIds.has(prod.id)) {
-              seenIds.add(prod.id)
-              allAlsoViewedProducts.push(prod)
-            }
-          })
-        }
+        // Filter out the current product and shuffle the array
+        const filteredProducts = allProducts.filter((prod: Product) => prod.id !== product.id)
 
-        // Fetch from all other categories the product belongs to
-        for (const category of productCategories) {
-          // Skip android-smartphones if already fetched
-          if (category.slug === 'android-smartphones') continue
+        // Shuffle the array to get random products
+        const shuffledProducts = filteredProducts.sort(() => 0.5 - Math.random())
 
-          console.log('Fetching also viewed items for category:', category.name, '(ID:', category.id + ')')
-
-          try {
-            const response = await fetch(`/api/products/similar?categoryId=${category.id}&excludeProductId=${product.id}&limit=8`)
-            const data = await response.json()
-            const categoryProducts = data.products || []
-            categoryProducts.forEach((prod: Product) => {
-              if (!seenIds.has(prod.id)) {
-                seenIds.add(prod.id)
-                allAlsoViewedProducts.push(prod)
-              }
-            })
-          } catch (error) {
-            console.error(`Error fetching products for category ${category.name}:`, error)
-            // Continue with other categories
-          }
-
-          // Limit to 5 products total
-          if (allAlsoViewedProducts.length >= 5) break
-        }
-
-        // If still no products and no android-smartphones, try L2 category as fallback
-        if (allAlsoViewedProducts.length === 0 && !isAndroidSmartphoneProduct(product)) {
-          const l2Category = findL2Category(product.categories || [], allCategories || [])
-          if (l2Category) {
-            console.log('Fallback: Fetching also viewed items for L2 category:', l2Category.name, '(ID:', l2Category.id + ')')
-            const response = await fetch(`/api/products/similar?categoryId=${l2Category.id}&excludeProductId=${product.id}&limit=8`)
-            const data = await response.json()
-            const l2Products = data.products || []
-            l2Products.forEach((prod: Product) => {
-              if (!seenIds.has(prod.id)) {
-                seenIds.add(prod.id)
-                allAlsoViewedProducts.push(prod)
-              }
-            })
-          }
-        }
-
-        // Limit to 5 products
-        setAlsoViewed(allAlsoViewedProducts.slice(0, 5))
+        // Take the first 5 random products
+        setAlsoViewed(shuffledProducts.slice(0, 5))
       } catch (error) {
         console.error('Error fetching also viewed items:', error)
         setAlsoViewedError('Failed to load also viewed items')
@@ -223,7 +173,7 @@ export default function ProductPage({
     }
 
     fetchAlsoViewed()
-  }, [product, allCategories])
+  }, [product.id])
 
   return (
     <main className="font-['DM_Sans'] mt-8">

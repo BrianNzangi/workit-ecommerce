@@ -108,7 +108,7 @@ export default function MegaMenu() {
           style={{ top: dropdownTop }}
           onMouseLeave={() => setActiveParent(null)}
         >
-          <div className="mx-auto container px-4 py-4">
+          <div className="mx-auto container px-8 py-4">
             {/* Heading */}
             <h3 className="text-medium font-semibold text-[#1F2323] font-[DM_SANS] mb-4">
               Categories
