@@ -75,9 +75,9 @@ export default function Footer() {
         <div className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-8 py-6 flex flex-col md:flex-row items-center justify-between">
           <p className="text-sm text-gray-400">&copy; 2025 Workit. All rights reserved.</p>
           <div className="flex space-x-5 mt-4 md:mt-0">
-            <a href="https://www.facebook.com/shopworkitkenya" aria-label="Facebook" className="hover:text-white"><FaFacebookF /></a>
-            <a href="https://www.instagram.com/shopworkitkenya/" aria-label="Instagram" className="hover:text-white"><FaInstagram /></a>
-            {/** <a href="https://www.tiktok.com/@shopworkitkenya" aria-label="TikTok" className="hover:text-white"><FaTiktok /></a> **/}
+            <a href="https://www.facebook.com/shopworkitkenya" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="hover:text-white"><FaFacebookF /></a>
+            <a href="https://www.instagram.com/shopworkitkenya/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="hover:text-white"><FaInstagram /></a>
+            {/** <a href="https://www.tiktok.com/@shopworkitkenya" target="_blank" rel="noopener noreferrer" aria-label="TikTok" className="hover:text-white"><FaTiktok /></a> **/}
           </div>
         </div>
       </div>
