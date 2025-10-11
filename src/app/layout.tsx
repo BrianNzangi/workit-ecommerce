@@ -43,12 +43,6 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <head>
-          {/* Paystack Inline Script */}
-          <Script
-            src="https://js.paystack.co/v1/inline.js"
-            strategy="afterInteractive"
-          />
-
           {/* JSON-LD SEO */}
           <Script
             id="workit-jsonld"

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { currentUser } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 import CheckoutClient from "@/components/checkout/CheckoutClient"
+import Script from "next/script"
 
 export const metadata: Metadata = {
   title: "Checkout - Workit",
@@ -34,12 +35,20 @@ export default async function CheckoutPage() {
   if (!user) redirect("/sign-in?redirect_url=/checkout")
 
   return (
-    <CheckoutClient
-      user={{
-        id: user.id,
-        name: `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim(),
-        email: user.emailAddresses?.[0]?.emailAddress || "",
-      }}
-    />
+    <>
+      <Script
+        src="https://js.paystack.co/v1/inline.js"
+        strategy="afterInteractive"
+      />
+      <form onSubmit={(e) => e.preventDefault()}>
+        <CheckoutClient
+          user={{
+            id: user.id,
+            name: `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim(),
+            email: user.emailAddresses?.[0]?.emailAddress || "",
+          }}
+        />
+      </form>
+    </>
   )
 }
