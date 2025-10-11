@@ -110,7 +110,7 @@ export default function ProductCard({
           {discount && (
             <div className="absolute top-0.5 left-0.5">
               <span
-                className="inline-block bg-[#92ffff] font-['DM_Sans'] text-[#1F2323] text-xs font-semibold px-2 py-1.5 rounded-sm"
+                className="inline-block bg-secondary-900 font-['DM_Sans'] text-white text-xs font-semibold px-2 py-1.5 rounded-sm"
                 aria-label={`Save ${discount} percent`}
               >
                 {discount}% OFF
@@ -152,7 +152,7 @@ export default function ProductCard({
             {/* Quick add button - always visible on mobile */}
             <button
               onClick={handleAddToCart}
-              className="bg-[#0046BE] text-white p-2 rounded-sm transition-all duration-200 hover:bg-[#e04500] active:scale-95 flex-shrink-0"
+              className="bg-primary-900 text-white py-2 px-2 rounded-full transition-all duration-200 hover:bg-[#e04500] active:scale-95 flex-shrink-0"
               aria-label="Add to cart"
             >
               <ShoppingCart size={16} />

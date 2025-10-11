@@ -19,15 +19,16 @@ import { useCartStore } from '@/store/cartStore';
 import UserMenu from '@/components/menu/UserMenu';
 
 export default function Header() {
-  const [isCartOpen, setIsCartOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const totalQty = useCartStore((state) => state.getTotalQuantity());
+  const isCartOpen = useCartStore((state) => state.isOpen);
+  const closeCart = useCartStore((state) => state.closeCart);
 
   return (
     <header id="site-header">
       {/* Top Bar */}
-      <div className="bg-white font-[DM_SANS] text-[#1F2323]">
+      <div className="bg-primary-900 font-[DM_SANS] text-[#1F2323]">
         <div className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-8 py-4 flex items-center justify-between gap-4 flex-wrap md:flex-nowrap">
           {/* Logo */}
           <Link href="/" className="inline-block relative w-[150px] sm:w-[180px] md:w-[200px] lg:w-[120px] xl:w-[150px] h-auto">
@@ -46,16 +47,16 @@ export default function Header() {
           </div>
 
           {/* Desktop Icons */}
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-6 text-white">
             <UserMenu />
             <button
-              onClick={() => setIsCartOpen(true)}
-              className="relative flex flex-col items-center font-['DM_Sans'] text-md text-black hover:text-primary"
+              onClick={() => useCartStore.getState().openCart()}
+              className="relative flex flex-col items-center font-['DM_Sans'] text-md text-white hover:text-primary"
             >
               <ShoppingBag className="h-6 w-6" />
               <span>Cart</span>
               {totalQty > 0 && (
-                <span className="absolute -top-2 -right-2 bg-[#FB2C36] text-white rounded-full h-5 w-5 flex items-center justify-center font-['DM_Sans'] font-medium text-xs">
+                <span className="absolute -top-2 -right-2 bg-secondary-800 text-white rounded-full h-5 w-5 flex items-center justify-center font-['DM_Sans'] font-medium text-xs">
                   {totalQty}
                 </span>
               )}
@@ -65,7 +66,7 @@ export default function Header() {
           {/* Mobile Hamburger & Cart */}
           <div className="md:hidden flex items-center gap-2">
             <button
-              onClick={() => setIsCartOpen(true)}
+              onClick={() => useCartStore.getState().openCart()}
               className="relative text-black"
             >
               <ShoppingBag className="h-6 w-6" />
@@ -125,13 +126,13 @@ export default function Header() {
       </div>
 
       {/* Row 2: Categories & Links (desktop only) */}
-      <div className="bg-white border-b border-gray-200 hidden md:block">
+      <div className="bg-secondary-900 text-white border-b border-gray-200 hidden md:block">
         <div className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-8 py-4 flex justify-between items-center">
           <MegaMenu />
         </div>
       </div>
 
-      <CartSlide isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+      <CartSlide isOpen={isCartOpen} onClose={closeCart} />
     </header>
   );
 }

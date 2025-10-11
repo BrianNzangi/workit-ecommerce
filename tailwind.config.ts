@@ -1,7 +1,8 @@
-/** @type {import('tailwindcss').Config} */
+import type { Config } from 'tailwindcss';
+
 import defaultTheme from "tailwindcss/defaultTheme";
 
-const config = {
+const config: Config = {
   content: [
     "./app/**/*.{js,ts,jsx,tsx}",
     "./pages/**/*.{js,ts,jsx,tsx}",
@@ -30,8 +31,31 @@ const config = {
     },
     extend: {
       colors: {
-        primary: "#0066ff",
-        secondary: "#1F2323",
+        primary: {
+          900: "#ff5023",
+          800: "#ff6742",
+          700: "#ff7b5a",
+          600: "#ff8d70",
+          500: "#ff9f85",
+          400: "#ffaf99",
+          300: "#ffc0ae",
+          200: "#ffd0c2",
+          100: "#ffe0d6",
+        },
+        secondary: {
+          900: "#1F2323",
+          800: "#323535",
+          700: "#454949",
+          600: "#5a5d5d",
+          500: "#707272",
+          400: "#868888",
+          300: "#9d9f9f",
+          200: "#b5b6b6",
+          100: "#cdcece",
+        },
+        accent: {
+          900: "#1C9737",
+        },
       },
       fontFamily: {
         sans: ['DM Sans', 'sans-serif', ...defaultTheme.fontFamily.sans],

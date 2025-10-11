@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Search } from 'lucide-react';
 import Image from 'next/image';
 
@@ -18,6 +18,20 @@ export default function SearchBar() {
   const [results, setResults] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowResults(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleSearch = async (searchTerm: string) => {
     if (!searchTerm.trim()) {
@@ -57,7 +71,7 @@ export default function SearchBar() {
   };
 
   return (
-    <div className="w-full relative">
+    <div ref={searchRef} className="w-full relative">
       <form onSubmit={handleSubmit} className="w-full">
         <div className="relative w-full">
           <input
@@ -68,7 +82,7 @@ export default function SearchBar() {
             className="
               w-full
               pl-4 pr-4 py-3
-              rounded-full
+              rounded-xs
               border border-gray-300
               bg-gray-100
               focus:outline-none focus:border-secondary

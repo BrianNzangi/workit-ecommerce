@@ -50,6 +50,17 @@ export default function MegaMenu() {
     }
   }, []);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setActiveParent(null);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
   if (loading) return (
     <div className="flex space-x-4">
       {Array.from({ length: 8 }).map((_, i) => (
@@ -75,14 +86,14 @@ export default function MegaMenu() {
             onMouseEnter={() => setActiveParent(parent)}
             className="relative"
           >
-            <div className="inline-flex items-center gap-1 cursor-pointer text-[#1F2323] font-medium hover:text-primary transition whitespace-nowrap">
+            <div className="inline-flex items-center gap-1 cursor-pointer text-white font-medium hover:text-primary transition whitespace-nowrap">
               {he.decode(parent.name)}
               <ChevronDown
                 size={16}
                 className={`transition-transform ${
                   activeParent?.id === parent.id
                     ? 'rotate-180 text-primary'
-                    : 'text-gray-600'
+                    : 'text-white'
                 }`}
               />
             </div>

@@ -55,37 +55,39 @@ export default function CartSlide({ isOpen, onClose }: CartSlideProps) {
             {/* Cart Items */}
             <div className="space-y-5">
               {items.map((item) => (
-                <div key={item.id} className="flex items-center justify-between gap-4">
+                <div key={item.id} className="flex items-start justify-between gap-4">
                   {/* Image */}
-                  <div className="w-16 h-16 relative">
+                  <div className="w-16 h-16 border border-secondary-200 rounded-xs relative">
                     <Image
                       src={item.image}
                       alt={item.name}
                       fill
-                      className="object-cover rounded"
+                      className="object-cover scale-90"
                       sizes="64px"
                     />
                   </div>
 
                   {/* Info */}
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-800 line-clamp-2">
+                  <div className="flex-1 items-start">
+                    <p className="text-sm text-gray-800 line-clamp-2">
                       {item.name}
                     </p>
-                    <p className="text-sm text-gray-600 mt-1">
-                      KES {(item.price * item.quantity).toFixed(2)}
-                    </p>
+                    <div className="flex items-center justify-start gap-4 mt-1">
+                      <p className="text-sm text-secondary-900 font-semibold">
+                        KES {(item.price * item.quantity).toFixed(2)}
+                      </p>
 
-                    <button
-                      onClick={() => removeItem(item.id)}
-                      className="text-xs text-red-500 hover:underline mt-1"
-                    >
-                      Remove
-                    </button>
+                      <button
+                        onClick={() => removeItem(item.id)}
+                        className="text-xs text-red-500 hover:underline"
+                      >
+                        Remove
+                      </button>
+                    </div>
                   </div>
 
                   {/* Controls */}
-                  <div className="flex items-center border rounded px-2 py-1 gap-2">
+                  <div className="flex items-center border border-secondary-300 rounded-xs px-2 py-1 gap-2">
                     <button
                       onClick={() => decreaseQuantity(item.id)}
                       className="text-gray-600 hover:text-black"
@@ -127,7 +129,7 @@ export default function CartSlide({ isOpen, onClose }: CartSlideProps) {
         <Link
           href="/cart"
           onClick={onClose}
-          className="w-full text-center bg-white border border-gray-300 text-gray-800 py-2 rounded-xs text-sm font-[DM_Sans] font-medium hover:bg-gray-50 transition disabled:opacity-50"
+          className="w-full text-center bg-white border border-secondary-300 text-gray-800 py-2 rounded-xs text-sm font-[DM_Sans] font-medium hover:bg-gray-50 transition disabled:opacity-50"
         >
           View Cart
         </Link>
@@ -135,7 +137,7 @@ export default function CartSlide({ isOpen, onClose }: CartSlideProps) {
         <Link
           href="/checkout"
           onClick={onClose}
-          className="w-full text-center bg-black text-white py-2 rounded-xs text-sm font-[DM_Sans] font-semibold hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full text-center bg-primary-900 text-white py-2 rounded-xs text-sm font-[DM_Sans] font-semibold hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ pointerEvents: items.length === 0 ? 'none' : 'auto' }}
         >
           Checkout Now
