@@ -18,6 +18,11 @@ const nextConfig: NextConfig = {
       hostname: 'api.workit.co.ke',
       pathname: '/**',
     },
+    {
+      protocol: 'https',
+      hostname: 'www.awin1.com',
+      pathname: '/**',
+    },
   ],
 },
 
