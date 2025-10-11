@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { SignInButton, SignUpButton } from "@clerk/nextjs";
 
 const HelpHero = () => {
@@ -12,7 +13,7 @@ const HelpHero = () => {
 
           <p className="mb-6 leading-relaxed">
             For faster and more personalized assistance, please contact us directly through your
-            <a href="/sign-in" className="font-bold text-primary-900 hover:underline">Workit account</a> using the <strong>Help</strong>, <strong>Return</strong>, or
+            <Link href="/sign-in" className="font-bold text-primary-900 hover:underline">Workit account</Link> using the <strong>Help</strong>, <strong>Return</strong>, or
             <strong> Warranty</strong> options.
           </p>
 

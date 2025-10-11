@@ -1,12 +1,14 @@
 'use client';
 
+import Image from 'next/image';
+
 export default function AboutWorkit() {
   return (
     <section className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-8 pb-12 font-['DM_SANS']">
       {/* START ADVERTISER: Awin (USD) from awin.com */}
       <div className="flex justify-center gap-6 mb-12">
         <a rel="sponsored" href="https://www.awin1.com/cread.php?s=531761&v=4032&q=173734&r=2523901">
-          <img src="https://www.awin1.com/cshow.php?s=531761&v=4032&q=173734&r=2523901" style={{ border: '0' }} />
+          <Image src="https://www.awin1.com/cshow.php?s=531761&v=4032&q=173734&r=2523901" width={120} height={60} alt="Awin advertiser" style={{ border: '0' }} />
         </a>
       </div>
       {/* END ADVERTISER: Awin (USD) from awin.com */}
