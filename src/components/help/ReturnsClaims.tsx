@@ -24,7 +24,7 @@ const faqs = [
         a: "If the issue is covered by warranty, open a warranty claim from your order page. Provide details and required photos. We'll evaluate and either repair, replace, or refund based on the warranty terms."
       },
       {
-        q: "Workit's 12-Month Warranty and its Exclusions",
+        q: "Workit&#39;s 12-Month Warranty and its Exclusions",
         a: "Workit provides a 12-month limited warranty on qualifying products. The warranty covers manufacturing defects and device faults not caused by misuse. Exclusions include accidental damage, water damage, unauthorized repairs, and cosmetic wear. Check the product page for specific warranty eligibility."
       }
     ]
@@ -46,8 +46,8 @@ const faqs = [
     category: "Refund & Return Policies",
     items: [
       {
-        q: "What is Workit's Refund Policy?",
-        a: "Refunds are issued after we receive and inspect the returned item. Eligible refunds are processed to the original payment method within 5–10 business days from approval. Shipping costs may be deducted if not caused by Workit's error."
+        q: "What is Workit&#39;s Refund Policy?",
+        a: "Refunds are issued after we receive and inspect the returned item. Eligible refunds are processed to the original payment method within 5–10 business days from approval. Shipping costs may be deducted if not caused by Workit&#39;s error."
       },
       {
         q: "What is the 30 Days Return Policy?",
@@ -119,7 +119,7 @@ const ReturnsClaims = () => {
 
         <div className="mt-8">
           <p className="text-gray-700 mb-4">
-            Still need help? Submit a claim or return request through your Workit account. If you don't have an account,
+            Still need help? Submit a claim or return request through your Workit account. If you don&#39;t have an account,
             please contact our support team at <a href="mailto:support@workit.co.ke" className="text-primary-800">support@workit.co.ke</a>.
           </p>
         </div>
