@@ -34,8 +34,8 @@ export default function Footer() {
           <h3 className="text-white font-semibold mb-4">HELP</h3>
           <ul className="space-y-2 text-sm">
             <li><a href="#" className="hover:text-white">Track My Order</a></li>
-            <li><a href="#" className="hover:text-white">Help Center</a></li>
-            <li><a href="#" className="hover:text-white">Returns & Claims</a></li>
+            <li><a href="/help-center" className="hover:text-white">Help Center</a></li>
+            <li><a href="" className="hover:text-white">Returns & Claims</a></li>
             <li><a href="#" className="hover:text-white">Contact Us</a></li>
             <li>
               <button className="mt-2 w-36 bg-white text-black text-sm font-medium py-2 px-4 rounded hover:bg-gray-200 transition">

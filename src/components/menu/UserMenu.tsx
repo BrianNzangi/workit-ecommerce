@@ -29,7 +29,7 @@ export default function UserMenu() {
         <span className='text-lg font-medium'>Account</span>
       </button>
       {isAuthOpen && (
-        <div className="absolute top-10 right-0 w-56 bg-white border border-gray-100 shadow-sm z-10">
+        <div className="absolute top-12 right-0 w-56 text-secondary-900 bg-white border border-gray-100 shadow-sm z-10">
           <SignedOut>
             <SignInButton mode="modal">
               <button className="block w-full text-left p-2 hover:bg-gray-100">Sign In</button>
@@ -37,7 +37,7 @@ export default function UserMenu() {
             <SignUpButton mode="modal">
               <button className="block w-full text-left p-2 hover:bg-gray-100">Sign Up</button>
             </SignUpButton>
-            <Link href="/help" className="block w-full text-left p-2 hover:bg-gray-100">Help & Support</Link>
+            <Link href="/help-center" className="block w-full text-left p-2 hover:bg-gray-100">Help & Support</Link>
           </SignedOut>
           <SignedIn>
             <div className="border-b border-gray-200 mb-2 flex items-center justify-start gap-2 px-4 py-3">
