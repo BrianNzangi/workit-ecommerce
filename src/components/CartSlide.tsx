@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { X, Minus, Plus, ShoppingCart, Trash2 } from 'lucide-react';
-import { useCartStore } from '@/store/cartStore';
+import { useVendureCart } from '@/hooks/useVendureCart';
 
 interface CartSlideProps {
   isOpen: boolean;
@@ -12,14 +12,12 @@ interface CartSlideProps {
 
 export default function CartSlide({ isOpen, onClose }: CartSlideProps) {
   const {
-    items,
+    cart,
+    loading,
     increaseQuantity,
     decreaseQuantity,
     removeItem,
-    clearCart,
-  } = useCartStore();
-
-  const cartTotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  } = useVendureCart();
 
   return (
     <div
@@ -36,7 +34,7 @@ export default function CartSlide({ isOpen, onClose }: CartSlideProps) {
 
       {/* Body */}
       <div className="p-5 h-[calc(100%-64px)] overflow-y-auto">
-        {items.length === 0 ? (
+        {cart.items.length === 0 ? (
           <div className="text-center text-gray-600 mt-10">
             <ShoppingCart className="w-12 h-12 mx-auto text-gray-300 mb-3" />
             <p className="text-md font-[DM_Sans] font-medium">Your cart is empty</p>
@@ -54,17 +52,19 @@ export default function CartSlide({ isOpen, onClose }: CartSlideProps) {
 
             {/* Cart Items */}
             <div className="space-y-5">
-              {items.map((item) => (
-                <div key={item.id} className="flex items-start justify-between gap-4">
+              {cart.items.map((item) => (
+                <div key={item.lineId} className="flex items-start justify-between gap-4">
                   {/* Image */}
                   <div className="w-16 h-16 border border-secondary-200 rounded-xs relative">
-                    <Image
-                      src={item.image}
-                      alt={item.name}
-                      fill
-                      className="object-cover scale-90"
-                      sizes="64px"
-                    />
+                    {item.image && (
+                      <Image
+                        src={item.image}
+                        alt={item.name}
+                        fill
+                        className="object-cover scale-90"
+                        sizes="64px"
+                      />
+                    )}
                   </div>
 
                   {/* Info */}
@@ -74,12 +74,13 @@ export default function CartSlide({ isOpen, onClose }: CartSlideProps) {
                     </p>
                     <div className="flex items-center justify-start gap-4 mt-1">
                       <p className="text-sm text-secondary-900 font-semibold">
-                        KES {(item.price * item.quantity).toFixed(2)}
+                        KES {(item.priceWithTax * item.quantity).toFixed(2)}
                       </p>
 
                       <button
-                        onClick={() => removeItem(item.id)}
+                        onClick={() => removeItem(item.lineId)}
                         className="text-xs text-red-500 hover:underline"
+                        disabled={loading}
                       >
                         Remove
                       </button>
@@ -89,15 +90,17 @@ export default function CartSlide({ isOpen, onClose }: CartSlideProps) {
                   {/* Controls */}
                   <div className="flex items-center border border-secondary-300 rounded-xs px-2 py-1 gap-2">
                     <button
-                      onClick={() => decreaseQuantity(item.id)}
-                      className="text-gray-600 hover:text-black"
+                      onClick={() => decreaseQuantity(item.lineId)}
+                      className="text-gray-600 hover:text-black disabled:opacity-50"
+                      disabled={loading}
                     >
                       <Minus className="w-4 h-4" />
                     </button>
                     <span className="text-sm font-medium">{item.quantity}</span>
                     <button
-                      onClick={() => increaseQuantity(item.id)}
-                      className="text-gray-600 hover:text-black"
+                      onClick={() => increaseQuantity(item.lineId)}
+                      className="text-gray-600 hover:text-black disabled:opacity-50"
+                      disabled={loading}
                     >
                       <Plus className="w-4 h-4" />
                     </button>
@@ -106,18 +109,10 @@ export default function CartSlide({ isOpen, onClose }: CartSlideProps) {
               ))}
             </div>
 
-            {/* Cart Total & Clear Button */}
-            <div className="mt-8 px-1 flex justify-between items-center">
-              <button
-                onClick={clearCart}
-                className="flex items-center gap-2 text-sm text-red-500 hover:underline font-[DM_Sans]"
-                disabled={items.length === 0}
-              >
-                <Trash2 className="w-4 h-4" />
-                Clear
-              </button>
+            {/* Cart Total */}
+            <div className="mt-8 px-1 flex justify-end items-center">
               <p className="text-base text-gray-800 font-semibold">
-                Total: KES {cartTotal.toFixed(2)}
+                Total: KES {cart.total.toFixed(2)}
               </p>
             </div>
           </>
@@ -138,7 +133,7 @@ export default function CartSlide({ isOpen, onClose }: CartSlideProps) {
           href="/checkout"
           onClick={onClose}
           className="w-full text-center bg-primary-900 text-white py-2 rounded-xs text-sm font-[DM_Sans] font-semibold hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{ pointerEvents: items.length === 0 ? 'none' : 'auto' }}
+          style={{ pointerEvents: cart.items.length === 0 ? 'none' : 'auto' }}
         >
           Checkout Now
         </Link>
