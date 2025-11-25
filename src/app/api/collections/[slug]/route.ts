@@ -1,38 +1,55 @@
 // src/app/api/collections/[slug]/route.ts
 import { NextRequest } from 'next/server';
-import woo from '@/lib/woocommerce';
+import { vendureClient } from '@/lib/vendure-client';
+import { GET_COLLECTION_BY_SLUG } from '@/lib/vendure-queries';
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
   try {
-    // Step 1: Get the category by slug
-    const categoryRes = await woo.get('products/categories', { params: { slug } });
-    const category = categoryRes.data?.[0];
+    // Fetch collection from Vendure
+    const { data } = await vendureClient.query({
+      query: GET_COLLECTION_BY_SLUG,
+      variables: {
+        slug,
+        options: {
+          take: 12,
+        },
+      },
+    }) as { data: any };
 
-    if (!category) {
-      return new Response(JSON.stringify({ error: 'Category not found' }), { status: 404 });
+    const collection = data.collection;
+
+    if (!collection) {
+      return new Response(JSON.stringify({ error: 'Collection not found' }), { status: 404 });
     }
 
-    // Step 2: Fetch child categories (L2)
-    const childrenRes = await woo.get('products/categories', { params: { parent: category.id } });
-    const children = childrenRes.data || [];
+    // Transform product variants to product format for compatibility
+    const products = collection.productVariants.items.map((variant: any) => ({
+      id: variant.product.id,
+      name: variant.product.name,
+      slug: variant.product.slug,
+      images: variant.product.featuredAsset ? [{ src: variant.product.featuredAsset.preview }] : [],
+      price: (variant.priceWithTax / 100).toString(),
+      regular_price: (variant.price / 100).toString(),
+      variants: [variant],
+    }));
 
-    // Step 3: Determine which category to fetch products from:
-    // - If there are children (L2), take the first L2
-    // - Otherwise, use the parent category
-    const targetCategoryId = children.length > 0 ? children[0].id : category.id;
-
-    // Step 4: Fetch products for the target category
-    const productRes = await woo.get('products', {
-      params: { category: targetCategoryId, per_page: 12 },
-    });
-
-    // Step 5: Return both L2 info and products
+    // Return collection info and products
     return new Response(JSON.stringify({
-      parentCategory: category,
-      childCategories: children,
-      products: productRes.data,
+      parentCategory: {
+        id: collection.id,
+        name: collection.name,
+        slug: collection.slug,
+        description: collection.description,
+        image: collection.featuredAsset ? { src: collection.featuredAsset.preview } : null,
+      },
+      childCategories: collection.children.map((child: any) => ({
+        id: child.id,
+        name: child.name,
+        slug: child.slug,
+      })),
+      products,
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
