@@ -2,7 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { Heart, ShoppingCart } from 'lucide-react'
-import { useCartStore } from '@/store/cartStore'
+import { useVendureCart } from '@/hooks/useVendureCart'
 import { Product } from '@/types/product'
 
 export default function ProductCard({
@@ -15,11 +15,15 @@ export default function ProductCard({
   images,
   image,
   variations,
+  variants,
 }: Product) {
   let displayPrice = Number(price) || 0
   let displayRegular: number | null = regular_price
     ? Number(regular_price)
     : null
+
+  // Get the first variant ID for Vendure
+  const variantId = variants?.[0]?.id || variations?.[0]?.id || id
 
   // ✅ Handle variable products
   if (type === 'variable' && variations?.length) {
@@ -46,24 +50,18 @@ export default function ProductCard({
       ? Math.round(((displayRegular - displayPrice) / displayRegular) * 100)
       : null
 
-  const addItem = useCartStore((state) => state.addItem)
-  const openCart = useCartStore((state) => state.openCart)
+  const { addItem, loading } = useVendureCart()
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault()
-    addItem({
-      id: id.toString(),
-      name: name || 'Product',
-      price: displayPrice,
-      image:
-        image ||
-        images?.[0]?.src ||
-        variations?.[0]?.image?.src ||
-        'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+Cjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5Q0E0QUYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5ObyBJbWFnZTwvdGV4dD4KPHN2Zz4=',
-      quantity: 1,
-    })
-    openCart()
-    toast.success('Added to cart')
+
+    const result = await addItem(variantId.toString(), 1)
+
+    if (result.success) {
+      toast.success('Added to cart')
+    } else {
+      toast.error(result.error || 'Failed to add to cart')
+    }
   }
 
   const handleAddToWishlist = (e: React.MouseEvent) => {
@@ -152,7 +150,8 @@ export default function ProductCard({
             {/* Quick add button - always visible on mobile */}
             <button
               onClick={handleAddToCart}
-              className="bg-primary-900 text-white py-2 px-2 rounded-full transition-all duration-200 hover:bg-[#e04500] active:scale-95 flex-shrink-0"
+              disabled={loading}
+              className="bg-primary-900 text-white py-2 px-2 rounded-full transition-all duration-200 hover:bg-[#e04500] active:scale-95 flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label="Add to cart"
             >
               <ShoppingCart size={16} />
