@@ -1,77 +1,114 @@
-"use client";
+'use client';
 
 import { useState } from 'react';
-import {
-  SignInButton,
-  SignUpButton,
-  UserButton,
-  SignedIn,
-  SignedOut,
-  useUser,
-} from '@clerk/nextjs';
 import Link from 'next/link';
-import { CircleUser } from 'lucide-react';
+import { CircleUser, ChevronDown } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function UserMenu() {
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const { user } = useUser();
+  const [isOpen, setIsOpen] = useState(false);
+  const { customer, logout } = useAuth();
 
-  const handleDashboardNavigation = (section: string) => {
-    // Navigate to dashboard with section parameter
-    window.location.href = `/dashboard?section=${section}`;
-    setIsAuthOpen(false);
+  const handleLogout = async () => {
+    await logout();
+    setIsOpen(false);
   };
 
   return (
-    <div className="relative flex flex-col items-center">
-      <button onClick={() => setIsAuthOpen(!isAuthOpen)} className="flex flex-col items-center">
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 text-white hover:text-primary transition"
+      >
         <CircleUser className="h-6 w-6" />
-        <span className='text-lg font-medium'>Account</span>
+        <span className="text-lg font-medium hidden lg:inline">
+          {customer ? `${customer.firstName}` : 'Account'}
+        </span>
+        <ChevronDown className="h-4 w-4 hidden lg:inline" />
       </button>
-      {isAuthOpen && (
-        <div className="absolute top-12 right-0 w-56 text-secondary-900 bg-white border border-gray-100 shadow-sm z-10">
-          <SignedOut>
-            <SignInButton mode="modal">
-              <button className="block w-full text-left p-2 hover:bg-gray-100">Sign In</button>
-            </SignInButton>
-            <SignUpButton mode="modal">
-              <button className="block w-full text-left p-2 hover:bg-gray-100">Sign Up</button>
-            </SignUpButton>
-            <Link href="/help-center" className="block w-full text-left p-2 hover:bg-gray-100">Help & Support</Link>
-          </SignedOut>
-          <SignedIn>
-            <div className="border-b border-gray-200 mb-2 flex items-center justify-start gap-2 px-4 py-3">
-              <UserButton />
-              <div className="text-sm font-medium text-gray-700">
-                {user?.firstName ? `${user.firstName}'s Account` : 'My Account'}
-              </div>
-            </div>
-            <button
-              onClick={() => handleDashboardNavigation('dashboard')}
-              className="block w-full text-left px-4 py-3 hover:bg-gray-100 text-sm"
-            >
-              My Dashboard
-            </button>
-            <button
-              onClick={() => handleDashboardNavigation('orders')}
-              className="block w-full text-left px-4 py-3 hover:bg-gray-100 text-sm"
-            >
-              Order History
-            </button>
-            <button
-              onClick={() => handleDashboardNavigation('track-order')}
-              className="block w-full text-left px-4 py-3 hover:bg-gray-100 text-sm"
-            >
-              Track Order
-            </button>
-            <button
-              onClick={() => handleDashboardNavigation('settings')}
-              className="block w-full text-left px-4 py-3 hover:bg-gray-100 text-sm"
-            >
-              Account Settings
-            </button>
-          </SignedIn>
-        </div>
+
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-10"
+            onClick={() => setIsOpen(false)}
+          />
+
+          {/* Dropdown Menu */}
+          <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20">
+            {customer ? (
+              <>
+                <div className="px-4 py-2 border-b border-gray-100">
+                  <p className="text-sm font-medium text-gray-900">
+                    {customer.firstName} {customer.lastName}
+                  </p>
+                  <p className="text-xs text-gray-500 truncate">
+                    {customer.emailAddress}
+                  </p>
+                </div>
+                <Link
+                  href="/dashboard"
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  onClick={() => setIsOpen(false)}
+                >
+                  My Account
+                </Link>
+                <Link
+                  href="/orders"
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Orders
+                </Link>
+                <Link
+                  href="/help"
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Help & Support
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/sign-in"
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/sign-up"
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Sign Up
+                </Link>
+                <Link
+                  href="/help"
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Help & Support
+                </Link>
+                <Link
+                  href="/about"
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  onClick={() => setIsOpen(false)}
+                >
+                  About
+                </Link>
+              </>
+            )}
+          </div>
+        </>
       )}
     </div>
   );
