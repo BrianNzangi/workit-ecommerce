@@ -1,63 +1,51 @@
 // src/app/api/blogs/route.ts
 import { NextResponse } from 'next/server';
-import axios from 'axios';
 import { Blog } from '@/types/blog';
 
-const WORDPRESS_API =
-  process.env.WORDPRESS_API_URL || 'https://your-wordpress-site.com/wp-json/wp/v2';
+// Placeholder blog data until WordPress integration is set up
+const PLACEHOLDER_BLOGS: Blog[] = [
+  {
+    id: 1,
+    title: 'Top 10 Smartphones of 2024',
+    slug: 'top-10-smartphones-2024',
+    link: '/blog/top-10-smartphones-2024',
+    category: 'Technology',
+    categories: ['Technology', 'Smartphones'],
+    image: '/placeholder-blog.jpg',
+    content: '<p>Discover the best smartphones of 2024...</p>',
+    date: new Date().toISOString(),
+  },
+  {
+    id: 2,
+    title: 'How to Choose the Perfect Laptop',
+    slug: 'how-to-choose-perfect-laptop',
+    link: '/blog/how-to-choose-perfect-laptop',
+    category: 'Guides',
+    categories: ['Guides', 'Laptops'],
+    image: '/placeholder-blog.jpg',
+    content: '<p>A comprehensive guide to choosing your next laptop...</p>',
+    date: new Date().toISOString(),
+  },
+  {
+    id: 3,
+    title: 'Smart Home Devices You Need',
+    slug: 'smart-home-devices-you-need',
+    link: '/blog/smart-home-devices-you-need',
+    category: 'Smart Home',
+    categories: ['Smart Home', 'Technology'],
+    image: '/placeholder-blog.jpg',
+    content: '<p>Transform your home with these smart devices...</p>',
+    date: new Date().toISOString(),
+  },
+];
 
 export async function GET() {
   try {
-    // Fetch latest 10 posts with necessary fields
-    const res = await axios.get(
-      `${WORDPRESS_API}/posts?_fields=id,title,slug,link,featured_media,categories,date,content&per_page=10&_embed`
-    );
-    const posts = res.data;
-
-    if (!Array.isArray(posts)) return NextResponse.json([], { status: 200 });
-
-    // Fetch featured images and category names
-    const blogs: Blog[] = await Promise.all(
-      posts.map(async (p: any) => {
-        // Get featured image
-        const image = p._embedded?.['wp:featuredmedia']?.[0]?.source_url ||
-                      (p.featured_media
-                        ? await axios.get(`${WORDPRESS_API}/media/${p.featured_media}`)
-                            .then(r => r.data.source_url)
-                            .catch(() => '/placeholder.png')
-                        : '/placeholder.png');
-
-        // Get category names
-        const categories: string[] = p.categories?.length
-          ? await Promise.all(
-              p.categories.map((catId: number) =>
-                axios.get(`${WORDPRESS_API}/categories/${catId}`)
-                  .then(r => r.data.name)
-                  .catch(() => 'Uncategorized')
-              )
-            )
-          : ['Uncategorized'];
-
-        return {
-          id: p.id,
-          title: p.title.rendered || 'Untitled',
-          slug: p.slug || '',
-          link: p.link || '',
-          category: categories[0],   // main category (first)
-          categories,                // all categories
-          image,
-          content: p.content?.rendered || '',
-          date: p.date,              // ISO string for sorting
-        };
-      })
-    );
-
-    // Optional: sort by date descending
-    blogs.sort((a, b) => new Date(b.date!).getTime() - new Date(a.date!).getTime());
-
-    return NextResponse.json(blogs, { status: 200 });
+    // Return placeholder blogs
+    // TODO: Replace with actual WordPress API integration when ready
+    return NextResponse.json(PLACEHOLDER_BLOGS, { status: 200 });
   } catch (err) {
     console.error('Error fetching blogs:', err);
-    return NextResponse.json({ error: 'Failed to fetch blogs' }, { status: 500 });
+    return NextResponse.json([], { status: 200 }); // Return empty array instead of error
   }
 }

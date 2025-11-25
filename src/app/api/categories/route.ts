@@ -1,16 +1,36 @@
-// E:\Projects\workit\src\app\api\categories\route.ts
 import { NextResponse } from "next/server";
-import woo from "@/lib/woocommerce";
+import { vendureClient } from "@/lib/vendure-client";
+import { gql } from "@apollo/client";
 
 interface Category {
-  id: number;
+  id: string;
   name: string;
   slug: string;
-  parent: number;
+  parent?: string;
   count: number;
   description?: string;
   children?: Category[];
 }
+
+// GraphQL query to fetch collections (categories in Vendure)
+const GET_COLLECTIONS = gql`
+  query GetCollections {
+    collections {
+      items {
+        id
+        name
+        slug
+        description
+        parent {
+          id
+        }
+        productVariants {
+          totalItems
+        }
+      }
+    }
+  }
+`;
 
 // In-memory cache
 let cachedCategories: Category[] | null = null;
@@ -26,23 +46,34 @@ export async function GET() {
   }
 
   try {
-    // Fetch all categories from WooCommerce (per_page may need to be increased if >100 categories)
-    const res = await woo.get("products/categories", { params: { per_page: 100 } });
-    const flatCategories: Category[] = res.data;
+    // Fetch all collections from Vendure
+    const { data } = await vendureClient.query({
+      query: GET_COLLECTIONS,
+    }) as { data: any };
 
-    // Map ID → Category with empty children array
-    const categoryMap: Record<number, Category> = {};
-    flatCategories.forEach((cat) => {
-      categoryMap[cat.id] = { ...cat, children: [] };
+    const collections = data.collections.items;
+
+    // Transform Vendure collections to category format
+    const categoryMap: Record<string, Category> = {};
+    collections.forEach((col: any) => {
+      categoryMap[col.id] = {
+        id: col.id,
+        name: col.name,
+        slug: col.slug,
+        parent: col.parent?.id,
+        count: col.productVariants?.totalItems || 0,
+        description: col.description,
+        children: [],
+      };
     });
 
     // Nest children correctly
     const nestedCategories: Category[] = [];
-    flatCategories.forEach((cat) => {
-      if (cat.parent && categoryMap[cat.parent]) {
-        categoryMap[cat.parent].children!.push(categoryMap[cat.id]);
+    collections.forEach((col: any) => {
+      if (col.parent?.id && categoryMap[col.parent.id]) {
+        categoryMap[col.parent.id].children!.push(categoryMap[col.id]);
       } else {
-        nestedCategories.push(categoryMap[cat.id]);
+        nestedCategories.push(categoryMap[col.id]);
       }
     });
 
@@ -52,7 +83,8 @@ export async function GET() {
 
     return NextResponse.json(nestedCategories);
   } catch (error) {
-    console.error("Error fetching categories:", error);
-    return NextResponse.json({ error: "Failed to fetch categories" }, { status: 500 });
+    console.error("Error fetching categories from Vendure:", error);
+    // Return empty array instead of error to prevent UI breakage
+    return NextResponse.json([]);
   }
 }

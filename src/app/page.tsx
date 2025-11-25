@@ -32,14 +32,22 @@ export const metadata: Metadata = {
 };
 
 export default async function Home() {
+  // Use correct port for development
   const baseUrl = process.env.NODE_ENV === 'development'
-    ? 'http://localhost:3000'
+    ? 'http://localhost:3001'  // Storefront runs on 3001
     : 'https://workit.co.ke';
 
   const fetchCollection = async (slug: string): Promise<CollectionType> => {
     try {
-      const res = await fetch(`${baseUrl}/api/home-collection?slug=${slug}`, { next: { revalidate: 60 } });
-      if (!res.ok) throw new Error(`Failed to fetch collection ${slug}`);
+      const res = await fetch(`${baseUrl}/api/home-collection?slug=${slug}`, {
+        next: { revalidate: 60 },
+        cache: 'no-store' // Don't cache during development
+      });
+
+      if (!res.ok) {
+        console.warn(`Collection ${slug} not found, will be hidden`);
+        return { title: slug.replace(/-/g, ' '), slug, products: [] };
+      }
 
       const text = await res.text();
       let data;
@@ -47,8 +55,7 @@ export default async function Home() {
         data = JSON.parse(text);
       } catch (jsonErr) {
         console.error(`Failed to parse JSON for slug: ${slug}`, jsonErr);
-        console.log('Raw response:', text.substring(0, 500));
-        throw new Error(`Invalid JSON response for ${slug}`);
+        return { title: slug.replace(/-/g, ' '), slug, products: [] };
       }
 
       // Ensure the returned structure matches our type
@@ -86,12 +93,13 @@ export default async function Home() {
       {/* Top Categories */}
       <TopCategoriesGrid />
 
-      {/* Homepage collections */}
-      <HomepageCollection {...featuredDeals} />
-      <HomepageCollection {...popularDevices} />
-      <HomepageCollection {...recommended} />
-      <HomepageCollection {...popularElectronics} />
-      <HomepageCollection {...latestAppliances} />
+      {/* Homepage collections - only show if they have products */}
+      {featuredDeals.products.length > 0 && <HomepageCollection {...featuredDeals} />}
+      {popularDevices.products.length > 0 && <HomepageCollection {...popularDevices} />}
+      {recommended.products.length > 0 && <HomepageCollection {...recommended} />}
+      {popularElectronics.products.length > 0 && <HomepageCollection {...popularElectronics} />}
+      {latestAppliances.products.length > 0 && <HomepageCollection {...latestAppliances} />}
+
       <FeaturedBlogs />
       <AboutWorkit />
 
