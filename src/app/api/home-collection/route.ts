@@ -1,7 +1,41 @@
 // src/app/api/home-collection/route.ts
 import { NextResponse } from 'next/server';
-import woo from '@/lib/woocommerce';
+import { vendureClient } from '@/lib/vendure-client';
+import { gql } from '@apollo/client';
 import { Product, HomepageCollection } from '@/types/product';
+
+// GraphQL query to fetch a collection with its products
+const GET_COLLECTION_WITH_PRODUCTS = gql`
+  query GetCollectionWithProducts($slug: String!) {
+    collection(slug: $slug) {
+      id
+      name
+      slug
+      description
+      productVariants(options: { take: 20 }) {
+        items {
+          id
+          name
+          sku
+          price
+          priceWithTax
+          currencyCode
+          product {
+            id
+            name
+            slug
+            description
+            featuredAsset {
+              id
+              preview
+              source
+            }
+          }
+        }
+      }
+    }
+  }
+`;
 
 // Simple in-memory cache
 let cachedCollections: Record<string, HomepageCollection> = {};
@@ -17,61 +51,53 @@ const COLLECTION_SLUGS = [
   'latest-appliances',
 ];
 
-// Map slug -> category ID
-const categoryMap: Record<string, number> = {};
-
-async function fetchCategoryMap() {
-  if (Object.keys(categoryMap).length) return categoryMap;
-
+async function fetchCollectionFromVendure(slug: string): Promise<HomepageCollection> {
   try {
-    const res = await woo.get('products/categories', { params: { per_page: 100 } });
-    if (res.data && Array.isArray(res.data)) {
-      res.data.forEach((cat: any) => {
-        // Only parent categories that match COLLECTION_SLUGS
-        if (cat.parent === 0 && COLLECTION_SLUGS.includes(cat.slug)) {
-          categoryMap[cat.slug] = cat.id;
-        }
-      });
-    } else {
-      console.error('Invalid categories response:', res.data);
-    }
-  } catch (error) {
-    console.error('Error fetching categories:', error);
-  }
+    const { data } = await vendureClient.query({
+      query: GET_COLLECTION_WITH_PRODUCTS,
+      variables: { slug },
+      fetchPolicy: 'network-only', // Always fetch fresh data
+    }) as { data: any };
 
-  return categoryMap;
-}
-
-async function fetchProductsByCategoryId(categoryId: number): Promise<Product[]> {
-  try {
-    const res = await woo.get('products', { params: { category: categoryId, per_page: 20 } });
-    if (res.data && Array.isArray(res.data)) {
-      return res.data.map((p: any) => ({
-        id: p.id,
-        name: p.name,
-        slug: p.slug,
-        type: p.type || 'simple',
-        link: p.permalink,
-        price: p.price,
-        regular_price: p.regular_price,
-        image: p.images?.[0]?.src || '',
-        attributes: p.attributes?.map((a: any) => ({
-          id: a.id,
-          name: a.name,
-          slug: a.slug,
-          options: a.options || [],
-        })),
-        tags: p.tags?.map((t: any) => ({ id: t.id, name: t.name, slug: t.slug })),
-        stock_status: p.stock_status,
-        on_sale: p.on_sale,
-      }));
-    } else {
-      console.error('Invalid products response for category', categoryId, ':', res.data);
-      return [];
+    if (!data.collection) {
+      console.warn(`Collection ${slug} not found in Vendure`);
+      return {
+        title: slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+        slug,
+        products: [],
+      };
     }
+
+    const collection = data.collection;
+
+    // Transform Vendure product variants to our Product type
+    const products: Product[] = collection.productVariants.items.map((variant: any) => ({
+      id: parseInt(variant.product.id),
+      name: variant.product.name,
+      slug: variant.product.slug,
+      type: 'simple',
+      link: `/product/${variant.product.slug}`,
+      price: (variant.priceWithTax / 100).toString(), // Convert from cents
+      regular_price: (variant.price / 100).toString(),
+      image: variant.product.featuredAsset?.preview || '',
+      images: variant.product.featuredAsset ? [{ src: variant.product.featuredAsset.preview }] : [],
+      stock_status: 'instock',
+      on_sale: variant.priceWithTax < variant.price,
+      variants: [{ id: variant.id }], // Store variant ID for cart
+    }));
+
+    return {
+      title: collection.name,
+      slug: collection.slug,
+      products,
+    };
   } catch (error) {
-    console.error('Error fetching products for category', categoryId, ':', error);
-    return [];
+    console.error(`Error fetching collection ${slug} from Vendure:`, error);
+    return {
+      title: slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+      slug,
+      products: [],
+    };
   }
 }
 
@@ -79,50 +105,46 @@ export async function GET(req: Request) {
   const now = Date.now();
   const { searchParams } = new URL(req.url);
   const slug = searchParams.get('slug');
-  
+
   // Check if cache is expired
   const isCacheExpired = now - cacheTimestamp >= CACHE_TTL;
-  
+
   try {
-    const map = await fetchCategoryMap();
-    
     if (slug) {
       // Single collection fetch
-      if (!map[slug]) {
-        return NextResponse.json({ title: slug, slug, products: [] });
-      }
-      
       // Only use cached version if cache is still valid
       if (!isCacheExpired && cachedCollections[slug]) {
         return NextResponse.json(cachedCollections[slug]);
       }
-      
-      // Fetch fresh data
-      const products = await fetchProductsByCategoryId(map[slug]);
-      cachedCollections[slug] = { title: slug.replace(/-/g, ' '), slug, products };
-      cacheTimestamp = now; // Update timestamp for single collection too
-      
-      return NextResponse.json(cachedCollections[slug]);
+
+      // Fetch fresh data from Vendure
+      const collection = await fetchCollectionFromVendure(slug);
+      cachedCollections[slug] = collection;
+      cacheTimestamp = now;
+
+      return NextResponse.json(collection);
     }
-    
+
     // Fetch all homepage collections
     if (isCacheExpired || Object.keys(cachedCollections).length === 0) {
       // Clear cache and refetch all
       cachedCollections = {};
-      
-      for (const s of COLLECTION_SLUGS) {
-        if (!map[s]) continue; // skip if category not found in WP
-        const products = await fetchProductsByCategoryId(map[s]);
-        cachedCollections[s] = { title: s.replace(/-/g, ' '), slug: s, products };
-      }
-      
+
+      // Fetch all collections in parallel
+      const collectionPromises = COLLECTION_SLUGS.map(s => fetchCollectionFromVendure(s));
+      const collections = await Promise.all(collectionPromises);
+
+      collections.forEach((collection, index) => {
+        cachedCollections[COLLECTION_SLUGS[index]] = collection;
+      });
+
       cacheTimestamp = now;
     }
-    
+
     const collections: HomepageCollection[] = COLLECTION_SLUGS
       .filter(s => cachedCollections[s])
       .map(s => cachedCollections[s]);
-    
+
     return NextResponse.json(collections);
   } catch (err) {
     console.error('Error fetching homepage collections:', err);
