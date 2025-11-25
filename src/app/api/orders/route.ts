@@ -1,54 +1,55 @@
 // src/app/api/orders/route.ts
-import { NextResponse } from 'next/server';
-import { auth, currentUser } from '@clerk/nextjs/server';
-import { getWooCommerceCustomerByEmail, getWooCommerceOrdersByCustomer } from '@/lib/woocommerce';
+import { NextRequest, NextResponse } from 'next/server';
+import { vendureClient } from '@/lib/vendure-client';
+import { GET_CUSTOMER_ORDERS } from '@/lib/vendure-queries';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const { userId } = await auth();
-    const user = await currentUser();
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const perPage = parseInt(searchParams.get('per_page') || '10');
 
-    if (!userId || !user) {
+    const skip = (page - 1) * perPage;
+
+    const { data } = await vendureClient.query({
+      query: GET_CUSTOMER_ORDERS,
+      variables: {
+        options: {
+          take: perPage,
+          skip,
+        },
+      },
+    }) as { data: any };
+
+    if (!data.activeCustomer) {
       return NextResponse.json({
         success: false,
-        error: 'Authentication required',
+        error: 'Not authenticated',
+        orders: [],
       }, { status: 401 });
     }
 
-    // Get WooCommerce customer by email
-    const customer = await getWooCommerceCustomerByEmail(user.primaryEmailAddress?.emailAddress || '');
-
-    if (!customer) {
-      // No customer found, return empty orders
-      return NextResponse.json({
-        success: true,
-        orders: [],
-      });
-    }
-
-    // Fetch orders for this customer
-    const wcOrders = await getWooCommerceOrdersByCustomer(customer.id);
-
-    // Transform WooCommerce orders to match the expected format
-    const orders = wcOrders.map((order: any) => ({
-      id: order.id.toString(),
-      date_created: order.date_created,
-      status: order.status,
-      total: order.total,
-      currency: order.currency,
-      line_items: order.line_items.map((item: any) => ({
-        name: item.name,
-        quantity: item.quantity,
-        price: item.price,
+    const orders = data.activeCustomer.orders.items.map((order: any) => ({
+      id: order.id,
+      order_key: order.code,
+      status: order.state.toLowerCase(),
+      total: (order.totalWithTax / 100).toString(),
+      currency: order.currencyCode,
+      date_created: order.createdAt,
+      line_items: order.lines.map((line: any) => ({
+        name: line.productVariant.product.name,
+        quantity: line.quantity,
+        image: line.productVariant.product.featuredAsset?.preview,
       })),
     }));
 
     return NextResponse.json({
       success: true,
       orders,
+      total: data.activeCustomer.orders.totalItems,
     });
   } catch (error) {
-    console.error('Orders fetch error:', error);
+    console.error('Error fetching orders from Vendure:', error);
     return NextResponse.json({
       success: false,
       error: 'Failed to fetch orders',
