@@ -39,24 +39,22 @@ export default function RootLayout({
   };
 
   return (
-    <ClerkProvider>
-      <html lang="en">
-        <head>
-          {/* JSON-LD SEO */}
-          <Script
-            id="workit-jsonld"
-            type="application/ld+json"
-            strategy="afterInteractive"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-          />
-        </head>
-        <body className="font-sans flex flex-col min-h-screen">
-          <Header />
-          <main className="flex-grow">{children}</main>
-          <Footer />
-          <Toaster position="top-right" />
-        </body>
-      </html>
-    </ClerkProvider>
+    <html lang="en">
+      <head>
+        {/* JSON-LD SEO */}
+        <Script
+          id="workit-jsonld"
+          type="application/ld+json"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
+      <body className="font-sans flex flex-col min-h-screen">
+        <Header />
+        <main className="flex-grow">{children}</main>
+        <Footer />
+        <Toaster position="top-right" />
+      </body>
+    </html>
   );
 }
