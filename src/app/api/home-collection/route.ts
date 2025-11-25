@@ -24,7 +24,7 @@ const GET_HOMEPAGE_COLLECTIONS_FACET = gql`
 
 // GraphQL query to fetch products by facet value
 const GET_PRODUCTS_BY_FACET = gql`
-  query GetProductsByFacet($facetValueId: [String!]) {
+  query GetProductsByFacet($facetValueId: [ID!]) {
     search(input: { facetValueIds: $facetValueId, take: 20, groupByProduct: true }) {
       items {
         productId
