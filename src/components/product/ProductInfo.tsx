@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Product, ProductVariation } from "@/types/product"
 import toast from "react-hot-toast"
-import { useCartStore } from "@/store/cartStore"
+import { useVendureCart } from "@/hooks/useVendureCart"
 import { useRouter } from "next/navigation"
 import { ShieldCheck, Undo2, Handshake, Minus, Plus as PlusIcon, ChevronRight } from "lucide-react"
 
@@ -23,8 +23,7 @@ export default function ProductInfo({
     product.variations?.[0] || null
   )
 
-  const addItem = useCartStore((state) => state.addItem)
-  const openCart = useCartStore((state) => state.openCart)
+  const { addItem, loading } = useVendureCart()
   const router = useRouter()
 
   // Helper to normalize Woo prices
@@ -45,37 +44,29 @@ export default function ProductInfo({
     }
   }, [selectedVariation, product])
 
-  const handleAddToCart = () => {
-    const mainImage =
-      product.images?.[0]?.src || product.image || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+Cjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5Q0E0QUYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5ObyBJbWFnZTwvdGV4dD4KPHN2Zz4='
-    addItem({
-      id: (selectedVariation?.id || product.id)?.toString(),
-      name: product.name,
-      price:
-        getNumericPrice(selectedVariation?.sale_price) ??
-        getNumericPrice(selectedVariation?.price) ??
-        effectivePrice,
-      image: mainImage,
-      quantity,
-    })
-    openCart()
-    toast.success("Added to cart")
+  const handleAddToCart = async () => {
+    // Get variant ID - use selected variation or first variant or product ID
+    const variantId = selectedVariation?.id || product.variants?.[0]?.id || product.id
+
+    const result = await addItem(variantId.toString(), quantity)
+
+    if (result.success) {
+      toast.success("Added to cart")
+    } else {
+      toast.error(result.error || "Failed to add to cart")
+    }
   }
 
-  const handleBuyNow = () => {
-    const mainImage =
-      product.images?.[0]?.src || product.image || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+Cjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5Q0E0QUYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5ObyBJbWFnZTwvdGV4dD4KPHN2Zz4='
-    addItem({
-      id: (selectedVariation?.id || product.id)?.toString(),
-      name: product.name,
-      price:
-        getNumericPrice(selectedVariation?.sale_price) ??
-        getNumericPrice(selectedVariation?.price) ??
-        effectivePrice,
-      image: mainImage,
-      quantity,
-    })
-    router.push("/checkout")
+  const handleBuyNow = async () => {
+    const variantId = selectedVariation?.id || product.variants?.[0]?.id || product.id
+
+    const result = await addItem(variantId.toString(), quantity)
+
+    if (result.success) {
+      router.push("/checkout")
+    } else {
+      toast.error(result.error || "Failed to add to cart")
+    }
   }
 
   const handleWishlist = () => {
@@ -122,44 +113,43 @@ export default function ProductInfo({
         {/* Divider */}
         <div className="border-b border-gray-200"></div>
 
-       {/* Variations */}
-       {product.variations?.length ? (
-         <div>
-           <h2 className="font-semibold mb-2">Variations</h2>
-           <div className="flex flex-wrap gap-3">
-             {product.variations.map((variation, idx) => {
-               const isActive =
-                 selectedVariation?.id === variation.id ||
-                 (!selectedVariation && idx === 0)
+        {/* Variations */}
+        {product.variations?.length ? (
+          <div>
+            <h2 className="font-semibold mb-2">Variations</h2>
+            <div className="flex flex-wrap gap-3">
+              {product.variations.map((variation, idx) => {
+                const isActive =
+                  selectedVariation?.id === variation.id ||
+                  (!selectedVariation && idx === 0)
 
-               // Build attributes label
-               const attributesLabel = variation.attributes
-                 ?.map((attr) =>
-                   `${attr.name.replace(/^attribute_pa_/, "")}: ${attr.option}`
-                 )
-                 .join(" • ")
+                // Build attributes label
+                const attributesLabel = variation.attributes
+                  ?.map((attr) =>
+                    `${attr.name.replace(/^attribute_pa_/, "")}: ${attr.option}`
+                  )
+                  .join(" • ")
 
-               return (
-                 <button
-                   key={variation.id ?? idx}
-                   onClick={() => setSelectedVariation(variation)}
-                   className={`border px-4 py-2 text-sm text-left transition-colors
-                     ${
-                       isActive
-                         ? "border-primary bg-primary-900/20 ring ring-primary-900 text-secondary-900"
-                         : "border-gray-300 hover:border-primary-900 text-sm font-light"
-                     }
+                return (
+                  <button
+                    key={variation.id ?? idx}
+                    onClick={() => setSelectedVariation(variation)}
+                    className={`border px-4 py-2 text-sm text-left transition-colors
+                     ${isActive
+                        ? "border-primary bg-primary-900/20 ring ring-primary-900 text-secondary-900"
+                        : "border-gray-300 hover:border-primary-900 text-sm font-light"
+                      }
                    `}
-                 >
-                   <div className="font-medium">
-                     {attributesLabel || "Unnamed Variant"}
-                   </div>
-                 </button>
-               )
-             })}
-           </div>
-         </div>
-       ) : null}
+                  >
+                    <div className="font-medium">
+                      {attributesLabel || "Unnamed Variant"}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        ) : null}
 
         {/* Stock + Qty */}
         <div className="text-green-600 text-lg font-bold">In Stock</div>
@@ -192,17 +182,19 @@ export default function ProductInfo({
 
         {/* Buttons */}
         <button
-          className="bg-primary-900 text-white font-medium px-6 py-3 transition hover:bg-primary-800 w-full"
+          className="bg-primary-900 text-white font-medium px-6 py-3 transition hover:bg-primary-800 w-full disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={handleBuyNow}
+          disabled={loading}
         >
-          Buy Now
+          {loading ? "Adding..." : "Buy Now"}
         </button>
         <div className="flex gap-2">
           <button
             onClick={handleAddToCart}
-            className="border border-secondary-900 text-secondary-900 font-medium px-6 py-2 hover:bg-secondary-100 transition flex-1"
+            disabled={loading}
+            className="border border-secondary-900 text-secondary-900 font-medium px-6 py-2 hover:bg-secondary-100 transition flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Add to Cart
+            {loading ? "Adding..." : "Add to Cart"}
           </button>
           <button
             onClick={handleWishlist}
@@ -217,7 +209,7 @@ export default function ProductInfo({
           {/* Security & Privacy */}
           <div className="flex items-start gap-3">
             <span className="text-green-600 bg-green-100 p-2 rounded-full">
-                <ShieldCheck size={20} />
+              <ShieldCheck size={20} />
             </span>
             <div>
               <div className="flex items-center font-semibold text-sm">Security & Privacy {<ChevronRight size={16} />}</div>
@@ -231,7 +223,7 @@ export default function ProductInfo({
           {/* Free Returns */}
           <div className="flex items-start gap-3">
             <span className="text-green-600 bg-green-100 p-2 rounded-full">
-                <Undo2 size={20} />
+              <Undo2 size={20} />
             </span>
             <div>
               <div className="flex items-center font-semibold text-sm">FREE Returns {<ChevronRight size={16} />}</div>
@@ -245,7 +237,7 @@ export default function ProductInfo({
           {/* Professional Service */}
           <div className="flex items-start gap-3">
             <span className="text-green-600 bg-green-100 p-2 rounded-full">
-                <Handshake size={20} />
+              <Handshake size={20} />
             </span>
             <div>
               <div className="flex items-center font-semibold text-sm">Professional Service {<ChevronRight size={16} />}</div>

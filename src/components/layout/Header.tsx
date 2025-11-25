@@ -1,13 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  SignInButton,
-  SignUpButton,
-  UserButton,
-  SignedIn,
-  SignedOut,
-} from '@clerk/nextjs';
 import Link from 'next/link';
 import Image from 'next/image';
 import SearchBar from '../SearchBar';
@@ -15,15 +8,16 @@ import CartSlide from '../CartSlide';
 import MegaMenu from '@/components/menu/MegaMenu';
 import MobileMegaMenu from '@/components/menu/MobileMegaMenu';
 import { ShoppingBag } from 'lucide-react';
-import { useCartStore } from '@/store/cartStore';
+import { useVendureCart } from '@/hooks/useVendureCart';
+import { useAuth } from '@/hooks/useAuth';
 import UserMenu from '@/components/menu/UserMenu';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
-  const totalQty = useCartStore((state) => state.getTotalQuantity());
-  const isCartOpen = useCartStore((state) => state.isOpen);
-  const closeCart = useCartStore((state) => state.closeCart);
+  const { cart } = useVendureCart();
+  const { customer } = useAuth();
 
   return (
     <header id="site-header">
@@ -50,14 +44,14 @@ export default function Header() {
           <div className="hidden md:flex items-center gap-6 text-white">
             <UserMenu />
             <button
-              onClick={() => useCartStore.getState().openCart()}
+              onClick={() => setIsCartOpen(true)}
               className="relative flex flex-col items-center font-['DM_Sans'] text-md text-white hover:text-primary"
             >
               <ShoppingBag className="h-6 w-6" />
               <span className='text-lg font-medium'>Cart</span>
-              {totalQty > 0 && (
+              {cart.totalQuantity > 0 && (
                 <span className="absolute -top-2 -right-2 bg-secondary-800 text-white rounded-full h-5 w-5 flex items-center justify-center font-['DM_Sans'] font-medium text-xs">
-                  {totalQty}
+                  {cart.totalQuantity}
                 </span>
               )}
             </button>
@@ -66,13 +60,13 @@ export default function Header() {
           {/* Mobile Hamburger & Cart */}
           <div className="md:hidden flex items-center gap-2">
             <button
-              onClick={() => useCartStore.getState().openCart()}
+              onClick={() => setIsCartOpen(true)}
               className="relative text-black"
             >
               <ShoppingBag className="h-6 w-6" />
-              {totalQty > 0 && (
+              {cart.totalQuantity > 0 && (
                 <span className="absolute -top-2 -right-2 bg-[#FB2C36] text-white rounded-full h-5 w-5 flex items-center justify-center font-['DM_Sans'] font-medium text-xs">
-                  {totalQty}
+                  {cart.totalQuantity}
                 </span>
               )}
             </button>
@@ -132,7 +126,7 @@ export default function Header() {
         </div>
       </div>
 
-      <CartSlide isOpen={isCartOpen} onClose={closeCart} />
+      <CartSlide isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
     </header>
   );
 }
@@ -142,6 +136,7 @@ export default function Header() {
 // Mobile Account Accordion
 function AccountAccordion() {
   const [open, setOpen] = useState(false);
+  const { customer } = useAuth();
 
   return (
     <div className="border-b border-gray-200">
@@ -154,19 +149,20 @@ function AccountAccordion() {
       </button>
       {open && (
         <div className="pl-4 flex flex-col gap-1">
-          <SignedOut>
-            <SignInButton mode="modal">
-              <button className="py-1 text-gray-600 hover:text-primary">Sign In</button>
-            </SignInButton>
-            <SignUpButton mode="modal">
-              <button className="py-1 text-gray-600 hover:text-primary">Sign Up</button>
-            </SignUpButton>
-            <Link href="/help" className="py-1 text-gray-600 hover:text-primary">Help & Support</Link>
-            <Link href="/about" className="py-1 text-gray-600 hover:text-primary">About</Link>
-          </SignedOut>
-          <SignedIn>
-            <UserButton />
-          </SignedIn>
+          {!customer ? (
+            <>
+              <Link href="/sign-in" className="py-1 text-gray-600 hover:text-primary">Sign In</Link>
+              <Link href="/sign-up" className="py-1 text-gray-600 hover:text-primary">Sign Up</Link>
+              <Link href="/help" className="py-1 text-gray-600 hover:text-primary">Help & Support</Link>
+              <Link href="/about" className="py-1 text-gray-600 hover:text-primary">About</Link>
+            </>
+          ) : (
+            <>
+              <Link href="/dashboard" className="py-1 text-gray-600 hover:text-primary">My Account</Link>
+              <Link href="/orders" className="py-1 text-gray-600 hover:text-primary">Orders</Link>
+              <Link href="/help" className="py-1 text-gray-600 hover:text-primary">Help & Support</Link>
+            </>
+          )}
         </div>
       )}
     </div>
