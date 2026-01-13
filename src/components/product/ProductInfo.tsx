@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Product, ProductVariation } from "@/types/product"
 import toast from "react-hot-toast"
-import { useVendureCart } from "@/hooks/useVendureCart"
+import { useCart } from "@/hooks/useCart"
 import { useRouter } from "next/navigation"
 import { ShieldCheck, Undo2, Handshake, Minus, Plus as PlusIcon, ChevronRight } from "lucide-react"
 
@@ -23,7 +23,7 @@ export default function ProductInfo({
     product.variations?.[0] || null
   )
 
-  const { addItem, loading } = useVendureCart()
+  const { addItem, loading } = useCart()
   const router = useRouter()
 
   // Helper to normalize Woo prices
@@ -48,25 +48,14 @@ export default function ProductInfo({
     // Get variant ID - use selected variation or first variant or product ID
     const variantId = selectedVariation?.id || product.variants?.[0]?.id || product.id
 
-    const result = await addItem(variantId.toString(), quantity)
-
-    if (result.success) {
-      toast.success("Added to cart")
-    } else {
-      toast.error(result.error || "Failed to add to cart")
-    }
+    await addItem(variantId.toString(), undefined, quantity)
   }
 
   const handleBuyNow = async () => {
     const variantId = selectedVariation?.id || product.variants?.[0]?.id || product.id
 
-    const result = await addItem(variantId.toString(), quantity)
-
-    if (result.success) {
-      router.push("/checkout")
-    } else {
-      toast.error(result.error || "Failed to add to cart")
-    }
+    await addItem(variantId.toString(), undefined, quantity)
+    router.push("/checkout")
   }
 
   const handleWishlist = () => {

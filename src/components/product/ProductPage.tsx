@@ -9,6 +9,7 @@ import ProductInfo from "@/components/product/ProductInfo"
 import ProductFeatures from "@/components/product/ProductFeatures"
 import ColProductCard from "@/components/product/ColProductCard"
 import { Product } from "@/types/product"
+import { getImageUrl } from "@/lib/image-utils"
 
 
 export default function ProductPage({
@@ -208,19 +209,19 @@ export default function ProductPage({
                 {images.slice(0, 6).map((img, idx) => (
                   <div
                     key={img.id || `${img.src}-${idx}`}
-                    className={`w-16 h-16 md:w-20 md:h-20 bg-gray-100 cursor-pointer ${
-                      selectedIdx === idx
-                        ? "border-2 border-black"
-                        : "opacity-80 hover:opacity-100"
-                    }`}
+                    className={`w-16 h-16 md:w-20 md:h-20 bg-gray-100 cursor-pointer ${selectedIdx === idx
+                      ? "border-2 border-black"
+                      : "opacity-80 hover:opacity-100"
+                      }`}
                     onClick={() => setSelectedIdx(idx)}
                   >
                     <Image
-                      src={img.src}
+                      src={getImageUrl(img.src || img.url || '')}
                       alt={`${product.name} thumbnail ${idx + 1}`}
                       width={80}
                       height={80}
                       className="w-full h-full object-contain"
+                      unoptimized
                     />
                   </div>
                 ))}
@@ -235,11 +236,12 @@ export default function ProductPage({
                   <FaChevronLeft />
                 </button>
                 <Image
-                  src={images[selectedIdx]?.src || "/public/file.svg"}
+                  src={getImageUrl(images[selectedIdx]?.src || images[selectedIdx]?.url || '')}
                   alt={product.name}
                   width={800}
                   height={608}
                   className="h-[400px] md:h-[608px] w-auto object-contain"
+                  unoptimized
                 />
                 <button
                   onClick={nextImage}
@@ -260,15 +262,9 @@ export default function ProductPage({
                   More about this item
                 </h2>
                 <div
-                  className="prose max-w-none text-gray-700 text-md leading-relaxed"
+                  className="prose prose-sm md:prose-base max-w-none text-gray-700 leading-relaxed [&>p]:mb-4 [&>ul]:mb-4 [&>ol]:mb-4 [&>h1]:mb-3 [&>h2]:mb-3 [&>h3]:mb-3 [&>li]:mb-1 [&_a]:text-primary-900 [&_a]:underline [&_a:hover]:text-[#e04500]"
                   dangerouslySetInnerHTML={{
-                    __html: he.decode(
-                      product.description
-                        .replace(/<a[^>]*>.*?<\/a>/g, '') // Remove links
-                        .replace(/https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9-]+\.[a-zA-Z]{2,}[^\s]*/g, '') // Remove URLs
-                        .replace(/:/g, '') // Remove colons
-                        .trim()
-                    ),
+                    __html: he.decode(product.description.trim()),
                   }}
                 />
               </section>

@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
 import HomepageCollection from '@/components/home/HomepageCollection';
-import TopCategoriesGrid from '@/components/categories-grid/TopCategoriesGrid';
-import HomeBanner from '@/components/banners/HomeBanner';
-import { HomepageCollection as CollectionType } from '@/types/product';
+import MostShopped from '@/components/categories-grid/MostShopped';
+import HeroSection from '@/components/banners/HeroSection';
 import AboutWorkit from '@/components/home/AboutWorkit';
 import FeaturedBlogs from '@/components/blog/FeaturedBlogs';
+import Deals from '@/components/home/Deals';
+import AuthModalWrapper from '@/components/auth/AuthModalWrapper';
+import { getSignInUrl, getSignUpUrl } from '@workos-inc/authkit-nextjs';
 
 export const metadata: Metadata = {
   title: "Workit - Best Deals on Phones, Laptops, TVs & Accessories",
@@ -32,44 +34,29 @@ export const metadata: Metadata = {
 };
 
 export default async function Home() {
-  // Use correct port for development
-  const baseUrl = process.env.NODE_ENV === 'development'
-    ? 'http://localhost:3001'  // Storefront runs on 3001
-    : 'https://workit.co.ke';
-
-  // Fetch all homepage collections dynamically
-  let collections: CollectionType[] = [];
-  try {
-    const res = await fetch(`${baseUrl}/api/home-collection`, {
-      next: { revalidate: 60 },
-      cache: 'no-store'
-    });
-
-    if (res.ok) {
-      collections = await res.json();
-    }
-  } catch (err) {
-    console.error('Error fetching homepage collections:', err);
-  }
+  const signInUrl = await getSignInUrl();
+  const signUpUrl = await getSignUpUrl();
 
   return (
     <div className="space-y-12 bg-[#F8F9FC]">
       {/* Home Banner */}
-      <HomeBanner />
+      <HeroSection />
 
-      {/* Top Categories */}
-      <TopCategoriesGrid />
+      {/* Most Shopped Collections */}
+      <MostShopped />
 
-      {/* Homepage collections - dynamically rendered */}
-      {collections.map((collection) => (
-        collection.products.length > 0 && (
-          <HomepageCollection key={collection.slug} {...collection} />
-        )
-      ))}
+      {/* Promotional Deals */}
+      <Deals />
+
+      {/* Homepage Collections - Component fetches its own data */}
+      <HomepageCollection />
 
       <FeaturedBlogs />
       <AboutWorkit />
 
+      {/* Auth Modal */}
+      <AuthModalWrapper signInUrl={signInUrl} signUpUrl={signUpUrl} />
     </div>
   );
 }
+

@@ -12,7 +12,7 @@ export default function CartEmpty() {
       <p className="text-lg font-medium">Your cart is empty</p>
       <div className="flex justify-center gap-4">
         <Link
-          href="/sign-in"
+          href="/login"
           className="px-4 py-2 bg-black text-white text-sm rounded hover:bg-gray-800"
         >
           LOGIN / REGISTER

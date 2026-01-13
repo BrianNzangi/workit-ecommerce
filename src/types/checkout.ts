@@ -114,5 +114,6 @@ export interface PaymentFormData {
 }
 
 export interface ShippingFormData {
-  method: "cbd" | "outside_cbd" | "outside_nairobi";
+  method: "standard" | "express";
+  price?: number;
 }

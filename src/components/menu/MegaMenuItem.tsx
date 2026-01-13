@@ -3,6 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import he from 'he';
+import { getImageUrl } from '@/lib/image-utils';
 
 interface MegaMenuItemProps {
   title: string;
@@ -20,10 +21,11 @@ export default function MegaMenuItem({ title, image, href }: MegaMenuItemProps) 
         <div className="relative aspect-[4/2] w-full">
           {image ? (
             <Image
-              src={image}
+              src={getImageUrl(image)}
               alt={title}
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-105"
+              unoptimized
             />
           ) : (
             <div className="flex items-center justify-center w-full h-full text-gray-400 text-sm">

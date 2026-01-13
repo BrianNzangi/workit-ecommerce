@@ -2,25 +2,27 @@
 @import "tw-animate-css";
 
 @theme {
-  --color-primary-900: #ff5023;
-  --color-primary-800: #ff6742;
-  --color-primary-700: #ff7b5a;
-  --color-primary-600: #ff8d70;
-  --color-primary-500: #ff9f85;
-  --color-primary-400: #ffaf99;
-  --color-primary-300: #ffc0ae;
-  --color-primary-200: #ffd0c2;
-  --color-primary-100: #ffe0d6;
+  --color-primary-900: #cc0000;
+  --color-primary-800: #d5372b;
+  --color-primary-700: #dd5445;
+  --color-primary-600: #e46c5c;
+  --color-primary-500: #ea8273;
+  --color-primary-400: #f0988a;
+  --color-primary-300: #f5ada1;
+  --color-primary-200: #f9c1b8;
+  --color-primary-100: #fcd6d0;
+  --color-primary-50: #feeae7;
 
-  --color-secondary-900: #1F2323;
-  --color-secondary-800: #323535;
-  --color-secondary-700: #454949;
-  --color-secondary-600: #5a5d5d;
-  --color-secondary-500: #707272;
-  --color-secondary-400: #868888;
-  --color-secondary-300: #9d9f9f;
-  --color-secondary-200: #b5b6b6;
-  --color-secondary-100: #cdcece;
+  --color-secondary-900: #060709;
+  --color-secondary-800: #181a1c;
+  --color-secondary-700: #2d2e31;
+  --color-secondary-600: #444547;
+  --color-secondary-500: #5c5d5f;
+  --color-secondary-400: #757677;
+  --color-secondary-300: #8f8f91;
+  --color-secondary-200: #aaaaab;
+  --color-secondary-100: #c5c6c6;
+  --color-secondary-50: #e2e2e2;
 
   --color-accent-900: #1C9737;
   --color-accent-800: #E8EAED;
@@ -142,6 +144,7 @@
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;

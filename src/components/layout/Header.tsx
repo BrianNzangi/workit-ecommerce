@@ -8,26 +8,24 @@ import CartSlide from '../CartSlide';
 import MegaMenu from '@/components/menu/MegaMenu';
 import MobileMegaMenu from '@/components/menu/MobileMegaMenu';
 import { ShoppingBag } from 'lucide-react';
-import { useVendureCart } from '@/hooks/useVendureCart';
 import { useAuth } from '@/hooks/useAuth';
 import UserMenu from '@/components/menu/UserMenu';
+import { useCartStore } from '@/store/cartStore';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isCartOpen, setIsCartOpen] = useState(false);
-
-  const { cart } = useVendureCart();
-  const { customer } = useAuth();
+  const { isOpen, openCart, closeCart, getTotalQuantity } = useCartStore();
+  const cartItemCount = getTotalQuantity();
 
   return (
     <header id="site-header">
       {/* Top Bar */}
-      <div className="bg-primary-900 font-[DM_SANS] text-primary-900">
+      <div className="bg-white font-[DM_SANS] text-secondary-900 border-b border-secondary-200">
         <div className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-8 py-4 flex items-center justify-between gap-4 flex-wrap md:flex-nowrap">
           {/* Logo */}
           <Link href="/" className="inline-block relative w-[150px] sm:w-[180px] md:w-[200px] lg:w-[120px] xl:w-[150px] h-auto">
             <Image
-              src="/workit-logo.svg"
+              src="/workit-logo.png"
               alt="Workit Logo"
               width={250}        // Max width
               height={70}        // Aspect ratio height
@@ -41,39 +39,43 @@ export default function Header() {
           </div>
 
           {/* Desktop Icons */}
-          <div className="hidden md:flex items-center gap-6 text-white">
+          <div className="hidden md:flex items-center gap-6 text-secondary-900">
             <UserMenu />
             <button
-              onClick={() => setIsCartOpen(true)}
-              className="relative flex flex-col items-center font-['DM_Sans'] text-md text-white hover:text-primary"
+              onClick={openCart}
+              className="relative flex items-center gap-2 font-['DM_Sans'] text-md text-secondary-900 hover:text-primary-900 transition-colors"
             >
-              <ShoppingBag className="h-6 w-6" />
+              <div className="relative">
+                <ShoppingBag className="h-6 w-6" />
+                {cartItemCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-primary-900 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                    {cartItemCount}
+                  </span>
+                )}
+              </div>
               <span className='text-lg font-medium'>Cart</span>
-              {cart.totalQuantity > 0 && (
-                <span className="absolute -top-2 -right-2 bg-secondary-800 text-white rounded-full h-5 w-5 flex items-center justify-center font-['DM_Sans'] font-medium text-xs">
-                  {cart.totalQuantity}
-                </span>
-              )}
             </button>
           </div>
 
           {/* Mobile Hamburger & Cart */}
           <div className="md:hidden flex items-center gap-2">
             <button
-              onClick={() => setIsCartOpen(true)}
-              className="relative text-black"
+              onClick={openCart}
+              className="relative text-secondary-900"
             >
-              <ShoppingBag className="h-6 w-6" />
-              {cart.totalQuantity > 0 && (
-                <span className="absolute -top-2 -right-2 bg-[#FB2C36] text-white rounded-full h-5 w-5 flex items-center justify-center font-['DM_Sans'] font-medium text-xs">
-                  {cart.totalQuantity}
-                </span>
-              )}
+              <div className="relative">
+                <ShoppingBag className="h-6 w-6" />
+                {cartItemCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-primary-900 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                    {cartItemCount}
+                  </span>
+                )}
+              </div>
             </button>
 
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="text-black"
+              className="text-secondary-900"
               aria-label="Toggle Menu"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -120,13 +122,13 @@ export default function Header() {
       </div>
 
       {/* Row 2: Categories & Links (desktop only) */}
-      <div className="bg-secondary-900 text-white border-b border-gray-200 hidden md:block">
+      <div className="bg-white text-secondary-900 border-b border-secondary-50 shadow-sm hidden md:block">
         <div className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-8 py-4 flex justify-between items-center">
           <MegaMenu />
         </div>
       </div>
 
-      <CartSlide isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+      <CartSlide isOpen={isOpen} onClose={closeCart} />
     </header>
   );
 }
@@ -151,7 +153,7 @@ function AccountAccordion() {
         <div className="pl-4 flex flex-col gap-1">
           {!customer ? (
             <>
-              <Link href="/sign-in" className="py-1 text-gray-600 hover:text-primary">Sign In</Link>
+              <Link href="/login" className="py-1 text-gray-600 hover:text-primary">Sign In</Link>
               <Link href="/sign-up" className="py-1 text-gray-600 hover:text-primary">Sign Up</Link>
               <Link href="/help" className="py-1 text-gray-600 hover:text-primary">Help & Support</Link>
               <Link href="/about" className="py-1 text-gray-600 hover:text-primary">About</Link>

@@ -1,9 +1,10 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
-import { Heart, ShoppingCart } from 'lucide-react'
-import { useVendureCart } from '@/hooks/useVendureCart'
+import { PackageCheck, ShoppingCart } from 'lucide-react'
 import { Product } from '@/types/product'
+import { getProductImageUrl } from '@/lib/image-utils'
+import { useCartStore } from '@/store/cartStore'
 
 export default function ProductCard({
   id,
@@ -16,6 +17,8 @@ export default function ProductCard({
   image,
   variations,
   variants,
+  shippingMethod,
+  condition,
 }: Product) {
   let displayPrice = Number(price) || 0
   let displayRegular: number | null = regular_price
@@ -50,19 +53,62 @@ export default function ProductCard({
       ? Math.round(((displayRegular - displayPrice) / displayRegular) * 100)
       : null
 
-  const { addItem, loading } = useVendureCart()
+  const { addItem, openCart } = useCartStore();
 
   const handleAddToCart = async (e: React.MouseEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    const result = await addItem(variantId.toString(), 1)
+    // Get the first image URL
+    const imageUrl = image ||
+      images?.[0]?.url ||
+      images?.[0]?.src ||
+      variations?.[0]?.image?.src ||
+      '';
 
-    if (result.success) {
-      toast.success('Added to cart')
-    } else {
-      toast.error(result.error || 'Failed to add to cart')
-    }
-  }
+    // Add item to cart
+    addItem({
+      id: String(variantId), // Convert to string for cart store
+      name: name || 'Product',
+      image: imageUrl,
+      price: displayPrice,
+      quantity: 1,
+    });
+
+    // Open cart slide
+    openCart();
+
+    // Show success toast with product image
+    toast.success(
+      (t) => (
+        <div className="flex items-center gap-3">
+          <div className="relative w-12 h-12 flex-shrink-0 bg-gray-100 rounded-md overflow-hidden">
+            {imageUrl ? (
+              <img
+                src={getProductImageUrl(imageUrl, 'card')}
+                alt={name || 'Product'}
+                className="w-full h-full object-contain"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                No Image
+              </div>
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-[DM_Sans] text-sm font-semibold text-gray-900">
+              Added to cart!
+            </p>
+            <p className="font-[DM_Sans] text-xs text-gray-600 line-clamp-2">
+              {name}
+            </p>
+          </div>
+        </div>
+      ),
+      {
+        duration: 2000,
+      }
+    );
+  };
 
   const handleAddToWishlist = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -70,22 +116,24 @@ export default function ProductCard({
   }
 
   return (
-    <Link href={`/collection/${slug}`} className="group w-full h-full block">
-      <div className="p-3 border border-gray-200 hover:shadow-md transition-shadow duration-200 bg-white h-full flex flex-col cursor-pointer">
+    <Link href={`/deal-details/${slug}`} className="group w-full h-full block">
+      <div className="p-3 border border-gray-200 hover:shadow-md transition-shadow duration-200 bg-white h-full flex flex-col cursor-pointer rounded-lg">
         {/* Image Container - Fixed aspect ratio for consistency */}
         <div className="relative w-full aspect-square overflow-hidden rounded-md mb-3">
-          {image || images?.[0]?.src || variations?.[0]?.image?.src ? (
+          {image || images?.[0]?.url || images?.[0]?.src || variations?.[0]?.image?.src ? (
             <Image
-              src={
+              src={getProductImageUrl(
                 image ||
+                images?.[0]?.url ||
                 images?.[0]?.src ||
-                variations?.[0]?.image?.src ||
-                'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+Cjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5Q0E0QUYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5ObyBJbWFnZTwvdGV4dD4KPHN2Zz4='
-              }
+                variations?.[0]?.image?.src,
+                'card'
+              )}
               alt={name}
               fill
               className="object-contain scale-75"
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
+              unoptimized
             />
           ) : (
             <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-sm">
@@ -93,28 +141,18 @@ export default function ProductCard({
             </div>
           )}
 
-          {/* Action Buttons - Consistent positioning */}
-          <div className="absolute top-0.5 right-0.5 flex flex-col gap-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            <button
-              onClick={handleAddToWishlist}
-              className="bg-white bg-opacity-90 hover:bg-opacity-100 p-4 sm:p-1.5 rounded-full shadow-sm transition-all duration-200 hover:shadow-md"
-              aria-label="Add to wishlist"
-            >
-              <Heart size={16} className="text-gray-700 hover:text-[#F95000]" />
-            </button>
-          </div>
 
-          {/* Discount Badge */}
-          {discount && (
-            <div className="absolute top-0.5 left-0.5">
-              <span
-                className="inline-block bg-secondary-900 font-['DM_Sans'] text-white text-xs font-semibold px-2 py-1.5 rounded-sm"
-                aria-label={`Save ${discount} percent`}
-              >
-                {discount}% OFF
-              </span>
-            </div>
-          )}
+
+
+
+          {/* Quick Add Button - Bottom Left */}
+          <button
+            onClick={handleAddToCart}
+            className="absolute bottom-2 left-2 z-10 bg-primary-900 text-white p-2 rounded-full transition-all duration-200 hover:bg-[#e04500] active:scale-95 shadow-md flex items-center justify-center"
+            aria-label="Add to cart"
+          >
+            <ShoppingCart size={16} />
+          </button>
         </div>
 
         {/* Product Info - Reduced spacing on mobile */}
@@ -134,28 +172,64 @@ export default function ProductCard({
             </div>
           )}
 
-          {/* Price Section - Positioned at bottom with reduced top margin */}
-          <div className="flex items-center justify-between gap-2 mt-auto pt-1">
-            <div className="flex flex-col min-w-0 flex-1">
+          {/* Price Section */}
+          <div className="mt-auto pt-1 flex flex-col gap-1.5">
+            <div className="flex items-baseline gap-2 flex-wrap">
               <span className="font-['DM_Sans'] text-base font-bold text-[#1F2323]">
-                KES {displayPrice.toFixed(0)}
+                KES {displayPrice.toLocaleString('en-US', { maximumFractionDigits: 0 })}
               </span>
               {displayRegular && displayRegular > 0 && (
-                <span className="font-['DM_Sans'] text-gray-500 text-xs line-through">
-                  KES {displayRegular.toFixed(0)}
-                </span>
+                <>
+                  <span className="font-['DM_Sans'] text-gray-500 text-xs line-through">
+                    KES {displayRegular.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                  </span>
+                  <span className="text-green-700 text-xs font-bold">
+                    {discount}% OFF
+                  </span>
+                </>
               )}
             </div>
 
-            {/* Quick add button - always visible on mobile */}
-            <button
-              onClick={handleAddToCart}
-              disabled={loading}
-              className="bg-primary-900 text-white py-2 px-2 rounded-full transition-all duration-200 hover:bg-[#e04500] active:scale-95 flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
-              aria-label="Add to cart"
-            >
-              <ShoppingCart size={16} />
-            </button>
+            {/* Express Banner */}
+            {shippingMethod?.isExpress && (
+              <div className="flex items-center gap-2">
+                <span
+                  className="inline-flex items-center gap-0.5 bg-white border border-dashed border-primary-900 font-['DM_Sans'] text-[11px] font-semibold px-1.5 py-0.5 rounded-xs"
+                  style={{ transform: 'skewX(-10deg)' }}
+                >
+                  <span style={{ transform: 'skewX(10deg)' }} className="inline-flex items-center gap-0.5">
+                    <span className="text-black font-bold uppercase">Workit</span>
+                    <span className="inline-flex items-center gap-0.5 uppercase text-primary-900">
+                      <PackageCheck size={11} className="fill-current" />
+                      Express
+                    </span>
+                  </span>
+                </span>
+                {condition === 'REFURBISHED' && (
+                  <span
+                    className="inline-flex items-center bg-secondary-900 font-['DM_Sans'] text-[11px] font-bold px-1.5 py-0.5 rounded-xs text-white uppercase"
+                    style={{ transform: 'skewX(-10deg)' }}
+                  >
+                    <span style={{ transform: 'skewX(10deg)' }}>
+                      Refurbished
+                    </span>
+                  </span>
+                )}
+              </div>
+            )}
+            {/* Show refurbished badge even without express shipping */}
+            {!shippingMethod?.isExpress && condition === 'REFURBISHED' && (
+              <div className="flex">
+                <span
+                  className="inline-flex items-center bg-secondary-900 font-['DM_Sans'] text-[11px] font-bold px-1.5 py-0.5 rounded-xs text-white uppercase"
+                  style={{ transform: 'skewX(-10deg)' }}
+                >
+                  <span style={{ transform: 'skewX(10deg)' }}>
+                    Refurbished
+                  </span>
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>

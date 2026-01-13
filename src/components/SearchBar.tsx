@@ -67,7 +67,7 @@ export default function SearchBar() {
   };
 
   const handleResultClick = (product: Product) => {
-    window.location.href = `/collection/${product.slug}`;
+    window.location.href = `/deal-details/${product.slug}`;
   };
 
   return (
@@ -82,10 +82,10 @@ export default function SearchBar() {
             className="
               w-full
               pl-4 pr-4 py-3
-              rounded-xs
-              border border-gray-300
+              rounded-full
+              border-2 border-secondary-900
               bg-gray-100
-              focus:outline-none focus:border-secondary
+              focus:outline-none focus:border-primary-800
               font-['DM_Sans'] text-black
               text-sm md:text-base
             "

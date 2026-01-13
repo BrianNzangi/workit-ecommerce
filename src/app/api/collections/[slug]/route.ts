@@ -1,62 +1,45 @@
-// src/app/api/collections/[slug]/route.ts
-import { NextRequest } from 'next/server';
-import { vendureClient } from '@/lib/vendure-client';
-import { GET_COLLECTION_BY_SLUG } from '@/lib/vendure-queries';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
-
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ slug: string }> }
+) {
   try {
-    // Fetch collection from Vendure
-    const { data } = await vendureClient.query({
-      query: GET_COLLECTION_BY_SLUG,
-      variables: {
-        slug,
-        options: {
-          take: 12,
-        },
-      },
-    }) as { data: any };
+    const { slug } = await params;
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
-    const collection = data.collection;
-
-    if (!collection) {
-      return new Response(JSON.stringify({ error: 'Collection not found' }), { status: 404 });
-    }
-
-    // Transform product variants to product format for compatibility
-    const products = collection.productVariants.items.map((variant: any) => ({
-      id: variant.product.id,
-      name: variant.product.name,
-      slug: variant.product.slug,
-      images: variant.product.featuredAsset ? [{ src: variant.product.featuredAsset.preview }] : [],
-      price: (variant.priceWithTax / 100).toString(),
-      regular_price: (variant.price / 100).toString(),
-      variants: [variant],
-    }));
-
-    // Return collection info and products
-    return new Response(JSON.stringify({
-      parentCategory: {
-        id: collection.id,
-        name: collection.name,
-        slug: collection.slug,
-        description: collection.description,
-        image: collection.featuredAsset ? { src: collection.featuredAsset.preview } : null,
-      },
-      childCategories: collection.children.map((child: any) => ({
-        id: child.id,
-        name: child.name,
-        slug: child.slug,
-      })),
-      products,
-    }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
+    // Attempt to find by slug via listing (since we might not have a direct slug endpoint exposed yet)
+    // Or if the backend supports filter[slug]=...
+    const response = await fetch(`${backendUrl}/api/store/collections?slug=${slug}`, {
+      cache: 'no-store',
     });
 
-  } catch (err: unknown) {
-    console.error(`❌ Failed to fetch collection for slug "${slug}":`, err);
-    return new Response(JSON.stringify({ error: 'Failed to fetch collection' }), { status: 500 });
+    if (!response.ok) {
+      // If filter by slug isn't supported directly like this, we might get a list or 404
+    }
+
+    const data = await response.json();
+    let collection = null;
+
+    if (data.data && Array.isArray(data.data)) {
+      collection = data.data.find((c: any) => c.slug === slug);
+    } else if (data.data && !Array.isArray(data.data) && data.data.slug === slug) {
+      collection = data.data;
+    }
+
+    if (!collection) {
+      return NextResponse.json(
+        { error: 'Collection not found' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(collection);
+  } catch (error) {
+    console.error('Error fetching collection:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch collection' },
+      { status: 500 }
+    );
   }
 }

@@ -52,7 +52,7 @@ export default function CheckoutClient({ user }: CheckoutClientProps) {
         />
 
         <StepShipping
-          billingData={stepData.billing.shipToDifferentAddress ? stepData.shipping : stepData.billing}
+          billingData={stepData.billing}
           isOpen={activeStep === 2}
           onEdit={() => setActiveStep(2)}
           onComplete={handleShippingSubmit}
@@ -72,30 +72,11 @@ export default function CheckoutClient({ user }: CheckoutClientProps) {
           shipping={stepData.totals.shipping}
           vatRate={0.16}
           coupon={coupon}
+          onPlaceOrder={handlePlaceOrder}
+          isOrderReady={isOrderReady || false} // Ensure boolean
+          loading={loading}
+          showPaymentInstruction={!!(stepData.payment.method && activeStep >= 3)} // Ensure boolean
         />
-        
-        <button
-          onClick={handlePlaceOrder}
-          disabled={!isOrderReady}
-          className={`
-            mt-6 w-full py-3 rounded-lg text-white font-medium transition-colors
-            ${isOrderReady 
-              ? 'bg-[#0046BE] hover:bg-blue-700' 
-              : 'bg-gray-400 cursor-not-allowed'
-            }
-          `}
-        >
-          {loading ? "Processing..." : "Place Order"}
-        </button>
-
-        {/* Payment method instructions */}
-        {stepData.payment.method && activeStep >= 3 && (
-          <div className="mt-4 p-3 bg-gray-50 rounded-lg text-sm">
-            <p className="text-gray-600">
-              💳 You will be redirected to Paystack to complete your payment securely.
-            </p>
-          </div>
-        )}
       </div>
     </section>
   );

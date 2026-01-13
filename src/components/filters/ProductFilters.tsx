@@ -7,6 +7,7 @@ import he from 'he';
 interface ProductFiltersProps {
   selectedCategory: number | null;
   currentCategoryName?: string; // Display current category name
+  collectionSlug?: string; // Collection slug to filter brands
   onFilterChange: (filters: {
     category?: number | null;
     tag?: number[];
@@ -37,18 +38,18 @@ interface Brand {
   slug: string;
 }
 
-export default function ProductFilters({ selectedCategory, currentCategoryName, onFilterChange }: ProductFiltersProps) {
+export default function ProductFilters({ selectedCategory, currentCategoryName, collectionSlug, onFilterChange }: ProductFiltersProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   // Filter states
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
   const [selectedBrands, setSelectedBrands] = useState<number[]>([]);
   const [priceRange, setPriceRange] = useState<{ min?: number; max?: number }>({});
   const [onSale, setOnSale] = useState(false);
-  
+
   // UI states
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     categories: false,
@@ -67,7 +68,7 @@ export default function ProductFilters({ selectedCategory, currentCategoryName, 
     const fetchFilters = async () => {
       try {
         // Fetch categories from API route
-        const categoriesRes = await fetch('/api/categories');
+        const categoriesRes = await fetch('/api/collections');
         let categoriesData: Category[] = [];
         if (categoriesRes.ok) {
           const rawCategories = await categoriesRes.json();
@@ -79,7 +80,7 @@ export default function ProductFilters({ selectedCategory, currentCategoryName, 
                 id: cat.id,
                 name: cat.name,
                 slug: cat.slug,
-                count: cat.count
+                count: cat._count?.products || 0
               });
               if (cat.children && cat.children.length > 0) {
                 flattened.push(...flattenCategories(cat.children));
@@ -106,10 +107,31 @@ export default function ProductFilters({ selectedCategory, currentCategoryName, 
 
         setCategories(categoriesData);
 
-        // For now, we'll set empty arrays for tags and brands since we don't have API routes for them
-        // You can add API routes for tags and brands later if needed
+        // Fetch brands from frontend API route (which proxies to backend)
+        // If we have a collection slug, filter brands by that collection
+        const brandsUrl = collectionSlug
+          ? `/api/brands?collection=${collectionSlug}`
+          : '/api/brands';
+
+        const brandsRes = await fetch(brandsUrl);
+        let brandsData: Brand[] = [];
+        if (brandsRes.ok) {
+          const brands = await brandsRes.json();
+          brandsData = brands
+            .map((brand: any) => ({
+              id: brand.id,
+              name: brand.name,
+              slug: brand.slug,
+              count: brand.count || 0
+            }))
+            .filter((brand: Brand) => brand.count > 0); // Only show brands with products
+        }
+
+        setBrands(brandsData);
+
+        // For now, we'll set empty arrays for tags since we don't have API routes for them
+        // You can add API routes for tags later if needed
         setTags([]);
-        setBrands([]);
       } catch (error) {
         console.error('Failed to fetch filters:', error);
       } finally {
@@ -138,16 +160,16 @@ export default function ProductFilters({ selectedCategory, currentCategoryName, 
   };
 
   const handleTagToggle = (tagId: number) => {
-    setSelectedTags(prev => 
-      prev.includes(tagId) 
+    setSelectedTags(prev =>
+      prev.includes(tagId)
         ? prev.filter(id => id !== tagId)
         : [...prev, tagId]
     );
   };
 
   const handleBrandToggle = (brandId: number) => {
-    setSelectedBrands(prev => 
-      prev.includes(brandId) 
+    setSelectedBrands(prev =>
+      prev.includes(brandId)
         ? prev.filter(id => id !== brandId)
         : [...prev, brandId]
     );
@@ -202,8 +224,8 @@ export default function ProductFilters({ selectedCategory, currentCategoryName, 
 
       {/* Brands */}
       <div className="border-b border-gray-200 pb-4">
-        <button 
-          onClick={() => toggleSection('brands')} 
+        <button
+          onClick={() => toggleSection('brands')}
           className="flex justify-between items-center w-full py-2 text-left"
         >
           <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
@@ -211,7 +233,7 @@ export default function ProductFilters({ selectedCategory, currentCategoryName, 
           </h3>
           {openSections.brands ? <Minus size={16} /> : <Plus size={16} />}
         </button>
-        
+
         {openSections.brands && brands.length > 0 && (
           <div className="mt-3 space-y-2 max-h-48 overflow-y-auto">
             {brands.map(brand => (
@@ -237,8 +259,8 @@ export default function ProductFilters({ selectedCategory, currentCategoryName, 
       {/* Categories - Only show if not on a specific category page */}
       {!currentCategoryName && (
         <div className="border-b border-gray-200 pb-4">
-          <button 
-            onClick={() => toggleSection('categories')} 
+          <button
+            onClick={() => toggleSection('categories')}
             className="flex justify-between items-center w-full py-2 text-left"
           >
             <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
@@ -246,7 +268,7 @@ export default function ProductFilters({ selectedCategory, currentCategoryName, 
             </h3>
             {openSections.categories ? <Minus size={16} /> : <Plus size={16} />}
           </button>
-          
+
           {openSections.categories && categories.length > 0 && (
             <div className="mt-3 space-y-2 max-h-64 overflow-y-auto">
               {categories.map(category => (
@@ -270,8 +292,8 @@ export default function ProductFilters({ selectedCategory, currentCategoryName, 
 
       {/* Tags */}
       <div className="border-b border-gray-200 pb-4">
-        <button 
-          onClick={() => toggleSection('tags')} 
+        <button
+          onClick={() => toggleSection('tags')}
           className="flex justify-between items-center w-full py-2 text-left"
         >
           <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
@@ -279,7 +301,7 @@ export default function ProductFilters({ selectedCategory, currentCategoryName, 
           </h3>
           {openSections.tags ? <Minus size={16} /> : <Plus size={16} />}
         </button>
-        
+
         {openSections.tags && tags.length > 0 && (
           <div className="mt-3 space-y-2 max-h-48 overflow-y-auto">
             {tags.map(tag => (
@@ -301,8 +323,8 @@ export default function ProductFilters({ selectedCategory, currentCategoryName, 
 
       {/* Price Range */}
       <div className="border-b border-gray-200 pb-4">
-        <button 
-          onClick={() => toggleSection('price')} 
+        <button
+          onClick={() => toggleSection('price')}
           className="flex justify-between items-center w-full py-2 text-left"
         >
           <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
@@ -310,16 +332,16 @@ export default function ProductFilters({ selectedCategory, currentCategoryName, 
           </h3>
           {openSections.price ? <Minus size={16} /> : <Plus size={16} />}
         </button>
-        
+
         {openSections.price && (
           <div className="mt-3 flex space-x-2">
             <input
               type="number"
               placeholder="Min"
               value={priceRange.min || ''}
-              onChange={(e) => setPriceRange(prev => ({ 
-                ...prev, 
-                min: e.target.value ? Number(e.target.value) : undefined 
+              onChange={(e) => setPriceRange(prev => ({
+                ...prev,
+                min: e.target.value ? Number(e.target.value) : undefined
               }))}
               className="w-1/2 px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
             />
@@ -327,9 +349,9 @@ export default function ProductFilters({ selectedCategory, currentCategoryName, 
               type="number"
               placeholder="Max"
               value={priceRange.max || ''}
-              onChange={(e) => setPriceRange(prev => ({ 
-                ...prev, 
-                max: e.target.value ? Number(e.target.value) : undefined 
+              onChange={(e) => setPriceRange(prev => ({
+                ...prev,
+                max: e.target.value ? Number(e.target.value) : undefined
               }))}
               className="w-1/2 px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
             />
@@ -339,8 +361,8 @@ export default function ProductFilters({ selectedCategory, currentCategoryName, 
 
       {/* On Sale */}
       <div>
-        <button 
-          onClick={() => toggleSection('sale')} 
+        <button
+          onClick={() => toggleSection('sale')}
           className="flex justify-between items-center w-full py-2 text-left"
         >
           <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
@@ -348,7 +370,7 @@ export default function ProductFilters({ selectedCategory, currentCategoryName, 
           </h3>
           {openSections.sale ? <Minus size={16} /> : <Plus size={16} />}
         </button>
-        
+
         {openSections.sale && (
           <div className="mt-3">
             <label className="flex items-center space-x-2 cursor-pointer">

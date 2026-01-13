@@ -1,90 +1,29 @@
-import { NextResponse } from "next/server";
-import { vendureClient } from "@/lib/vendure-client";
-import { gql } from "@apollo/client";
-
-interface Category {
-  id: string;
-  name: string;
-  slug: string;
-  parent?: string;
-  count: number;
-  description?: string;
-  children?: Category[];
-}
-
-// GraphQL query to fetch collections (categories in Vendure)
-const GET_COLLECTIONS = gql`
-  query GetCollections {
-    collections {
-      items {
-        id
-        name
-        slug
-        description
-        parent {
-          id
-        }
-        productVariants {
-          totalItems
-        }
-      }
-    }
-  }
-`;
-
-// In-memory cache
-let cachedCategories: Category[] | null = null;
-let cacheTimestamp: number = 0;
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+import { NextResponse } from 'next/server';
 
 export async function GET() {
-  const now = Date.now();
-
-  // Return cached data if valid
-  if (cachedCategories && now - cacheTimestamp < CACHE_TTL) {
-    return NextResponse.json(cachedCategories);
-  }
-
   try {
-    // Fetch all collections from Vendure
-    const { data } = await vendureClient.query({
-      query: GET_COLLECTIONS,
-    }) as { data: any };
-
-    const collections = data.collections.items;
-
-    // Transform Vendure collections to category format
-    const categoryMap: Record<string, Category> = {};
-    collections.forEach((col: any) => {
-      categoryMap[col.id] = {
-        id: col.id,
-        name: col.name,
-        slug: col.slug,
-        parent: col.parent?.id,
-        count: col.productVariants?.totalItems || 0,
-        description: col.description,
-        children: [],
-      };
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const response = await fetch(`${backendUrl}/api/store/collections?take=100`, {
+      next: { revalidate: 3600 },
     });
 
-    // Nest children correctly
-    const nestedCategories: Category[] = [];
-    collections.forEach((col: any) => {
-      if (col.parent?.id && categoryMap[col.parent.id]) {
-        categoryMap[col.parent.id].children!.push(categoryMap[col.id]);
-      } else {
-        nestedCategories.push(categoryMap[col.id]);
-      }
-    });
+    if (!response.ok) {
+      throw new Error(`Backend responded with ${response.status}`);
+    }
 
-    // Cache the result
-    cachedCategories = nestedCategories;
-    cacheTimestamp = now;
+    const data = await response.json();
+    const categories = data.data || [];
 
-    return NextResponse.json(nestedCategories);
+    // Transform if necessary, but assuming the new API returns the structure we need
+    // or close enough. The previous implementation transformed Vendure to category format.
+    // Let's assume the new API matches the expected Category type or close to it.
+
+    return NextResponse.json(categories);
   } catch (error) {
-    console.error("Error fetching categories from Vendure:", error);
-    // Return empty array instead of error to prevent UI breakage
-    return NextResponse.json([]);
+    console.error('Error fetching categories:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch categories' },
+      { status: 500 }
+    );
   }
 }

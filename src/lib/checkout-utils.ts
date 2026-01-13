@@ -1,30 +1,58 @@
 // src/lib/checkout-utils.ts
 
-import { 
-  CartItem, 
-  Coupon, 
-  CheckoutTotals, 
-  BillingData, 
-  ShippingData, 
+import {
+  CartItem,
+  Coupon,
+  CheckoutTotals,
+  BillingData,
+  ShippingData,
   Address,
-  BillingFormData 
+  BillingFormData
 } from '@/types/checkout';
 
 export const KENYAN_COUNTIES = [
-  "Nairobi","Kiambu","Nakuru","Machakos","Kisumu","Mombasa","Kakamega","Kwale","Kilifi","Tana River","Lamu",
-  "Mandera","Marsabit","Isiolo","Meru","Tharaka-Nithi","Embu","Kitui","Taita-Taveta","Garissa","Wajir",
-  "Makueni","Nyandarua","Nyeri","Kirinyaga","Murang'a","Turkana","West Pokot","Kajiado","Kericho",
-  "Samburu","Trans-Nzoia","Uasin Gishu","Elgeyo-Marakwet","Nandi","Baringo","Laikipia","Narok",
-  "Bomet","Vihiga","Bungoma","Busia","Siaya","Homa Bay","Migori","Kisii","Nyamira"
+  "Nairobi", "Kiambu", "Nakuru", "Machakos", "Kisumu", "Mombasa", "Kakamega", "Kwale", "Kilifi", "Tana River", "Lamu",
+  "Mandera", "Marsabit", "Isiolo", "Meru", "Tharaka-Nithi", "Embu", "Kitui", "Taita-Taveta", "Garissa", "Wajir",
+  "Makueni", "Nyandarua", "Nyeri", "Kirinyaga", "Murang'a", "Turkana", "West Pokot", "Kajiado", "Kericho",
+  "Samburu", "Trans-Nzoia", "Uasin Gishu", "Elgeyo-Marakwet", "Nandi", "Baringo", "Laikipia", "Narok",
+  "Bomet", "Vihiga", "Bungoma", "Busia", "Siaya", "Homa Bay", "Migori", "Kisii", "Nyamira"
 ];
 
 export const calculateShipping = (county: string): number => {
   return county?.toLowerCase() === 'nairobi' ? 100 : 500;
 };
 
+// Calculate shipping cost from shipping zones based on county and city
+export const calculateShippingFromZones = (
+  shippingZones: any[],
+  county: string,
+  city: string
+): number => {
+  if (!county || !city || !shippingZones.length) {
+    return 500; // Default shipping cost
+  }
+
+  // Find the zone for the selected county
+  const zone = shippingZones.find(z => z.county === county);
+
+  if (!zone) {
+    return 500; // Default if county not found
+  }
+
+  // Find the city within the zone
+  const cityData = zone.cities?.find((c: any) => c.cityTown === city);
+
+  if (cityData && cityData.price) {
+    return cityData.price;
+  }
+
+  // If city not found or has no price, return default
+  return 500;
+};
+
 export const calculateTotals = (
-  items: CartItem[], 
-  shippingCost: number, 
+  items: CartItem[],
+  shippingCost: number,
   coupon?: Coupon
 ): CheckoutTotals => {
   const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
@@ -44,7 +72,7 @@ export const calculateTotals = (
 export const mapToAddress = (data: BillingData | ShippingData): Address => {
   const firstName = data.first_name?.trim() || '';
   const lastName = data.last_name?.trim() || '';
-  
+
   return {
     fullName: firstName && lastName ? `${firstName} ${lastName}` : firstName || lastName || '',
     phone: data.phone?.trim() || '',

@@ -1,25 +1,38 @@
-{
-  protocol: 'https',
-    hostname: 'cms.workit.co.ke',
-      pathname: '/**',
-    },
-{
-  protocol: 'https',
-    hostname: 'api.workit.co.ke',
-      pathname: '/**',
-    },
-{
-  protocol: 'https',
-    hostname: 'www.awin1.com',
-      pathname: '/**',
-    },
-  ],
-},
+import type { NextConfig } from "next";
 
-env: {
-  WOOCOMMERCE_API_URL: process.env.NEXT_PUBLIC_WOOCOMMERCE_API_URL,
-    WOOCOMMERCE_CONSUMER_KEY: process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_KEY,
-      WOOCOMMERCE_CONSUMER_SECRET: process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_SECRET,
+const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3000',
+        pathname: '/assets/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'staging.workit.co.ke',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cms.workit.co.ke',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'api.workit.co.ke',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.awin1.com',
+        pathname: '/**',
+      },
+    ],
+    // Allow loading images from localhost (development only)
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
   },
 };
 

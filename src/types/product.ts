@@ -61,7 +61,7 @@ export interface Product {
   regular_price?: string
   sale_price?: string
   image?: string
-  images?: { id?: number; src: string }[]
+  images?: { id?: number; src?: string; url?: string; altText?: string }[]
   attributes?: ProductAttribute[]
   tags?: ProductTag[]
   coupons?: ProductCoupon[]
@@ -77,6 +77,18 @@ export interface Product {
 
   // ✅ Vendure variants (for compatibility with Vendure backend)
   variants?: { id: string | number;[key: string]: any }[]
+
+  // ✅ Shipping method (for express shipping badges)
+  shippingMethod?: {
+    id: string
+    code: string
+    name: string
+    description?: string
+    isExpress: boolean
+  }
+
+  // ✅ Product condition (NEW, REFURBISHED, etc.)
+  condition?: string
 
   // ✅ UI helpers
   selectedVariationId?: number

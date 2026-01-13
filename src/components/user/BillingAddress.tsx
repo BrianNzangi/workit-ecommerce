@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Edit } from "lucide-react";
+import { Edit, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -104,16 +104,16 @@ export function BillingAddress() {
 
   return (
     <>
-      <div className="bg-white border border-gray-100 shadow-xs p-6 flex flex-col h-full">
+      <div className="bg-white border border-gray-100 shadow-xs rounded-xs p-6 flex flex-col h-full">
         <h2 className="text-xl font-semibold mb-6">Billing Address</h2>
 
         <div className="flex-1">
           {loading ? (
             <div className="space-y-2">
-              <div className="h-5 bg-gray-200 rounded animate-pulse"></div>
-              <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-              <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-              <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-5 bg-gray-200 rounded-xs animate-pulse"></div>
+              <div className="h-4 bg-gray-200 rounded-xs animate-pulse"></div>
+              <div className="h-4 bg-gray-200 rounded-xs animate-pulse"></div>
+              <div className="h-4 bg-gray-200 rounded-xs animate-pulse"></div>
             </div>
           ) : error ? (
             <div className="text-center text-gray-500">
@@ -245,12 +245,25 @@ export function BillingAddress() {
                 <Label htmlFor="county" className="text-sm font-medium text-gray-700">
                   County
                 </Label>
-                <Input
-                  id="county"
-                  value={editData.county}
-                  onChange={(e) => setEditData({ ...editData, county: e.target.value })}
-                  className="mt-1"
-                />
+                <div className="relative mt-1">
+                  <select
+                    id="county"
+                    value={editData.county}
+                    onChange={(e) => setEditData({ ...editData, county: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xs focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none pr-10"
+                  >
+                    <option value="">Select County</option>
+                    <option value="Nairobi">Nairobi</option>
+                    <option value="Mombasa">Mombasa</option>
+                    <option value="Kisumu">Kisumu</option>
+                    <option value="Nakuru">Nakuru</option>
+                    <option value="Kiambu">Kiambu</option>
+                    <option value="Machakos">Machakos</option>
+                    <option value="Kajiado">Kajiado</option>
+                    <option value="Other">Other</option>
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                </div>
               </div>
 
               <div>

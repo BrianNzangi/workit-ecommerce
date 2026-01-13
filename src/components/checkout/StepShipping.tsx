@@ -1,10 +1,10 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 interface StepShippingProps {
-  billingData: { county?: string };
+  billingData: { county?: string; city?: string };
   isOpen: boolean;
   onEdit: () => void;
   onComplete: (data: any) => void;
@@ -12,8 +12,20 @@ interface StepShippingProps {
 }
 
 type ShippingFormData = {
-  method: "cbd" | "outside_cbd" | "outside_nairobi";
+  method: "standard" | "express";
+  price: number;
 };
+
+interface ShippingZone {
+  id: string;
+  county: string;
+  cities: {
+    id: string;
+    cityTown: string;
+    standardPrice: number;
+    expressPrice?: number | null;
+  }[];
+}
 
 export default function StepShipping({
   billingData,
@@ -22,16 +34,81 @@ export default function StepShipping({
   onComplete,
   data,
 }: StepShippingProps) {
+  const [shippingZones, setShippingZones] = useState<ShippingZone[]>([]);
+  const [loadingZones, setLoadingZones] = useState(true);
+
   const {
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<ShippingFormData>({
-    defaultValues: data || { method: "cbd" },
+    defaultValues: data || { method: "standard", price: 0 },
   });
 
-  // ✅ Persist values if data changes (avoid infinite re-renders)
+  const selectedMethod = watch("method");
+
+  // Fetch shipping zones from API
+  useEffect(() => {
+    const fetchShippingZones = async () => {
+      try {
+        setLoadingZones(true);
+        const response = await fetch('/api/shipping-zones');
+        const result = await response.json();
+
+        if (!result.success) {
+          console.error('Failed to fetch shipping zones:', result.error);
+          return;
+        }
+
+        // Extract all zones from all shipping methods
+        const allZones: ShippingZone[] = [];
+        result.data.forEach((method: any) => {
+          if (method.zones) {
+            allZones.push(...method.zones);
+          }
+        });
+
+        setShippingZones(allZones);
+      } catch (error) {
+        console.error('Failed to fetch shipping zones:', error);
+      } finally {
+        setLoadingZones(false);
+      }
+    };
+
+    fetchShippingZones();
+  }, []);
+
+  // Get pricing for selected city
+  const getCityPricing = () => {
+    if (!billingData?.county || !billingData?.city) {
+      return { standardPrice: 0, expressPrice: null };
+    }
+
+    const zone = shippingZones.find(z => z.county === billingData.county);
+    const city = zone?.cities.find(c => c.cityTown === billingData.city);
+
+    return {
+      standardPrice: city?.standardPrice || 0,
+      expressPrice: city?.expressPrice || null,
+    };
+  };
+
+  const { standardPrice, expressPrice } = getCityPricing();
+  const hasExpressOption = expressPrice !== null && expressPrice !== undefined;
+
+  // Update price when method changes
+  useEffect(() => {
+    if (selectedMethod === "standard") {
+      setValue("price", standardPrice);
+    } else if (selectedMethod === "express" && hasExpressOption) {
+      setValue("price", expressPrice);
+    }
+  }, [selectedMethod, standardPrice, expressPrice, hasExpressOption, setValue]);
+
+  // Persist values if data changes
   useEffect(() => {
     if (data) {
       Object.keys(data).forEach((key) => {
@@ -39,9 +116,6 @@ export default function StepShipping({
       });
     }
   }, [data, setValue]);
-
-  const county = billingData?.county?.toLowerCase() || "";
-  const isNairobi = county === "nairobi";
 
   if (!isOpen) {
     return (
@@ -57,12 +131,22 @@ export default function StepShipping({
         </div>
         <p className="text-sm text-gray-600 mt-2">
           {data
-            ? data.method === "cbd"
-              ? "Delivery within Nairobi CBD @ KES 100"
-              : data.method === "outside_cbd"
-              ? "Delivery within Nairobi (outside CBD) — cost depends on distance"
-              : "Outside Nairobi via Wells Fargo (rate varies)"
+            ? data.method === "standard"
+              ? `Standard Shipping — KES ${data.price || standardPrice}`
+              : `Express Shipping — KES ${data.price || expressPrice}`
             : "Not selected"}
+        </p>
+      </div>
+    );
+  }
+
+  // Show message if no city selected
+  if (!billingData?.city || !billingData?.county) {
+    return (
+      <div className="border border-gray-100 rounded-sm p-4">
+        <h2 className="text-lg font-semibold mb-2">Shipping Method</h2>
+        <p className="text-sm text-gray-500">
+          Please complete the billing information and select a city to see available shipping options.
         </p>
       </div>
     );
@@ -75,44 +159,57 @@ export default function StepShipping({
     >
       <h2 className="text-lg font-semibold">Shipping Method</h2>
 
-      <div className="space-y-3">
-        {isNairobi ? (
-          <>
-            <label className="flex items-center gap-2">
-              <input
-                type="radio"
-                value="cbd"
-                {...register("method", { required: "Select a shipping method" })}
-              />
-              <span className="text-sm">
-                Nairobi CBD — <strong>KES 100</strong>
-              </span>
-            </label>
-
-            <label className="flex items-center gap-2">
-              <input
-                type="radio"
-                value="outside_cbd"
-                {...register("method", { required: "Select a shipping method" })}
-              />
-              <span className="text-sm">
-                Outside Nairobi CBD (within Nairobi) — cost depends on distance
-              </span>
-            </label>
-          </>
-        ) : (
-          <label className="flex items-center gap-2">
+      {loadingZones ? (
+        <p className="text-sm text-gray-500">Loading shipping options...</p>
+      ) : (
+        <div className="space-y-3">
+          {/* Standard Shipping Option */}
+          <label className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg hover:border-blue-500 cursor-pointer transition-colors">
             <input
               type="radio"
-              value="outside_nairobi"
+              value="standard"
               {...register("method", { required: "Select a shipping method" })}
+              className="mt-1"
             />
-            <span className="text-sm">
-              Outside Nairobi — Wells Fargo (rate varies)
-            </span>
+            <div className="flex-1">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">Standard Shipping</span>
+                <span className="text-sm font-bold">KES {standardPrice}</span>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">Delivery in 3-5 business days</p>
+            </div>
           </label>
-        )}
-      </div>
+
+          {/* Express Shipping Option */}
+          <label
+            className={`flex items-start gap-3 p-3 border border-gray-200 rounded-lg transition-colors ${hasExpressOption
+              ? "hover:border-blue-500 cursor-pointer"
+              : "opacity-50 cursor-not-allowed bg-gray-50"
+              }`}
+          >
+            <input
+              type="radio"
+              value="express"
+              {...register("method", { required: "Select a shipping method" })}
+              disabled={!hasExpressOption}
+              className="mt-1"
+            />
+            <div className="flex-1">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">Express Shipping</span>
+                <span className="text-sm font-bold">
+                  {hasExpressOption ? `KES ${expressPrice}` : "Not available"}
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                {hasExpressOption
+                  ? "Delivery in 1-2 business days"
+                  : "Express delivery not available for this location"}
+              </p>
+            </div>
+          </label>
+        </div>
+      )}
 
       {errors.method && (
         <p className="text-xs text-red-500">{errors.method.message}</p>
@@ -120,7 +217,7 @@ export default function StepShipping({
 
       <button
         type="submit"
-        className="px-4 py-2 bg-black text-white rounded text-sm hover:bg-gray-800"
+        className="px-4 py-2 bg-primary-900 text-white rounded text-sm hover:bg-primary-800"
       >
         Save & Continue
       </button>

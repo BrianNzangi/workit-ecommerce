@@ -1,94 +1,137 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { vendureClient } from '@/lib/vendure-client';
-import { GET_PRODUCTS, SEARCH_PRODUCTS } from '@/lib/vendure-queries';
+
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const perPage = parseInt(searchParams.get('per_page') || '12');
-    const collectionSlug = searchParams.get('category');
+
+    // Extract all possible query parameters
+    const page = searchParams.get('page') || '1';
+    const limit = searchParams.get('per_page') || searchParams.get('limit') || '12';
+    const collectionSlug = searchParams.get('slug') || searchParams.get('collection');
+    const collectionId = searchParams.get('collectionId');
+    const brandId = searchParams.get('brandId') || searchParams.get('brand');
     const searchTerm = searchParams.get('search');
+    const sort = searchParams.get('sort');
+    const minPrice = searchParams.get('minPrice');
+    const maxPrice = searchParams.get('maxPrice');
+    const inStock = searchParams.get('inStock');
+    const sortBy = searchParams.get('sortBy');
+    const sortOrder = searchParams.get('sortOrder');
 
-    const skip = (page - 1) * perPage;
+    // Build query parameters for backend REST API
+    const params = new URLSearchParams({
+      page,
+      limit,
+    });
 
-    // If search term is provided, use search query
+    // Add optional filters
+    if (collectionSlug) {
+      params.append('collection', collectionSlug);
+    }
+    if (collectionId) {
+      params.append('collectionId', collectionId);
+    }
+    if (brandId) {
+      params.append('brandId', brandId);
+    }
     if (searchTerm) {
-      const { data } = await vendureClient.query({
-        query: SEARCH_PRODUCTS,
-        variables: {
-          input: {
-            term: searchTerm,
-            take: perPage,
-            skip,
-            groupByProduct: true,
-          },
-        },
-      }) as { data: any };
+      params.append('search', searchTerm);
+    }
+    if (sort) {
+      params.append('sort', sort);
+    }
+    if (minPrice) {
+      params.append('minPrice', minPrice);
+    }
+    if (maxPrice) {
+      params.append('maxPrice', maxPrice);
+    }
+    if (inStock) {
+      params.append('inStock', inStock);
+    }
+    if (sortBy) {
+      params.append('sortBy', sortBy);
+    }
+    if (sortOrder) {
+      params.append('sortOrder', sortOrder);
+    }
 
-      const products = data.search.items.map((item: any) => ({
-        id: item.productId,
-        name: item.productName,
-        slug: item.slug,
-        description: item.description,
-        images: item.productAsset ? [{ src: item.productAsset.preview }] : [],
-        price: typeof item.priceWithTax === 'object' && 'value' in item.priceWithTax
-          ? (item.priceWithTax.value / 100).toString()
-          : ((item.priceWithTax.min || 0) / 100).toString(),
-        regular_price: typeof item.price === 'object' && 'value' in item.price
-          ? (item.price.value / 100).toString()
-          : ((item.price.min || 0) / 100).toString(),
-      }));
+    // Always use the general products endpoint with filters
+    const apiUrl = `${BACKEND_URL}/api/store/products?${params.toString()}`;
+
+    // Fetch from backend REST API
+    const response = await fetch(apiUrl, {
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      console.error(`Backend API returned ${response.status}`);
+      const errorText = await response.text();
+      console.error('Error response:', errorText);
 
       return NextResponse.json({
-        products,
-        total: data.search.totalItems,
-        totalPages: Math.ceil(data.search.totalItems / perPage),
+        products: [],
+        total: 0,
+        totalPages: 0,
+        page: 1,
       });
     }
 
-    // Otherwise, use regular products query
-    const options: any = {
-      take: perPage,
-      skip,
-    };
+    const data = await response.json();
 
-    // Filter by collection if provided
-    if (collectionSlug) {
-      options.filter = {
-        collectionSlug: {
-          eq: collectionSlug,
-        },
-      };
-    }
+    // Backend returns {success: true, data: {products: [], pagination: {}}}
+    const responseData = data.data || data;
 
-    const { data } = await vendureClient.query({
-      query: GET_PRODUCTS,
-      variables: { options },
-    }) as { data: any };
-
-    // Transform Vendure products to match WooCommerce format for compatibility
-    const products = data.products.items.map((product: any) => ({
+    // Transform backend response to match expected format
+    const products = responseData.products?.map((product: any) => ({
       id: product.id,
       name: product.name,
       slug: product.slug,
       description: product.description,
-      images: product.featuredAsset ? [{ src: product.featuredAsset.preview }] : [],
-      price: product.variants[0] ? (product.variants[0].priceWithTax / 100).toString() : '0',
-      regular_price: product.variants[0] ? (product.variants[0].price / 100).toString() : '0',
-      variants: product.variants,
-      categories: product.collections,
-    }));
+      images: product.images?.map((img: any) => ({
+        id: img.id,
+        src: img.url,
+        url: img.url,
+        altText: img.altText,
+      })) || [],
+      image: product.images?.[0]?.url || '',
+      price: String(product.price),
+      regular_price: product.compareAtPrice ? String(product.compareAtPrice) : undefined,
+      variants: product.variants || [],
+      categories: product.collections || [],
+      brand: product.brand?.name,
+      stock_status: product.stockQuantity > 0 ? 'instock' : 'outofstock',
+      condition: product.condition,
+      shippingMethod: product.shippingMethod ? {
+        id: product.shippingMethod.id,
+        code: product.shippingMethod.code,
+        name: product.shippingMethod.name,
+        description: product.shippingMethod.description,
+        isExpress: product.shippingMethod.isExpress || false,
+      } : undefined,
+    })) || [];
 
     return NextResponse.json({
       products,
-      total: data.products.totalItems,
-      totalPages: Math.ceil(data.products.totalItems / perPage),
+      total: responseData.pagination?.total || 0,
+      totalPages: responseData.pagination?.totalPages || 1,
+      page: responseData.pagination?.page || 1,
     });
   } catch (error) {
-    console.error('Error fetching products from Vendure:', error);
-    return NextResponse.json({
-      error: 'Failed to fetch products'
-    }, { status: 500 });
+    console.error('Error fetching products from backend:', error);
+    return NextResponse.json(
+      {
+        error: 'Failed to fetch products',
+        products: [],
+        total: 0,
+        totalPages: 0,
+      },
+      { status: 500 }
+    );
   }
 }

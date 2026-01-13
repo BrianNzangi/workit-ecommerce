@@ -24,6 +24,8 @@ export default function ColProductGrid({ products }: ColProductGridProps) {
           variations={product.variations}
           type={product.type}
           categories={product.categories}
+          shippingMethod={product.shippingMethod}
+          condition={product.condition}
         />
       ))}
     </div>

@@ -3,40 +3,34 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useVendureCart } from "@/hooks/useVendureCart";
+import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
+import { CouponInput } from "@/components/checkout/CouponInput";
 
 interface CartSummaryProps {
   subtotal: number;
 }
 
 export default function CartSummary({ subtotal }: CartSummaryProps) {
-  const { cart } = useVendureCart();
+  const { cart } = useCart();
   const { customer } = useAuth();
   const router = useRouter();
 
-  const [coupon, setCoupon] = useState("");
   const [discount, setDiscount] = useState(0);
-  const [error, setError] = useState("");
 
   const discountedTotal = subtotal - discount;
 
-  const applyCoupon = () => {
-    if (coupon.toLowerCase() === "save10") {
-      const calculatedDiscount = subtotal * 0.1;
-      setDiscount(calculatedDiscount);
-      setError("");
-      toast.success("Coupon applied successfully!");
-    } else {
-      setDiscount(0);
-      setError("Invalid coupon code");
-      toast.error("Invalid coupon code");
-    }
+  const handleApplyCoupon = (data: any) => {
+    setDiscount(data.discountAmount);
+  };
+
+  const handleRemoveCoupon = () => {
+    setDiscount(0);
   };
 
   const handleCheckout = () => {
     if (!customer) {
-      router.push("/sign-in?redirect_url=/checkout");
+      router.push("/login");
       return;
     }
 
@@ -54,31 +48,11 @@ export default function CartSummary({ subtotal }: CartSummaryProps) {
 
       {/* Coupon */}
       <div className="space-y-1">
-        <label htmlFor="coupon" className="text-sm font-medium">
-          Coupon Code
-        </label>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            id="coupon"
-            value={coupon}
-            onChange={(e) => setCoupon(e.target.value)}
-            className="flex-1 border rounded px-3 py-1.5 text-sm"
-            placeholder="Enter code e.g. SAVE10"
-          />
-          <button
-            onClick={applyCoupon}
-            className="text-sm bg-[#0046BE] text-white px-3 py-1.5 rounded hover:bg-black transition"
-          >
-            Apply
-          </button>
-        </div>
-        {error && <p className="text-xs text-red-500">{error}</p>}
-        {discount > 0 && (
-          <p className="text-sm text-green-600">
-            Discount applied: -KES {discount.toFixed(2)}
-          </p>
-        )}
+        <CouponInput
+          subtotal={subtotal}
+          onApply={handleApplyCoupon}
+          onRemove={handleRemoveCoupon}
+        />
       </div>
 
       {/* Totals */}
@@ -99,7 +73,7 @@ export default function CartSummary({ subtotal }: CartSummaryProps) {
 
       <button
         onClick={handleCheckout}
-        className="w-full bg-black text-white py-2 rounded text-sm font-semibold hover:bg-gray-800 transition"
+        className="w-full bg-primary-900 text-white py-3 rounded text-sm font-bold uppercase tracking-wide hover:opacity-90 transition shadow-lg shadow-primary-900/20"
       >
         Proceed to Checkout
       </button>

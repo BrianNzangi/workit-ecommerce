@@ -18,7 +18,7 @@ export default function UserMenu() {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 text-white hover:text-primary transition"
+        className="flex items-center gap-2 text-secondary-900 hover:text-primary-900 transition-colors"
       >
         <CircleUser className="h-6 w-6" />
         <span className="text-lg font-medium hidden lg:inline">
@@ -36,7 +36,7 @@ export default function UserMenu() {
           />
 
           {/* Dropdown Menu */}
-          <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20">
+          <div className="absolute right-0 mt-2 w-48 bg-gray-50 rounded-xl shadow-lg py-1 z-20">
             {customer ? (
               <>
                 <div className="px-4 py-2 border-b border-gray-100">
@@ -78,7 +78,7 @@ export default function UserMenu() {
             ) : (
               <>
                 <Link
-                  href="/sign-in"
+                  href="/login"
                   className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   onClick={() => setIsOpen(false)}
                 >

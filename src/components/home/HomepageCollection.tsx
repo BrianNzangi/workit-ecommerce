@@ -4,17 +4,19 @@ import { useState, useEffect, useRef } from 'react';
 import ProductCard from '../product/ProductCard';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, useAnimation } from 'framer-motion';
-import { Product } from '@/types/product';
+import { useHomepageCollections, type HomepageCollectionData } from '@/hooks/useHomepageCollections';
+import { getProductImageUrl } from '@/lib/image-utils';
 
-interface HomepageCollectionProps {
-  title: string;
-  slug: string;
-  products: Product[];
+/**
+ * Single Collection Carousel Component
+ * Renders a single collection with its products in a carousel layout
+ */
+interface CollectionCarouselProps {
+  collection: HomepageCollectionData;
 }
 
-export default function HomepageCollection({ title, products }: HomepageCollectionProps) {
+function CollectionCarousel({ collection }: CollectionCarouselProps) {
   const [scrollIndex, setScrollIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
   const [containerWidth, setContainerWidth] = useState(0);
   const [visibleCards, setVisibleCards] = useState(2);
   const controls = useAnimation();
@@ -22,16 +24,16 @@ export default function HomepageCollection({ title, products }: HomepageCollecti
 
   const GAP = 16; // gap-4
 
-  useEffect(() => {
-    if (products.length > 0) setLoading(false);
-  }, [products]);
+  // Use products directly from collection (backend structure is simpler)
+  const products = collection.products || [];
+  const maxProductsToShow = 12; // Default limit
 
   useEffect(() => {
     const updateDimensions = () => {
       if (containerRef.current) {
         const width = containerRef.current.offsetWidth;
         setContainerWidth(width);
-        
+
         // Responsive visible cards based on screen width
         if (width < 640) {
           setVisibleCards(2); // Mobile: 2 cards
@@ -51,18 +53,17 @@ export default function HomepageCollection({ title, products }: HomepageCollecti
   }, []);
 
   // Calculate card width based on container and visible cards
-  // On mobile, give cards slightly more width to prevent cut-off appearance
   const getCardWidth = () => {
     if (containerWidth <= 0) return 250;
-    
+
     if (containerWidth < 640) {
       // Mobile: Make cards slightly wider, accounting for container padding
       return (containerWidth - GAP) / 2;
     }
-    
+
     return (containerWidth - (GAP * (visibleCards - 1))) / visibleCards;
   };
-  
+
   const cardWidth = getCardWidth();
   const maxScrollIndex = Math.max(0, products.length - visibleCards);
 
@@ -73,10 +74,10 @@ export default function HomepageCollection({ title, products }: HomepageCollecti
         : Math.min(scrollIndex + 1, maxScrollIndex);
 
     setScrollIndex(newIndex);
-    
+
     // Calculate the exact scroll position
     const scrollAmount = newIndex * (cardWidth + GAP);
-    
+
     await controls.start({
       x: -scrollAmount,
       transition: { duration: 0.5, ease: 'easeInOut' },
@@ -88,8 +89,8 @@ export default function HomepageCollection({ title, products }: HomepageCollecti
 
   const renderSkeleton = () =>
     Array.from({ length: visibleCards }).map((_, index) => (
-      <div 
-        key={index} 
+      <div
+        key={index}
         className="flex-shrink-0 flex flex-col gap-2"
         style={{ width: `${cardWidth}px` }}
       >
@@ -100,39 +101,62 @@ export default function HomepageCollection({ title, products }: HomepageCollecti
       </div>
     ));
 
+  // Don't render if no products
+  if (products.length === 0) {
+    return null;
+  }
+
   return (
-    <section className="container mx-auto font-[DM_SANS] space-y-2">
+    <section className="container mx-auto font-[DM_SANS] space-y-2 py-8">
       <div className="px-4 sm:px-6 lg:px-8">
-        <h2 className="text-xl md:text-2xl capitalize font-semibold text-gray-900">
-          {title || 'Collection'}
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg md:text-2xl capitalize font-semibold text-gray-900">
+            {collection.title}
+          </h2>
+          {products.length > 0 && (
+            <a
+              href={`/deal-details/${collection.slug}`}
+              className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors whitespace-nowrap"
+            >
+              View All →
+            </a>
+          )}
+        </div>
+        {collection.subtitle && (
+          <h3 className="text-lg md:text-xl text-gray-600 mt-1">
+            {collection.subtitle}
+          </h3>
+        )}
+        {collection.description && (
+          <p className="text-base text-gray-700 mt-2">
+            {collection.description}
+          </p>
+        )}
       </div>
 
       <div className="relative">
         {/* Carousel arrows - hidden on mobile, show on tablet and up when needed */}
-        {!loading && products.length > visibleCards && (
+        {products.length > visibleCards && (
           <>
             <button
               onClick={() => scroll('left')}
               disabled={!canScrollLeft}
-              className={`hidden sm:block absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 p-2 md:p-3 rounded-full shadow-lg transition-all duration-200 ${
-                canScrollLeft
-                  ? 'bg-gray-100 hover:bg-gray-50 text-gray-700 hover:text-gray-900 cursor-pointer'
-                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              }`}
+              className={`hidden sm:block absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 p-2 md:p-3 rounded-full shadow-lg transition-all duration-200 ${canScrollLeft
+                ? 'bg-gray-100 hover:bg-gray-50 text-gray-700 hover:text-gray-900 cursor-pointer'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                }`}
               aria-label="Previous products"
             >
-              <ChevronLeft size={20} className="md:w-4 md:h-4 " />
+              <ChevronLeft size={20} className="md:w-4 md:h-4" />
             </button>
-            
+
             <button
               onClick={() => scroll('right')}
               disabled={!canScrollRight}
-              className={`hidden sm:block absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 p-2 md:p-3 rounded-full shadow-lg transition-all duration-200 ${
-                canScrollRight
-                  ? 'bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 cursor-pointer'
-                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              }`}
+              className={`hidden sm:block absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 p-2 md:p-3 rounded-full shadow-lg transition-all duration-200 ${canScrollRight
+                ? 'bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 cursor-pointer'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                }`}
               aria-label="Next products"
             >
               <ChevronRight size={20} className="md:w-4 md:h-4" />
@@ -141,41 +165,89 @@ export default function HomepageCollection({ title, products }: HomepageCollecti
         )}
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div 
-            ref={containerRef}
-            className="overflow-hidden"
-          >
-            <motion.div 
-              animate={controls} 
+          <div ref={containerRef} className="overflow-hidden">
+            <motion.div
+              animate={controls}
               className="flex gap-4"
               initial={{ x: 0 }}
             >
-              {loading || !products.length
+              {products.length === 0
                 ? renderSkeleton()
-                : products.map((product) => (
-                    <div 
-                      key={product.id} 
+                : products.slice(0, maxProductsToShow).map((product) => {
+                  // Safely handle price data
+                  const safePrice = product.price ?? 0;
+                  const safeComparePrice = product.compareAtPrice ?? null;
+
+                  return (
+                    <div
+                      key={product.id}
                       className="flex-shrink-0"
                       style={{ width: `${cardWidth}px` }}
                     >
                       <ProductCard
-                        id={product.id}
+                        id={parseInt(product.id)}
                         name={product.name}
                         slug={product.slug}
-                        link={product.link}
-                        price={product.price}
-                        regular_price={product.regular_price}
-                        image={product.image || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+Cjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5Q0E0QUYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5ObyBJbWFnZTwvdGV4dD4KPHN2Zz4='}
-                        images={product.images}
-                        variations={product.variations}
-                        type={product.type}
+                        link={`/deal-details/${product.slug}`}
+                        price={String(safePrice)}
+                        regular_price={safeComparePrice ? String(safeComparePrice) : undefined}
+                        image={getProductImageUrl(product.images?.[0]?.url, 'card')}
+                        images={product.images?.map((img) => ({
+                          src: getProductImageUrl(img.url, 'card')
+                        })) || []}
+                        type="simple"
+                        shippingMethod={product.shippingMethod}
+                        condition={product.condition}
                       />
                     </div>
-                  ))}
+                  );
+                })}
             </motion.div>
           </div>
         </div>
       </div>
     </section>
+  );
+}
+
+/**
+ * Homepage Collections Component
+ * Fetches and displays all active homepage collections
+ */
+export default function HomepageCollection() {
+  const { collections, loading, error } = useHomepageCollections({ status: 'active' });
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-center items-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-800">
+            Error loading collections: {error.message}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (collections.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="space-y-8">
+      {collections.map((collection) => (
+        <CollectionCarousel key={collection.id} collection={collection} />
+      ))}
+    </div>
   );
 }

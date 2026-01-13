@@ -1,5 +1,3 @@
-// src/hooks/useCheckout.ts
-
 import { useState, useEffect } from 'react';
 import { useCheckoutStore } from '@/store/checkoutStore';
 import { useCartStore } from '@/store/cartStore';
@@ -15,6 +13,7 @@ import {
 } from '@/types/checkout';
 import {
   calculateShipping,
+  calculateShippingFromZones,
   calculateTotals,
   mapToAddress,
   transformBillingData,
@@ -40,6 +39,7 @@ export const useCheckout = (user: User) => {
 
   const [activeStep, setActiveStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [shippingZones, setShippingZones] = useState<any[]>([]);
 
   // Initialize stepData with proper default values
   const [stepData, setStepData] = useState<StepData>({
@@ -77,54 +77,85 @@ export const useCheckout = (user: User) => {
     customer: user,
   });
 
+  // Fetch shipping zones
+  useEffect(() => {
+    const fetchShippingZones = async () => {
+      try {
+        const response = await fetch('/api/shipping-zones');
+        const result = await response.json();
+
+        if (result.success) {
+          // Extract all zones from all shipping methods
+          const allZones: any[] = [];
+          result.data.forEach((method: any) => {
+            if (method.zones) {
+              allZones.push(...method.zones);
+            }
+          });
+          setShippingZones(allZones);
+        }
+      } catch (error) {
+        console.error('Failed to fetch shipping zones:', error);
+      }
+    };
+
+    fetchShippingZones();
+  }, []);
+
   // Update totals & step data when dependencies change
   useEffect(() => {
-    const shippingCost = billing?.county ? calculateShipping(billing.county) : 500;
-    const totals = calculateTotals(items, shippingCost, coupon);
-
+    // Use existing shipping cost from state, or default to 0
+    // This ensures shipping is 0 until a method is explicitly selected
     const payment: PaymentData = {
       method: paymentMethod === 'mpesa' || paymentMethod === 'airtel' || paymentMethod === 'card'
         ? paymentMethod
         : 'mpesa',
     };
 
-    setStepData(prev => ({
-      ...prev,
-      billing: billing ? {
-        first_name: billing.fullName?.split(' ')[0] || '',
-        last_name: billing.fullName?.split(' ').slice(1).join(' ') || '',
-        email: user.email || '',
-        phone: billing.phone || '',
-        county: billing.county || '',
-        city: billing.city || '',
-        address_1: billing.address || '',
-        postcode: String(billing.postcode || ''),
-        country: String(billing.country || 'Kenya'),
-      } : prev.billing,
-      shipping: shipping ? {
-        first_name: shipping.fullName?.split(' ')[0] || '',
-        last_name: shipping.fullName?.split(' ').slice(1).join(' ') || '',
-        address_1: shipping.address || '',
-        address_2: '',
-        city: shipping.city || '',
-        county: shipping.county || '',
-        postcode: String(shipping.postcode || ''),
-        country: String(shipping.country || 'Kenya'),
-        phone: shipping.phone || '',
-      } : prev.shipping,
-      payment,
-      items,
-      totals,
-      customer: user,
-    }));
+    setStepData(prev => {
+      // Use existing shipping cost from state, or default to 0
+      // This ensures shipping is 0 until a method is explicitly selected
+      const shippingCost = prev.totals.shipping || 0;
+      const totals = calculateTotals(items, shippingCost, coupon);
+
+      return {
+        ...prev,
+        billing: billing ? {
+          first_name: billing.fullName?.split(' ')[0] || '',
+          last_name: billing.fullName?.split(' ').slice(1).join(' ') || '',
+          email: user.email || '',
+          phone: billing.phone || '',
+          county: billing.county || '',
+          city: billing.city || '',
+          address_1: billing.address || '',
+          postcode: String(billing.postcode || ''),
+          country: String(billing.country || 'Kenya'),
+        } : prev.billing,
+        shipping: shipping ? {
+          first_name: shipping.fullName?.split(' ')[0] || '',
+          last_name: shipping.fullName?.split(' ').slice(1).join(' ') || '',
+          address_1: shipping.address || '',
+          address_2: '',
+          city: shipping.city || '',
+          county: shipping.county || '',
+          postcode: String(shipping.postcode || ''),
+          country: String(shipping.country || 'Kenya'),
+          phone: shipping.phone || '',
+        } : prev.shipping,
+        payment,
+        items,
+        totals,
+        customer: user,
+      };
+    });
   }, [billing, shipping, paymentMethod, items, coupon, user]);
 
   const handleBillingSubmit = (formData: BillingFormData) => {
     const billingData = transformBillingData(formData, user.email);
     const address = mapToAddress(billingData);
-    
+
     setBilling(address as any);
-    
+
     if (sameAsBilling || formData.shipToDifferentAddress === false) {
       setShipping(address as any);
     } else if (formData.shipToDifferentAddress) {
@@ -137,10 +168,16 @@ export const useCheckout = (user: User) => {
     setActiveStep(2);
   };
 
-  const handleShippingSubmit = (data: ShippingData) => {
-    const address = mapToAddress(data);
-    setShipping(address as any);
-    setStepData((prev) => ({ ...prev, shipping: data }));
+  const handleShippingSubmit = (data: any) => {
+    // Store shipping method and price
+    setStepData((prev) => ({
+      ...prev,
+      shipping: data,
+      totals: {
+        ...prev.totals,
+        shipping: data.price || 0
+      }
+    }));
     setActiveStep(3);
   };
 
@@ -169,11 +206,11 @@ export const useCheckout = (user: User) => {
     });
 
     const orderData: OrderResponse = await orderRes.json();
-    
+
     if (!orderData.success) {
       throw new Error(orderData.error || "Order creation failed");
     }
-    
+
     if (!orderData.order) {
       throw new Error("Order not found");
     }

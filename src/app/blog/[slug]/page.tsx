@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import BlogPostClient from '././BlogPostClient';
+import BlogPostClient from './BlogPostClient';
 
 interface PageProps {
   params: Promise<{

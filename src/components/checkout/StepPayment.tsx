@@ -58,8 +58,8 @@ export default function StepPayment({
               ? data.method === "mpesa"
                 ? "M-Pesa"
                 : data.method === "airtel"
-                ? "Airtel Money"
-                : "Credit / Debit Card (Paystack)"
+                  ? "Airtel Money"
+                  : "Credit / Debit Card (Paystack)"
               : "Not selected"}
           </p>
           {data?.phoneNumber && (data.method === "mpesa" || data.method === "airtel") && (
@@ -143,7 +143,7 @@ export default function StepPayment({
 
       <button
         type="submit"
-        className="px-4 py-2 bg-black text-white rounded text-sm hover:bg-gray-800"
+        className="px-4 py-2 bg-primary-900 text-white rounded text-sm hover:bg-primary-800"
       >
         Save & Continue
       </button>

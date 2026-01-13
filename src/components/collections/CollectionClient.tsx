@@ -34,7 +34,7 @@ export default function CollectionClient({
   const [currentPage, setCurrentPage] = useState(1);
   const [isLastPage] = useState(products.length < perPage);
   const [sortBy, setSortBy] = useState('popularity');
- 
+
 
   // JSON-LD for structured data
   const jsonLd = {
@@ -147,6 +147,7 @@ export default function CollectionClient({
           <aside className="hidden md:block col-span-1 border border-gray-100 rounded-sm p-4 bg-white shadow-xs self-start">
             <ProductFilters
               selectedCategory={category?.id ?? null}
+              collectionSlug={category?.slug}
               onFilterChange={({ category: newCategory }) => {
                 console.log('Filter change:', newCategory);
               }}

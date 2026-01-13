@@ -10,6 +10,9 @@ export interface Category {
   children?: Category[];    // nested subcategories
 }
 
+// Collection is an alias for Category to match backend terminology
+export type Collection = Category;
+
 // Existing types
 export interface ProductAttribute {
   id: number;

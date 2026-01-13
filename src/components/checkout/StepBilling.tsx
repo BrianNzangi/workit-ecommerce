@@ -1,7 +1,8 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { ChevronDown } from "lucide-react";
 
 export interface BillingData {
   first_name?: string;
@@ -43,14 +44,15 @@ type BillingFormData = {
   shippingCounty: string;
 };
 
-const KENYAN_COUNTIES = [
-  "Mombasa","Kwale","Kilifi","Tana River","Lamu","Taita-Taveta","Garissa","Wajir",
-  "Mandera","Marsabit","Isiolo","Meru","Tharaka-Nithi","Embu","Kitui","Machakos",
-  "Makueni","Nyandarua","Nyeri","Kirinyaga","Murang'a","Kiambu","Turkana","West Pokot",
-  "Samburu","Trans-Nzoia","Uasin Gishu","Elgeyo-Marakwet","Nandi","Baringo","Laikipia",
-  "Nakuru","Narok","Kajiado","Kericho","Bomet","Kakamega","Vihiga","Bungoma","Busia",
-  "Siaya","Kisumu","Homa Bay","Migori","Kisii","Nyamira","Nairobi"
-];
+interface ShippingZone {
+  id: string;
+  county: string;
+  cities: {
+    id: string;
+    cityTown: string;
+    price: number;
+  }[];
+}
 
 export default function StepBilling({
   user,
@@ -59,6 +61,9 @@ export default function StepBilling({
   onComplete,
   data,
 }: StepBillingProps) {
+  const [shippingZones, setShippingZones] = useState<ShippingZone[]>([]);
+  const [loadingZones, setLoadingZones] = useState(true);
+
   const { register, handleSubmit, setValue, watch, formState: { errors } } =
     useForm<BillingFormData>({
       defaultValues: {
@@ -77,6 +82,52 @@ export default function StepBilling({
     });
 
   const shipToDifferentAddress = watch("shipToDifferentAddress");
+  const selectedCounty = watch("county");
+  const selectedShippingCounty = watch("shippingCounty");
+
+  // Fetch shipping zones from API
+  useEffect(() => {
+    const fetchShippingZones = async () => {
+      try {
+        setLoadingZones(true);
+        const response = await fetch('/api/shipping-zones');
+        const result = await response.json();
+
+        if (!result.success) {
+          console.error('Failed to fetch shipping zones:', result.error);
+          return;
+        }
+
+        // Extract all zones from all shipping methods
+        const allZones: ShippingZone[] = [];
+        result.data.forEach((method: any) => {
+          if (method.zones) {
+            allZones.push(...method.zones);
+          }
+        });
+
+        setShippingZones(allZones);
+      } catch (error) {
+        console.error('Failed to fetch shipping zones:', error);
+      } finally {
+        setLoadingZones(false);
+      }
+    };
+
+    fetchShippingZones();
+  }, []);
+
+  // Get unique counties from shipping zones
+  const availableCounties = Array.from(new Set(shippingZones.map(zone => zone.county))).sort();
+
+  // Get cities for selected county
+  const getAvailableCities = (county: string) => {
+    const zone = shippingZones.find(z => z.county === county);
+    return zone?.cities.map(c => c.cityTown).sort() || [];
+  };
+
+  const availableCities = selectedCounty ? getAvailableCities(selectedCounty) : [];
+  const availableShippingCities = selectedShippingCounty ? getAvailableCities(selectedShippingCounty) : [];
 
   // Initialize form with data when component mounts or data changes
   useEffect(() => {
@@ -189,20 +240,37 @@ export default function StepBilling({
         {/* County */}
         <div>
           <label className="block text-sm font-medium">County</label>
-          <select {...register("county", { required: "County is required" })} className="w-full border border-gray-200 rounded p-2 text-sm">
-            <option value="">Select county</option>
-            {KENYAN_COUNTIES.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
+          <div className="relative">
+            <select
+              {...register("county", {
+                required: "County is required",
+                onChange: () => setValue("city", "") // Reset city when county changes
+              })}
+              className="w-full border border-gray-200 rounded-xs p-2 text-sm appearance-none pr-10"
+              disabled={loadingZones}
+            >
+              <option value="">{loadingZones ? "Loading counties..." : "Select county"}</option>
+              {availableCounties.map((county: string) => <option key={county} value={county}>{county}</option>)}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+          </div>
           {errors.county && <p className="text-xs text-red-500 mt-1">{errors.county.message}</p>}
         </div>
 
         {/* City */}
         <div>
           <label className="block text-sm font-medium">City/Town</label>
-          <input
-            {...register("city", { required: "City is required" })}
-            className="w-full border border-gray-200 rounded p-2 text-sm"
-          />
+          <div className="relative">
+            <select
+              {...register("city", { required: "City is required" })}
+              className="w-full border border-gray-200 rounded-xs p-2 text-sm appearance-none pr-10"
+              disabled={!selectedCounty || loadingZones}
+            >
+              <option value="">{!selectedCounty ? "Select county first" : "Select city/town"}</option>
+              {availableCities.map((city: string) => <option key={city} value={city}>{city}</option>)}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+          </div>
           {errors.city && <p className="text-xs text-red-500 mt-1">{errors.city.message}</p>}
         </div>
       </div>
@@ -223,21 +291,41 @@ export default function StepBilling({
           </div>
           <div>
             <label className="block text-sm font-medium">County</label>
-            <select {...register("shippingCounty", { required: shipToDifferentAddress ? "Shipping county is required" : false })} className="w-full border border-gray-200 rounded p-2 text-sm">
-              <option value="">Select county</option>
-              {KENYAN_COUNTIES.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
+            <div className="relative">
+              <select
+                {...register("shippingCounty", {
+                  required: shipToDifferentAddress ? "Shipping county is required" : false,
+                  onChange: () => setValue("shippingCity", "") // Reset city when county changes
+                })}
+                className="w-full border border-gray-200 rounded-xs p-2 text-sm appearance-none pr-10"
+                disabled={loadingZones}
+              >
+                <option value="">{loadingZones ? "Loading counties..." : "Select county"}</option>
+                {availableCounties.map((county: string) => <option key={county} value={county}>{county}</option>)}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+            </div>
             {errors.shippingCounty && <p className="text-xs text-red-500 mt-1">{errors.shippingCounty.message}</p>}
           </div>
           <div>
             <label className="block text-sm font-medium">City/Town</label>
-            <input {...register("shippingCity", { required: shipToDifferentAddress ? "Shipping city is required" : false })} className="w-full border border-gray-200 rounded p-2 text-sm" />
+            <div className="relative">
+              <select
+                {...register("shippingCity", { required: shipToDifferentAddress ? "Shipping city is required" : false })}
+                className="w-full border border-gray-200 rounded-xs p-2 text-sm appearance-none pr-10"
+                disabled={!selectedShippingCounty || loadingZones}
+              >
+                <option value="">{!selectedShippingCounty ? "Select county first" : "Select city/town"}</option>
+                {availableShippingCities.map((city: string) => <option key={city} value={city}>{city}</option>)}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+            </div>
             {errors.shippingCity && <p className="text-xs text-red-500 mt-1">{errors.shippingCity.message}</p>}
           </div>
         </div>
       )}
 
-      <button type="submit" className="px-4 py-2 bg-black text-white rounded text-sm hover:bg-gray-800 mt-4">
+      <button type="submit" className="px-4 py-2 bg-primary-900 text-white rounded text-sm hover:bg-primary-800 mt-4">
         Save & Continue
       </button>
     </form>

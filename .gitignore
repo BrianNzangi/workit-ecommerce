@@ -40,4 +40,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# IDE and tool-specific
+.vscode
+.gemini
+.kiro
+
 .vercel

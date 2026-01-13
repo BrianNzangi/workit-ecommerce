@@ -1,6 +1,5 @@
 // src/lib/auth.ts
-import { vendureClient } from './vendure-client';
-import { GET_ACTIVE_CUSTOMER, LOGIN, LOGOUT, REGISTER_CUSTOMER } from './vendure-queries';
+import { graphqlRequest } from './graphql-client';
 
 export interface Customer {
     id: string;
@@ -12,11 +11,41 @@ export interface Customer {
 
 export async function getActiveCustomer(): Promise<Customer | null> {
     try {
-        const { data } = await vendureClient.query({
-            query: GET_ACTIVE_CUSTOMER,
-        }) as { data: any };
+        const { data, errors } = await graphqlRequest({
+            query: `
+                query GetActiveCustomer {
+                    customer {
+                        id
+                        firstName
+                        lastName
+                        emailAddress
+                        phoneNumber
+                        addresses {
+                            id
+                            fullName
+                            streetLine1
+                            streetLine2
+                            city
+                            province
+                            postalCode
+                            country {
+                                code
+                                name
+                            }
+                            defaultShippingAddress
+                            defaultBillingAddress
+                        }
+                    }
+                }
+            `,
+        });
 
-        return data.activeCustomer;
+        if (errors) {
+            console.error('GraphQL errors:', errors);
+            return null;
+        }
+
+        return data?.customer || null;
     } catch (error) {
         console.error('Error fetching active customer:', error);
         return null;
@@ -25,18 +54,36 @@ export async function getActiveCustomer(): Promise<Customer | null> {
 
 export async function loginCustomer(email: string, password: string): Promise<{ success: boolean; error?: string }> {
     try {
-        const { data } = await vendureClient.mutate({
-            mutation: LOGIN,
+        const { data, errors } = await graphqlRequest({
+            query: `
+                mutation Login($username: String!, $password: String!) {
+                    login(username: $username, password: $password) {
+                        ... on CurrentUser {
+                            id
+                            identifier
+                        }
+                        ... on ErrorResult {
+                            errorCode
+                            message
+                        }
+                    }
+                }
+            `,
             variables: {
                 username: email,
                 password,
             },
-        }) as { data: any };
+        });
 
-        if (data.login.__typename === 'CurrentUser') {
+        if (errors) {
+            console.error('GraphQL errors:', errors);
+            return { success: false, error: errors[0]?.message || 'Login failed' };
+        }
+
+        if (data?.login?.__typename === 'CurrentUser') {
             return { success: true };
         } else {
-            return { success: false, error: data.login.message || 'Login failed' };
+            return { success: false, error: data?.login?.message || 'Login failed' };
         }
     } catch (error) {
         console.error('Login error:', error);
@@ -46,8 +93,14 @@ export async function loginCustomer(email: string, password: string): Promise<{ 
 
 export async function logoutCustomer(): Promise<void> {
     try {
-        await vendureClient.mutate({
-            mutation: LOGOUT,
+        await graphqlRequest({
+            query: `
+                mutation Logout {
+                    logout {
+                        success
+                    }
+                }
+            `,
         });
     } catch (error) {
         console.error('Logout error:', error);
@@ -62,18 +115,35 @@ export async function registerCustomer(input: {
     phoneNumber?: string;
 }): Promise<{ success: boolean; error?: string }> {
     try {
-        const { data } = await vendureClient.mutate({
-            mutation: REGISTER_CUSTOMER,
+        const { data, errors } = await graphqlRequest({
+            query: `
+                mutation RegisterCustomer($input: RegisterCustomerInput!) {
+                    registerCustomerAccount(input: $input) {
+                        ... on Success {
+                            success
+                        }
+                        ... on ErrorResult {
+                            errorCode
+                            message
+                        }
+                    }
+                }
+            `,
             variables: {
                 input,
             },
-        }) as { data: any };
+        });
 
-        if (data.registerCustomerAccount.__typename === 'Success') {
+        if (errors) {
+            console.error('GraphQL errors:', errors);
+            return { success: false, error: errors[0]?.message || 'Registration failed' };
+        }
+
+        if (data?.registerCustomerAccount?.__typename === 'Success') {
             // After registration, log the customer in
             return await loginCustomer(input.emailAddress, input.password);
         } else {
-            return { success: false, error: data.registerCustomerAccount.message || 'Registration failed' };
+            return { success: false, error: data?.registerCustomerAccount?.message || 'Registration failed' };
         }
     } catch (error) {
         console.error('Registration error:', error);

@@ -3,10 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import he from 'he';
 import { ChevronDown } from 'lucide-react';
-import { Category, ORDER } from '@/components/menu/MegaMenuData';
+import { ORDER } from '@/components/menu/MegaMenuData';
 import MegaMenuItem from '@/components/menu/MegaMenuItem';
+import { fetchNavigationCollectionsDisplayClient } from '@/lib/collections-client';
+import type { CollectionDisplay } from '@/types/collections';
 
-let cachedCategories: Category[] | null = null;
+let cachedCollections: CollectionDisplay[] | null = null;
 
 // Sorting helper
 function sortByOrder(a: string, b: string) {
@@ -19,28 +21,27 @@ function sortByOrder(a: string, b: string) {
 }
 
 export default function MegaMenu() {
-  const [categories, setCategories] = useState<Category[]>(cachedCategories || []);
-  const [loading, setLoading] = useState(!cachedCategories);
-  const [activeParent, setActiveParent] = useState<Category | null>(null);
+  const [collections, setCollections] = useState<CollectionDisplay[]>(cachedCollections || []);
+  const [loading, setLoading] = useState(!cachedCollections);
+  const [activeParent, setActiveParent] = useState<CollectionDisplay | null>(null);
   const [dropdownTop, setDropdownTop] = useState<number>(64);
 
   useEffect(() => {
-    if (cachedCategories) return;
+    if (cachedCollections) return;
 
-    async function fetchCategories() {
+    async function fetchCollections() {
       try {
-        const res = await fetch('/api/categories');
-        const data: Category[] = await res.json();
-        cachedCategories = data;
-        setCategories(data);
+        const data = await fetchNavigationCollectionsDisplayClient();
+        cachedCollections = data;
+        setCollections(data);
       } catch (err) {
-        console.error('Failed to fetch categories:', err);
+        console.error('Failed to fetch collections:', err);
       } finally {
         setLoading(false);
       }
     }
 
-    fetchCategories();
+    fetchCollections();
   }, []);
 
   useEffect(() => {
@@ -61,18 +62,20 @@ export default function MegaMenu() {
     };
   }, []);
 
-  if (loading) return (
-    <div className="flex space-x-4">
-      {Array.from({ length: 8 }).map((_, i) => (
-        <div
-          key={i}
-          className="h-8 w-30 bg-gray-200 animate-pulse"
-        ></div>
-      ))}
-    </div>
-  );
+  if (loading) {
+    return (
+      <div className="flex space-x-4">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div
+            key={i}
+            className="h-8 w-30 bg-gray-200 animate-pulse rounded"
+          />
+        ))}
+      </div>
+    );
+  }
 
-  const categoriesWithChildren = categories
+  const collectionsWithChildren = collections
     .filter((parent) => parent.children && parent.children.length > 0)
     .sort((a, b) => sortByOrder(a.name, b.name));
 
@@ -80,21 +83,20 @@ export default function MegaMenu() {
     <div className="relative">
       {/* Top nav */}
       <nav className="flex space-x-6 font-['DM_Sans'] text-base">
-        {categoriesWithChildren.map((parent) => (
+        {collectionsWithChildren.map((parent) => (
           <div
             key={parent.id}
             onMouseEnter={() => setActiveParent(parent)}
             className="relative"
           >
-            <div className="inline-flex items-center gap-1 cursor-pointer text-white font-medium hover:text-primary transition whitespace-nowrap">
+            <div className="inline-flex items-center gap-1 cursor-pointer text-secondary-900 font-medium hover:text-primary-900 transition whitespace-nowrap">
               {he.decode(parent.name)}
               <ChevronDown
                 size={16}
-                className={`transition-transform ${
-                  activeParent?.id === parent.id
-                    ? 'rotate-180 text-primary'
-                    : 'text-white'
-                }`}
+                className={`transition-transform ${activeParent?.id === parent.id
+                  ? 'rotate-180 text-primary-900'
+                  : 'text-secondary-900'
+                  }`}
               />
             </div>
           </div>
@@ -116,22 +118,15 @@ export default function MegaMenu() {
             <ul className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
               {[...(activeParent.children || [])]
                 .sort((a, b) => sortByOrder(a.name, b.name))
-                .map((child) => {
-                  const imageUrl =
-                    typeof child.image === 'string'
-                      ? child.image
-                      : child.image?.src;
-
-                  return (
-                    <li key={child.id}>
-                      <MegaMenuItem
-                        title={child.name}
-                        image={imageUrl}
-                        href={`/collections/${child.slug}`}
-                      />
-                    </li>
-                  );
-                })}
+                .map((child) => (
+                  <li key={child.id}>
+                    <MegaMenuItem
+                      title={child.name}
+                      image={child.image}
+                      href={`/collections/${child.slug}`}
+                    />
+                  </li>
+                ))}
             </ul>
           </div>
         </div>

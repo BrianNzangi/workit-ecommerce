@@ -2,9 +2,11 @@
 
 import React from "react";
 import Link from "next/link";
-import { SignInButton, SignUpButton } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 
 const HelpHero = () => {
+  const router = useRouter();
+
   return (
     <section className="bg-primary-900 py-20 font-[DM_SANS]">
       <div className="container mx-auto px-8">
@@ -13,7 +15,7 @@ const HelpHero = () => {
 
           <p className="mb-6 leading-relaxed">
             For faster and more personalized assistance, please contact us directly through your
-            <Link href="/sign-in" className="font-bold text-primary-900 hover:underline">Workit account</Link> using the <strong>Help</strong>, <strong>Return</strong>, or
+            <button onClick={() => router.push('/login')} className="font-bold text-primary-900 hover:underline mx-1">Workit account</button> using the <strong>Help</strong>, <strong>Return</strong>, or
             <strong> Warranty</strong> options.
           </p>
 
@@ -22,16 +24,12 @@ const HelpHero = () => {
           </p>
 
           <div className="flex gap-4 mt-8">
-            <SignUpButton mode="modal">
-              <button className="bg-primary-900 text-white px-6 py-3 rounded-xs font-medium hover:bg-primary-800 transition">
-                Create an Account
-              </button>
-            </SignUpButton>
-            <SignInButton mode="modal">
-              <button className="text-primary-900 font-medium border border-primary-900 px-6 py-3 rounded-xs hover:bg-primary-50 transition">
-                Already a member? Log-in here.
-              </button>
-            </SignInButton>
+            <button onClick={() => router.push('/sign-up')} className="bg-primary-900 text-white px-6 py-3 rounded-xs font-medium hover:bg-primary-800 transition">
+              Create an Account
+            </button>
+            <button onClick={() => router.push('/login')} className="text-primary-900 font-medium border border-primary-900 px-6 py-3 rounded-xs hover:bg-primary-50 transition">
+              Already a member? Log-in here.
+            </button>
           </div>
         </div>
       </div>
