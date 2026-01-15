@@ -25,12 +25,12 @@ export async function GET(req: Request) {
 
     const paymentData = verifyRes.data.data;
 
-    // ✅ Step 2: If payment successful, update order in backend via GraphQL
+    // ✅ Step 2: If payment successful, update order status to PAYMENT_SETTLED
     let updatedOrder = null;
     if (paymentData.status === "success" && orderId) {
       const mutation = `
-        mutation UpdateOrderPayment($orderId: ID!, $reference: String!) {
-          updateOrderPayment(orderId: $orderId, reference: $reference) {
+        mutation UpdateOrderStatus($id: ID!, $state: OrderState!) {
+          updateOrderStatus(id: $id, state: $state) {
             id
             code
             state
@@ -46,14 +46,17 @@ export async function GET(req: Request) {
         },
         body: JSON.stringify({
           query: mutation,
-          variables: { orderId, reference },
+          variables: {
+            id: orderId,
+            state: 'PAYMENT_SETTLED'
+          },
         }),
       });
 
       const result = await response.json();
 
-      if (result.data?.updateOrderPayment) {
-        updatedOrder = result.data.updateOrderPayment;
+      if (result.data?.updateOrderStatus) {
+        updatedOrder = result.data.updateOrderStatus;
       }
     }
 

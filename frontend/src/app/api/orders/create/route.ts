@@ -110,15 +110,22 @@ export async function POST(request: NextRequest) {
       lines: lineItems,
     };
 
-    // Add optional fields only if they exist in schema
-    if (totals?.shipping > 0) {
+    // Add optional fields with values
+    if (totals?.shipping) {
+      // Convert shipping from KES to cents for backend
+      orderInput.shippingCost = Math.round(totals.shipping * 100);
       orderInput.shippingMethodId = 'standard';
     }
+
+    // NOTE: DO NOT send tax to backend
+    // VAT is already included in product prices (prices are VAT-inclusive)
+    // Backend would add it on top, causing incorrect total
 
     if (coupon) {
       orderInput.couponCode = typeof coupon === 'string' ? coupon : coupon.code;
     }
 
+    console.log('Totals from frontend:', JSON.stringify(totals, null, 2));
     console.log('Final order input (filtered):', JSON.stringify(orderInput, null, 2));
 
     // GraphQL mutation to create order

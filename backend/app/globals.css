@@ -3,12 +3,60 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Brand Colors - Primary (Red) */
+  --color-primary-900: #cc0000;
+  --color-primary-800: #d5372b;
+  --color-primary-700: #dd5445;
+  --color-primary-600: #e46c5c;
+  --color-primary-500: #ea8273;
+  --color-primary-400: #f0988a;
+  --color-primary-300: #f5ada1;
+  --color-primary-200: #f9c1b8;
+  --color-primary-100: #fcd6d0;
+  --color-primary-50: #feeae7;
+
+  /* Brand Colors - Secondary (Gray) */
+  --color-secondary-900: #060709;
+  --color-secondary-800: #181a1c;
+  --color-secondary-700: #2d2e31;
+  --color-secondary-600: #444547;
+  --color-secondary-500: #5c5d5f;
+  --color-secondary-400: #757677;
+  --color-secondary-300: #8f8f91;
+  --color-secondary-200: #aaaaab;
+  --color-secondary-100: #c5c6c6;
+  --color-secondary-50: #e2e2e2;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-public-sans);
+
+  /* Primary Colors */
+  --color-primary-900: var(--color-primary-900);
+  --color-primary-800: var(--color-primary-800);
+  --color-primary-700: var(--color-primary-700);
+  --color-primary-600: var(--color-primary-600);
+  --color-primary-500: var(--color-primary-500);
+  --color-primary-400: var(--color-primary-400);
+  --color-primary-300: var(--color-primary-300);
+  --color-primary-200: var(--color-primary-200);
+  --color-primary-100: var(--color-primary-100);
+  --color-primary-50: var(--color-primary-50);
+
+  /* Secondary Colors */
+  --color-secondary-900: var(--color-secondary-900);
+  --color-secondary-800: var(--color-secondary-800);
+  --color-secondary-700: var(--color-secondary-700);
+  --color-secondary-600: var(--color-secondary-600);
+  --color-secondary-500: var(--color-secondary-500);
+  --color-secondary-400: var(--color-secondary-400);
+  --color-secondary-300: var(--color-secondary-300);
+  --color-secondary-200: var(--color-secondary-200);
+  --color-secondary-100: var(--color-secondary-100);
+  --color-secondary-50: var(--color-secondary-50);
 }
 
 body {
@@ -22,12 +70,12 @@ input,
 textarea,
 select {
   background-color: white;
-  color: #171717;
+  color: var(--color-secondary-900);
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: #9ca3af;
+  color: var(--color-secondary-300);
 }
 
 /* TipTap Editor Styles */
@@ -36,7 +84,7 @@ textarea::placeholder {
 }
 
 .ProseMirror p.is-editor-empty:first-child::before {
-  color: #9ca3af;
+  color: var(--color-secondary-300);
   content: attr(data-placeholder);
   float: left;
   height: 0;
@@ -80,12 +128,12 @@ textarea::placeholder {
 }
 
 .prose blockquote {
-  border-left: 4px solid #e5e7eb;
+  border-left: 4px solid var(--color-secondary-100);
   padding-left: 1em;
   margin-left: 0;
   margin-right: 0;
   font-style: italic;
-  color: #6b7280;
+  color: var(--color-secondary-500);
 }
 
 .prose strong {
@@ -97,6 +145,6 @@ textarea::placeholder {
 }
 
 .prose a {
-  color: #FF5023;
+  color: var(--color-primary-800);
   text-decoration: underline;
 }

@@ -56,14 +56,20 @@ export const calculateTotals = (
   coupon?: Coupon
 ): CheckoutTotals => {
   const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  const vat = subtotal * 0.16;
+
+  // Extract VAT from VAT-inclusive prices (prices already include 16% VAT)
+  // Formula: VAT = (inclusive_price / 1.16) * 0.16
+  const vat = (subtotal / 1.16) * 0.16;
+
   const discount = coupon?.discount || 0;
-  const total = subtotal + shippingCost + vat - discount;
+
+  // Total = subtotal (already includes VAT) + shipping - discount
+  const total = subtotal + shippingCost - discount;
 
   return {
     subtotal,
     shipping: shippingCost,
-    vat,
+    vat, // VAT for display purposes (shows how much VAT is in the subtotal)
     discount,
     total
   };

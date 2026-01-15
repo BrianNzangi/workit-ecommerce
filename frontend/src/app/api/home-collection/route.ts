@@ -77,7 +77,28 @@ export async function GET(req: Request) {
 
     const data = await response.json();
 
-    // Return the data in a consistent format
+    // Transform the response to include variant data for each product
+    if (data.success && data.data?.homepageCollections) {
+      data.data.homepageCollections = data.data.homepageCollections.map((collection: any) => ({
+        ...collection,
+        products: collection.products?.map((item: any) => {
+          // Backend now returns complete variant data in the product object
+          const product = item.product || item;
+          const variants = item.variants || product.variants || [];
+
+          return {
+            ...product,
+            // Add variant fields for Single-Product Mode
+            variantId: variants[0]?.id || '',
+            variants: variants,
+            stockOnHand: variants[0]?.inventory?.stockOnHand ?? 0,
+            canBuy: variants[0]?.status === "active" && (!variants[0]?.inventory?.track || (variants[0]?.inventory?.stockOnHand ?? 0) > 0),
+          };
+        }) || []
+      }));
+    }
+
+    // Return the transformed data
     return NextResponse.json(data);
   } catch (error) {
     console.error('Error fetching homepage collections:', error);

@@ -174,31 +174,13 @@ function CollectionCarousel({ collection }: CollectionCarouselProps) {
               {products.length === 0
                 ? renderSkeleton()
                 : products.slice(0, maxProductsToShow).map((product) => {
-                  // Safely handle price data
-                  const safePrice = product.price ?? 0;
-                  const safeComparePrice = product.compareAtPrice ?? null;
-
                   return (
                     <div
                       key={product.id}
                       className="flex-shrink-0"
                       style={{ width: `${cardWidth}px` }}
                     >
-                      <ProductCard
-                        id={parseInt(product.id)}
-                        name={product.name}
-                        slug={product.slug}
-                        link={`/deal-details/${product.slug}`}
-                        price={String(safePrice)}
-                        regular_price={safeComparePrice ? String(safeComparePrice) : undefined}
-                        image={getProductImageUrl(product.images?.[0]?.url, 'card')}
-                        images={product.images?.map((img) => ({
-                          src: getProductImageUrl(img.url, 'card')
-                        })) || []}
-                        type="simple"
-                        shippingMethod={product.shippingMethod}
-                        condition={product.condition}
-                      />
+                      <ProductCard {...product} />
                     </div>
                   );
                 })}

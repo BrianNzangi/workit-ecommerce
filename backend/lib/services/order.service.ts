@@ -305,6 +305,19 @@ export class OrderService {
       input.tax
     );
 
+    // Validate shipping method if provided
+    let validatedShippingMethodId: string | null = null;
+    if (input.shippingMethodId) {
+      const shippingMethod = await this.prisma.shippingMethod.findUnique({
+        where: { id: input.shippingMethodId },
+      });
+
+      if (shippingMethod) {
+        validatedShippingMethodId = input.shippingMethodId;
+      }
+      // If shipping method doesn't exist, set to null instead of throwing error
+    }
+
     // Create order with lines in a transaction
     const order = await this.prisma.$transaction(async (tx) => {
       // Create the order
@@ -320,7 +333,7 @@ export class OrderService {
           currencyCode: 'KES',
           shippingAddressId,
           billingAddressId,
-          shippingMethodId: input.shippingMethodId,
+          shippingMethodId: validatedShippingMethodId,
         },
         include: {
           lines: true,

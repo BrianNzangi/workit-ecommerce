@@ -1,8 +1,11 @@
 'use client';
 
 import { useSession, signOut } from 'next-auth/react';
+import NextImage from 'next/image';
 import { LogOut, User } from 'lucide-react';
 import { AdminSidebar } from './AdminSidebar';
+
+import { Container } from '@/components/ui/Container';
 
 interface AdminLayoutProps {
     children: React.ReactNode;
@@ -16,19 +19,20 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     };
 
     return (
-        <div className="flex min-h-screen bg-gray-50">
-            {/* Sidebar */}
+        <div className="flex h-screen bg-gray-50 overflow-hidden">
+            {/* Sidebar - Fixed Height/Width */}
             <AdminSidebar />
 
-            {/* Main Content */}
-            <div className="flex-1 flex flex-col">
+            {/* Main Content Area - Scrollable */}
+            <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
                 {/* Header */}
-                <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-                    <div className="px-6 py-4">
-                        <div className="flex justify-between items-center">
+                <header className="h-[72px] bg-white border-b border-gray-200 sticky top-0 z-20 shrink-0">
+                    <Container className="px-6 h-full flex items-center">
+                        <div className="flex justify-between items-center w-full">
+                            {/* Dashboard Title */}
                             <div>
                                 <h2 className="text-lg font-semibold text-gray-900">Admin Dashboard</h2>
-                                <p className="text-sm text-gray-500">Manage your e-commerce platform</p>
+                                <p className="text-sm text-gray-500">Manage Workit Store</p>
                             </div>
 
                             <div className="flex items-center gap-4">
@@ -57,12 +61,14 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                                 </button>
                             </div>
                         </div>
-                    </div>
+                    </Container>
                 </header>
 
-                {/* Page Content */}
-                <main className="flex-1 p-6">
-                    {children}
+                {/* Main Content Scroll Area */}
+                <main className="flex-1 overflow-y-auto bg-gray-50 scroll-smooth">
+                    <Container className="p-6">
+                        {children}
+                    </Container>
                 </main>
             </div>
         </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import NextImage from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import {
@@ -205,17 +206,17 @@ export function AdminSidebar() {
                         onClick={() => toggleExpand(item.label)}
                         className={`
               w-full flex items-center justify-between px-3 py-2 rounded-xs transition-colors
-              ${isActive ? 'text-gray-900 font-medium' : 'text-gray-700 hover:bg-gray-100'}
+              ${isActive ? 'text-white font-medium' : 'text-secondary-300 hover:bg-secondary-800'}
             `}
                     >
                         <div className="flex items-center gap-2">
-                            <Icon className={`w-4 h-4 ${isActive ? 'text-[#FF5023]' : 'text-gray-500'}`} />
+                            <Icon className={`w-4 h-4 ${isActive ? 'text-primary-500' : 'text-secondary-400'}`} />
                             <span className="text-sm">{item.label}</span>
                         </div>
                         {isExpanded ? (
-                            <ChevronDown className="w-4 h-4 text-gray-400" />
+                            <ChevronDown className="w-4 h-4 text-secondary-400" />
                         ) : (
-                            <ChevronRight className="w-4 h-4 text-gray-400" />
+                            <ChevronRight className="w-4 h-4 text-secondary-400" />
                         )}
                     </button>
                     {isExpanded && item.children && (
@@ -235,13 +236,13 @@ export function AdminSidebar() {
             flex items-center gap-2 px-3 py-2 rounded-xs transition-colors text-sm
             ${level > 0 ? 'pl-6' : ''}
             ${isActive
-                            ? 'bg-white text-gray-900 font-medium shadow-xs'
-                            : 'text-gray-700 hover:bg-gray-100'
+                            ? 'bg-primary-900 text-white font-medium'
+                            : 'text-secondary-300 hover:bg-secondary-800'
                         }
           `}
                 >
                     {level === 0 && Icon && (
-                        <Icon className={`w-4 h-4 ${isActive ? 'text-[#FF5023]' : 'text-gray-500'}`} />
+                        <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-secondary-400'}`} />
                     )}
                     <span>{item.label}</span>
                 </Link>
@@ -250,25 +251,30 @@ export function AdminSidebar() {
     };
 
     return (
-        <aside className="w-64 bg-gray-50 border-r border-gray-200 min-h-screen flex flex-col">
-            {/* Logo */}
-            <div className="p-4 border-b border-gray-200">
-                <div className="flex items-center gap-2">
-                    <LayoutDashboard className="w-6 h-6 text-[#FF5023]" />
-                    <h1 className="text-lg font-bold text-gray-900">Workit Admin</h1>
-                </div>
+        <aside className="w-64 bg-secondary-900 border-r border-secondary-800 flex flex-col h-full shrink-0 z-30">
+            {/* Logo Section */}
+            <div className="h-[72px] flex items-center px-6 border-b border-secondary-800 bg-secondary-900 shrink-0">
+                <Link href="/admin/dashboard" className="relative h-8 w-32 block">
+                    <NextImage
+                        src="/workit-logo-white.png"
+                        alt="Workit Logo"
+                        fill
+                        className="object-contain object-left"
+                        priority
+                    />
+                </Link>
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 p-3">
+            <nav className="flex-1 p-3 pt-4 overflow-y-auto custom-scrollbar">
                 <ul className="space-y-1">
                     {menuItems.map((item) => renderMenuItem(item))}
                 </ul>
             </nav>
 
             {/* Footer */}
-            <div className="p-3 border-t border-gray-200">
-                <p className="text-xs text-gray-500 text-center">
+            <div className="p-3 border-t border-secondary-800 bg-secondary-900">
+                <p className="text-xs text-secondary-400 text-center">
                     Workit Admin © {new Date().getFullYear()}
                 </p>
             </div>

@@ -36,11 +36,12 @@ export async function GET(request: NextRequest) {
                             include: {
                                 variants: {
                                     where: { enabled: true },
-                                    select: {
-                                        id: true,
-                                        name: true,
-                                        price: true,
-                                        stockOnHand: true,
+                                    include: {
+                                        options: {
+                                            include: {
+                                                option: true
+                                            }
+                                        }
                                     }
                                 },
                                 assets: {
@@ -113,6 +114,22 @@ export async function GET(request: NextRequest) {
                             altText: pa.asset.name || product.name,
                         }));
 
+                    // Transform variants to match frontend expectations
+                    const variants = product.variants.map((v: any) => ({
+                        id: v.id,
+                        productId: v.productId,
+                        name: v.name,
+                        sku: v.sku,
+                        price: v.price,
+                        compareAtPrice: null, // Not in schema
+                        inventory: {
+                            track: true,
+                            stockOnHand: v.stockOnHand || 0,
+                        },
+                        options: v.options || [],
+                        status: v.enabled ? 'active' : 'inactive',
+                    }));
+
                     return {
                         id: product.id,
                         name: product.name,
@@ -124,6 +141,7 @@ export async function GET(request: NextRequest) {
                         images,
                         brand: product.brand,
                         shippingMethod: (product as any).shippingMethod || null,
+                        variants, // Include full variants array
                     };
                 });
 

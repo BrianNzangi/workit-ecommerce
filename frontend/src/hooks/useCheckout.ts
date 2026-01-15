@@ -257,7 +257,9 @@ export const useCheckout = (user: User) => {
   };
 
   const processPaystackPayment = async (order: { id: string; total: string }) => {
-    const amount = formatPaystackAmount(parseFloat(order.total));
+    // Backend returns total in cents already, so no need to multiply by 100
+    // Paystack expects amount in kobo (for NGN) or cents (for KES)
+    const amount = Math.round(parseFloat(order.total));
 
     const configResponse = await fetch('/api/store/config');
     const config = await configResponse.json();
@@ -306,11 +308,25 @@ export const useCheckout = (user: User) => {
           },
         };
 
-        if ((stepData.payment.method === 'mpesa' || stepData.payment.method === 'airtel') && stepData.payment.phoneNumber) {
-          paystackConfig.mobile_money = {
-            phone: stepData.payment.phoneNumber,
-            provider: stepData.payment.method === 'mpesa' ? 'mpesa' : 'airtel',
-          };
+        // Set payment channels based on selected payment method
+        if (stepData.payment.method === 'card') {
+          paystackConfig.channels = ['card'];
+        } else if (stepData.payment.method === 'mpesa') {
+          paystackConfig.channels = ['mobile_money'];
+          if (stepData.payment.phoneNumber) {
+            paystackConfig.mobile_money = {
+              phone: stepData.payment.phoneNumber,
+              provider: 'mpesa',
+            };
+          }
+        } else if (stepData.payment.method === 'airtel') {
+          paystackConfig.channels = ['mobile_money'];
+          if (stepData.payment.phoneNumber) {
+            paystackConfig.mobile_money = {
+              phone: stepData.payment.phoneNumber,
+              provider: 'airtel',
+            };
+          }
         }
 
         const handler = paystack.setup(paystackConfig);

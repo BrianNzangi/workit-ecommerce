@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { Variant } from '@/types/variant';
 
 /**
  * Product interface matching the backend API response
@@ -17,11 +18,12 @@ export interface HomepageProduct {
     description?: string;
     price: number;
     compareAtPrice?: number;
-    condition?: string;
+    condition?: 'NEW' | 'REFURBISHED';
     images: Array<{
-        id?: string;
+        id: string;
         url: string;
         altText?: string;
+        position?: number;
     }>;
     brand?: {
         id: string;
@@ -35,6 +37,11 @@ export interface HomepageProduct {
         description?: string;
         isExpress: boolean;
     };
+    // Variant fields
+    variantId?: string;
+    variants?: Variant[];
+    stockOnHand?: number;
+    canBuy?: boolean;
 }
 
 /**

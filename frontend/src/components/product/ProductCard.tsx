@@ -28,10 +28,14 @@ export default function ProductCard({
 
   // Debug logging
   if (process.env.NODE_ENV === 'development') {
-    console.log('Product Card Debug:', {
+    console.log('🛒 Product Card Debug:', {
       productId: id,
       name,
-      variantId: finalVariantId,
+      providedVariantId: variantId,
+      variantsArray: variants,
+      variantsLength: variants?.length,
+      firstVariantId: variants?.[0]?.id,
+      finalVariantId: finalVariantId,
       canBuy: isVariantAvailable
     });
   }
@@ -54,9 +58,16 @@ export default function ProductCard({
       return;
     }
 
-    // ✅ Block adding unavailable variants
+    // ✅ Block adding if no variant ID is available
     if (!finalVariantId) {
-      toast.error('Product configuration error. Please refresh.');
+      console.error('❌ Missing variant ID:', {
+        productId: id,
+        productName: name,
+        providedVariantId: variantId,
+        variants: variants,
+        variantsLength: variants?.length
+      });
+      toast.error('Product configuration error. Please try refreshing the page or contact support.');
       return;
     }
 
