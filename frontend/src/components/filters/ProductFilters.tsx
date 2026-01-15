@@ -68,7 +68,7 @@ export default function ProductFilters({ selectedCategory, currentCategoryName, 
     const fetchFilters = async () => {
       try {
         // Fetch categories from API route
-        const categoriesRes = await fetch('/api/collections');
+        const categoriesRes = await fetch('/api/collections?includeChildren=true');
         let categoriesData: Category[] = [];
         if (categoriesRes.ok) {
           const rawCategories = await categoriesRes.json();

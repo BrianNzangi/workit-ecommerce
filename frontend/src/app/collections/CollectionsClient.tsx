@@ -42,7 +42,7 @@ export default function CollectionsClient() {
           {/* Filters Sidebar */}
           <div className="lg:w-1/4">
             <ProductFilters
-              selectedCategory={currentCategory?.id || null}
+              selectedCategory={currentCategory?.id ? parseInt(currentCategory.id) : null}
               onFilterChange={handleFilterChange}
             />
           </div>

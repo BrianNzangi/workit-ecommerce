@@ -16,13 +16,11 @@ export default function ColProductGrid({ products }: ColProductGridProps) {
           id={product.id}
           name={product.name}
           slug={product.slug}
-          link={product.link}
           price={product.price}
-          regular_price={product.regular_price}
+          compareAtPrice={product.compareAtPrice}
           image={product.image}
           images={product.images}
-          variations={product.variations}
-          type={product.type}
+          variants={product.variants}
           categories={product.categories}
           shippingMethod={product.shippingMethod}
           condition={product.condition}

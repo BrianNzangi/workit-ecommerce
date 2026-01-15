@@ -84,11 +84,14 @@ export default async function CollectionPage({ params }: Props) {
   let collections: Collection[] = []
   try {
     const collectionsRes = await fetch(`${process.env.NEXT_PUBLIC_FRONTEND_BASE_URL || 'http://localhost:3000'}/api/collections?includeChildren=true`, {
-      cache: 'force-cache'
+      cache: 'no-store'
     })
 
     if (collectionsRes.ok) {
       collections = await collectionsRes.json()
+      console.log('📦 Raw collections from API:', JSON.stringify(collections, null, 2));
+    } else {
+      console.error('❌ Failed to fetch collections, status:', collectionsRes.status);
     }
   } catch (error) {
     console.error('Failed to fetch collections:', error)
@@ -123,12 +126,15 @@ export default async function CollectionPage({ params }: Props) {
     try {
       const productsRes = await fetch(
         `${process.env.NEXT_PUBLIC_FRONTEND_BASE_URL || 'http://localhost:3000'}/api/products?slug=${collection.slug}&per_page=20`,
-        { cache: 'force-cache' }
+        { cache: 'no-store' }
       )
 
       if (productsRes.ok) {
         const data = await productsRes.json()
         products = data.products || []
+        console.log('📦 Products fetched for collection:', collection.slug, '- Count:', products.length);
+      } else {
+        console.error('❌ Failed to fetch products, status:', productsRes.status);
       }
     } catch (error) {
       console.error('Failed to fetch products:', error)
@@ -142,7 +148,7 @@ export default async function CollectionPage({ params }: Props) {
     <div className="bg-[#F8F9FC] min-h-screen">
       <CollectionClient
         fullSlug={fullSlug}
-        category={collection || undefined}
+        category={collection}
         categories={collections}
         products={products}
         brands={brands}

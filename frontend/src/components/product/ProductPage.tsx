@@ -20,7 +20,7 @@ export default function ProductPage({
   allCategories: Category[]
 }) {
   const breadcrumbs: Breadcrumb[] = buildBreadcrumbs(
-    product.categories || [],
+    product.categories?.map(cat => ({ ...cat, id: parseInt(cat.id) })) || [],
     allCategories || []
   )
 
@@ -49,9 +49,9 @@ export default function ProductPage({
 
   const effectiveOriginalPrice =
     (product as any).selectedVariationOriginalPrice ??
-    (typeof product.regular_price === "string"
-      ? parseFloat(product.regular_price)
-      : product.regular_price) ??
+    (typeof product.compareAtPrice === "string"
+      ? parseFloat(product.compareAtPrice)
+      : product.compareAtPrice) ??
     0
 
   const nextImage = () => {
@@ -71,7 +71,7 @@ export default function ProductPage({
 
         const productCategories = product.categories || []
         const allSimilarProducts: Product[] = []
-        const seenIds = new Set<number>()
+        const seenIds = new Set<string>()
 
         // First, check if product belongs to android-smartphones collection and prioritize it
         if (isAndroidSmartphoneProduct(product)) {
@@ -115,7 +115,7 @@ export default function ProductPage({
 
         // If still no products and no android-smartphones, try L2 category as fallback
         if (allSimilarProducts.length === 0 && !isAndroidSmartphoneProduct(product)) {
-          const l2Category = findL2Category(product.categories || [], allCategories || [])
+          const l2Category = findL2Category(product.categories?.map(cat => ({ ...cat, id: parseInt(cat.id) })) || [], allCategories || [])
           if (l2Category) {
             console.log('Fallback: Fetching similar items for L2 category:', l2Category.name, '(ID:', l2Category.id + ')')
             const response = await fetch(`/api/products/similar?categoryId=${l2Category.id}&excludeProductId=${product.id}&limit=8`)
@@ -208,7 +208,7 @@ export default function ProductPage({
               <div className="flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-y-auto md:max-h-[608px]">
                 {images.slice(0, 6).map((img, idx) => (
                   <div
-                    key={img.id || `${img.src}-${idx}`}
+                    key={img.id || `${img.url}-${idx}`}
                     className={`w-16 h-16 md:w-20 md:h-20 bg-gray-100 cursor-pointer ${selectedIdx === idx
                       ? "border-2 border-black"
                       : "opacity-80 hover:opacity-100"
@@ -216,7 +216,7 @@ export default function ProductPage({
                     onClick={() => setSelectedIdx(idx)}
                   >
                     <Image
-                      src={getImageUrl(img.src || img.url || '')}
+                      src={getImageUrl(img.url || '')}
                       alt={`${product.name} thumbnail ${idx + 1}`}
                       width={80}
                       height={80}
@@ -236,7 +236,7 @@ export default function ProductPage({
                   <FaChevronLeft />
                 </button>
                 <Image
-                  src={getImageUrl(images[selectedIdx]?.src || images[selectedIdx]?.url || '')}
+                  src={getImageUrl(images[selectedIdx]?.url || '')}
                   alt={product.name}
                   width={800}
                   height={608}

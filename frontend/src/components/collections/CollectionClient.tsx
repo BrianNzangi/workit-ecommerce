@@ -52,7 +52,7 @@ export default function CollectionClient({
         price: p.price,
         priceCurrency: 'KSH',
         availability:
-          p.stock_status === 'instock'
+          p.canBuy
             ? 'https://schema.org/InStock'
             : 'https://schema.org/OutOfStock',
       },

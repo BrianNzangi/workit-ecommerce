@@ -65,39 +65,23 @@ export default async function ProductDetailPage({ params }: Props) {
       id: productData.id,
       name: productData.name,
       slug: productData.slug,
-      link: `/deal-details/${productData.slug}`,
       description: productData.description,
       short_description: productData.short_description,
       price: productData.price,
-      regular_price: productData.regular_price,
-      stock_status: productData.stock_status,
-      type: productData.variants?.length > 0 ? 'variable' : 'simple',
+      compareAtPrice: productData.regular_price,
       images: productData.images || [],
       image: productData.image,
-      variations: productData.variants?.map((variant: any) => ({
-        id: variant.id,
-        price: String(variant.price || productData.price),
-        regular_price: variant.regular_price ? String(variant.regular_price) : undefined,
-        sale_price: variant.sale_price ? String(variant.sale_price) : undefined,
-        stock_status: variant.stockQuantity > 0 ? 'instock' : 'outofstock',
-        image: variant.image ? {
-          src: variant.image.url,
-        } : undefined,
-        attributes: variant.options?.map((opt: any) => ({
-          id: opt.id || 0,
-          name: opt.name,
-          option: opt.value,
-        })) || [],
-      })) || [],
       variants: productData.variants || [],
       categories: productData.categories?.map((col: any) => ({
-        id: parseInt(col.id) || 0,
+        id: col.id,
         name: col.name,
         slug: col.slug,
       })) || [],
       brand: productData.brand,
       condition: productData.condition,
       shippingMethod: productData.shippingMethod,
+      stockOnHand: productData.stockQuantity,
+      canBuy: productData.stock_status === 'instock',
     };
 
     // Fetch categories (optional)
