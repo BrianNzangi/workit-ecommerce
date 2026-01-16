@@ -1,0 +1,54 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: workit_backend_app
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://postgres:##@Scottish!@postgres:5432/workit_backed_db
+      # You should pass these via .env file in production
+      # PAYSTACK_SECRET_KEY: ${PAYSTACK_SECRET_KEY}
+      # JWT_SECRET: ${JWT_SECRET}
+      # IMAGEKIT_PUBLIC_KEY: ${IMAGEKIT_PUBLIC_KEY}
+      # IMAGEKIT_PRIVATE_KEY: ${IMAGEKIT_PRIVATE_KEY}
+      # IMAGEKIT_URL_ENDPOINT: ${IMAGEKIT_URL_ENDPOINT}
+      # STOREFRONT_URL: ${STOREFRONT_URL}
+      # ADMIN_URL: ${ADMIN_URL}
+      # CRON_SECRET: ${CRON_SECRET}
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - workit-network
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: workit_backend_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: workit_backed_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: '##@Scottish!'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - workit-network
+
+volumes:
+  postgres_data:
+
+
+networks:
+  workit-network:
+    driver: bridge
