@@ -44,7 +44,8 @@ export async function GET(request: NextRequest) {
             ...zone,
             cities: zone.cities.map(city => ({
                 ...city,
-                price: city.price / 100, // Convert cents to KES
+                standardPrice: city.standardPrice / 100,
+                expressPrice: city.expressPrice ? city.expressPrice / 100 : undefined,
             })),
         }));
 

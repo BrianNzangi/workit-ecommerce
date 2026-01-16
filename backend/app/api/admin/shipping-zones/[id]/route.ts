@@ -3,10 +3,13 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 // PATCH /api/admin/shipping-zones/[id] - Update a shipping zone
+
+// PATCH /api/admin/shipping-zones/[id] - Update a shipping zone
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    props: { params: Promise<{ id: string }> }
 ) {
+    const params = await props.params;
     try {
         const session = await auth();
         if (!session?.user) {
@@ -55,8 +58,10 @@ export async function PATCH(
 // DELETE /api/admin/shipping-zones/[id] - Delete a shipping zone
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    props: { params: Promise<{ id: string }> }
 ) {
+    const params = await props.params;
+
     try {
         const session = await auth();
         if (!session?.user) {

@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
                     createdAt: {
                         gte: startDate,
                     },
-                    draft: false,
+
                 },
             }),
             // Previous period orders
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
                         gte: previousStartDate,
                         lt: startDate,
                     },
-                    draft: false,
+
                 },
             }),
             // Total customers (current period)
@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
                     createdAt: 'desc',
                 },
                 where: {
-                    draft: false,
+
                 },
                 include: {
                     customer: true,
@@ -139,7 +139,7 @@ export async function GET(request: NextRequest) {
                     createdAt: {
                         gte: startDate,
                     },
-                    draft: false,
+
                 },
             },
             include: {

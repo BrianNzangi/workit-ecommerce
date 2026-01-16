@@ -118,9 +118,9 @@ async function main() {
             county: 'Nairobi',
             cities: {
                 create: [
-                    { cityTown: 'Westlands', price: 27000 }, // 270 KES in cents
-                    { cityTown: 'Kilimani', price: 27000 },
-                    { cityTown: 'Parklands', price: 30000 },
+                    { cityTown: 'Westlands', standardPrice: 27000 }, // 270 KES in cents
+                    { cityTown: 'Kilimani', standardPrice: 27000 },
+                    { cityTown: 'Parklands', standardPrice: 30000 },
                 ],
             },
         },
@@ -135,9 +135,9 @@ async function main() {
             county: 'Nairobi',
             cities: {
                 create: [
-                    { cityTown: 'Westlands', price: 50000 }, // 500 KES in cents
-                    { cityTown: 'Kilimani', price: 50000 },
-                    { cityTown: 'Parklands', price: 55000 },
+                    { cityTown: 'Westlands', standardPrice: 50000 }, // 500 KES in cents
+                    { cityTown: 'Kilimani', standardPrice: 50000 },
+                    { cityTown: 'Parklands', standardPrice: 55000 },
                 ],
             },
         },

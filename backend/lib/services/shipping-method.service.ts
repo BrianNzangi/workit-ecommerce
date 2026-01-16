@@ -9,7 +9,7 @@ export interface CreateShippingMethodInput {
   code: string;
   name: string;
   description?: string | null;
-  price: number;
+
   enabled?: boolean;
 }
 
@@ -17,7 +17,7 @@ export interface UpdateShippingMethodInput {
   code?: string;
   name?: string;
   description?: string | null;
-  price?: number;
+
   enabled?: boolean;
 }
 
@@ -28,7 +28,7 @@ export interface ShippingMethodListOptions {
 }
 
 export class ShippingMethodService {
-  constructor(private prisma: PrismaClient) {}
+  constructor(private prisma: PrismaClient) { }
 
   /**
    * Create a new shipping method
@@ -43,13 +43,7 @@ export class ShippingMethodService {
       throw validationError('Shipping method name is required', 'name');
     }
 
-    if (input.price === undefined || input.price === null) {
-      throw validationError('Shipping method price is required', 'price');
-    }
 
-    if (input.price < 0) {
-      throw validationError('Shipping method price must be positive or zero', 'price');
-    }
 
     try {
       const shippingMethod = await this.prisma.shippingMethod.create({
@@ -57,7 +51,7 @@ export class ShippingMethodService {
           code: input.code.trim(),
           name: input.name.trim(),
           description: input.description?.trim() || null,
-          price: input.price,
+
           enabled: input.enabled ?? true,
         },
       });
@@ -110,12 +104,7 @@ export class ShippingMethodService {
       updateData.description = input.description?.trim() || null;
     }
 
-    if (input.price !== undefined) {
-      if (input.price < 0) {
-        throw validationError('Shipping method price must be positive or zero', 'price');
-      }
-      updateData.price = input.price;
-    }
+
 
     if (input.enabled !== undefined) {
       updateData.enabled = input.enabled;

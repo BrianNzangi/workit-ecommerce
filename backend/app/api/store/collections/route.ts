@@ -22,10 +22,10 @@ export async function GET(request: NextRequest) {
         // Filter to only return enabled collections for storefront
         const enabledCollections = collections
             .filter(c => c.enabled)
-            .map(collection => ({
+            .map((collection: any) => ({
                 ...collection,
                 // Filter children to only enabled ones
-                children: collection.children?.filter(child => child.enabled) || [],
+                children: collection.children?.filter((child: any) => child.enabled) || [],
             }));
 
         return NextResponse.json(enabledCollections);

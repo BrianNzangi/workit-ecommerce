@@ -46,10 +46,10 @@ export async function processMarketingAutomations() {
                     }
                     break;
 
-                case 'WELCOME':
+                case 'WELCOME_SUBSCRIBER':
                 case 'POST_PURCHASE':
                 case 'BIRTHDAY':
-                case 'WINBACK':
+                case 'WIN_BACK':
                     // Placeholder for other automation types
                     console.log(`🎯 Automation: ${automation.name} (${automation.type}) - ready`);
                     break;

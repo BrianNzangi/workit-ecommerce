@@ -42,7 +42,6 @@
     "@tiptap/extension-placeholder": "^3.13.0",
     "@tiptap/react": "^3.13.0",
     "@tiptap/starter-kit": "^3.13.0",
-    "@types/swagger-ui-react": "^5.18.0",
     "bcrypt": "^6.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -64,7 +63,6 @@
     "recharts": "^3.6.0",
     "rxjs": "^7.8.2",
     "sharp": "^0.34.5",
-    "swagger-ui-react": "^5.31.0",
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {

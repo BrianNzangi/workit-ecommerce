@@ -303,7 +303,7 @@ export default function SettingsPage() {
             case 'roles':
                 return <RolesTab />;
             case 'shipping':
-                return <ShippingTab settings={settings} setSettings={setSettings} />;
+                return <ShippingTab />;
             case 'taxes':
                 return <TaxesTab settings={settings} setSettings={setSettings} />;
             case 'policies':
