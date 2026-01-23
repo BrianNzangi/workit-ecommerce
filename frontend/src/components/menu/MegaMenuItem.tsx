@@ -18,7 +18,7 @@ export default function MegaMenuItem({ title, image, href }: MegaMenuItemProps) 
         href={href}
         className="block bg-gray-100 rounded-md overflow-hidden transition"
       >
-        <div className="relative aspect-[4/2] w-full">
+        <div className="relative aspect-4/2 w-full">
           {image ? (
             <Image
               src={getImageUrl(image)}
@@ -28,8 +28,10 @@ export default function MegaMenuItem({ title, image, href }: MegaMenuItemProps) 
               unoptimized
             />
           ) : (
-            <div className="flex items-center justify-center w-full h-full text-gray-400 text-sm">
-              No image available
+            <div className="flex items-center justify-center w-full h-full bg-linear-to-br from-gray-50 to-gray-100 p-4">
+              <span className="text-gray-400 text-xs font-semibold text-center uppercase tracking-wider">
+                {he.decode(title)}
+              </span>
             </div>
           )}
         </div>

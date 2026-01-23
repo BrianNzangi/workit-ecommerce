@@ -1,0 +1,488 @@
+{
+    "v": 1,
+    "name": "Workit E-commerce API",
+    "folders": [
+        {
+            "v": 1,
+            "name": "Authentication",
+            "requests": [
+                {
+                    "v": "4",
+                    "name": "Register Customer",
+                    "method": "POST",
+                    "endpoint": "{{base_url}}/auth/register",
+                    "headers": [
+                        {
+                            "key": "Content-Type",
+                            "value": "application/json",
+                            "active": true
+                        }
+                    ],
+                    "body": {
+                        "contentType": "application/json",
+                        "body": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"password123\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\"\n}"
+                    }
+                },
+                {
+                    "v": "4",
+                    "name": "Login",
+                    "method": "POST",
+                    "endpoint": "{{base_url}}/auth/login",
+                    "headers": [
+                        {
+                            "key": "Content-Type",
+                            "value": "application/json",
+                            "active": true
+                        }
+                    ],
+                    "body": {
+                        "contentType": "application/json",
+                        "body": "{\n  \"email\": \"admin@workit.co.ke\",\n  \"password\": \"admin123456\"\n}"
+                    }
+                },
+                {
+                    "v": "4",
+                    "name": "Get Profile",
+                    "method": "GET",
+                    "endpoint": "{{base_url}}/auth/me",
+                    "headers": [
+                        {
+                            "key": "Authorization",
+                            "value": "Bearer {{access_token}}",
+                            "active": true
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "v": 1,
+            "name": "Settings",
+            "folders": [],
+            "requests": [
+                {
+                    "v": "4",
+                    "name": "Get All Settings (Admin)",
+                    "method": "GET",
+                    "endpoint": "{{base_url}}/settings",
+                    "headers": []
+                },
+                {
+                    "v": "4",
+                    "name": "Get Public Settings (Storefront)",
+                    "method": "GET",
+                    "endpoint": "{{base_url}}/settings/public",
+                    "headers": []
+                },
+                {
+                    "v": "4",
+                    "name": "Update Settings",
+                    "method": "POST",
+                    "endpoint": "{{base_url}}/settings",
+                    "headers": [
+                        {
+                            "key": "Authorization",
+                            "value": "Bearer {{access_token}}",
+                            "active": true
+                        },
+                        {
+                            "key": "Content-Type",
+                            "value": "application/json",
+                            "active": true
+                        }
+                    ],
+                    "body": {
+                        "contentType": "application/json",
+                        "body": "{\n  \"general\": {\n    \"site_name\": \"Workit Store\",\n    \"site_email\": \"store@workit.co.ke\",\n    \"site_phone\": \"+254700000000\",\n    \"site_address\": \"123 Main St, Nairobi\",\n    \"timezone\": \"Africa/Nairobi\"\n  },\n  \"payments\": {\n    \"default_currency\": \"KES\",\n    \"paystack_public_key\": \"pk_test_xxxxx\",\n    \"paystack_secret_key\": \"sk_test_xxxxx\",\n    \"paystack_enabled\": true\n  }\n}"
+                    }
+                }
+            ]
+        },
+        {
+            "v": 1,
+            "name": "Products",
+            "folders": [],
+            "requests": [
+                {
+                    "v": "4",
+                    "name": "Get All Products",
+                    "method": "GET",
+                    "endpoint": "{{base_url}}/products?limit=10&offset=0",
+                    "headers": []
+                },
+                {
+                    "v": "4",
+                    "name": "Search Products",
+                    "method": "GET",
+                    "endpoint": "{{base_url}}/products/search?q=laptop",
+                    "headers": []
+                },
+                {
+                    "v": "4",
+                    "name": "Get Single Product",
+                    "method": "GET",
+                    "endpoint": "{{base_url}}/products/{{product_id}}",
+                    "headers": []
+                },
+                {
+                    "v": "4",
+                    "name": "Create Product",
+                    "method": "POST",
+                    "endpoint": "{{base_url}}/products",
+                    "headers": [
+                        {
+                            "key": "Authorization",
+                            "value": "Bearer {{access_token}}",
+                            "active": true
+                        },
+                        {
+                            "key": "Content-Type",
+                            "value": "application/json",
+                            "active": true
+                        }
+                    ],
+                    "body": {
+                        "contentType": "application/json",
+                        "body": "{\n  \"name\": \"Test Product\",\n  \"slug\": \"test-product\",\n  \"description\": \"A test product\",\n  \"enabled\": true\n}"
+                    }
+                },
+                {
+                    "v": "4",
+                    "name": "Update Product",
+                    "method": "PUT",
+                    "endpoint": "{{base_url}}/products/{{product_id}}",
+                    "headers": [
+                        {
+                            "key": "Authorization",
+                            "value": "Bearer {{access_token}}",
+                            "active": true
+                        },
+                        {
+                            "key": "Content-Type",
+                            "value": "application/json",
+                            "active": true
+                        }
+                    ],
+                    "body": {
+                        "contentType": "application/json",
+                        "body": "{\n  \"name\": \"Updated Product Name\",\n  \"enabled\": true\n}"
+                    }
+                }
+            ]
+        },
+        {
+            "v": 1,
+            "name": "Collections",
+            "folders": [],
+            "requests": [
+                {
+                    "v": "4",
+                    "name": "Get All Collections",
+                    "method": "GET",
+                    "endpoint": "{{base_url}}/collections",
+                    "headers": []
+                },
+                {
+                    "v": "4",
+                    "name": "Get Single Collection",
+                    "method": "GET",
+                    "endpoint": "{{base_url}}/collections/{{collection_id}}",
+                    "headers": []
+                },
+                {
+                    "v": "4",
+                    "name": "Create Collection",
+                    "method": "POST",
+                    "endpoint": "{{base_url}}/collections",
+                    "headers": [
+                        {
+                            "key": "Authorization",
+                            "value": "Bearer {{access_token}}",
+                            "active": true
+                        },
+                        {
+                            "key": "Content-Type",
+                            "value": "application/json",
+                            "active": true
+                        }
+                    ],
+                    "body": {
+                        "contentType": "application/json",
+                        "body": "{\n  \"name\": \"New Collection\",\n  \"slug\": \"new-collection\",\n  \"description\": \"A new collection\",\n  \"enabled\": true\n}"
+                    }
+                },
+                {
+                    "v": "4",
+                    "name": "Update Collection",
+                    "method": "PUT",
+                    "endpoint": "{{base_url}}/collections/{{collection_id}}",
+                    "headers": [
+                        {
+                            "key": "Authorization",
+                            "value": "Bearer {{access_token}}",
+                            "active": true
+                        },
+                        {
+                            "key": "Content-Type",
+                            "value": "application/json",
+                            "active": true
+                        }
+                    ],
+                    "body": {
+                        "contentType": "application/json",
+                        "body": "{\n  \"name\": \"Updated Collection\"\n}"
+                    }
+                },
+                {
+                    "v": "4",
+                    "name": "Delete Collection",
+                    "method": "DELETE",
+                    "endpoint": "{{base_url}}/collections/{{collection_id}}",
+                    "headers": [
+                        {
+                            "key": "Authorization",
+                            "value": "Bearer {{access_token}}",
+                            "active": true
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "v": 1,
+            "name": "Brands",
+            "folders": [],
+            "requests": [
+                {
+                    "v": "4",
+                    "name": "Get All Brands",
+                    "method": "GET",
+                    "endpoint": "{{base_url}}/brands",
+                    "headers": []
+                },
+                {
+                    "v": "4",
+                    "name": "Get Single Brand",
+                    "method": "GET",
+                    "endpoint": "{{base_url}}/brands/{{brand_id}}",
+                    "headers": []
+                },
+                {
+                    "v": "4",
+                    "name": "Create Brand",
+                    "method": "POST",
+                    "endpoint": "{{base_url}}/brands",
+                    "headers": [
+                        {
+                            "key": "Authorization",
+                            "value": "Bearer {{access_token}}",
+                            "active": true
+                        },
+                        {
+                            "key": "Content-Type",
+                            "value": "application/json",
+                            "active": true
+                        }
+                    ],
+                    "body": {
+                        "contentType": "application/json",
+                        "body": "{\n  \"name\": \"New Brand\",\n  \"slug\": \"new-brand\",\n  \"description\": \"A new brand\",\n  \"enabled\": true\n}"
+                    }
+                },
+                {
+                    "v": "4",
+                    "name": "Update Brand",
+                    "method": "PUT",
+                    "endpoint": "{{base_url}}/brands/{{brand_id}}",
+                    "headers": [
+                        {
+                            "key": "Authorization",
+                            "value": "Bearer {{access_token}}",
+                            "active": true
+                        },
+                        {
+                            "key": "Content-Type",
+                            "value": "application/json",
+                            "active": true
+                        }
+                    ],
+                    "body": {
+                        "contentType": "application/json",
+                        "body": "{\n  \"name\": \"Updated Brand\"\n}"
+                    }
+                },
+                {
+                    "v": "4",
+                    "name": "Delete Brand",
+                    "method": "DELETE",
+                    "endpoint": "{{base_url}}/brands/{{brand_id}}",
+                    "headers": [
+                        {
+                            "key": "Authorization",
+                            "value": "Bearer {{access_token}}",
+                            "active": true
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "v": 1,
+            "name": "Orders",
+            "folders": [],
+            "requests": [
+                {
+                    "v": "4",
+                    "name": "Checkout",
+                    "method": "POST",
+                    "endpoint": "{{base_url}}/orders/checkout",
+                    "headers": [
+                        {
+                            "key": "Authorization",
+                            "value": "Bearer {{access_token}}",
+                            "active": true
+                        },
+                        {
+                            "key": "Content-Type",
+                            "value": "application/json",
+                            "active": true
+                        }
+                    ],
+                    "body": {
+                        "contentType": "application/json",
+                        "body": "{\n  \"items\": [\n    {\n      \"variantId\": \"variant-uuid\",\n      \"quantity\": 2\n    }\n  ],\n  \"shippingAddress\": {\n    \"fullName\": \"John Doe\",\n    \"streetLine1\": \"123 Main St\",\n    \"city\": \"Nairobi\",\n    \"province\": \"Nairobi\",\n    \"postalCode\": \"00100\",\n    \"country\": \"KE\",\n    \"phoneNumber\": \"+254700000000\"\n  }\n}"
+                    }
+                },
+                {
+                    "v": "4",
+                    "name": "Get My Orders",
+                    "method": "GET",
+                    "endpoint": "{{base_url}}/orders/me",
+                    "headers": [
+                        {
+                            "key": "Authorization",
+                            "value": "Bearer {{access_token}}",
+                            "active": true
+                        }
+                    ]
+                },
+                {
+                    "v": "4",
+                    "name": "Get Single Order",
+                    "method": "GET",
+                    "endpoint": "{{base_url}}/orders/{{order_id}}",
+                    "headers": [
+                        {
+                            "key": "Authorization",
+                            "value": "Bearer {{access_token}}",
+                            "active": true
+                        }
+                    ]
+                },
+                {
+                    "v": "4",
+                    "name": "Update Order Status",
+                    "method": "PUT",
+                    "endpoint": "{{base_url}}/orders/{{order_id}}/status",
+                    "headers": [
+                        {
+                            "key": "Authorization",
+                            "value": "Bearer {{access_token}}",
+                            "active": true
+                        },
+                        {
+                            "key": "Content-Type",
+                            "value": "application/json",
+                            "active": true
+                        }
+                    ],
+                    "body": {
+                        "contentType": "application/json",
+                        "body": "{\n  \"state\": \"SHIPPED\"\n}"
+                    }
+                }
+            ]
+        },
+        {
+            "v": 1,
+            "name": "Analytics",
+            "folders": [],
+            "requests": [
+                {
+                    "v": "4",
+                    "name": "Get Sales Stats",
+                    "method": "GET",
+                    "endpoint": "{{base_url}}/analytics/dashboard/sales?range=7d",
+                    "headers": []
+                },
+                {
+                    "v": "4",
+                    "name": "Get Order Stats",
+                    "method": "GET",
+                    "endpoint": "{{base_url}}/analytics/dashboard/orders?range=7d",
+                    "headers": []
+                }
+            ]
+        }
+    ],
+    "environments": [
+        {
+            "name": "Local Development",
+            "variables": [
+                {
+                    "key": "base_url",
+                    "value": "http://localhost:3001"
+                },
+                {
+                    "key": "access_token",
+                    "value": ""
+                },
+                {
+                    "key": "product_id",
+                    "value": ""
+                },
+                {
+                    "key": "collection_id",
+                    "value": ""
+                },
+                {
+                    "key": "brand_id",
+                    "value": ""
+                },
+                {
+                    "key": "order_id",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "name": "Production",
+            "variables": [
+                {
+                    "key": "base_url",
+                    "value": "https://api.workit.co.ke"
+                },
+                {
+                    "key": "access_token",
+                    "value": ""
+                },
+                {
+                    "key": "product_id",
+                    "value": ""
+                },
+                {
+                    "key": "collection_id",
+                    "value": ""
+                },
+                {
+                    "key": "brand_id",
+                    "value": ""
+                },
+                {
+                    "key": "order_id",
+                    "value": ""
+                }
+            ]
+        }
+    ]
+}

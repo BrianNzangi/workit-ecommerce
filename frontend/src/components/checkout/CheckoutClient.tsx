@@ -42,7 +42,7 @@ export default function CheckoutClient({ user }: CheckoutClientProps) {
 
   return (
     <section className="bg-[#F1F1F2] min-h-screen py-8">
-      <div className="container mx-auto px-4 max-w-7xl grid grid-cols-1 md:grid-cols-3 gap-8 font-[DM_SANS]">
+      <div className="container mx-auto px-4 max-w-7xl grid grid-cols-1 md:grid-cols-3 gap-8 font-sans">
         <div className="md:col-span-2 space-y-6">
           <StepBilling
             user={user}

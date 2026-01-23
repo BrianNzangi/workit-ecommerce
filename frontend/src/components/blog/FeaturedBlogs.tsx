@@ -62,9 +62,9 @@ export default function FeaturedBlogs() {
     ));
 
   return (
-    <section className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-8 py-0 font-[DM_Sans]">
+    <section className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-8 py-0 font-sans">
       <div className="flex justify-between items-center mb-2">
-        <h2 className="text-xl font-semibold">Tech that helps the world</h2>
+        <h2 className="font-sans text-xl font-semibold">Tech that helps the world</h2>
         <div className="hidden md:flex gap-2">
           <button
             onClick={() => scroll('left')}
@@ -88,7 +88,7 @@ export default function FeaturedBlogs() {
           {loading
             ? renderSkeleton()
             : blogs.length > 0
-            ? blogs.map(blog => (
+              ? blogs.map(blog => (
                 <div key={blog.id} className="min-w-[300px]">
                   <BlogCard
                     id={blog.id}
@@ -100,8 +100,8 @@ export default function FeaturedBlogs() {
                   />
                 </div>
               ))
-            : (
-                <p className="text-gray-500">No featured blogs found.</p>
+              : (
+                <p className="font-sans text-gray-500">No featured blogs found.</p>
               )}
         </motion.div>
       </div>

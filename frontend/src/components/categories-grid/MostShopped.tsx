@@ -2,9 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { getImageUrl } from '@/lib/image-utils';
 import { fetchCollectionsClient } from '@/lib/collections-client';
 import type { Collection } from '@/types/collections';
+
+// Import Swiper components and styles
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Pagination } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
 
 interface CollectionItem {
     id: string;
@@ -20,28 +28,38 @@ export default function MostShopped() {
     useEffect(() => {
         const fetchCollections = async () => {
             try {
-                // Fetch all collections
                 const data = await fetchCollectionsClient({
-                    take: 50, // Fetch more to ensure we get enough children
+                    take: 50,
                     skip: 0,
                 });
 
-                // Filter to only include collections marked for "Most Shopped" section
-                const childCollections = data.filter((collection: Collection) =>
-                    collection.showInMostShopped === true
-                );
+                const allFeaturedCollections: CollectionItem[] = [];
 
-                // Transform collections to the format we need
-                const items: CollectionItem[] = childCollections
-                    .slice(0, 12) // Limit to 12 items for display
-                    .map((collection: Collection) => ({
-                        id: collection.id,
-                        name: collection.name,
-                        slug: collection.slug,
-                        image: collection.asset?.preview || collection.asset?.source,
-                    }));
+                data.forEach((collection: Collection) => {
+                    if (collection.showInMostShopped === true) {
+                        allFeaturedCollections.push({
+                            id: collection.id,
+                            name: collection.name,
+                            slug: collection.slug,
+                            image: collection.asset?.preview || collection.asset?.source,
+                        });
+                    }
 
-                setCollections(items);
+                    if (collection.children && collection.children.length > 0) {
+                        collection.children.forEach((child: any) => {
+                            if (child.showInMostShopped === true) {
+                                allFeaturedCollections.push({
+                                    id: child.id,
+                                    name: child.name,
+                                    slug: child.slug,
+                                    image: child.asset?.preview || child.asset?.source,
+                                });
+                            }
+                        });
+                    }
+                });
+
+                setCollections(allFeaturedCollections);
             } catch (err) {
                 console.error('Error fetching collections:', err);
             } finally {
@@ -53,80 +71,129 @@ export default function MostShopped() {
     }, []);
 
     const renderSkeleton = () => (
-        <div className="group animate-pulse">
-            <div className="w-full aspect-[4/3] sm:aspect-[3/2] bg-gray-200 mb-2 sm:mb-3 rounded-xl" />
-            <div className="space-y-1 sm:space-y-2">
-                <div className="h-3 sm:h-4 w-3/4 bg-gray-200 rounded" />
-                <div className="h-3 sm:h-4 w-1/2 bg-gray-200 rounded" />
-            </div>
+        <div className="flex flex-col items-center justify-center animate-pulse">
+            <div className="w-[90px] h-[90px] rounded-lg bg-gray-200 mb-2" />
+            <div className="h-3 w-16 bg-gray-200 rounded" />
         </div>
     );
 
     const renderCollection = (collection: CollectionItem) => (
-        <div key={collection.id} className="group">
-            <a
+        <SwiperSlide key={collection.id}>
+            <Link
                 href={`/collections/${collection.slug}`}
-                className="block"
+                className="flex flex-col items-center justify-center group transition-transform duration-300"
             >
-                {/* Image Container */}
-                <div className="relative w-full aspect-[4/3] sm:aspect-[3/2] overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 mb-2 sm:mb-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
+                {/* Image Container - 90x90 Square */}
+                <div className="relative w-[90px] h-[90px] overflow-hidden mb-1 rounded-lg">
                     {collection.image ? (
                         <Image
                             src={getImageUrl(collection.image)}
                             alt={collection.name}
                             fill
                             className="object-cover"
-                            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, 16.67vw"
+                            sizes="90px"
                             unoptimized
                         />
                     ) : (
-                        <div className="w-full h-full flex items-center justify-center p-4">
-                            <span className="text-gray-600 text-sm sm:text-base font-semibold text-center">
+                        <div className="w-full h-full flex items-center justify-center p-2">
+                            <span className="text-gray-400 text-[10px] font-bold text-center uppercase tracking-tighter">
                                 {collection.name}
                             </span>
                         </div>
                     )}
-
-                    {/* Collection badge for mobile */}
-                    <div className="absolute bottom-2 left-2 sm:hidden">
-                        <span className="bg-white bg-opacity-90 px-2 py-1 rounded-md text-xs font-medium text-gray-800 shadow-sm">
-                            {collection.name}
-                        </span>
-                    </div>
                 </div>
 
-                {/* Collection Name - Hidden on mobile, shown on larger screens */}
-                <div className="hidden sm:block">
-                    <h3 className="font-[DM_Sans] text-sm md:text-base lg:text-md font-semibold text-gray-800 line-clamp-2 leading-tight">
+                {/* Collection Name */}
+                <div className="min-h-[2.4rem] md:min-h-[2.8rem] flex items-start justify-center px-1">
+                    <h3 className="font-sans text-[11px] md:text-[16px] font-normal text-gray-800 text-center leading-tight group-hover:text-primary group-hover:underline transition-all">
                         {collection.name}
                     </h3>
                 </div>
-            </a>
-        </div>
+            </Link>
+        </SwiperSlide>
     );
 
     return (
-        <section className="py-4 sm:py-6 lg:py-8">
-            <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+        <section className="py-6 sm:py-8 lg:pt-4">
+            <div className="container mx-auto px-4 md:px-6 lg:px-8">
                 {/* Section Header */}
-                <div className="mb-2 sm:mb-4">
-                    <h2 className="font-[DM_Sans] text-lg sm:text-xl md:text-xl lg:text-2xl font-bold text-gray-900">
+                <div className="flex items-center justify-between mb-4 sm:mb-5">
+                    <h2 className="font-sans text-xl sm:text-2xl font-bold text-gray-900">
                         Most Shopped
                     </h2>
                 </div>
 
-                {/* Collections Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-5 lg:gap-4">
-                    {loading
-                        ? Array.from({ length: 12 }, (_, i) => (
-                            <div key={i}>
-                                {renderSkeleton()}
-                            </div>
-                        ))
-                        : collections.map(renderCollection)
-                    }
+                {/* Collections Carousel */}
+                <div className="relative -mx-2 px-2">
+                    {loading ? (
+                        <div className="flex gap-3 overflow-hidden">
+                            {Array.from({ length: 8 }, (_, i) => (
+                                <div key={i} className="flex-none">
+                                    {renderSkeleton()}
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <Swiper
+                            modules={[Navigation, Pagination]}
+                            spaceBetween={12}
+                            slidesPerView={3.5}
+                            navigation
+                            pagination={{ clickable: true, dynamicBullets: true }}
+                            breakpoints={{
+                                480: {
+                                    slidesPerView: 4.5,
+                                    spaceBetween: 14,
+                                },
+                                640: {
+                                    slidesPerView: 5.5,
+                                    spaceBetween: 16,
+                                },
+                                768: {
+                                    slidesPerView: 6.5,
+                                    spaceBetween: 16,
+                                },
+                                1024: {
+                                    slidesPerView: 8.5,
+                                    spaceBetween: 20,
+                                },
+                                1280: {
+                                    slidesPerView: 10.5,
+                                    spaceBetween: 24,
+                                },
+                            }}
+                            className="most-shopped-swiper pb-10!"
+                        >
+                            {collections.map(renderCollection)}
+                        </Swiper>
+                    )}
                 </div>
             </div>
+
+            <style jsx global>{`
+                .most-shopped-swiper .swiper-button-next,
+                .most-shopped-swiper .swiper-button-prev {
+                    color: var(--primary);
+                    background: white;
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 50%;
+                    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+                    border: 1px solid #f3f4f6;
+                }
+                .most-shopped-swiper .swiper-button-next:after,
+                .most-shopped-swiper .swiper-button-prev:after {
+                    font-size: 14px;
+                    font-weight: bold;
+                }
+                .most-shopped-swiper .swiper-pagination-bullet-active {
+                    background: var(--primary);
+                }
+                .most-shopped-swiper .swiper-button-disabled {
+                    opacity: 0;
+                    pointer-events: none;
+                }
+            `}</style>
         </section>
     );
 }

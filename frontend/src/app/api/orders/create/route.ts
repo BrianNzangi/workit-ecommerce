@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@workos-inc/authkit-nextjs';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3001';
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,12 +25,10 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Debug: Log items to see their structure
-    console.log('Cart items:', JSON.stringify(items, null, 2));
-
     // STEP 1: Validate cart items before creating order
+    // Use the updated backend endpoint /store/cart/validate
     console.log('Validating cart items...');
-    const validationResponse = await fetch(`${BACKEND_URL}/api/store/cart/validate`, {
+    const validationResponse = await fetch(`${BACKEND_URL}/store/cart/validate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -38,12 +36,20 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({ items }),
     });
 
+    if (!validationResponse.ok) {
+      const errorText = await validationResponse.text();
+      console.error('Validation API error:', errorText);
+      return NextResponse.json({
+        success: false,
+        error: 'Failed to validate cart. Please try again.'
+      }, { status: validationResponse.status });
+    }
+
     const validationResult = await validationResponse.json();
 
-    if (!validationResult.success || !validationResult.data.valid) {
+    if (!validationResult.valid) {
       console.error('Cart validation failed:', validationResult);
-
-      const invalidItems = validationResult.data?.invalidItems || [];
+      const invalidItems = validationResult.invalidItems || [];
       if (invalidItems.length > 0) {
         const errorMessages = invalidItems.map((item: any) =>
           `• ${item.item?.name || 'Unknown product'}: ${item.reason}`
@@ -59,34 +65,12 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Cart validation passed');
 
-    // Prepare line items for GraphQL mutation
-    const lineItems = items.map((item: any) => {
-      // Strictly use variantId - NEVER fall back to productId (item.id)
-      let variantId = item.variantId;
-
-      // Guard: Ensure variantId is valid and NOT equal to productId
-      if (!variantId || variantId === item.id || variantId === "NaN" || variantId === "0") {
-        console.error('❌ Invalid variantId for item:', {
-          name: item.name,
-          productId: item.id,
-          variantId: item.variantId
-        });
-        throw new Error(`Product "${item.name}" has an invalid configuration. Please remove it from cart and re-add it.`);
-      }
-
-      return {
-        variantId: String(variantId),
-        quantity: parseInt(String(item.quantity), 10) || 1,
-      };
-    });
-
-    console.log('Prepared line items:', JSON.stringify(lineItems, null, 2));
-
-    // Prepare complete order input according to CreateOrderInput schema
-    const orderInput: any = {
-      email: billing.email,
-      firstName: billing.first_name,
-      lastName: billing.last_name,
+    // STEP 2: Prepare data for the REST checkout endpoint
+    const checkoutInput = {
+      customerId: user.id || customer?.id,
+      customerEmail: billing.email,
+      customerName: `${billing.first_name} ${billing.last_name}`.trim(),
+      customerPhone: billing.phone || '',
       shippingAddress: {
         fullName: `${billing.first_name} ${billing.last_name}`.trim(),
         streetLine1: shipping?.address_1 || billing.address_1,
@@ -95,7 +79,6 @@ export async function POST(request: NextRequest) {
         province: shipping?.county || billing.county,
         postalCode: shipping?.postcode || billing.postcode || '',
         phoneNumber: billing.phone || '',
-        country: 'KE',
       },
       billingAddress: {
         fullName: `${billing.first_name} ${billing.last_name}`.trim(),
@@ -105,77 +88,44 @@ export async function POST(request: NextRequest) {
         province: billing.county,
         postalCode: billing.postcode || '',
         phoneNumber: billing.phone || '',
-        country: 'KE',
       },
-      lines: lineItems,
+      items: items.map((item: any) => ({
+        productId: item.productId || item.id,
+        quantity: parseInt(String(item.quantity), 10) || 1,
+        price: parseFloat(String(item.price)) || 0,
+      })),
+      shippingMethodId: shipping?.method || 'standard',
+      shippingCost: totals?.shipping || 0,
     };
 
-    // Add optional fields with values
-    if (totals?.shipping) {
-      // Convert shipping from KES to cents for backend
-      orderInput.shippingCost = Math.round(totals.shipping * 100);
-      orderInput.shippingMethodId = 'standard';
-    }
+    console.log('Final checkout input:', JSON.stringify(checkoutInput, null, 2));
 
-    // NOTE: DO NOT send tax to backend
-    // VAT is already included in product prices (prices are VAT-inclusive)
-    // Backend would add it on top, causing incorrect total
-
-    if (coupon) {
-      orderInput.couponCode = typeof coupon === 'string' ? coupon : coupon.code;
-    }
-
-    console.log('Totals from frontend:', JSON.stringify(totals, null, 2));
-    console.log('Final order input (filtered):', JSON.stringify(orderInput, null, 2));
-
-    // GraphQL mutation to create order
-    const mutation = `
-      mutation CreateOrder($input: CreateOrderInput!) {
-        createOrder(input: $input) {
-          id
-          code
-          total
-        }
-      }
-    `;
-
-    // Call backend GraphQL API
-    const response = await fetch(`${BACKEND_URL}/api/store`, {
+    // STEP 3: Call backend REST API
+    const response = await fetch(`${BACKEND_URL}/store/orders/checkout`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        query: mutation,
-        variables: { input: orderInput },
-      }),
+      body: JSON.stringify(checkoutInput),
     });
 
-    const result = await response.json();
-
-    if (result.errors) {
-      console.error('GraphQL errors:', result.errors);
+    if (!response.ok) {
+      const errorResult = await response.json().catch(() => ({ message: 'Checkout failed' }));
+      console.error('Backend checkout error:', errorResult);
       return NextResponse.json({
         success: false,
-        error: result.errors[0]?.message || 'Failed to create order',
-      }, { status: 500 });
+        error: errorResult.message || 'Failed to create order on server',
+      }, { status: response.status });
     }
 
-    if (!result.data?.createOrder) {
-      return NextResponse.json({
-        success: false,
-        error: 'Order creation failed',
-      }, { status: 500 });
-    }
-
-    const order = result.data.createOrder;
+    const orderData = await response.json();
 
     return NextResponse.json({
       success: true,
       order: {
-        id: order.id,
-        code: order.code,
-        total: order.total,
+        id: orderData.orderId,
+        code: orderData.orderCode,
+        total: orderData.total,
       },
     });
   } catch (error: any) {

@@ -13,17 +13,7 @@ export default function ColProductGrid({ products }: ColProductGridProps) {
       {products.map((product) => (
         <ProductCard
           key={product.id}
-          id={product.id}
-          name={product.name}
-          slug={product.slug}
-          price={product.price}
-          compareAtPrice={product.compareAtPrice}
-          image={product.image}
-          images={product.images}
-          variants={product.variants}
-          categories={product.categories}
-          shippingMethod={product.shippingMethod}
-          condition={product.condition}
+          {...product}
         />
       ))}
     </div>

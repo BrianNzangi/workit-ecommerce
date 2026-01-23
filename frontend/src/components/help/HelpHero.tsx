@@ -8,7 +8,7 @@ const HelpHero = () => {
   const router = useRouter();
 
   return (
-    <section className="bg-primary-900 py-20 font-[DM_SANS]">
+    <section className="bg-primary-900 py-20 font-sans">
       <div className="container mx-auto px-8">
         <div className="bg-white border-8 border-primary-500 rounded-xs shadow-xl p-10 text-gray-800 ">
           <h1 className="text-3xl font-bold mb-6">Welcome to Workit Customer Support</h1>

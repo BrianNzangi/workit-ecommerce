@@ -86,7 +86,7 @@ export default function SearchBar() {
               border-2 border-secondary-900
               bg-gray-100
               focus:outline-none focus:border-primary-800
-              font-['DM_Sans'] text-black
+              font-sans text-black
               text-sm md:text-base
             "
           />

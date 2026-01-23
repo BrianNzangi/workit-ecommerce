@@ -10,7 +10,7 @@ export async function GET(
         const { slug } = await params;
 
         // Fetch from backend REST API using the dedicated product detail endpoint
-        const apiUrl = `${BACKEND_URL}/api/store/products/${slug}`;
+        const apiUrl = `${BACKEND_URL}/store/products/${slug}`;
 
         const response = await fetch(apiUrl, {
             cache: 'no-store',
@@ -47,38 +47,57 @@ export async function GET(
         }
 
         // Transform backend response to match expected format
-        // Backend may return {product: {...}, variants: [...]} or flat structure
-        const productObj = productData.product || productData;
-        const variants = productData.variants || productObj.variants || [];
+        // The backend now provides a "Simple Product" model without a separate Variant table
+        const productObj = productData;
 
-        const firstVariant = variants[0];
+        // Map backend images (source) to frontend images (url)
+        const mappedImages = productObj.images?.map((img: any) => ({
+            id: img.id,
+            src: img.source || img.url || img.preview,
+            url: img.source || img.url || img.preview,
+            altText: img.altText || productObj.name,
+            position: img.sortOrder ?? 0,
+        })) || [];
+
+        // If no images from relation, check if there's a featuredImage string (though backend standardizes this)
+        const mainImage = mappedImages[0]?.url || productObj.featuredImage || '';
+
+        // Create a fallback variant for the "Simple Product" model
+        // This ensures the frontend components that expect variants still work
+        const fallbackVariant = {
+            id: productObj.id, // Use product ID as variant ID
+            name: productObj.name,
+            sku: productObj.sku || '',
+            price: productObj.salePrice ?? 0,
+            compareAtPrice: productObj.originalPrice,
+            status: 'active',
+            inventory: {
+                track: true,
+                stockOnHand: productObj.stockOnHand ?? 0,
+            }
+        };
+
         const product = {
             id: productObj.id,
             name: productObj.name,
             slug: productObj.slug,
             description: productObj.description,
-            short_description: productObj.shortDescription,
-            images: productObj.images?.map((img: any) => ({
-                id: img.id,
-                src: img.url,
-                url: img.url,
-                altText: img.altText,
-            })) || [],
-            image: productObj.images?.[0]?.url || '',
-            // Use first variant for flattened data (Single-Product Mode)
-            price: firstVariant?.price ?? productObj.price ?? 0,
-            regular_price: firstVariant?.compareAtPrice ?? productObj.originalPrice,
-            variantId: firstVariant?.id || '',
-            stockOnHand: firstVariant?.inventory?.stockOnHand ?? 0,
-            canBuy: firstVariant?.status === "active" && (!firstVariant?.inventory?.track || (firstVariant?.inventory?.stockOnHand ?? 0) > 0),
-            variants: variants, // Include variants array
+            short_description: productObj.shortDescription || productObj.description?.substring(0, 160),
+            images: mappedImages,
+            image: mainImage,
+            price: productObj.salePrice ?? 0,
+            compareAtPrice: productObj.originalPrice,
+            variantId: productObj.id, // Fallback to product ID
+            stockOnHand: productObj.stockOnHand ?? 0,
+            canBuy: (productObj.stockOnHand ?? 0) > 0,
+            variants: [fallbackVariant], // Wrap fallback in array
             categories: productObj.collections?.map((col: any) => ({
                 id: col.id,
                 name: col.name,
                 slug: col.slug,
             })) || [],
-            brand: productObj.brand?.name,
-            stock_status: firstVariant?.inventory?.stockOnHand > 0 ? 'instock' : 'outofstock',
+            brand: productObj.brand?.name || productObj.brand,
+            stock_status: (productObj.stockOnHand ?? 0) > 0 ? 'instock' : 'outofstock',
             condition: productObj.condition,
             shippingMethod: productObj.shippingMethod ? {
                 id: productObj.shippingMethod.id,
@@ -87,6 +106,8 @@ export async function GET(
                 description: productObj.shippingMethod.description,
                 isExpress: productObj.shippingMethod.isExpress || false,
             } : undefined,
+            createdAt: productObj.createdAt,
+            updatedAt: productObj.updatedAt,
         };
 
         return NextResponse.json({ product });

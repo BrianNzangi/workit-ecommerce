@@ -1,0 +1,14 @@
+{
+    "name": "workit-ecommerce",
+    "private": true,
+    "scripts": {
+        "dev": "npx pnpm turbo dev",
+        "build": "npx pnpm turbo build",
+        "lint": "npx pnpm turbo lint",
+        "start": "npx pnpm turbo start"
+    },
+    "devDependencies": {
+        "turbo": "latest"
+    },
+    "packageManager": "pnpm@9.0.0"
+}

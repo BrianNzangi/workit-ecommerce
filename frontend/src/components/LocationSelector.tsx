@@ -28,8 +28,8 @@ function LocationSelector() {
         <MapPin className="w-5 h-5 mt-1 text-primary shrink-0" />
 
         <div className="leading-tight text-xs">
-          <span className="block font-['DM_Sans'] text-gray-500 text-[11px]">Deliver to</span>
-          <span className="block font-['DM_Sans'] font-semibold text-sm text-black">
+          <span className="block font-sans text-gray-500 text-[11px]">Deliver to</span>
+          <span className="block font-sans font-semibold text-sm text-black">
             {selectedCounty}
           </span>
         </div>

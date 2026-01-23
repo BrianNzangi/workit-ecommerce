@@ -63,7 +63,7 @@ export default function LoginModal({ signInUrl }: LoginModalProps) {
                             />
                         </Link>
                         <div className="space-y-2">
-                            <h1 className="text-4xl font-bold tracking-tight text-secondary-900 font-[DM_Sans]">
+                            <h1 className="text-4xl font-bold tracking-tight text-secondary-900 font-sans">
                                 Welcome Back
                             </h1>
                             <p className="text-secondary-500 text-lg">
@@ -109,10 +109,10 @@ export default function LoginModal({ signInUrl }: LoginModalProps) {
                     priority
                     quality={95}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-20" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent z-20" />
 
                 <div className="absolute bottom-0 left-0 right-0 p-16 z-30 text-white transform transition-all duration-500">
-                    <h2 className="text-4xl font-bold mb-4 font-[DM_Sans] leading-tight">
+                    <h2 className="text-4xl font-bold mb-4 font-sans leading-tight">
                         Elevate Your <br />Workspace Experience
                     </h2>
                     <p className="text-xl text-white/80 max-w-md font-light">

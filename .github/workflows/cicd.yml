@@ -1,0 +1,53 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+          
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+          
+      - name: Install dependencies
+        run: pnpm install
+        
+      - name: Lint
+        run: pnpm lint
+        
+      - name: Build
+        run: pnpm build
+        env:
+          # Add build-time env vars if necessary
+          NEXT_TELEMETRY_DISABLED: 1
+
+  deploy:
+    needs: build-and-lint
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Coolify Webhook (Backend)
+        run: |
+          curl -X GET "${{ secrets.COOLIFY_BACKEND_WEBHOOK }}"
+          
+      - name: Trigger Coolify Webhook (Frontend)
+        run: |
+          curl -X GET "${{ secrets.COOLIFY_FRONTEND_WEBHOOK }}"
+          
+      - name: Trigger Coolify Webhook (Admin)
+        run: |
+          curl -X GET "${{ secrets.COOLIFY_ADMIN_WEBHOOK }}"

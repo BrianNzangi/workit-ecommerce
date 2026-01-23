@@ -157,7 +157,7 @@ export default function DashboardClient() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 font-[DM_SANS]">
+    <main className="min-h-screen bg-[#F0F0F1] font-sans">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Left Sidebar */}

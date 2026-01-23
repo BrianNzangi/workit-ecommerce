@@ -48,6 +48,7 @@ type BillingFormData = {
   shippingAddress: string;
   shippingCity: string;
   shippingCounty: string;
+  saveDetails: boolean;
 };
 
 interface ShippingZone {
@@ -81,6 +82,7 @@ export default function StepBilling({
         city: "",
         county: "",
         shippingSameAsBilling: true,
+        saveDetails: true,
         shippingFirstName: "",
         shippingLastName: "",
         shippingPhone: "",
@@ -107,13 +109,19 @@ export default function StepBilling({
           return;
         }
 
-        // Extract all zones from all shipping methods
+        // Extract all zones from different possible response structures
         const allZones: ShippingZone[] = [];
-        result.data.forEach((method: any) => {
-          if (method.zones) {
-            allZones.push(...method.zones);
-          }
-        });
+        if (Array.isArray(result.data)) {
+          result.data.forEach((item: any) => {
+            if (item.zones && Array.isArray(item.zones)) {
+              // It's a method with nested zones
+              allZones.push(...item.zones);
+            } else if (item.county || item.cities) {
+              // It's a zone directly (matches backend /store/shipping/zones)
+              allZones.push(item);
+            }
+          });
+        }
 
         setShippingZones(allZones);
       } catch (error) {
@@ -184,14 +192,6 @@ export default function StepBilling({
             ? `${firstName} ${lastName}, ${email}, ${address}, ${city}, ${county}`
             : "Not completed"}
         </p>
-        {data?.shipToDifferentAddress && (
-          <div className="text-sm text-gray-600 mt-2 pt-2 border-t border-gray-100">
-            <p className="font-medium text-gray-900 mb-1">Shipping Address:</p>
-            <p>{data.shippingFirstName} {data.shippingLastName}</p>
-            <p>{data.shippingPhone}</p>
-            <p>{data.shippingAddress}, {data.shippingCity}, {data.shippingCounty}</p>
-          </div>
-        )}
       </div>
     );
   }
@@ -290,96 +290,11 @@ export default function StepBilling({
         </div>
       </div>
 
-      {/* Shipping address is same as billing address */}
-      <div className="flex items-center gap-2 mt-2">
-        <input type="checkbox" {...register("shippingSameAsBilling")} className="h-4 w-4" />
-        <label className="text-sm">Shipping address is same as billing address</label>
+      {/* Save details for future orders */}
+      <div className="flex items-center gap-2 mt-4">
+        <input type="checkbox" {...register("saveDetails")} className="h-4 w-4" />
+        <label className="text-sm">Save details for future orders</label>
       </div>
-
-      {/* Shipping Fields - Shown only if NOT same as billing */}
-      {!shippingSameAsBilling && (
-        <div className="space-y-6 pt-4 border-t border-gray-100">
-          <h3 className="text-md font-medium">Shipping Address</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Shipping First Name */}
-            <div>
-              <label className="block text-sm font-medium">First Name</label>
-              <input
-                {...register("shippingFirstName", { required: !shippingSameAsBilling ? "First name is required" : false })}
-                className="w-full border border-gray-200 rounded p-2 text-sm"
-              />
-              {errors.shippingFirstName && <p className="text-xs text-red-500 mt-1">{errors.shippingFirstName.message}</p>}
-            </div>
-
-            {/* Shipping Last Name */}
-            <div>
-              <label className="block text-sm font-medium">Last Name</label>
-              <input
-                {...register("shippingLastName", { required: !shippingSameAsBilling ? "Last name is required" : false })}
-                className="w-full border border-gray-200 rounded p-2 text-sm"
-              />
-              {errors.shippingLastName && <p className="text-xs text-red-500 mt-1">{errors.shippingLastName.message}</p>}
-            </div>
-
-            {/* Shipping Phone */}
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium">Phone</label>
-              <input
-                {...register("shippingPhone", { required: !shippingSameAsBilling ? "Phone number is required" : false })}
-                className="w-full border border-gray-200 rounded p-2 text-sm"
-              />
-              {errors.shippingPhone && <p className="text-xs text-red-500 mt-1">{errors.shippingPhone.message}</p>}
-            </div>
-
-            {/* Shipping Address */}
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium">Shipping Address</label>
-              <input
-                {...register("shippingAddress", { required: !shippingSameAsBilling ? "Shipping address is required" : false })}
-                className="w-full border border-gray-200 rounded p-2 text-sm"
-              />
-              {errors.shippingAddress && <p className="text-xs text-red-500 mt-1">{errors.shippingAddress.message}</p>}
-            </div>
-
-            {/* Shipping County */}
-            <div>
-              <label className="block text-sm font-medium">County</label>
-              <div className="relative">
-                <select
-                  {...register("shippingCounty", {
-                    required: !shippingSameAsBilling ? "Shipping county is required" : false,
-                    onChange: () => setValue("shippingCity", "") // Reset city when county changes
-                  })}
-                  className="w-full border border-gray-200 rounded-lg p-2 text-sm appearance-none pr-10"
-                  disabled={loadingZones}
-                >
-                  <option value="">{loadingZones ? "Loading counties..." : "Select county"}</option>
-                  {availableCounties.map((county: string) => <option key={county} value={county}>{county}</option>)}
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
-              </div>
-              {errors.shippingCounty && <p className="text-xs text-red-500 mt-1">{errors.shippingCounty.message}</p>}
-            </div>
-
-            {/* Shipping City */}
-            <div>
-              <label className="block text-sm font-medium">City/Town</label>
-              <div className="relative">
-                <select
-                  {...register("shippingCity", { required: !shippingSameAsBilling ? "Shipping city is required" : false })}
-                  className="w-full border border-gray-200 rounded-lg p-2 text-sm appearance-none pr-10"
-                  disabled={!selectedShippingCounty || loadingZones}
-                >
-                  <option value="">{!selectedShippingCounty ? "Select county first" : "Select city/town"}</option>
-                  {availableShippingCities.map((city: string) => <option key={city} value={city}>{city}</option>)}
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
-              </div>
-              {errors.shippingCity && <p className="text-xs text-red-500 mt-1">{errors.shippingCity.message}</p>}
-            </div>
-          </div>
-        </div>
-      )}
 
       <button type="submit" className="px-4 py-2 bg-primary-900 text-white rounded text-sm hover:bg-primary-800 mt-4">
         Save & Continue

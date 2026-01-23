@@ -42,7 +42,7 @@ export default function TopDeals() {
 
   return (
     <section className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-12 py-4">
-      <h2 className="font-['DM_Sans'] text-lg md:text-2xl font-semibold text-primary mb-4">Top Deals</h2>
+      <h2 className="font-sans text-lg md:text-2xl font-semibold text-primary mb-4">Top Deals</h2>
       <div className="relative">
         <div className="flex overflow-hidden">
           <div
@@ -50,7 +50,7 @@ export default function TopDeals() {
             style={{ transform: `translateX(-${currentSlide * (100 / productsPerSlide)}%)` }}
           >
             {visibleProducts.map((product) => (
-              <div key={product.id} className="min-w-[200px] max-w-[240px] flex-shrink-0">
+              <div key={product.id} className="min-w-[200px] max-w-[240px] shrink-0">
                 <ProductCard {...product} />
               </div>
             ))}

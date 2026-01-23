@@ -61,7 +61,7 @@ export default function BlogPostClient({ slug }: BlogPostClientProps) {
 
   return (
     <div className="bg-[#E8EAED] min-h-screen">
-      <div className="container mx-auto max-w-7xl px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-12 py-6 font-[DM_SANS]">
+      <div className="container mx-auto max-w-7xl px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-12 py-6 font-sans">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Main Content Column */}
           <div className="flex-1">
@@ -105,8 +105,8 @@ export default function BlogPostClient({ slug }: BlogPostClientProps) {
               {/* Ad 1 */}
               <div className="rounded-xs">
                 <div dangerouslySetInnerHTML={{
-                  __html: 
-                  `<!-- START ADVERTISER: Awin (USD) from awin.com -->
+                  __html:
+                    `<!-- START ADVERTISER: Awin (USD) from awin.com -->
                   <a rel="sponsored" href="https://www.awin1.com/cread.php?s=1012722&v=4032&q=316348&r=2523901" target="_blank">
                       <img src="https://www.awin1.com/cshow.php?s=1012722&v=4032&q=316348&r=2523901" border="0">
                   </a>
@@ -117,8 +117,8 @@ export default function BlogPostClient({ slug }: BlogPostClientProps) {
               {/* Ad 2 */}
               <div className="rounded-xs">
                 <div dangerouslySetInnerHTML={{
-                  __html: 
-                  `<!-- START ADVERTISER: Awin (USD) from awin.com -->
+                  __html:
+                    `<!-- START ADVERTISER: Awin (USD) from awin.com -->
                   <a rel="sponsored" href="https://www.awin1.com/cread.php?s=1012722&v=4032&q=316348&r=2523901" target="_blank">
                       <img src="https://www.awin1.com/cshow.php?s=1012722&v=4032&q=316348&r=2523901" border="0">
                   </a>
@@ -129,8 +129,8 @@ export default function BlogPostClient({ slug }: BlogPostClientProps) {
               {/* Ad 3 */}
               <div className="rounded-xs">
                 <div dangerouslySetInnerHTML={{
-                  __html: 
-                  `<!-- START ADVERTISER: Awin (USD) from awin.com -->
+                  __html:
+                    `<!-- START ADVERTISER: Awin (USD) from awin.com -->
                   <a rel="sponsored" href="https://www.awin1.com/cread.php?s=538233&v=4032&q=261331&r=2523901" target="_blank">
                       <img src="https://www.awin1.com/cshow.php?s=538233&v=4032&q=261331&r=2523901" border="0">
                   </a>

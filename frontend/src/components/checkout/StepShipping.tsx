@@ -12,7 +12,7 @@ interface StepShippingProps {
 }
 
 type ShippingFormData = {
-  method: "standard" | "express";
+  method: "standard" | "express" | "pickup";
   price: number;
 };
 
@@ -62,13 +62,19 @@ export default function StepShipping({
           return;
         }
 
-        // Extract all zones from all shipping methods
+        // Extract all zones from different possible response structures
         const allZones: ShippingZone[] = [];
-        result.data.forEach((method: any) => {
-          if (method.zones) {
-            allZones.push(...method.zones);
-          }
-        });
+        if (Array.isArray(result.data)) {
+          result.data.forEach((item: any) => {
+            if (item.zones && Array.isArray(item.zones)) {
+              // It's a method with nested zones
+              allZones.push(...item.zones);
+            } else if (item.county || item.cities) {
+              // It's a zone directly
+              allZones.push(item);
+            }
+          });
+        }
 
         setShippingZones(allZones);
       } catch (error) {
@@ -105,6 +111,8 @@ export default function StepShipping({
       setValue("price", standardPrice);
     } else if (selectedMethod === "express" && hasExpressOption) {
       setValue("price", expressPrice);
+    } else if (selectedMethod === "pickup") {
+      setValue("price", 0);
     }
   }, [selectedMethod, standardPrice, expressPrice, hasExpressOption, setValue]);
 
@@ -133,7 +141,9 @@ export default function StepShipping({
           {data
             ? data.method === "standard"
               ? `Standard Shipping — KES ${data.price || standardPrice}`
-              : `Express Shipping — KES ${data.price || expressPrice}`
+              : data.method === "express"
+                ? `Express Shipping — KES ${data.price || expressPrice}`
+                : `Store Pickup — Free`
             : "Not selected"}
         </p>
       </div>
@@ -206,6 +216,23 @@ export default function StepShipping({
                   ? "Delivery in 1-2 business days"
                   : "Express delivery not available for this location"}
               </p>
+            </div>
+          </label>
+
+          {/* Store Pickup Option */}
+          <label className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg hover:border-blue-500 cursor-pointer transition-colors">
+            <input
+              type="radio"
+              value="pickup"
+              {...register("method", { required: "Select a shipping method" })}
+              className="mt-1"
+            />
+            <div className="flex-1">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">Store Pickup</span>
+                <span className="text-sm font-bold">FREE</span>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">Pick up at Workit Store - Nairobi CBD</p>
             </div>
           </label>
         </div>

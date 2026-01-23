@@ -55,21 +55,24 @@ export const calculateTotals = (
   shippingCost: number,
   coupon?: Coupon
 ): CheckoutTotals => {
-  const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
-
-  // Extract VAT from VAT-inclusive prices (prices already include 16% VAT)
-  // Formula: VAT = (inclusive_price / 1.16) * 0.16
-  const vat = (subtotal / 1.16) * 0.16;
-
+  const itemTotalInclusive = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const discount = coupon?.discount || 0;
 
-  // Total = subtotal (already includes VAT) + shipping - discount
-  const total = subtotal + shippingCost - discount;
+  // Total is the sum of inclusive item prices + inclusive shipping - discount
+  const total = itemTotalInclusive + shippingCost - discount;
+
+  // Extract VAT from the total (since prices and shipping are VAT-inclusive)
+  // Formula: VAT = Total / 1.16 * 0.16
+  const vat = (total / 1.16) * 0.16;
+
+  // For the UI display:
+  // Subtotal = Exclusive amount of items
+  const subtotal = itemTotalInclusive / 1.16;
 
   return {
     subtotal,
-    shipping: shippingCost,
-    vat, // VAT for display purposes (shows how much VAT is in the subtotal)
+    shipping: shippingCost, // We keep the inclusive shipping for the 'Delivery' line item
+    vat,
     discount,
     total
   };

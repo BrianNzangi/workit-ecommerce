@@ -5,6 +5,15 @@ import Footer from "../components/layout/Footer";
 import "./globals.css";
 import Script from "next/script";
 import { AuthKitProvider } from '@workos-inc/authkit-nextjs/components';
+import { Barlow } from 'next/font/google';
+
+const barlow = Barlow({
+  subsets: ['latin'],
+  weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
+  style: ['normal', 'italic'],
+  variable: '--font-barlow',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: "Shop Phones, Laptops & Gadgets Online for less on Workit",
@@ -40,7 +49,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en">
+    <html lang="en" className={barlow.variable}>
       <head>
         {/* JSON-LD SEO */}
         <Script
@@ -53,7 +62,7 @@ export default function RootLayout({
       <body className="font-sans flex flex-col min-h-screen">
         <AuthKitProvider>
           <Header />
-          <main className="flex-grow">{children}</main>
+          <main className="grow">{children}</main>
           <Footer />
           <Toaster
             position="top-right"
@@ -68,7 +77,7 @@ export default function RootLayout({
                 boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)', // shadow-lg
                 padding: '16px',
                 fontSize: '14px',
-                fontFamily: 'DM Sans, sans-serif',
+                fontFamily: 'var(--font-barlow), sans-serif',
               },
               // Success toast
               success: {

@@ -2,7 +2,7 @@ import React from 'react';
 
 const ContactForm = () => {
   return (
-    <section className="pb-20 bg-accent-800 font-[DM_SANS]">
+    <section className="pb-20 bg-accent-800 font-sans">
       <div className="container mx-auto px-8">
         <div className="mx-auto">
           <h2 className="text-2xl font-bold mb-4">Contact Us</h2>

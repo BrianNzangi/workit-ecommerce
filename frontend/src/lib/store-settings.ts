@@ -9,9 +9,9 @@ export interface StoreSettings {
     // General settings
     'general.site_name': string;
     'general.site_email': string;
+    'general.default_currency': string;
 
     // Payment settings
-    'payments.default_currency': string;
     'payments.paystack_public_key': string;
     'payments.paystack_secret_key': string;
     'payments.paystack_enabled': string;
@@ -38,7 +38,7 @@ export interface StoreConfig {
  */
 export async function fetchStoreSettings(): Promise<StoreSettings> {
     try {
-        const response = await fetch(`${BACKEND_URL}/api/admin/settings`, {
+        const response = await fetch(`${BACKEND_URL}/settings/public`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -67,7 +67,7 @@ export async function fetchStoreConfig(): Promise<StoreConfig> {
     return {
         siteName: settings['general.site_name'] || 'Workit Store',
         siteEmail: settings['general.site_email'] || '',
-        currency: settings['payments.default_currency'] || 'KES',
+        currency: settings['general.default_currency'] || 'KES',
         paystackPublicKey: settings['payments.paystack_public_key'] || '',
         paystackEnabled: settings['payments.paystack_enabled'] === 'true',
         taxRate: parseFloat(settings['taxes.default_tax_rate'] || '16'),

@@ -8,7 +8,7 @@ interface BreadcrumbsProps {
 export default function Breadcrumbs({ paths }: BreadcrumbsProps) {
   return (
     <nav
-      className="text-sm font-medium text-[#1F2323] mb-4 font-['DM_SANS']"
+      className="text-sm font-medium text-[#1F2323] mb-4 font-sans"
       aria-label="Breadcrumb"
     >
       {paths.map((path, idx) => {

@@ -43,6 +43,19 @@ export async function GET(req: Request) {
       image: product.images?.[0]?.url || '',
       price: String(product.price),
       regular_price: product.compareAtPrice ? String(product.compareAtPrice) : undefined,
+      variantId: product.id,
+      variants: [{
+        id: product.id,
+        name: product.name,
+        sku: product.sku || '',
+        price: Number(product.price) || 0,
+        compareAtPrice: product.compareAtPrice,
+        status: 'active',
+        inventory: {
+          track: true,
+          stockOnHand: 10, // Default for search preview
+        }
+      }],
       categories: product.collections || [],
       brand: product.brand?.name,
     })) || [];

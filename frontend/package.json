@@ -1,5 +1,5 @@
 {
-  "name": "workit-app",
+  "name": "@workit/frontend",
   "version": "0.1.0",
   "type": "module",
   "private": true,
@@ -35,6 +35,7 @@
     "sonner": "^2.0.6",
     "swiper": "^11.2.10",
     "tailwind-merge": "^3.3.1",
+    "@workit/validation": "workspace:*",
     "zustand": "^5.0.7"
   },
   "devDependencies": {

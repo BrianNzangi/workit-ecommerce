@@ -13,7 +13,7 @@ export default function CartPageClient() {
   const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
   return (
-    <section className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-12 py-6 font-[DM_SANS] space-y-4">
+    <section className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-12 py-6 font-sans space-y-4">
       {items.length === 0 ? (
         <CartEmpty />
       ) : (

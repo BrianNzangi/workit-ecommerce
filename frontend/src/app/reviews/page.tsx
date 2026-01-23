@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 
 export default function ReviewsPage() {
   return (
-    <div className="max-w-3xl mx-auto px-6 py-12 font-[DM_SANS]">
+    <div className="max-w-3xl mx-auto px-6 py-12 font-sans">
       <h1 className="text-3xl font-bold text-center mb-6">Customer Reviews</h1>
 
       <p className="text-gray-700 text-start mb-6">
@@ -29,7 +29,7 @@ export default function ReviewsPage() {
 
       <div className="mt-10 text-center">
         <div className="inline-block px-6 py-3 border border-gray-300 rounded-xs text-gray-500">
-          Reviews coming soon 
+          Reviews coming soon
         </div>
       </div>
     </div>

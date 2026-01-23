@@ -15,12 +15,12 @@ interface Banner {
     position: string;
     enabled: boolean;
     sortOrder: number;
-    desktopImage: {
+    desktopImage?: {
         id: string;
         source: string;
         preview: string;
     };
-    mobileImage: {
+    mobileImage?: {
         id: string;
         source: string;
         preview: string;
@@ -48,7 +48,7 @@ export default function HeroSection() {
     useEffect(() => {
         async function fetchBanners() {
             try {
-                const response = await fetch('/api/store/banners?position=HERO');
+                const response = await fetch('/api/store/banners?position=HERO&enabled=true');
 
                 if (!response.ok) {
                     console.error('Failed to fetch hero banners:', response.statusText);
@@ -56,13 +56,18 @@ export default function HeroSection() {
                 }
 
                 const data = await response.json();
+                console.log('📸 Raw banner data:', data);
 
-                if (data && Array.isArray(data) && data.length > 0) {
-                    // Filter enabled banners and sort by sortOrder
+                if (data && Array.isArray(data)) {
+                    // Filter enabled banners with HERO position and sort by sortOrder
                     const enabledBanners = data
-                        .filter((banner: Banner) => banner.enabled)
+                        .filter((banner: Banner) => banner.position === 'HERO' && banner.enabled)
                         .sort((a: Banner, b: Banner) => a.sortOrder - b.sortOrder);
+
+                    console.log('✅ Filtered HERO banners:', enabledBanners);
                     setBanners(enabledBanners);
+                } else {
+                    console.warn('⚠️ No banner data received or data is not an array:', data);
                 }
             } catch (error) {
                 console.error('Error fetching hero banners:', error);
@@ -144,7 +149,7 @@ export default function HeroSection() {
     if (loading) {
         return (
             <section className="container mx-auto px-3 sm:px-6 md:px-2 lg:px-8 xl:px-8 2xl:px-8 pt-4 mb-6">
-                <div className="relative w-full overflow-hidden aspect-[16/11] sm:aspect-[20/11] md:aspect-[3/1.2] lg:aspect-[4/1.2] xl:aspect-[5/1.2] bg-gray-200 animate-pulse" />
+                <div className="relative w-full overflow-hidden aspect-16/11 sm:aspect-20/11 md:aspect-[3/1.2] lg:aspect-[4/1.2] xl:aspect-[5/1.2] bg-gray-200 animate-pulse" />
             </section>
         );
     }
@@ -154,14 +159,16 @@ export default function HeroSection() {
     }
 
     const currentBanner = banners[currentSlide];
-    const desktopImage = getImageUrl(currentBanner.desktopImage.source);
-    const mobileImage = getImageUrl(currentBanner.mobileImage?.source || currentBanner.desktopImage.source);
-    const bannerLink = `/collections/${currentBanner.collection.slug}`;
+    const desktopImage = getImageUrl(currentBanner.desktopImage?.preview || currentBanner.desktopImage?.source);
+    const mobileImage = getImageUrl(currentBanner.mobileImage?.preview || currentBanner.mobileImage?.source || currentBanner.desktopImage?.preview || currentBanner.desktopImage?.source);
+    const bannerLink = currentBanner.collection?.slug
+        ? `/collections/${currentBanner.collection.slug}`
+        : '#';
 
     return (
         <section className="container mx-auto px-3 sm:px-6 md:px-2 lg:px-8 xl:px-8 2xl:px-8 pt-4 mb-6">
             <div
-                className="relative w-full rounded-xl overflow-hidden group aspect-[16/11] sm:aspect-[20/11] md:aspect-[3/1.2] lg:aspect-[4/1.2] xl:aspect-[5/1.2] bg-black"
+                className="relative w-full rounded-xl overflow-hidden group aspect-16/11 sm:aspect-20/11 md:aspect-[3/1.2] lg:aspect-[4/1.2] xl:aspect-[5/1.2] bg-black"
                 onTouchStart={onTouchStart}
                 onTouchMove={onTouchMove}
                 onTouchEnd={onTouchEnd}
@@ -216,13 +223,13 @@ export default function HeroSection() {
                         <link
                             rel="preload"
                             as="image"
-                            href={getImageUrl(banners[(currentSlide + 1) % banners.length].desktopImage.source)}
+                            href={getImageUrl(banners[(currentSlide + 1) % banners.length].desktopImage?.preview || banners[(currentSlide + 1) % banners.length].desktopImage?.source)}
                         />
-                        {banners[(currentSlide + 1) % banners.length].mobileImage && (
+                        {(banners[(currentSlide + 1) % banners.length].mobileImage?.preview || banners[(currentSlide + 1) % banners.length].mobileImage?.source) && (
                             <link
                                 rel="preload"
                                 as="image"
-                                href={getImageUrl(banners[(currentSlide + 1) % banners.length].mobileImage!.source)}
+                                href={getImageUrl(banners[(currentSlide + 1) % banners.length].mobileImage?.preview || banners[(currentSlide + 1) % banners.length].mobileImage?.source)}
                             />
                         )}
                     </>

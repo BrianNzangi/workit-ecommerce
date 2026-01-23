@@ -1,0 +1,35 @@
+export enum AssetType {
+    IMAGE = 'IMAGE',
+    VIDEO = 'VIDEO',
+    DOCUMENT = 'DOCUMENT',
+    AUDIO = 'AUDIO',
+    OTHER = 'OTHER'
+}
+
+export enum OrderState {
+    PENDING = 'PENDING',
+    PAYMENT_PENDING = 'PAYMENT_PENDING',
+    PAYMENT_SETTLED = 'PAYMENT_SETTLED',
+    PROCESSING = 'PROCESSING',
+    SHIPPED = 'SHIPPED',
+    DELIVERED = 'DELIVERED',
+    CANCELLED = 'CANCELLED',
+    REFUNDED = 'REFUNDED',
+    FAILED = 'FAILED'
+}
+
+export enum BannerPosition {
+    HOME_HERO = 'HOME_HERO',
+    HOME_SUB_HERO = 'HOME_SUB_HERO',
+    CATEGORY_HEADER = 'CATEGORY_HEADER',
+    PROMO_BAR = 'PROMO_BAR',
+    SIDEBAR = 'SIDEBAR',
+    FOOTER = 'FOOTER'
+}
+
+export enum PaymentMethod {
+    MPESA = 'MPESA',
+    CARD = 'CARD',
+    CASH = 'CASH',
+    BANK_TRANSFER = 'BANK_TRANSFER'
+}

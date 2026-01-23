@@ -22,19 +22,19 @@ export default function CartSlide({ isOpen, onClose }: CartSlideProps) {
       {/* Backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/30 z-[99] transition-opacity duration-300"
+          className="fixed inset-0 bg-black/30 z-99 transition-opacity duration-300"
           onClick={onClose}
         />
       )}
 
       {/* Cart Slide */}
       <div
-        className={`fixed top-0 right-0 h-full w-full max-w-[480px] bg-white shadow-2xl transform transition-transform duration-300 ease-in-out z-[100] border-l border-gray-200
+        className={`fixed top-0 right-0 h-full w-full max-w-[480px] bg-white shadow-2xl transform transition-transform duration-300 ease-in-out z-100 border-l border-gray-200
           ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
       >
         {/* Header */}
         <div className="flex justify-between items-center px-5 py-4 border-b border-gray-100 bg-gray-50">
-          <h2 className="text-lg font-[DM_Sans] font-semibold text-gray-800">
+          <h2 className="text-lg font-sans font-semibold text-gray-800">
             Your Cart {itemCount > 0 && `(${itemCount})`}
           </h2>
           <button onClick={onClose} className="text-gray-600 hover:text-red-500">
@@ -47,8 +47,8 @@ export default function CartSlide({ isOpen, onClose }: CartSlideProps) {
           {items.length === 0 ? (
             <div className="text-center text-gray-600 mt-10">
               <ShoppingCart className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-              <p className="text-md font-[DM_Sans] font-medium">Your cart is empty</p>
-              <p className="text-sm font-[DM_Sans] text-gray-400 mt-1">
+              <p className="text-md font-sans font-medium">Your cart is empty</p>
+              <p className="text-sm font-sans text-gray-400 mt-1">
                 Add some products to get started!
               </p>
             </div>
@@ -57,7 +57,7 @@ export default function CartSlide({ isOpen, onClose }: CartSlideProps) {
               {items.map((item) => (
                 <div key={item.id} className="flex gap-4 border-b border-gray-100 pb-4">
                   {/* Product Image */}
-                  <div className="relative w-20 h-20 flex-shrink-0 bg-gray-100 rounded-md overflow-hidden">
+                  <div className="relative w-20 h-20 shrink-0 bg-gray-100 rounded-md overflow-hidden">
                     {item.image ? (
                       <Image
                         src={getImageUrl(item.image)}
@@ -75,10 +75,10 @@ export default function CartSlide({ isOpen, onClose }: CartSlideProps) {
 
                   {/* Product Info */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-[DM_Sans] text-sm font-medium text-gray-800 line-clamp-2">
+                    <h3 className="font-sans text-sm font-medium text-gray-800 line-clamp-2">
                       {item.name}
                     </h3>
-                    <p className="font-[DM_Sans] text-base font-bold text-gray-900 mt-1">
+                    <p className="font-sans text-base font-bold text-gray-900 mt-1">
                       KES {Number(item.price).toFixed(0)}
                     </p>
 
@@ -90,7 +90,7 @@ export default function CartSlide({ isOpen, onClose }: CartSlideProps) {
                       >
                         <Minus size={14} />
                       </button>
-                      <span className="font-[DM_Sans] text-sm font-medium w-8 text-center">
+                      <span className="font-sans text-sm font-medium w-8 text-center">
                         {item.quantity}
                       </span>
                       <button
@@ -119,8 +119,8 @@ export default function CartSlide({ isOpen, onClose }: CartSlideProps) {
           {items.length > 0 && (
             <div className="px-5 py-3 border-b border-gray-100">
               <div className="flex justify-between items-center">
-                <span className="font-[DM_Sans] text-base font-semibold text-gray-800">Subtotal</span>
-                <span className="font-[DM_Sans] text-lg font-bold text-gray-900">
+                <span className="font-sans text-base font-semibold text-gray-800">Subtotal</span>
+                <span className="font-sans text-lg font-bold text-gray-900">
                   KES {total.toFixed(0)}
                 </span>
               </div>
@@ -132,7 +132,7 @@ export default function CartSlide({ isOpen, onClose }: CartSlideProps) {
             <Link
               href="/cart"
               onClick={onClose}
-              className="w-full text-center bg-white border border-secondary-300 text-gray-800 py-2 rounded-xs text-sm font-[DM_Sans] font-medium hover:bg-gray-50 transition"
+              className="w-full text-center bg-white border border-secondary-300 text-gray-800 py-2 rounded-xs text-sm font-sans font-medium hover:bg-gray-50 transition"
             >
               View Cart
             </Link>
@@ -140,7 +140,7 @@ export default function CartSlide({ isOpen, onClose }: CartSlideProps) {
             <Link
               href="/checkout"
               onClick={onClose}
-              className={`w-full text-center bg-primary-900 text-white py-2 rounded-xs text-sm font-[DM_Sans] font-semibold hover:bg-[#e04500] transition ${items.length === 0 ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''
+              className={`w-full text-center bg-primary-900 text-white py-2 rounded-xs text-sm font-sans font-semibold hover:bg-[#e04500] transition ${items.length === 0 ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''
                 }`}
             >
               Checkout Now

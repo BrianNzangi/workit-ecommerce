@@ -6,7 +6,6 @@ import { buildBreadcrumbs, findL2Category, Breadcrumb, Category } from "@/utils/
 import he from "he"
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa"
 import ProductInfo from "@/components/product/ProductInfo"
-import ProductFeatures from "@/components/product/ProductFeatures"
 import ColProductCard from "@/components/product/ColProductCard"
 import { Product } from "@/types/product"
 import { getImageUrl } from "@/lib/image-utils"
@@ -19,10 +18,38 @@ export default function ProductPage({
   product: Product
   allCategories: Category[]
 }) {
-  const breadcrumbs: Breadcrumb[] = buildBreadcrumbs(
-    product.categories?.map(cat => ({ ...cat, id: parseInt(cat.id) })) || [],
-    allCategories || []
-  )
+  // Helper function to build a chain from category to root
+  const buildChain = (cat: any, all: any[]): any[] => {
+    const chain = [];
+    let current = cat;
+    while (current) {
+      chain.unshift(current);
+      const parentId = current.parentId || current.parent;
+      if (!parentId || String(parentId) === "0") break;
+      current = all.find(c => c.id === parentId);
+    }
+    return chain;
+  };
+
+  // Build breadcrumbs manually to support UUIDs and parentId
+  const breadcrumbs: Breadcrumb[] = [];
+  if (product.categories && product.categories.length > 0 && allCategories.length > 0) {
+    const primaryCat = allCategories.find(c => String(c.id) === String(product.categories![0].id)) || product.categories[0];
+    const chain = buildChain(primaryCat, allCategories);
+    chain.forEach(c => {
+      breadcrumbs.push({
+        name: c.name,
+        slug: c.slug,
+        id: c.id,
+        url: `/category/${c.slug}`
+      });
+    });
+  }
+  if (breadcrumbs.length === 0) {
+    breadcrumbs.push({ name: 'Home', slug: '', url: '/' });
+  } else if (breadcrumbs[0].name !== 'Home') {
+    breadcrumbs.unshift({ name: 'Home', slug: '', url: '/' });
+  }
 
   const [selectedIdx, setSelectedIdx] = useState(0)
   const images = product.images || []
@@ -36,8 +63,14 @@ export default function ProductPage({
   const [alsoViewedError, setAlsoViewedError] = useState<string | null>(null)
 
   // Helper function to check if product belongs to android-smartphones collection
-  const isAndroidSmartphoneProduct = (product: Product): boolean => {
-    return product.categories?.some(category => category.slug === 'android-smartphones') || false
+  // Helper function to find the L1 category (root ancestor)
+  const findL1Category = (productCategories: any[], all: any[]): any | null => {
+    if (!productCategories || productCategories.length === 0 || !all || all.length === 0) return null;
+
+    // Pick the first category of the product
+    const firstCat = all.find(c => c.id === productCategories[0].id) || productCategories[0];
+    const chain = buildChain(firstCat, all);
+    return chain.length > 0 ? chain[0] : null;
   }
 
   // Variation-aware price (falls back to base price)
@@ -73,60 +106,49 @@ export default function ProductPage({
         const allSimilarProducts: Product[] = []
         const seenIds = new Set<string>()
 
-        // First, check if product belongs to android-smartphones collection and prioritize it
-        if (isAndroidSmartphoneProduct(product)) {
-          console.log('Fetching similar items from android-smartphones collection for product:', product.name)
-          const response = await fetch(`/api/products/similar?collectionSlug=android-smartphones&excludeProductId=${product.id}&limit=8`)
-          const data = await response.json()
-          const collectionProducts = data.products || []
-          collectionProducts.forEach((prod: Product) => {
-            if (!seenIds.has(prod.id)) {
-              seenIds.add(prod.id)
-              allSimilarProducts.push(prod)
-            }
-          })
-        }
+        // Fetch similar items from the L1 category
+        const l1Category = findL1Category(product.categories || [], allCategories);
 
-        // Fetch from all other categories the product belongs to
-        for (const category of productCategories) {
-          // Skip android-smartphones if already fetched
-          if (category.slug === 'android-smartphones') continue
-
-          console.log('Fetching similar items for category:', category.name, '(ID:', category.id + ')')
-
+        if (l1Category) {
+          console.log('📦 Fetching similar items from L1 category:', l1Category.name, '(Slug:', l1Category.slug, ')');
           try {
-            const response = await fetch(`/api/products/similar?categoryId=${category.id}&excludeProductId=${product.id}&limit=8`)
-            const data = await response.json()
-            const categoryProducts = data.products || []
-            categoryProducts.forEach((prod: Product) => {
-              if (!seenIds.has(prod.id)) {
-                seenIds.add(prod.id)
-                allSimilarProducts.push(prod)
-              }
-            })
+            const response = await fetch(`/api/products/similar?collectionSlug=${l1Category.slug}&excludeProductId=${product.id}&limit=10`)
+            if (response.ok) {
+              const data = await response.json()
+              const collectionProducts = data.products || []
+              collectionProducts.forEach((prod: Product) => {
+                if (!seenIds.has(prod.id)) {
+                  seenIds.add(prod.id)
+                  allSimilarProducts.push(prod)
+                }
+              })
+            }
           } catch (error) {
-            console.error(`Error fetching products for category ${category.name}:`, error)
-            // Continue with other categories
+            console.error('Error fetching L1 similar items:', error)
           }
-
-          // Limit to 8 products total
-          if (allSimilarProducts.length >= 8) break
         }
 
-        // If still no products and no android-smartphones, try L2 category as fallback
-        if (allSimilarProducts.length === 0 && !isAndroidSmartphoneProduct(product)) {
-          const l2Category = findL2Category(product.categories?.map(cat => ({ ...cat, id: parseInt(cat.id) })) || [], allCategories || [])
-          if (l2Category) {
-            console.log('Fallback: Fetching similar items for L2 category:', l2Category.name, '(ID:', l2Category.id + ')')
-            const response = await fetch(`/api/products/similar?categoryId=${l2Category.id}&excludeProductId=${product.id}&limit=8`)
-            const data = await response.json()
-            const l2Products = data.products || []
-            l2Products.forEach((prod: Product) => {
-              if (!seenIds.has(prod.id)) {
-                seenIds.add(prod.id)
-                allSimilarProducts.push(prod)
+        // Fallback: If no L1 items or no L1 found, try direct categories
+        if (allSimilarProducts.length < 5) {
+          for (const category of product.categories || []) {
+            if (l1Category && category.slug === l1Category.slug) continue; // Skip L1 as we already fetched
+
+            try {
+              const response = await fetch(`/api/products/similar?collectionSlug=${category.slug}&excludeProductId=${product.id}&limit=5`)
+              if (response.ok) {
+                const data = await response.json()
+                const categoryProducts = data.products || []
+                categoryProducts.forEach((prod: Product) => {
+                  if (!seenIds.has(prod.id)) {
+                    seenIds.add(prod.id)
+                    allSimilarProducts.push(prod)
+                  }
+                })
               }
-            })
+            } catch (error) {
+              console.error(`Error fetching products for category ${category.name}:`, error)
+            }
+            if (allSimilarProducts.length >= 8) break
           }
         }
 
@@ -177,7 +199,7 @@ export default function ProductPage({
   }, [product.id])
 
   return (
-    <main className="font-['DM_Sans'] mt-8">
+    <main className="font-sans mt-8">
       {/* Product Content Container */}
       <div className="container mx-auto max-w-7xl px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-4 mb-8">
         {/* Breadcrumbs */}
@@ -252,8 +274,6 @@ export default function ProductPage({
               </div>
             </div>
 
-            {/* Features & Details */}
-            <ProductFeatures shortDescription={product.short_description || ''} />
 
             {/* More about this item */}
             {product.description && (

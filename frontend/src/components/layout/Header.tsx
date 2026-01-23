@@ -20,7 +20,7 @@ export default function Header() {
   return (
     <header id="site-header">
       {/* Top Bar */}
-      <div className="bg-white font-[DM_SANS] text-secondary-900 border-b border-secondary-200">
+      <div className="bg-white font-sans text-secondary-900 border-b border-secondary-200">
         <div className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-8 py-4 flex items-center justify-between gap-4 flex-wrap md:flex-nowrap">
           {/* Logo */}
           <Link href="/" className="inline-block relative w-[150px] sm:w-[180px] md:w-[200px] lg:w-[120px] xl:w-[150px] h-auto">
@@ -34,7 +34,7 @@ export default function Header() {
             />
           </Link>
           {/* Desktop Search */}
-          <div className="hidden md:flex flex-grow max-w-3xl w-full">
+          <div className="hidden md:flex grow max-w-3xl w-full">
             <SearchBar />
           </div>
 
@@ -43,7 +43,7 @@ export default function Header() {
             <UserMenu />
             <button
               onClick={openCart}
-              className="relative flex items-center gap-2 font-['DM_Sans'] text-md text-secondary-900 hover:text-primary-900 transition-colors"
+              className="relative flex items-center gap-2 font-sans text-md text-secondary-900 hover:text-primary-900 transition-colors"
             >
               <div className="relative">
                 <ShoppingBag className="h-6 w-6" />
@@ -144,7 +144,7 @@ function AccountAccordion() {
     <div className="border-b border-gray-200">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full text-left flex justify-between items-center py-2 px-2 text-gray-700 font-medium"
+        className="w-full text-left flex justify-between items-center py-2 px-2 font-sans text-gray-700 font-medium"
       >
         Account
         <span>{open ? '-' : '+'}</span>
@@ -153,16 +153,16 @@ function AccountAccordion() {
         <div className="pl-4 flex flex-col gap-1">
           {!customer ? (
             <>
-              <Link href="/login" className="py-1 text-gray-600 hover:text-primary">Sign In</Link>
-              <Link href="/sign-up" className="py-1 text-gray-600 hover:text-primary">Sign Up</Link>
-              <Link href="/help" className="py-1 text-gray-600 hover:text-primary">Help & Support</Link>
-              <Link href="/about" className="py-1 text-gray-600 hover:text-primary">About</Link>
+              <Link href="/login" className="py-1 text-gray-600 font-sans hover:text-primary">Sign In</Link>
+              <Link href="/sign-up" className="py-1 text-gray-600 font-sans hover:text-primary">Sign Up</Link>
+              <Link href="/help" className="py-1 text-gray-600 font-sans hover:text-primary">Help & Support</Link>
+              <Link href="/about" className="py-1 text-gray-600 font-sans hover:text-primary">About</Link>
             </>
           ) : (
             <>
-              <Link href="/dashboard" className="py-1 text-gray-600 hover:text-primary">My Account</Link>
-              <Link href="/orders" className="py-1 text-gray-600 hover:text-primary">Orders</Link>
-              <Link href="/help" className="py-1 text-gray-600 hover:text-primary">Help & Support</Link>
+              <Link href="/dashboard" className="py-1 text-gray-600 font-sans hover:text-primary">My Account</Link>
+              <Link href="/orders" className="py-1 text-gray-600 font-sans hover:text-primary">Orders</Link>
+              <Link href="/help" className="py-1 text-gray-600 font-sans hover:text-primary">Help & Support</Link>
             </>
           )}
         </div>

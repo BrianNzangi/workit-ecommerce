@@ -103,7 +103,7 @@ const Accordion = ({ q, a }: { q: string; a: string }) => {
 
 const ReturnsClaims = () => {
   return (
-    <section className="py-16 bg-accent-800 font-[DM_SANS]">
+    <section className="py-16 bg-accent-800 font-sans">
       <div className="container mx-auto px-8">
         <h1 className="text-3xl font-bold mb-8">Returns & Claims</h1>
         {faqs.map((block) => (

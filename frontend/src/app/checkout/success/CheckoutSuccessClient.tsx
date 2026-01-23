@@ -38,7 +38,7 @@ export default function CheckoutSuccessClient() {
   }, [reference, orderId]);
 
   return (
-    <main className="flex flex-col items-center justify-center min-h-[70vh] text-center font-[DM_SANS] px-4">
+    <main className="flex flex-col items-center justify-center min-h-[70vh] text-center font-sans px-4">
       {status === "loading" && (
         <>
           <Loader2 className="animate-spin text-blue-600 mb-4" size={64} />
@@ -56,7 +56,7 @@ export default function CheckoutSuccessClient() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3">
-            <Link href="/orders">
+            <Link href="/dashboard?section=orders">
               <Button className="bg-[#1F2323] text-white">View My Orders</Button>
             </Link>
             <Link href="/">

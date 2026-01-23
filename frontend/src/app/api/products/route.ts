@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Always use the general products endpoint with filters
-    const apiUrl = `${BACKEND_URL}/api/store/products?${params.toString()}`;
+    const apiUrl = `${BACKEND_URL}/store/products?${params.toString()}`;
 
     // Fetch from backend REST API
     const response = await fetch(apiUrl, {
@@ -84,25 +84,11 @@ export async function GET(request: NextRequest) {
 
     const data = await response.json();
 
-    // Backend returns {success: true, data: {products: [], pagination: {}}}
+    // Backend returns { success: true, data: { products: [], pagination: {} } }
     const responseData = data.data || data;
 
     // Transform backend response to match expected format
-    const products = responseData.products?.map((item: any) => {
-      // Backend returns {product: {...}, variants: [...]}
-      const product = item.product || item;
-      const variants = item.variants || product.variants || [];
-
-      // Debug logging
-      if (process.env.NODE_ENV === 'development') {
-        console.log('API Transform Debug:', {
-          rawItem: item,
-          productId: product.id,
-          variantsCount: variants.length,
-          firstVariantId: variants[0]?.id
-        });
-      }
-
+    const products = responseData.products?.map((product: any) => {
       return {
         id: product.id,
         name: product.name,
@@ -114,26 +100,27 @@ export async function GET(request: NextRequest) {
           altText: img.altText,
           position: img.position,
         })) || [],
-        image: product.images?.[0]?.url || '',
-        // Use first variant's price if available (as number, not string)
-        // Use first variant for flattened data (Single-Product Mode)
-        price: variants[0]?.price ?? product.price ?? 0,
-        compareAtPrice: variants[0]?.compareAtPrice ?? product.compareAtPrice,
-        variantId: variants[0]?.id || '',
-        stockOnHand: variants[0]?.inventory?.stockOnHand ?? 0,
-        canBuy: variants[0]?.status === "active" && (!variants[0]?.inventory?.track || (variants[0]?.inventory?.stockOnHand ?? 0) > 0),
-        variants: variants, // Include variants array for backward compatibility
+        image: product.featuredImage || '',
+        price: product.salePrice ?? 0,
+        compareAtPrice: product.originalPrice,
+        variantId: product.id, // Fallback to product ID for simple products
+        variants: [{
+          id: product.id,
+          name: product.name,
+          sku: product.sku || '',
+          price: product.salePrice ?? 0,
+          compareAtPrice: product.originalPrice,
+          status: 'active',
+          inventory: {
+            track: true,
+            stockOnHand: product.stockOnHand ?? 0,
+          }
+        }],
+        stockOnHand: product.stockOnHand ?? 0,
+        canBuy: product.stockOnHand > 0,
         categories: product.collections || [],
-        brand: product.brand, // Return full brand object
-
+        brand: product.brand,
         condition: product.condition,
-        shippingMethod: product.shippingMethod ? {
-          id: product.shippingMethod.id,
-          code: product.shippingMethod.code,
-          name: product.shippingMethod.name,
-          description: product.shippingMethod.description,
-          isExpress: product.shippingMethod.isExpress || false,
-        } : undefined,
       };
     }) || [];
 

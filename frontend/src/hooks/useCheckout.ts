@@ -114,13 +114,19 @@ export const useCheckout = (user: User) => {
         const result = await response.json();
 
         if (result.success) {
-          // Extract all zones from all shipping methods
+          // Extract all zones from different possible response structures
           const allZones: any[] = [];
-          result.data.forEach((method: any) => {
-            if (method.zones) {
-              allZones.push(...method.zones);
-            }
-          });
+          if (Array.isArray(result.data)) {
+            result.data.forEach((item: any) => {
+              if (item.zones && Array.isArray(item.zones)) {
+                // It's a method with nested zones
+                allZones.push(...item.zones);
+              } else if (item.county || item.cities) {
+                // It's a zone directly
+                allZones.push(item);
+              }
+            });
+          }
           setShippingZones(allZones);
         }
       } catch (error) {
@@ -179,17 +185,12 @@ export const useCheckout = (user: User) => {
     const address = mapToAddress(billingData);
 
     setBilling(address as any);
+    // Since the option to have a different shipping address is removed, 
+    // we default shipping to be the same as billing.
+    setShipping(address as any);
 
-    if (formData.shippingSameAsBilling) {
-      setShipping(address as any);
-    } else {
-      const shippingData = transformShippingData(formData);
-      const shippingAddress = mapToAddress(shippingData);
-      setShipping(shippingAddress as any);
-    }
-
-    // Save to backend if user is logged in
-    if (user.id) {
+    // Save to backend only if "Save details for future orders" is checked
+    if (user.id && formData.saveDetails) {
       try {
         await fetch('/api/customer', {
           method: 'PUT',
@@ -259,7 +260,7 @@ export const useCheckout = (user: User) => {
   const processPaystackPayment = async (order: { id: string; total: string }) => {
     // Backend returns total in cents already, so no need to multiply by 100
     // Paystack expects amount in kobo (for NGN) or cents (for KES)
-    const amount = Math.round(parseFloat(order.total));
+    const amount = formatPaystackAmount(parseFloat(order.total));
 
     const configResponse = await fetch('/api/store/config');
     const config = await configResponse.json();

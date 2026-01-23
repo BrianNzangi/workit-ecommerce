@@ -13,7 +13,7 @@ export default function ProductSorter({ sortBy, onSortChange }: ProductSorterPro
       <select
         value={sortBy}
         onChange={(e) => onSortChange(e.target.value)}
-        className="border border-gray-200 rounded px-3 py-1 pr-8 text-sm font-['DM_SANS'] appearance-none bg-white"
+        className="border border-gray-200 rounded px-3 py-1 pr-8 text-sm font-sans appearance-none bg-white"
       >
         <option value="popularity">Sort by Popularity</option>
         <option value="price_asc">Price: Low to High</option>

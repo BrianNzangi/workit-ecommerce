@@ -1,0 +1,28 @@
+@baseUrl = http://localhost:3001/api/admin
+
+### Login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@workit.co.ke",
+  "password": "admin123456"
+}
+
+### Get Collections
+GET {{baseUrl}}/collections
+
+### Create Collection
+POST {{baseUrl}}/collections
+Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN_HERE
+
+{
+  "name": "Test Collection",
+  "slug": "test-collection",
+  "description": "",
+  "parentId": null,
+  "enabled": true,
+  "showInMostShopped": true,
+  "sortOrder": 1
+}

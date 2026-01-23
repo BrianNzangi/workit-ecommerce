@@ -5,6 +5,7 @@ import HeroSection from '@/components/banners/HeroSection';
 import AboutWorkit from '@/components/home/AboutWorkit';
 import FeaturedBlogs from '@/components/blog/FeaturedBlogs';
 import Deals from '@/components/home/Deals';
+import HorizontalBanner from '@/components/banners/HorizontalBanner';
 import AuthModalWrapper from '@/components/auth/AuthModalWrapper';
 import { getSignInUrl, getSignUpUrl } from '@workos-inc/authkit-nextjs';
 
@@ -47,6 +48,9 @@ export default async function Home() {
 
       {/* Promotional Deals */}
       <Deals />
+
+      {/* Horizontal Banner Deal */}
+      <HorizontalBanner />
 
       {/* Homepage Collections - Component fetches its own data */}
       <HomepageCollection />

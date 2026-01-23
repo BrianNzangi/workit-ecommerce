@@ -54,7 +54,7 @@ const faqItems = [
 
 const HelpFAQ = () => {
   return (
-    <section className="pt-20 pb-8 bg-accent-800 font-[DM_SANS]">
+    <section className="pt-20 pb-8 bg-accent-800 font-sans">
       <div className="container mx-auto px-8">
         {faqItems.map((category) => (
           <div key={category.category} className="mb-12">

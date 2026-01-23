@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import axios from "axios";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3001';
 
 export async function GET(req: Request) {
   try {
@@ -9,11 +9,12 @@ export async function GET(req: Request) {
     const reference = searchParams.get("reference");
     const orderId = searchParams.get("orderId");
 
-    if (!reference) {
-      return NextResponse.json({ error: "Missing reference" }, { status: 400 });
+    if (!reference || !orderId) {
+      return NextResponse.json({ error: "Missing reference or orderId" }, { status: 400 });
     }
 
     // ✅ Step 1: Verify payment with Paystack
+    // In a production app, the backend should do this verification to prevent client-side tampering
     const verifyRes = await axios.get(
       `https://api.paystack.co/transaction/verify/${reference}`,
       {
@@ -25,39 +26,30 @@ export async function GET(req: Request) {
 
     const paymentData = verifyRes.data.data;
 
-    // ✅ Step 2: If payment successful, update order status to PAYMENT_SETTLED
+    // ✅ Step 2: If payment successful, update order status in backend via REST
     let updatedOrder = null;
-    if (paymentData.status === "success" && orderId) {
-      const mutation = `
-        mutation UpdateOrderStatus($id: ID!, $state: OrderState!) {
-          updateOrderStatus(id: $id, state: $state) {
-            id
-            code
-            state
-            total
-          }
-        }
-      `;
-
-      const response = await fetch(`${BACKEND_URL}/api/store`, {
+    if (paymentData.status === "success") {
+      const response = await fetch(`${BACKEND_URL}/store/payments/verify`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          query: mutation,
-          variables: {
-            id: orderId,
-            state: 'PAYMENT_SETTLED'
-          },
+          orderId,
+          reference,
+          amount: paymentData.amount / 100, // Paystack is in cents, our backend expects currency units
+          status: 'success',
+          provider: 'PAYSTACK'
         }),
       });
 
-      const result = await response.json();
-
-      if (result.data?.updateOrderStatus) {
-        updatedOrder = result.data.updateOrderStatus;
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Backend verification failed:', errorText);
+        throw new Error(`Backend verification failed: ${response.status}`);
       }
+
+      updatedOrder = await response.json();
     }
 
     // ✅ Step 3: Return both Paystack + order info

@@ -15,9 +15,9 @@ export async function GET(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Fetch products from the collection
+    // Fetch products from the collection using the general store products endpoint
     const response = await fetch(
-      `${BACKEND_URL}/api/store/collections/${collectionSlug}/products?limit=${limit}`,
+      `${BACKEND_URL}/store/products?collection=${collectionSlug}&limit=${limit}`,
       {
         cache: 'no-store',
         headers: {
@@ -51,11 +51,13 @@ export async function GET(request: NextRequest) {
         url: img.url,
         altText: img.altText,
       })) || [],
-      image: product.images?.[0]?.url || '',
-      price: String(product.price),
-      regular_price: product.compareAtPrice ? String(product.compareAtPrice) : undefined,
+      image: product.featuredImage || product.image || '',
+      price: Number(product.salePrice || product.price || 0),
+      compareAtPrice: (product.originalPrice || product.compareAtPrice) ? Number(product.originalPrice || product.compareAtPrice) : undefined,
       categories: product.collections || [],
-      brand: product.brand?.name,
+      brand: product.brand,
+      canBuy: product.stockOnHand > 0 || product.inStock,
+      variantId: product.id, // Fallback for simple products
     }));
 
     return NextResponse.json({ products: transformedProducts });

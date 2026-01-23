@@ -102,6 +102,7 @@ export interface BillingFormData {
   postcode: string;
   country: string;
   shippingSameAsBilling: boolean;
+  saveDetails: boolean;
   shippingFirstName?: string;
   shippingLastName?: string;
   shippingPhone?: string;

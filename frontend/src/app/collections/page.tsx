@@ -4,7 +4,7 @@ import CollectionsClient from "./CollectionsClient";
 export default function ProductsPage() {
   return (
     <Suspense fallback={
-      <main className="min-h-screen bg-gray-50 font-[DM_SANS]">
+      <main className="min-h-screen bg-gray-50 font-sans">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="flex flex-col lg:flex-row gap-8">
             <div className="lg:w-1/4">

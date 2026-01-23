@@ -71,7 +71,7 @@ export default function CollectionClient({
 
   if (!category && categories.length > 0)
     return (
-      <div className="container mx-auto px-4 py-10 font-[DM_SANS] text-center">
+      <div className="container mx-auto px-4 py-10 font-sans text-center">
         <h1 className="text-3xl font-bold mb-4">Category Not Found</h1>
         <p className="text-gray-600">
           The category path <strong>{fullSlug}</strong> does not exist.
@@ -81,7 +81,7 @@ export default function CollectionClient({
 
   if (category && products.length === 0)
     return (
-      <div className="container mx-auto px-4 py-10 font-[DM_SANS] text-center space-y-4">
+      <div className="container mx-auto px-4 py-10 font-sans text-center space-y-4">
         <h1 className="text-3xl font-bold">No products found</h1>
         <p className="text-gray-600">
           We are currently adding more products. Check back soon for new arrivals!

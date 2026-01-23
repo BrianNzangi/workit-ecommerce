@@ -38,7 +38,7 @@ export default function OrderSummary({
   const total = subtotal + shipping - discount;
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-4 font-[DM_SANS]">
+    <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-4 font-sans">
       <div className="flex justify-between items-center pb-4 border-b border-gray-200">
         <h2 className="text-xl font-bold">Order Summary</h2>
         <span className="text-sm text-gray-500">{cart.items.length} items</span>
@@ -58,7 +58,7 @@ export default function OrderSummary({
 
             <div className="flex gap-4">
               {/* Product Image */}
-              <div className="relative w-20 h-20 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
+              <div className="relative w-20 h-20 shrink-0 bg-gray-100 rounded-lg overflow-hidden">
                 {item.image ? (
                   <Image
                     src={getImageUrl(item.image)}
@@ -75,7 +75,7 @@ export default function OrderSummary({
               </div>
 
               {/* Product Info */}
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 pr-8">
                 <h3 className="text-sm font-semibold text-gray-900 line-clamp-2">
                   {item.name}
                 </h3>
@@ -171,10 +171,44 @@ export default function OrderSummary({
           </button>
 
           {showPaymentInstruction && (
-            <div className="p-3 bg-primary-50 border border-primary-200 rounded-lg text-sm">
-              <p className="text-primary-900">
-                💳 You will be redirected to Paystack to complete your payment securely.
+            <div className="pt-2">
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
+                Secure Payments
               </p>
+              <div className="flex items-center gap-4 opacity-80">
+                <div className="relative w-12 h-6">
+                  <Image
+                    src="/payments/workit-mpesa.png"
+                    alt="M-Pesa"
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+                <div className="relative w-10 h-6">
+                  <Image
+                    src="/payments/workit-visa.svg"
+                    alt="Visa"
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+                <div className="relative w-10 h-6">
+                  <Image
+                    src="/payments/workit-mastercard.svg"
+                    alt="Mastercard"
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+                <div className="relative w-10 h-6">
+                  <Image
+                    src="/payments/workit-airtel.png"
+                    alt="Airtel Money"
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+              </div>
             </div>
           )}
         </div>

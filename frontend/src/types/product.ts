@@ -17,26 +17,35 @@ export interface Category {
   count?: number;
 }
 
-// Main Product type (matches custom Prisma backend)
+// Main Product type (aligned with new storefront API)
 export interface Product {
-  // Core fields (from Prisma Product model)
+  // Core fields
   id: string; // UUID string
   name: string;
   slug: string;
   description?: string;
   short_description?: string;
 
-  // Pricing (from first variant or product.salePrice)
-  price: number; // Price in KES
-  compareAtPrice?: number; // Original price for discount calculation
+  // Pricing (from backend API)
+  price: number; // salePrice from backend
+  compareAtPrice?: number; // originalPrice from backend
+  salePrice?: number; // Alias for price
+  originalPrice?: number; // Alias for compareAtPrice
+
+  // Stock
+  stockOnHand?: number;
+  inStock?: boolean;
 
   // Images (from ProductAsset relation)
-  image?: string;
+  image?: string; // Alias for featuredImage
+  featuredImage?: string; // From backend API
   images?: {
     id: string;
     url: string;
+    source?: string; // Backend uses 'source'
     altText?: string;
     position?: number;
+    featured?: boolean;
   }[];
 
   // Relations
@@ -48,6 +57,12 @@ export interface Product {
   };
 
   categories?: {
+    id: string;
+    name: string;
+    slug: string;
+  }[];
+
+  collections?: {
     id: string;
     name: string;
     slug: string;
@@ -70,7 +85,6 @@ export interface Product {
 
   // Standardized fields for Single-Product Mode (Normalized per product)
   variantId?: string;
-  stockOnHand?: number;
   canBuy?: boolean;
 
   // Metadata

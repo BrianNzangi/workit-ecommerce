@@ -61,7 +61,7 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ['DM Sans', 'sans-serif', ...defaultTheme.fontFamily.sans],
+        sans: ['var(--font-barlow)', 'DM Sans', ...defaultTheme.fontFamily.sans],
       },
     },
   },

@@ -6,6 +6,8 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, useAnimation } from 'framer-motion';
 import { useHomepageCollections, type HomepageCollectionData } from '@/hooks/useHomepageCollections';
 import { getProductImageUrl } from '@/lib/image-utils';
+import HorizontalBanner from '../banners/HorizontalBanner';
+import React from 'react';
 
 /**
  * Single Collection Carousel Component
@@ -91,7 +93,7 @@ function CollectionCarousel({ collection }: CollectionCarouselProps) {
     Array.from({ length: visibleCards }).map((_, index) => (
       <div
         key={index}
-        className="flex-shrink-0 flex flex-col gap-2"
+        className="shrink-0 flex flex-col gap-2"
         style={{ width: `${cardWidth}px` }}
       >
         <div className="w-full aspect-square bg-gray-200 animate-pulse rounded-md" />
@@ -107,10 +109,10 @@ function CollectionCarousel({ collection }: CollectionCarouselProps) {
   }
 
   return (
-    <section className="container mx-auto font-[DM_SANS] space-y-2 py-8">
+    <section className="container mx-auto font-sans space-y-2 py-8">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg md:text-2xl capitalize font-semibold text-gray-900">
+          <h2 className="font-sans text-lg md:text-2xl capitalize font-bold text-gray-900">
             {collection.title}
           </h2>
           {products.length > 0 && (
@@ -177,7 +179,7 @@ function CollectionCarousel({ collection }: CollectionCarouselProps) {
                   return (
                     <div
                       key={product.id}
-                      className="flex-shrink-0"
+                      className="shrink-0"
                       style={{ width: `${cardWidth}px` }}
                     >
                       <ProductCard {...product} />
@@ -227,8 +229,12 @@ export default function HomepageCollection() {
 
   return (
     <div className="space-y-8">
-      {collections.map((collection) => (
-        <CollectionCarousel key={collection.id} collection={collection} />
+      {collections.map((collection, index) => (
+        <React.Fragment key={collection.id}>
+          <CollectionCarousel collection={collection} />
+          {index === 2 && <HorizontalBanner position="MIDDLE" />}
+          {index === collections.length - 1 && <HorizontalBanner position="BOTTOM" />}
+        </React.Fragment>
       ))}
     </div>
   );

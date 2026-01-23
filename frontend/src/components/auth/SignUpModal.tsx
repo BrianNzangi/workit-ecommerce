@@ -45,7 +45,7 @@ export default function SignUpModal({ signUpUrl }: SignUpModalProps) {
                             />
                         </Link>
                         <div className="space-y-2">
-                            <h1 className="text-4xl font-bold tracking-tight text-secondary-900 font-[DM_Sans]">
+                            <h1 className="text-4xl font-bold tracking-tight text-secondary-900 font-sans">
                                 Create an Account
                             </h1>
                             <p className="text-secondary-500 text-lg">
@@ -94,7 +94,7 @@ export default function SignUpModal({ signUpUrl }: SignUpModalProps) {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-20" />
 
                 <div className="absolute bottom-0 left-0 right-0 p-16 z-30 text-white transform transition-all duration-500">
-                    <h2 className="text-4xl font-bold mb-4 font-[DM_Sans] leading-tight">
+                    <h2 className="text-4xl font-bold mb-4 font-sans leading-tight">
                         Designed for <br />Modern Living
                     </h2>
                     <p className="text-xl text-white/80 max-w-md font-light">

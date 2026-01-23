@@ -82,7 +82,7 @@ export default function MegaMenu() {
   return (
     <div className="relative">
       {/* Top nav */}
-      <nav className="flex space-x-6 font-['DM_Sans'] text-base">
+      <nav className="flex space-x-6 font-sans text-base">
         {collectionsWithChildren.map((parent) => (
           <div
             key={parent.id}
@@ -112,7 +112,7 @@ export default function MegaMenu() {
         >
           <div className="mx-auto container px-8 py-4">
             {/* Heading */}
-            <h3 className="text-medium font-semibold text-[#1F2323] font-[DM_SANS] mb-4">
+            <h3 className="text-medium font-semibold text-[#1F2323] font-sans mb-4">
               Categories
             </h3>
             <ul className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">

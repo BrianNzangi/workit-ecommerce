@@ -68,9 +68,9 @@ export default function PolicyPage({ slug }: PolicyPageProps) {
   if (loading) {
     return (
       <div style={{ backgroundColor: '#F8F9FC' }}>
-        <div className="max-w-7xl mx-auto px-4 py-8 font-['DM_Sans']">
+        <div className="max-w-7xl mx-auto px-4 py-8 font-sans">
           <div className="flex gap-8">
-            <div className="w-64 flex-shrink-0">
+            <div className="w-64 shrink-0">
               <div className="animate-pulse space-y-2">
                 {policyPages.map((_, index) => (
                   <div key={index} className="h-10 bg-gray-200 rounded-xs"></div>
@@ -93,9 +93,9 @@ export default function PolicyPage({ slug }: PolicyPageProps) {
   if (error) {
     return (
       <div style={{ backgroundColor: '#F8F9FC' }}>
-        <div className="max-w-7xl mx-auto px-4 py-8 font-['DM_Sans']">
+        <div className="max-w-7xl mx-auto px-4 py-8 font-sans">
           <div className="flex gap-8">
-            <div className="w-64 flex-shrink-0">
+            <div className="w-64 shrink-0">
               <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
                 {/* TERMS Dropdown */}
                 <div>
@@ -105,9 +105,8 @@ export default function PolicyPage({ slug }: PolicyPageProps) {
                   >
                     <span className="font-semibold text-gray-900">TERMS</span>
                     <ChevronDown
-                      className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${
-                        termsDropdownOpen ? 'rotate-180' : ''
-                      }`}
+                      className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${termsDropdownOpen ? 'rotate-180' : ''
+                        }`}
                     />
                   </button>
 
@@ -135,9 +134,8 @@ export default function PolicyPage({ slug }: PolicyPageProps) {
                   >
                     <span className="font-semibold text-gray-900">ABOUT</span>
                     <ChevronDown
-                      className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${
-                        aboutDropdownOpen ? 'rotate-180' : ''
-                      }`}
+                      className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${aboutDropdownOpen ? 'rotate-180' : ''
+                        }`}
                     />
                   </button>
 
@@ -165,9 +163,8 @@ export default function PolicyPage({ slug }: PolicyPageProps) {
                   >
                     <span className="font-semibold text-gray-900">HELP</span>
                     <ChevronDown
-                      className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${
-                        helpDropdownOpen ? 'rotate-180' : ''
-                      }`}
+                      className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${helpDropdownOpen ? 'rotate-180' : ''
+                        }`}
                     />
                   </button>
 
@@ -203,9 +200,9 @@ export default function PolicyPage({ slug }: PolicyPageProps) {
   if (!pageData) {
     return (
       <div style={{ backgroundColor: '#F8F9FC' }}>
-        <div className="max-w-7xl mx-auto px-4 py-8 font-['DM_Sans']">
+        <div className="max-w-7xl mx-auto px-4 py-8 font-sans">
           <div className="flex gap-8">
-            <div className="w-64 flex-shrink-0">
+            <div className="w-64 shrink-0">
               <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
                 {/* TERMS Dropdown */}
                 <div>
@@ -215,9 +212,8 @@ export default function PolicyPage({ slug }: PolicyPageProps) {
                   >
                     <span className="font-semibold text-gray-900">TERMS</span>
                     <ChevronDown
-                      className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${
-                        termsDropdownOpen ? 'rotate-180' : ''
-                      }`}
+                      className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${termsDropdownOpen ? 'rotate-180' : ''
+                        }`}
                     />
                   </button>
 
@@ -245,9 +241,8 @@ export default function PolicyPage({ slug }: PolicyPageProps) {
                   >
                     <span className="font-semibold text-gray-900">ABOUT</span>
                     <ChevronDown
-                      className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${
-                        aboutDropdownOpen ? 'rotate-180' : ''
-                      }`}
+                      className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${aboutDropdownOpen ? 'rotate-180' : ''
+                        }`}
                     />
                   </button>
 
@@ -275,9 +270,8 @@ export default function PolicyPage({ slug }: PolicyPageProps) {
                   >
                     <span className="font-semibold text-gray-900">HELP</span>
                     <ChevronDown
-                      className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${
-                        helpDropdownOpen ? 'rotate-180' : ''
-                      }`}
+                      className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${helpDropdownOpen ? 'rotate-180' : ''
+                        }`}
                     />
                   </button>
 
@@ -312,105 +306,101 @@ export default function PolicyPage({ slug }: PolicyPageProps) {
 
   return (
     <div style={{ backgroundColor: '#F8F9FC', minHeight: '100vh' }}>
-      <div className="max-w-7xl mx-auto px-4 py-8 font-['DM_Sans']">
+      <div className="max-w-7xl mx-auto px-4 py-8 font-sans">
         <div className="flex gap-8">
-          <div className="w-64 flex-shrink-0">
-          <div className="bg-white border border-gray-200 rounded-xs shadow-xs overflow-hidden">
-            {/* TERMS Dropdown */}
-            <div>
-              <button
-                onClick={() => setTermsDropdownOpen(!termsDropdownOpen)}
-                className="w-full px-4 py-3 text-left hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1F2323]/20 focus:bg-gray-50 transition-colors flex items-center justify-between border-b border-gray-100"
-              >
-                <span className="font-semibold text-[#1F2323]">TERMS</span>
-                <ChevronDown
-                  className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${
-                    termsDropdownOpen ? 'rotate-180' : ''
-                  }`}
-                />
-              </button>
+          <div className="w-64 shrink-0">
+            <div className="bg-white border border-gray-200 rounded-xs shadow-xs overflow-hidden">
+              {/* TERMS Dropdown */}
+              <div>
+                <button
+                  onClick={() => setTermsDropdownOpen(!termsDropdownOpen)}
+                  className="w-full px-4 py-3 text-left hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1F2323]/20 focus:bg-gray-50 transition-colors flex items-center justify-between border-b border-gray-100"
+                >
+                  <span className="font-semibold text-[#1F2323]">TERMS</span>
+                  <ChevronDown
+                    className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${termsDropdownOpen ? 'rotate-180' : ''
+                      }`}
+                  />
+                </button>
 
-              {termsDropdownOpen && (
-                <div className="border-b border-gray-100">
-                  {policyPages.map((page) => (
-                    <Link
-                      key={page.slug}
-                      href={`/${page.slug}`}
-                      onClick={() => setTermsDropdownOpen(false)}
-                      className={`block px-4 py-3 text-sm transition-colors hover:bg-gray-50 ${
-                        page.slug === slug
+                {termsDropdownOpen && (
+                  <div className="border-b border-gray-100">
+                    {policyPages.map((page) => (
+                      <Link
+                        key={page.slug}
+                        href={`/${page.slug}`}
+                        onClick={() => setTermsDropdownOpen(false)}
+                        className={`block px-4 py-3 text-sm transition-colors hover:bg-gray-50 ${page.slug === slug
                           ? 'bg-[#1F2323]/90 text-white font-medium'
                           : 'text-gray-600'
+                          }`}
+                      >
+                        {page.title}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* ABOUT Dropdown */}
+              <div>
+                <button
+                  onClick={() => setAboutDropdownOpen(!aboutDropdownOpen)}
+                  className="w-full px-4 py-3 text-left hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1F2323] focus:bg-gray-50 transition-colors flex items-center justify-between border-b border-gray-100"
+                >
+                  <span className="font-semibold text-gray-900">ABOUT</span>
+                  <ChevronDown
+                    className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${aboutDropdownOpen ? 'rotate-180' : ''
                       }`}
-                    >
-                      {page.title}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
+                  />
+                </button>
 
-            {/* ABOUT Dropdown */}
-            <div>
-              <button
-                onClick={() => setAboutDropdownOpen(!aboutDropdownOpen)}
-                className="w-full px-4 py-3 text-left hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1F2323] focus:bg-gray-50 transition-colors flex items-center justify-between border-b border-gray-100"
-              >
-                <span className="font-semibold text-gray-900">ABOUT</span>
-                <ChevronDown
-                  className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${
-                    aboutDropdownOpen ? 'rotate-180' : ''
-                  }`}
-                />
-              </button>
+                {aboutDropdownOpen && (
+                  <div className="border-b border-gray-100">
+                    {aboutPages.map((page) => (
+                      <Link
+                        key={page.slug}
+                        href={`/${page.slug}`}
+                        onClick={() => setAboutDropdownOpen(false)}
+                        className="block px-4 py-3 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+                      >
+                        {page.title}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-              {aboutDropdownOpen && (
-                <div className="border-b border-gray-100">
-                  {aboutPages.map((page) => (
-                    <Link
-                      key={page.slug}
-                      href={`/${page.slug}`}
-                      onClick={() => setAboutDropdownOpen(false)}
-                      className="block px-4 py-3 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
-                    >
-                      {page.title}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
+              {/* HELP Dropdown */}
+              <div>
+                <button
+                  onClick={() => setHelpDropdownOpen(!helpDropdownOpen)}
+                  className="w-full px-4 py-3 text-left hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1F2323] focus:bg-gray-50 transition-colors flex items-center justify-between"
+                >
+                  <span className="font-semibold text-gray-900">HELP</span>
+                  <ChevronDown
+                    className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${helpDropdownOpen ? 'rotate-180' : ''
+                      }`}
+                  />
+                </button>
 
-            {/* HELP Dropdown */}
-            <div>
-              <button
-                onClick={() => setHelpDropdownOpen(!helpDropdownOpen)}
-                className="w-full px-4 py-3 text-left hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1F2323] focus:bg-gray-50 transition-colors flex items-center justify-between"
-              >
-                <span className="font-semibold text-gray-900">HELP</span>
-                <ChevronDown
-                  className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${
-                    helpDropdownOpen ? 'rotate-180' : ''
-                  }`}
-                />
-              </button>
-
-              {helpDropdownOpen && (
-                <div>
-                  {helpPages.map((page) => (
-                    <Link
-                      key={page.slug}
-                      href={`/${page.slug}`}
-                      onClick={() => setHelpDropdownOpen(false)}
-                      className="block px-4 py-3 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
-                    >
-                      {page.title}
-                    </Link>
-                  ))}
-                </div>
-              )}
+                {helpDropdownOpen && (
+                  <div>
+                    {helpPages.map((page) => (
+                      <Link
+                        key={page.slug}
+                        href={`/${page.slug}`}
+                        onClick={() => setHelpDropdownOpen(false)}
+                        className="block px-4 py-3 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+                      >
+                        {page.title}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
           <div className="flex-1 max-w-4xl bg-white p-8 rounded-xs shadow-xs">
             <h1 className="text-3xl font-bold mb-6">{he.decode(pageData.title)}</h1>
             <div

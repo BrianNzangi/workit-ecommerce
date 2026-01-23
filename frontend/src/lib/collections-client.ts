@@ -53,7 +53,6 @@ export async function fetchCollectionsClient(
  */
 export async function fetchNavigationCollectionsClient(): Promise<Collection[]> {
     return fetchCollectionsClient({
-        parentId: 'null',
         includeChildren: true,
     });
 }

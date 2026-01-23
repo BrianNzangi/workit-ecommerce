@@ -18,10 +18,10 @@ export default function Banners() {
             className="
               relative 
               w-[80%] sm:w-[60%] md:w-full 
-              aspect-[16/9] sm:aspect-[20/9] md:aspect-[4/1] lg:aspect-[5/1] 
+              aspect-video sm:aspect-20/9 md:aspect-4/1 lg:aspect-5/1 
               min-h-[80px] sm:min-h-[220px] md:min-h-[140px] lg:min-h-[200px] 
               rounded-sm 
-              flex-shrink-0
+              shrink-0
             "
           >
             <Image

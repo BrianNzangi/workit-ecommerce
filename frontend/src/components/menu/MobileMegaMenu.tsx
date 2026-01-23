@@ -50,7 +50,7 @@ export default function MobileMegaMenu() {
     : categories.filter((c) => c.children && c.children.length > 0);
 
   return (
-    <div className="p-2 font-['DM_Sans']">
+    <div className="p-2 font-sans">
       {/* Breadcrumb header */}
       <div className="flex items-center justify-between mb-4">
         {path.length > 0 && (

@@ -1,0 +1,1 @@
+ALTER TABLE "setting" ADD COLUMN "createdAt" timestamp DEFAULT now() NOT NULL;

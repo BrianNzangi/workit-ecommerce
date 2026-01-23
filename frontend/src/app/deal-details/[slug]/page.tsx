@@ -39,9 +39,9 @@ export default async function ProductDetailPage({ params }: Props) {
     }
 
     const data = await response.json();
-    const productData = data.product;
+    const product: Product = data.product;
 
-    if (!productData) {
+    if (!product) {
       return (
         <div className="container mx-auto px-4 py-10">
           <div className="text-center">
@@ -60,32 +60,19 @@ export default async function ProductDetailPage({ params }: Props) {
       );
     }
 
-    // Transform the backend product data to match the Product type
-    const product: Product = {
-      id: productData.id,
-      name: productData.name,
-      slug: productData.slug,
-      description: productData.description,
-      short_description: productData.short_description,
-      price: productData.price,
-      compareAtPrice: productData.regular_price,
-      images: productData.images || [],
-      image: productData.image,
-      variants: productData.variants || [],
-      categories: productData.categories?.map((col: any) => ({
-        id: col.id,
-        name: col.name,
-        slug: col.slug,
-      })) || [],
-      brand: productData.brand,
-      condition: productData.condition,
-      shippingMethod: productData.shippingMethod,
-      stockOnHand: productData.stockQuantity,
-      canBuy: productData.stock_status === 'instock',
-    };
-
     // Fetch categories (optional)
-    const allCategories: Category[] = [];
+    let allCategories: Category[] = [];
+    try {
+      const categoriesRes = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/collections?includeChildren=true`,
+        { cache: 'no-store' }
+      );
+      if (categoriesRes.ok) {
+        allCategories = await categoriesRes.json();
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
 
     return (
       <div className="min-h-screen">

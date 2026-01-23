@@ -46,7 +46,7 @@ export async function GET(req: Request) {
   params.append('status', status);
   if (limit) params.append('limit', limit);
 
-  const url = `${BACKEND_URL}/api/store/homepage-collections?${params.toString()}`;
+  const url = `${BACKEND_URL}/store/homepage-collections?${params.toString()}`;
 
 
   try {
@@ -77,29 +77,56 @@ export async function GET(req: Request) {
 
     const data = await response.json();
 
-    // Transform the response to include variant data for each product
-    if (data.success && data.data?.homepageCollections) {
-      data.data.homepageCollections = data.data.homepageCollections.map((collection: any) => ({
-        ...collection,
-        products: collection.products?.map((item: any) => {
-          // Backend now returns complete variant data in the product object
-          const product = item.product || item;
-          const variants = item.variants || product.variants || [];
+    // Backend returns array directly, wrap it in expected format
+    const homepageCollections = Array.isArray(data) ? data : [];
 
-          return {
-            ...product,
-            // Add variant fields for Single-Product Mode
-            variantId: variants[0]?.id || '',
-            variants: variants,
-            stockOnHand: variants[0]?.inventory?.stockOnHand ?? 0,
-            canBuy: variants[0]?.status === "active" && (!variants[0]?.inventory?.track || (variants[0]?.inventory?.stockOnHand ?? 0) > 0),
-          };
-        }) || []
-      }));
-    }
+    // Transform to match frontend expectations
+    const transformedCollections = homepageCollections.map((collection: any) => ({
+      ...collection,
+      products: collection.products?.map((product: any) => ({
+        id: product.id,
+        name: product.name,
+        slug: product.slug,
+        description: product.description,
+        price: product.salePrice,
+        compareAtPrice: product.originalPrice,
+        salePrice: product.salePrice,
+        originalPrice: product.originalPrice,
+        // Map featuredImage to both image and images array
+        image: product.featuredImage || '',
+        images: product.featuredImage ? [{
+          id: '1',
+          url: product.featuredImage,
+          position: 0
+        }] : [],
+        variants: (product.variants && product.variants.length > 0) ? product.variants : [{
+          id: product.id,
+          name: product.name,
+          sku: product.sku || '',
+          price: product.salePrice ?? 0,
+          compareAtPrice: product.originalPrice,
+          status: 'active',
+          inventory: {
+            track: true,
+            stockOnHand: product.stockOnHand ?? 0,
+          }
+        }],
+        variantId: (product.variants && product.variants.length > 0) ? product.variants[0].id : product.id,
+        stockOnHand: product.stockOnHand || 0,
+        canBuy: (product.stockOnHand ?? 0) > 0 || product.inStock,
+        condition: product.condition,
+        shippingMethod: product.shippingMethod,
+        brand: product.brand,
+      })) || []
+    }));
 
     // Return the transformed data
-    return NextResponse.json(data);
+    return NextResponse.json({
+      success: true,
+      data: {
+        homepageCollections: transformedCollections
+      }
+    });
   } catch (error) {
     console.error('Error fetching homepage collections:', error);
     return NextResponse.json(
