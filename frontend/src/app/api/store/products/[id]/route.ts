@@ -4,9 +4,9 @@ const BACKEND_URL = process.env.BACKEND_API_URL || 'http://localhost:3001';
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
-    const { id } = params;
+    const { id } = await params;
     const url = `${BACKEND_URL}/store/products/${id}`;
 
     try {

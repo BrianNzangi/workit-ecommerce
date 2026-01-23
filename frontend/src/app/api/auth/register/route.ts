@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
         const { email, password, firstName, lastName, phoneNumber } = await request.json();
 
         const result = await registerCustomer({
-            emailAddress: email,
+            email,
             password,
             firstName,
             lastName,

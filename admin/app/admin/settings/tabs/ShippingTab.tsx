@@ -78,7 +78,7 @@ export default function ShippingTab({ readOnly = false }: ShippingTabProps) {
             toast({
                 title: 'Error',
                 description: 'Failed to load shipping data',
-                variant: 'destructive',
+                variant: 'error',
             });
         } finally {
             setLoading(false);
@@ -213,7 +213,7 @@ export default function ShippingTab({ readOnly = false }: ShippingTabProps) {
             toast({
                 title: 'Validation Error',
                 description: 'County name is required',
-                variant: 'destructive',
+                variant: 'error',
             });
             return;
         }
@@ -223,7 +223,7 @@ export default function ShippingTab({ readOnly = false }: ShippingTabProps) {
             toast({
                 title: 'Validation Error',
                 description: 'At least one city with valid standard price is required',
-                variant: 'destructive',
+                variant: 'error',
             });
             return;
         }
@@ -267,7 +267,7 @@ export default function ShippingTab({ readOnly = false }: ShippingTabProps) {
             toast({
                 title: 'Error',
                 description: 'Failed to save shipping zone',
-                variant: 'destructive',
+                variant: 'error',
             });
         }
     };
@@ -295,7 +295,7 @@ export default function ShippingTab({ readOnly = false }: ShippingTabProps) {
             toast({
                 title: 'Error',
                 description: error?.message || 'Failed to delete shipping zone.',
-                variant: 'destructive',
+                variant: 'error',
             });
         }
     };
@@ -492,7 +492,7 @@ export default function ShippingTab({ readOnly = false }: ShippingTabProps) {
                                                                                             toast({
                                                                                                 title: 'Error',
                                                                                                 description: 'Failed to remove city',
-                                                                                                variant: 'destructive',
+                                                                                                variant: 'error',
                                                                                             });
                                                                                         }
                                                                                     }

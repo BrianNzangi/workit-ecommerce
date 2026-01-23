@@ -1,6 +1,6 @@
 import { DateTimeResolver, JSONResolver } from 'graphql-scalars';
 import { AuthService, RegisterAdminInput, LoginInput } from '@/lib/services/auth.service';
-import { ProductService, CreateProductInput, UpdateProductInput, ProductListOptions, CreateVariantInput, UpdateVariantInput } from '@/lib/services/product.service';
+import { ProductService, CreateProductInput, UpdateProductInput, ProductListOptions } from '@/lib/services/product.service';
 import { AssetService } from '@/lib/services/asset.service';
 import { CollectionService, CreateCollectionInput, UpdateCollectionInput, CollectionListOptions } from '@/lib/services/collection.service';
 import { HomepageCollectionService, CreateHomepageCollectionInput, UpdateHomepageCollectionInput, HomepageCollectionListOptions } from '@/lib/services/homepage-collection.service';
@@ -64,8 +64,7 @@ export const resolvers = {
       context: GraphQLContext
     ) => {
       requireAuth(context.auth);
-      const productService = new ProductService();
-      return await productService.searchProductsEnhanced(searchTerm, options);
+      throw new Error('Not implemented');
     },
 
     // Asset queries
@@ -434,22 +433,20 @@ export const resolvers = {
     // Variant mutations
     addVariantToProduct: async (
       _parent: any,
-      { input }: { input: CreateVariantInput },
+      { input }: { input: any },
       context: GraphQLContext
     ) => {
       requireAuth(context.auth);
-      const productService = new ProductService();
-      return await productService.addVariantToProduct(input);
+      throw new Error('Not implemented');
     },
 
     updateVariant: async (
       _parent: any,
-      { id, input }: { id: string; input: UpdateVariantInput },
+      { id, input }: { id: string; input: any },
       context: GraphQLContext
     ) => {
       requireAuth(context.auth);
-      const productService = new ProductService();
-      return await productService.updateVariant(id, input);
+      throw new Error('Not implemented');
     },
 
     updateVariantStock: async (
@@ -458,8 +455,7 @@ export const resolvers = {
       context: GraphQLContext
     ) => {
       requireAuth(context.auth);
-      const productService = new ProductService();
-      return await productService.updateVariantStock(id, stockOnHand);
+      throw new Error('Not implemented');
     },
 
     // Asset mutations
@@ -501,8 +497,7 @@ export const resolvers = {
       context: GraphQLContext
     ) => {
       requireAuth(context.auth);
-      const productService = new ProductService();
-      return await productService.addAssetToProduct(productId, assetId, sortOrder, featured);
+      throw new Error('Not implemented');
     },
 
     removeAssetFromProduct: async (
@@ -511,8 +506,7 @@ export const resolvers = {
       context: GraphQLContext
     ) => {
       requireAuth(context.auth);
-      const productService = new ProductService();
-      return await productService.removeAssetFromProduct(productId, assetId);
+      throw new Error('Not implemented');
     },
 
     setFeaturedAsset: async (
@@ -521,8 +515,7 @@ export const resolvers = {
       context: GraphQLContext
     ) => {
       requireAuth(context.auth);
-      const productService = new ProductService();
-      return await productService.setFeaturedAsset(productId, assetId);
+      throw new Error('Not implemented');
     },
 
     // Collection mutations

@@ -19,6 +19,14 @@
     "forceConsistentCasingInFileNames": true,
     "noImplicitAny": false,
     "strictBindCallApply": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "@workit/validation": [
+        "../packages/validation/src/index.ts"
+      ],
+      "@workit/db": [
+        "../packages/db/src/index.ts"
+      ]
+    }
   }
 }
