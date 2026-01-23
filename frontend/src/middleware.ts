@@ -2,7 +2,15 @@ import { authkitMiddleware } from '@workos-inc/authkit-nextjs';
 
 export default authkitMiddleware();
 
-// Match all routes except for static files and APIs
 export const config = {
-    matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+    matcher: [
+        /*
+         * Match all request paths except for:
+         * 1. /api (internal API routes)
+         * 2. /_next (Next.js internals)
+         * 3. /static (static files)
+         * 4. favicon.ico, sitemap.xml, robots.txt
+         */
+        '/((?!api|_next|static|favicon.ico|sitemap.xml|robots.txt).*)',
+    ],
 };
