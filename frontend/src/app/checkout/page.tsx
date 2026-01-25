@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
-import { withAuth } from '@workos-inc/authkit-nextjs';
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import CheckoutClient from "@/components/checkout/CheckoutClient"
 import Script from "next/script"
 
@@ -30,9 +32,15 @@ export const metadata: Metadata = {
 };
 
 export default async function CheckoutPage() {
-  const { user } = await withAuth({ ensureSignedIn: true });
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-  if (!user) return null;
+  if (!session) {
+    redirect('/?auth=login');
+  }
+
+  const { user } = session;
 
   return (
     <>
@@ -43,7 +51,7 @@ export default async function CheckoutPage() {
       <CheckoutClient
         user={{
           id: user.id,
-          name: `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim(),
+          name: user.name || `${(user as any).firstName ?? ""} ${(user as any).lastName ?? ""}`.trim(),
           email: user.email || "",
         }}
       />

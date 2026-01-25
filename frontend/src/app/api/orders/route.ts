@@ -1,17 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withAuth } from '@workos-inc/authkit-nextjs';
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 export async function GET(request: NextRequest) {
   try {
-    const { user } = await withAuth();
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
 
-    if (!user) {
+    if (!session?.user) {
       return NextResponse.json({
         success: false,
         error: 'Not authenticated',
         orders: [],
       }, { status: 401 });
     }
+
+    const { user } = session;
 
     const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3001';
 

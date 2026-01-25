@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Edit } from "lucide-react";
-import { useAuth } from '@workos-inc/authkit-nextjs/components';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +15,7 @@ interface AccountInfoData {
 }
 
 export function AccountInfo() {
-  const { user, loading } = useAuth();
+  const { customer, loading } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [accountInfo, setAccountInfo] = useState<AccountInfoData>({
     name: "",
@@ -26,16 +26,16 @@ export function AccountInfo() {
   const [editData, setEditData] = useState<AccountInfoData>(accountInfo);
 
   useEffect(() => {
-    if (user && !loading) {
+    if (customer && !loading) {
       const userData = {
-        name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'User',
-        email: user.email || '',
-        phone: '', // Phone number not directly available in basic AuthKit user
+        name: `${customer.firstName} ${customer.lastName}`.trim() || 'User',
+        email: customer.emailAddress || '',
+        phone: customer.phoneNumber || '',
       };
       setAccountInfo(userData);
       setEditData(userData);
     }
-  }, [user, loading]);
+  }, [customer, loading]);
 
   const handleSave = () => {
     setAccountInfo(editData);

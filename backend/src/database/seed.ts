@@ -1,12 +1,9 @@
-import { config } from 'dotenv';
+import 'dotenv/config';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { eq } from 'drizzle-orm';
 import postgres from 'postgres';
 import * as schema from '@workit/db';
 import * as bcrypt from 'bcrypt';
-
-// Load environment variables
-config();
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -23,17 +20,65 @@ async function seed() {
     try {
         // 1. Seed Admin User
         console.log('👤 Seeding admin user...');
+
+        // Ensure user exists in Better-Auth user table
+        const existingAuthUser = await db
+            .select()
+            .from(schema.user)
+            .where(eq(schema.user.email, 'admin@workit.co.ke'))
+            .limit(1);
+
+        let userId;
+        const passwordHash = await bcrypt.hash('admin123456', 10);
+
+        if (existingAuthUser.length === 0) {
+            userId = crypto.randomUUID();
+            await db.insert(schema.user).values({
+                id: userId,
+                email: 'admin@workit.co.ke',
+                name: 'Super Admin',
+                firstName: 'Super',
+                lastName: 'Admin',
+                emailVerified: true,
+                role: 'ADMIN',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            });
+            console.log('✅ Auth user created!');
+        } else {
+            userId = existingAuthUser[0].id;
+            console.log('⚠️  Auth user already exists.');
+        }
+
+        // Ensure account entry exists for password login
+        const existingAccount = await db
+            .select()
+            .from(schema.account)
+            .where(eq(schema.account.userId, userId))
+            .limit(1);
+
+        if (existingAccount.length === 0) {
+            await db.insert(schema.account).values({
+                id: crypto.randomUUID(),
+                userId: userId,
+                accountId: userId, // Better Auth usage
+                providerId: 'credential',
+                password: passwordHash,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            });
+            console.log('✅ Auth account created!');
+        }
+
+        // Legacy/Bridge table
         const existingAdmin = await db
             .select()
             .from(schema.adminUsers)
             .where(eq(schema.adminUsers.email, 'admin@workit.co.ke'))
             .limit(1);
 
-        let adminId;
         if (existingAdmin.length === 0) {
-            const passwordHash = await bcrypt.hash('admin123456', 10);
-            const [superAdmin] = await db
-                .insert(schema.adminUsers)
+            await db.insert(schema.adminUsers)
                 .values({
                     email: 'admin@workit.co.ke',
                     passwordHash,
@@ -41,13 +86,8 @@ async function seed() {
                     lastName: 'Admin',
                     role: 'SUPER_ADMIN',
                     enabled: true,
-                })
-                .returning();
-            adminId = superAdmin.id;
-            console.log('✅ Super admin created!');
-        } else {
-            adminId = existingAdmin[0].id;
-            console.log('⚠️  Super admin already exists.');
+                });
+            console.log('✅ Legacy admin created!');
         }
 
         // 2. Seed Settings

@@ -7,7 +7,6 @@ import FeaturedBlogs from '@/components/blog/FeaturedBlogs';
 import Deals from '@/components/home/Deals';
 import HorizontalBanner from '@/components/banners/HorizontalBanner';
 import AuthModalWrapper from '@/components/auth/AuthModalWrapper';
-import { getSignInUrl, getSignUpUrl } from '@workos-inc/authkit-nextjs';
 
 export const metadata: Metadata = {
   title: "Workit - Best Deals on Phones, Laptops, TVs & Accessories",
@@ -35,9 +34,6 @@ export const metadata: Metadata = {
 };
 
 export default async function Home() {
-  const signInUrl = await getSignInUrl();
-  const signUpUrl = await getSignUpUrl();
-
   return (
     <div className="space-y-12 bg-[#F8F9FC]">
       {/* Home Banner */}
@@ -59,7 +55,7 @@ export default async function Home() {
       <AboutWorkit />
 
       {/* Auth Modal */}
-      <AuthModalWrapper signInUrl={signInUrl} signUpUrl={signUpUrl} />
+      <AuthModalWrapper />
     </div>
   );
 }

@@ -2,12 +2,14 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { CircleUser, ChevronDown } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function UserMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const { customer, logout } = useAuth();
+  const router = useRouter();
 
   const handleLogout = async () => {
     await logout();
@@ -77,20 +79,24 @@ export default function UserMenu() {
               </>
             ) : (
               <>
-                <Link
-                  href="/login"
-                  className="block px-4 py-2 text-sm font-sans text-gray-700 hover:bg-gray-100"
-                  onClick={() => setIsOpen(false)}
+                <button
+                  onClick={() => {
+                    router.push('/?auth=login');
+                    setIsOpen(false);
+                  }}
+                  className="block w-full text-left px-4 py-2 text-sm font-sans text-gray-700 hover:bg-gray-100"
                 >
                   Sign In
-                </Link>
-                <Link
-                  href="/sign-up"
-                  className="block px-4 py-2 text-sm font-sans text-gray-700 hover:bg-gray-100"
-                  onClick={() => setIsOpen(false)}
+                </button>
+                <button
+                  onClick={() => {
+                    router.push('/?auth=signup');
+                    setIsOpen(false);
+                  }}
+                  className="block w-full text-left px-4 py-2 text-sm font-sans text-gray-700 hover:bg-gray-100"
                 >
                   Sign Up
-                </Link>
+                </button>
                 <Link
                   href="/help"
                   className="block px-4 py-2 text-sm font-sans text-gray-700 hover:bg-gray-100"

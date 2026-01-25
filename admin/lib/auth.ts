@@ -1,5 +1,6 @@
 import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
+import Google from 'next-auth/providers/google';
 import { AuthService } from './services/auth.service';
 import { authConfig } from './auth.config';
 
@@ -9,6 +10,10 @@ const authService = new AuthService();
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   providers: [
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    }),
     Credentials({
       name: 'Credentials',
       credentials: {

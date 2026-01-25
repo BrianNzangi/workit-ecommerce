@@ -20,6 +20,7 @@ import { UsersModule } from './users/users.module';
 import { CustomersModule } from './customers/customers.module';
 import { ShippingModule } from './shipping/shipping.module';
 import { StoreModule } from './store/store.module';
+import { AnalyticsModule } from './analytics/analytics.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { StoreModule } from './store/store.module';
     CustomersModule,
     ShippingModule,
     StoreModule,
+    AnalyticsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

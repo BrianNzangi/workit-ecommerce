@@ -1,6 +1,6 @@
 import { Controller, Post, Get, Patch, Body, UseGuards, Request } from '@nestjs/common';
 import { StoreAuthService } from './store-auth.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { BetterAuthGuard } from '../auth/guards/better-auth.guard';
 
 @Controller('store/auth')
 export class StoreAuthController {
@@ -37,7 +37,7 @@ export class StoreAuthController {
      * GET /store/auth/me
      * Get current customer profile
      */
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(BetterAuthGuard)
     @Get('me')
     async getProfile(@Request() req: any) {
         return this.storeAuthService.getProfile(req.user.id);
@@ -47,7 +47,7 @@ export class StoreAuthController {
      * PATCH /store/customer/profile
      * Update customer profile
      */
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(BetterAuthGuard)
     @Patch('/customer/profile')
     async updateProfile(
         @Request() req: any,

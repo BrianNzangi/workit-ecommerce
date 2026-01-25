@@ -36,6 +36,20 @@
       "when": 1768749853603,
       "tag": "0004_tired_dracula",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1769245116509,
+      "tag": "0005_careful_gamora",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1769246538423,
+      "tag": "0006_nappy_dazzler",
+      "breakpoints": true
     }
   ]
 }

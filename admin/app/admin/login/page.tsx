@@ -211,18 +211,19 @@ export default function LoginPage() {
 
           {/* TODO: Implement Google OAuth Login */}
           {/* Divider */}
-          {/* <div className="relative my-8">
+          <div className="relative my-8">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-secondary-200"></div>
             </div>
             <div className="relative flex justify-center text-sm">
               <span className="px-4 bg-white text-secondary-500">Or continue with</span>
             </div>
-          </div> */}
+          </div>
 
           {/* Google Login Button */}
-          {/* <button
+          <button
             type="button"
+            onClick={() => signIn('google', { callbackUrl: '/admin/dashboard' })}
             className="w-full py-3 px-4 border-2 border-secondary-200 hover:border-secondary-300 rounded-xl font-medium text-secondary-700 transition-all duration-200 flex items-center justify-center gap-3 hover:bg-secondary-50 focus:outline-none focus:ring-2 focus:ring-secondary-300"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -244,7 +245,7 @@ export default function LoginPage() {
               />
             </svg>
             Login with Google
-          </button> */}
+          </button>
 
           {/* Help Text */}
           <p className="mt-8 text-center text-sm text-secondary-500">

@@ -1,109 +1,93 @@
-'use client';
-
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { LoginForm, SignUpForm } from './AuthForms';
+import Image from 'next/image';
 
-interface AuthModalProps {
-    signInUrl: string;
-    signUpUrl: string;
-}
-
-export default function AuthModal({ signInUrl, signUpUrl }: AuthModalProps) {
+export default function AuthModal() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const [showModal, setShowModal] = useState(false);
     const [authType, setAuthType] = useState<'login' | 'signup' | null>(null);
+    const modalRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const auth = searchParams.get('auth');
         if (auth === 'login' || auth === 'signup') {
             setAuthType(auth);
             setShowModal(true);
-
-            // Automatically redirect to WorkOS AuthKit after a brief moment
-            const timer = setTimeout(() => {
-                const authUrl = auth === 'login' ? signInUrl : signUpUrl;
-                window.location.href = authUrl;
-            }, 500);
-
-            return () => clearTimeout(timer);
+        } else {
+            setShowModal(false);
+            setAuthType(null);
         }
-    }, [searchParams, signInUrl, signUpUrl]);
+    }, [searchParams]);
 
     const closeModal = () => {
         setShowModal(false);
         setAuthType(null);
-        router.push('/');
+        // Remove 'auth' param from URL
+        const params = new URLSearchParams(searchParams.toString());
+        params.delete('auth');
+        router.push(`?${params.toString()}`, { scroll: false });
     };
 
-    const handleContinue = () => {
-        const authUrl = authType === 'login' ? signInUrl : signUpUrl;
-        window.location.href = authUrl;
+    const handleBackdropClick = (e: React.MouseEvent) => {
+        if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+            closeModal();
+        }
     };
 
     if (!showModal || !authType) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="relative w-full max-w-md mx-4 bg-white rounded-2xl shadow-2xl p-12 animate-in zoom-in-95 duration-300">
-                {/* Close button */}
-                <button
-                    onClick={closeModal}
-                    className="absolute top-4 right-4 p-2 rounded-full bg-secondary-100 hover:bg-secondary-200 transition-all duration-200 hover:scale-110"
-                    aria-label="Close modal"
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 text-secondary-600"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-
-                {/* Modal Content */}
-                <div className="text-center space-y-6">
-                    <div className="mx-auto w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-8 w-8 text-primary-900"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            {authType === 'login' ? (
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            ) : (
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                            )}
-                        </svg>
+        <div
+            className="fixed inset-0 z-100 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={handleBackdropClick}
+        >
+            <div
+                ref={modalRef}
+                className="relative w-full max-w-[440px] mx-4 bg-white rounded-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300"
+            >
+                <div className="p-10 pt-12 text-center">
+                    {/* Logo */}
+                    <div className="flex justify-center mb-6">
+                        <Image
+                            src="/workit-logo.png"
+                            alt="Workit Logo"
+                            width={100}
+                            height={40}
+                            className="h-auto w-auto"
+                            priority
+                        />
                     </div>
 
-                    <div>
-                        <h3 className="text-2xl font-bold text-secondary-900 mb-2">
-                            {authType === 'login' ? 'Sign In' : 'Create Account'}
-                        </h3>
-                        <p className="text-secondary-600">
-                            Redirecting to secure authentication...
-                        </p>
-                    </div>
-
-                    <div className="flex justify-center">
-                        <div className="animate-spin rounded-full h-12 w-12 border-4 border-secondary-200 border-t-primary-900"></div>
-                    </div>
-
-                    <p className="text-sm text-secondary-500">
-                        If you're not redirected automatically,
+                    <h3 className="text-[28px] font-bold text-secondary-900 mb-2 leading-tight">
+                        {authType === 'login' ? 'Login Now' : 'Join Workit'}
+                    </h3>
+                    <p className="text-secondary-500 text-base mb-8">
+                        {authType === 'login'
+                            ? 'Enter your information to sign in.'
+                            : 'Enter your details to create an account.'}
                     </p>
 
-                    <button
-                        onClick={handleContinue}
-                        className="w-full py-4 px-6 bg-primary-900 hover:bg-primary-800 text-white font-bold rounded-xl shadow-lg shadow-primary-900/20 hover:shadow-primary-900/40 transition-all duration-300 transform hover:-translate-y-0.5"
-                    >
-                        Continue to {authType === 'login' ? 'Sign In' : 'Sign Up'}
-                    </button>
+                    {/* Form Content */}
+                    <div className="text-left">
+                        {authType === 'login' ? <LoginForm /> : <SignUpForm />}
+                    </div>
+
+                    <div className="mt-8">
+                        <p className="text-secondary-600 text-[15px]">
+                            {authType === 'login' ? "Don't have an account?" : "Already have an account?"}{' '}
+                            <button
+                                onClick={() => {
+                                    const type = authType === 'login' ? 'signup' : 'login';
+                                    router.push(`?auth=${type}`, { scroll: false });
+                                }}
+                                className="text-primary-900 font-bold hover:underline"
+                            >
+                                {authType === 'login' ? 'Register now' : 'Sign in here'}
+                            </button>
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>

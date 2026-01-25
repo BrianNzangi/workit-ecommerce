@@ -1,7 +1,7 @@
-// src/hooks/useAuth.ts
 'use client';
 
-import { useAuth as useAuthKit } from '@workos-inc/authkit-nextjs/components';
+import { useSession, signOut, authClient } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
 
 export interface Customer {
     id: string;
@@ -12,36 +12,31 @@ export interface Customer {
 }
 
 export function useAuth() {
-    const { user, loading, signOut } = useAuthKit();
+    const { data: session, isPending: loading, error } = useSession();
+    const router = useRouter();
 
-    const customer: Customer | null = user ? {
-        id: user.id,
-        firstName: user.firstName || '',
-        lastName: user.lastName || '',
-        emailAddress: user.email || '',
+    const customer: Customer | null = session?.user ? {
+        id: session.user.id,
+        firstName: (session.user as any).firstName || session.user.name?.split(' ')[0] || '',
+        lastName: (session.user as any).lastName || session.user.name?.split(' ').slice(1).join(' ') || '',
+        emailAddress: session.user.email,
         phoneNumber: '',
     } : null;
 
     const login = async () => {
-        window.location.href = '/login';
+        router.push('/login');
         return { success: true };
     };
 
     const register = async () => {
-        window.location.href = '/sign-up';
+        router.push('/register');
         return { success: true };
     };
 
     const logout = async () => {
         try {
-            // Use server action if possible or fetch an endpoint if signOut is not available client side
-            // But if signOut is available from the hook (detected by lack of type error), use it.
-            // However, the error report DID NOT complain about signOut not existing.
-            // If signOut() is async, great. If not, we might need to await it improperly?
-            // AuthKit SDK signOut usually redirects.
-            // If signOut is NOT in the hook return (which we suspected but user didn't complain), we'd get an error.
-            // Assuming it IS there since user didn't complain.
             await signOut();
+            router.refresh();
             return { success: true };
         } catch (e) {
             console.error(e);
@@ -51,12 +46,15 @@ export function useAuth() {
 
     return {
         customer,
-        loading: loading,
-        error: null,
+        user: session?.user,
+        loading,
+        error: error ? error.message : null,
         login,
         register,
         logout,
-        isAuthenticated: !!customer,
-        refreshCustomer: async () => { }, // AuthKit handles session refresh
+        isAuthenticated: !!session,
+        refreshCustomer: async () => {
+            router.refresh();
+        },
     };
 }

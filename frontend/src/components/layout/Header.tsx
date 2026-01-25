@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import SearchBar from '../SearchBar';
 import CartSlide from '../CartSlide';
 import MegaMenu from '@/components/menu/MegaMenu';
@@ -139,6 +140,7 @@ export default function Header() {
 function AccountAccordion() {
   const [open, setOpen] = useState(false);
   const { customer } = useAuth();
+  const router = useRouter();
 
   return (
     <div className="border-b border-gray-200">
@@ -150,11 +152,21 @@ function AccountAccordion() {
         <span>{open ? '-' : '+'}</span>
       </button>
       {open && (
-        <div className="pl-4 flex flex-col gap-1">
+        <div className="pl-4 flex flex-col gap-1 text-left">
           {!customer ? (
             <>
-              <Link href="/login" className="py-1 text-gray-600 font-sans hover:text-primary">Sign In</Link>
-              <Link href="/sign-up" className="py-1 text-gray-600 font-sans hover:text-primary">Sign Up</Link>
+              <button
+                onClick={() => router.push('/?auth=login')}
+                className="py-1 text-gray-600 font-sans hover:text-primary text-left"
+              >
+                Sign In
+              </button>
+              <button
+                onClick={() => router.push('/?auth=signup')}
+                className="py-1 text-gray-600 font-sans hover:text-primary text-left"
+              >
+                Sign Up
+              </button>
               <Link href="/help" className="py-1 text-gray-600 font-sans hover:text-primary">Help & Support</Link>
               <Link href="/about" className="py-1 text-gray-600 font-sans hover:text-primary">About</Link>
             </>

@@ -14,142 +14,65 @@ export class StoreAuthService {
     ) { }
 
     /**
-     * Register new customer
+     * Register new customer - DEPRECATED (Handled by Better Auth)
      */
-    async register(input: {
-        email: string;
-        password: string;
-        firstName: string;
-        lastName: string;
-        phoneNumber?: string;
-    }) {
-        // Check if customer already exists
-        const [existing] = await this.db
-            .select()
-            .from(schema.customers)
-            .where(eq(schema.customers.email, input.email))
-            .limit(1);
-
-        if (existing) {
-            throw new BadRequestException('Email already registered');
-        }
-
-        // Hash password
-        const passwordHash = await bcrypt.hash(input.password, 10);
-
-        // Create customer
-        const [customer] = await this.db
-            .insert(schema.customers)
-            .values({
-                email: input.email,
-                passwordHash,
-                firstName: input.firstName,
-                lastName: input.lastName,
-                phoneNumber: input.phoneNumber || '',
-            })
-            .returning();
-
-        // Generate JWT token
-        const token = this.jwtService.sign({
-            sub: customer.id,
-            email: customer.email,
-            type: 'customer',
-        });
-
-        return {
-            customer: {
-                id: customer.id,
-                email: customer.email,
-                firstName: customer.firstName,
-                lastName: customer.lastName,
-            },
-            accessToken: token,
-        };
+    async register(input: any) {
+        throw new BadRequestException('Use Better Auth endpoints for registration');
     }
 
     /**
-     * Customer login
+     * Customer login - DEPRECATED (Handled by Better Auth)
      */
     async login(email: string, password: string) {
-        const [customer] = await this.db
-            .select()
-            .from(schema.customers)
-            .where(eq(schema.customers.email, email))
-            .limit(1);
-
-        if (!customer || !customer.passwordHash) {
-            throw new UnauthorizedException('Invalid credentials');
-        }
-
-        const isValid = await bcrypt.compare(password, customer.passwordHash);
-        if (!isValid) {
-            throw new UnauthorizedException('Invalid credentials');
-        }
-
-        // Generate JWT token
-        const token = this.jwtService.sign({
-            sub: customer.id,
-            email: customer.email,
-            type: 'customer',
-        });
-
-        return {
-            customer: {
-                id: customer.id,
-                email: customer.email,
-                firstName: customer.firstName,
-                lastName: customer.lastName,
-            },
-            accessToken: token,
-        };
+        throw new BadRequestException('Use Better Auth endpoints for login');
     }
 
     /**
      * Get customer profile
      */
-    async getProfile(customerId: string) {
-        const [customer] = await this.db
+    async getProfile(userId: string) {
+        const [user] = await this.db
             .select({
-                id: schema.customers.id,
-                email: schema.customers.email,
-                firstName: schema.customers.firstName,
-                lastName: schema.customers.lastName,
-                phoneNumber: schema.customers.phoneNumber,
+                id: schema.user.id,
+                email: schema.user.email,
+                firstName: schema.user.firstName,
+                lastName: schema.user.lastName,
+                role: schema.user.role,
             })
-            .from(schema.customers)
-            .where(eq(schema.customers.id, customerId))
+            .from(schema.user)
+            .where(eq(schema.user.id, userId))
             .limit(1);
 
-        if (!customer) {
-            throw new UnauthorizedException('Customer not found');
+        if (!user) {
+            throw new UnauthorizedException('User not found');
         }
 
-        return customer;
+        return user;
     }
 
     /**
      * Update customer profile
      */
-    async updateProfile(customerId: string, updates: {
+    async updateProfile(userId: string, updates: {
         firstName?: string;
         lastName?: string;
-        phoneNumber?: string;
     }) {
-        const [customer] = await this.db
-            .update(schema.customers)
+        const [updatedUser] = await this.db
+            .update(schema.user)
             .set({
                 ...updates,
+                name: `${updates.firstName || ''} ${updates.lastName || ''}`.trim(),
                 updatedAt: new Date(),
             })
-            .where(eq(schema.customers.id, customerId))
+            .where(eq(schema.user.id, userId))
             .returning({
-                id: schema.customers.id,
-                email: schema.customers.email,
-                firstName: schema.customers.firstName,
-                lastName: schema.customers.lastName,
-                phoneNumber: schema.customers.phoneNumber,
+                id: schema.user.id,
+                email: schema.user.email,
+                firstName: schema.user.firstName,
+                lastName: schema.user.lastName,
+                role: schema.user.role,
             });
 
-        return customer;
+        return updatedUser;
     }
 }

@@ -17,8 +17,11 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@solar-icons/react": "^1.0.1",
     "@tailwindcss/typography": "^0.5.18",
+    "@workit/db": "workspace:^",
+    "@workit/validation": "workspace:*",
     "@workos-inc/authkit-nextjs": "^2.12.2",
     "axios": "^1.11.0",
+    "better-auth": "^1.4.17",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.11",
@@ -35,7 +38,6 @@
     "sonner": "^2.0.6",
     "swiper": "^11.2.10",
     "tailwind-merge": "^3.3.1",
-    "@workit/validation": "workspace:*",
     "zustand": "^5.0.7"
   },
   "devDependencies": {

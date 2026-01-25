@@ -1,74 +1,39 @@
-import { apiClient, setAuthToken } from './api-client';
+import { betterAuth } from "better-auth";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { db, schema } from "@workit/db";
 
-export interface Customer {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    phoneNumber?: string;
-}
-
-/**
- * Get the active customer profile via NestJS API
- */
-export async function getActiveCustomer(): Promise<Customer | null> {
-    try {
-        const response = await apiClient.get('/auth/profile');
-        return response.data;
-    } catch (error) {
-        return null;
-    }
-}
-
-/**
- * Login customer via NestJS API
- */
-export async function loginCustomer(email: string, password: string): Promise<{ success: boolean; error?: string }> {
-    try {
-        const response = await apiClient.post('/auth/login', { email, password });
-        const { access_token, user } = response.data;
-
-        setAuthToken(access_token);
-
-        return { success: true };
-    } catch (error: any) {
-        console.error('Login error:', error);
-        return {
-            success: false,
-            error: error.response?.data?.message || 'Login failed'
-        };
-    }
-}
-
-/**
- * Logout customer
- */
-export async function logoutCustomer(): Promise<void> {
-    setAuthToken(null);
-}
-
-/**
- * Register customer via NestJS API
- */
-export async function registerCustomer(input: {
-    email: string;
-    password: string;
-    firstName: string;
-    lastName: string;
-    phoneNumber?: string;
-}): Promise<{ success: boolean; error?: string }> {
-    try {
-        const response = await apiClient.post('/auth/register', input);
-        const { access_token } = response.data;
-
-        setAuthToken(access_token);
-
-        return { success: true };
-    } catch (error: any) {
-        console.error('Registration error:', error);
-        return {
-            success: false,
-            error: error.response?.data?.message || 'Registration failed'
-        };
-    }
-}
+export const auth = betterAuth({
+    database: drizzleAdapter(db, {
+        provider: "pg",
+        schema: schema,
+    }),
+    emailAndPassword: {
+        enabled: true,
+    },
+    socialProviders: {
+        google: {
+            clientId: process.env.GOOGLE_CLIENT_ID || "",
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+        },
+    },
+    user: {
+        additionalFields: {
+            role: {
+                type: "string",
+                defaultValue: "CUSTOMER",
+            },
+            firstName: {
+                type: "string",
+            },
+            lastName: {
+                type: "string",
+            },
+        }
+    },
+    trustedOrigins: [
+        "http://127.0.0.1:3000",
+        "http://localhost:3000",
+        "http://127.0.0.1:3001",
+        "http://localhost:3001",
+    ],
+});

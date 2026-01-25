@@ -7,6 +7,7 @@ import * as marketing from "./schema/marketing";
 import * as cms from "./schema/cms";
 import * as settings from "./schema/settings";
 import * as blog from "./schema/blog";
+import * as auth from "./schema/auth";
 
 export * from "./schema/enums";
 export * from "./schema/products";
@@ -16,6 +17,8 @@ export * from "./schema/marketing";
 export * from "./schema/cms";
 export * from "./schema/settings";
 export * from "./schema/blog";
+export * from "./schema/auth";
+export * from "./client";
 
 export const productRelations = relations(products.products, ({ one, many }) => ({
     brand: one(products.brands, {
@@ -46,9 +49,9 @@ export const collectionRelations = relations(products.collections, ({ one, many 
 }));
 
 export const orderRelations = relations(orders.orders, ({ one, many }) => ({
-    customer: one(users.customers, {
+    customer: one(auth.user, {
         fields: [orders.orders.customerId],
-        references: [users.customers.id],
+        references: [auth.user.id],
     }),
     shippingAddress: one(orders.addresses, {
         fields: [orders.orders.shippingAddressId],
@@ -68,9 +71,18 @@ export const orderRelations = relations(orders.orders, ({ one, many }) => ({
     payments: many(orders.payments),
 }));
 
-export const customerRelations = relations(users.customers, ({ many }) => ({
+export const userRelations = relations(auth.user, ({ many }) => ({
     addresses: many(orders.addresses),
     orders: many(orders.orders),
+    sessions: many(auth.session),
+    accounts: many(auth.account),
+}));
+
+export const addressRelations = relations(orders.addresses, ({ one }) => ({
+    customer: one(auth.user, {
+        fields: [orders.addresses.customerId],
+        references: [auth.user.id],
+    }),
 }));
 
 export const assetRelations = relations(cms.assets, ({ many }) => ({
@@ -133,6 +145,15 @@ export const productAssetRelations = relations(cms.productAssets, ({ one }) => (
     }),
 }));
 
+export const authRelations = relations(auth.session, ({ one }) => ({
+    user: one(auth.user, {
+        fields: [auth.session.userId],
+        references: [auth.user.id],
+    }),
+}));
+
+// Merged into userRelations above
+
 export const schema = {
     ...enums,
     ...products,
@@ -142,14 +163,18 @@ export const schema = {
     ...cms,
     ...settings,
     ...blog,
+    ...auth,
     productRelations,
     collectionRelations,
     orderRelations,
-    customerRelations,
+    customerRelations: userRelations, // For compatibility if any service uses schema.customerRelations
+    userRelations,
+    addressRelations,
     assetRelations,
     blogRelations,
     productCollectionRelations,
     homepageCollectionProductRelations,
     productAssetRelations,
     orderLineRelations,
+    authRelations,
 };

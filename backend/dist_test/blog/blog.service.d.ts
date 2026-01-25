@@ -1,0 +1,110 @@
+import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { schema } from '@workit/db';
+import type { BlogPostInput } from '@workit/validation';
+export declare class BlogService {
+    private db;
+    constructor(db: PostgresJsDatabase<typeof schema>);
+    createPost(input: BlogPostInput): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        title: string;
+        slug: string;
+        excerpt: string | null;
+        content: string;
+        featuredImageUrl: string | null;
+        author: string | null;
+        published: boolean;
+        publishedAt: Date | null;
+        deletedAt: Date | null;
+    }>;
+    updatePost(id: string, input: Partial<BlogPostInput>): Promise<{
+        id: string;
+        title: string;
+        slug: string;
+        excerpt: string | null;
+        content: string;
+        featuredImageUrl: string | null;
+        author: string | null;
+        published: boolean;
+        publishedAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+        deletedAt: Date | null;
+    }>;
+    getPost(id: string): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        title: string;
+        slug: string;
+        excerpt: string | null;
+        content: string;
+        featuredImageUrl: string | null;
+        author: string | null;
+        published: boolean;
+        publishedAt: Date | null;
+        deletedAt: Date | null;
+    }>;
+    getPostBySlug(slug: string): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        title: string;
+        slug: string;
+        excerpt: string | null;
+        content: string;
+        featuredImageUrl: string | null;
+        author: string | null;
+        published: boolean;
+        publishedAt: Date | null;
+        deletedAt: Date | null;
+    }>;
+    getPosts(options?: {
+        limit?: number;
+        offset?: number;
+        published?: boolean;
+        search?: string;
+    }): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        title: string;
+        slug: string;
+        excerpt: string | null;
+        content: string;
+        featuredImageUrl: string | null;
+        author: string | null;
+        published: boolean;
+        publishedAt: Date | null;
+        deletedAt: Date | null;
+    }[]>;
+    deletePost(id: string): Promise<{
+        id: string;
+        title: string;
+        slug: string;
+        excerpt: string | null;
+        content: string;
+        featuredImageUrl: string | null;
+        author: string | null;
+        published: boolean;
+        publishedAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+        deletedAt: Date | null;
+    }>;
+    togglePublish(id: string): Promise<{
+        id: string;
+        title: string;
+        slug: string;
+        excerpt: string | null;
+        content: string;
+        featuredImageUrl: string | null;
+        author: string | null;
+        published: boolean;
+        publishedAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+        deletedAt: Date | null;
+    }>;
+}

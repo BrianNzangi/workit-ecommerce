@@ -1,23 +1,26 @@
-// src/app/api/customer/route.ts
 import { NextResponse } from 'next/server';
-import { withAuth } from '@workos-inc/authkit-nextjs';
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 export async function GET() {
   try {
-    const { user } = await withAuth();
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
 
-    if (!user) {
+    if (!session?.user) {
       return NextResponse.json({
         success: false,
         error: 'Authentication required',
       }, { status: 401 });
     }
 
-    // Return mock billing information for now, eliminating WooCommerce dependency
-    // In a real implementation, you would fetch this from your new backend
+    const { user } = session;
+
+    // Return billing information from the user record
     const billingData = {
-      first_name: user.firstName || '',
-      last_name: user.lastName || '',
+      first_name: (user as any).firstName || user.name?.split(' ')[0] || '',
+      last_name: (user as any).lastName || user.name?.split(' ').slice(1).join(' ') || '',
       email: user.email || '',
       phone: '',
       address_1: '',
@@ -42,9 +45,11 @@ export async function GET() {
 
 export async function PUT(request: Request) {
   try {
-    const { user } = await withAuth();
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
 
-    if (!user) {
+    if (!session?.user) {
       return NextResponse.json({
         success: false,
         error: 'Authentication required',
@@ -61,22 +66,19 @@ export async function PUT(request: Request) {
       }, { status: 400 });
     }
 
-    // Return the updated data (mock update)
-    const updatedBillingData = {
-      first_name: billing.first_name,
-      last_name: billing.last_name,
-      email: billing.email,
-      phone: billing.phone,
-      address_1: billing.address_1,
-      city: billing.city,
-      county: billing.county,
-      postcode: billing.postcode,
-      country: billing.country,
-    };
+    // Update user via Better Auth
+    await auth.api.updateUser({
+      headers: await headers(),
+      body: {
+        name: `${billing.first_name} ${billing.last_name}`.trim(),
+        firstName: billing.first_name,
+        lastName: billing.last_name,
+      } as any
+    });
 
     return NextResponse.json({
       success: true,
-      billing: updatedBillingData,
+      billing,
     });
   } catch (error) {
     console.error('Customer update error:', error);

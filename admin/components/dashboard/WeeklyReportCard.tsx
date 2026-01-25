@@ -53,13 +53,21 @@ export function WeeklyReportCard() {
             try {
                 // Fetch stats
                 const statsRes = await fetch(`/api/admin/dashboard/weekly-stats?range=${view}`);
-                const statsData = await statsRes.json();
-                setStats(statsData);
+                if (statsRes.ok) {
+                    const statsData = await statsRes.json();
+                    if (statsData && typeof statsData === 'object' && !statsData.error) {
+                        setStats(prev => ({ ...prev, ...statsData }));
+                    }
+                }
 
                 // Fetch chart data
                 const chartRes = await fetch(`/api/admin/dashboard/weekly-chart?range=${view}`);
-                const chartData = await chartRes.json();
-                setChartData(chartData);
+                if (chartRes.ok) {
+                    const chartData = await chartRes.json();
+                    if (Array.isArray(chartData)) {
+                        setChartData(chartData);
+                    }
+                }
 
             } catch (error) {
                 console.error('Error fetching weekly report:', error);
@@ -73,6 +81,7 @@ export function WeeklyReportCard() {
 
     // Format numbers for display (e.g., 52k)
     const formatStat = (num: number) => {
+        if (num === undefined || num === null) return '0';
         if (num >= 1000) return `${(num / 1000).toFixed(1)}k`;
         return num.toString();
     };
@@ -87,8 +96,8 @@ export function WeeklyReportCard() {
                         <button
                             onClick={() => setView('this_week')}
                             className={`px-4 py-1.5 text-xs font-medium rounded-md transition-colors ${view === 'this_week'
-                                    ? 'bg-white text-green-600 shadow-sm'
-                                    : 'text-gray-500 hover:text-gray-700'
+                                ? 'bg-white text-green-600 shadow-sm'
+                                : 'text-gray-500 hover:text-gray-700'
                                 }`}
                         >
                             This week
@@ -96,8 +105,8 @@ export function WeeklyReportCard() {
                         <button
                             onClick={() => setView('last_week')}
                             className={`px-4 py-1.5 text-xs font-medium rounded-md transition-colors ${view === 'last_week'
-                                    ? 'bg-white text-green-600 shadow-sm'
-                                    : 'text-gray-500 hover:text-gray-700'
+                                ? 'bg-white text-green-600 shadow-sm'
+                                : 'text-gray-500 hover:text-gray-700'
                                 }`}
                         >
                             Last week

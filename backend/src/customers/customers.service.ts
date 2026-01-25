@@ -11,50 +11,59 @@ export class CustomersService {
     ) { }
 
     async findAll() {
-        const customers = await this.db.select().from(schema.customers).orderBy(desc(schema.customers.createdAt));
-        return customers.map(({ passwordHash, ...customer }) => customer);
+        return this.db.select()
+            .from(schema.user)
+            .where(eq(schema.user.role, 'CUSTOMER'))
+            .orderBy(desc(schema.user.createdAt));
     }
 
     async findOne(id: string) {
-        const [customer] = await this.db.select().from(schema.customers).where(eq(schema.customers.id, id)).limit(1);
-        if (!customer) throw new NotFoundException('Customer not found');
-
-        const { passwordHash, ...customerWithoutPassword } = customer;
-        return customerWithoutPassword;
+        const [user] = await this.db.select().from(schema.user).where(eq(schema.user.id, id)).limit(1);
+        if (!user) throw new NotFoundException('Customer not found');
+        return user;
     }
 
     async create(input: any) {
-        const [customer] = await this.db.insert(schema.customers).values({
+        const [user] = await this.db.insert(schema.user).values({
+            id: crypto.randomUUID(),
             email: input.email,
+            name: `${input.firstName} ${input.lastName}`,
             firstName: input.firstName,
             lastName: input.lastName,
-            phoneNumber: input.phoneNumber,
-            passwordHash: '', // Typically set via store-auth or empty for guest
-            enabled: input.enabled ?? true,
+            emailVerified: true,
+            role: 'CUSTOMER',
+            createdAt: new Date(),
+            updatedAt: new Date(),
         }).returning();
 
-        return customer;
+        return user;
     }
 
     async update(id: string, input: any) {
-        const [customer] = await this.db.update(schema.customers)
-            .set({
-                ...input,
-                updatedAt: new Date()
-            })
-            .where(eq(schema.customers.id, id))
+        const updateData: any = {
+            ...input,
+            updatedAt: new Date(),
+        };
+
+        if (input.firstName || input.lastName) {
+            updateData.name = `${input.firstName || ''} ${input.lastName || ''}`.trim();
+        }
+
+        const [user] = await this.db.update(schema.user)
+            .set(updateData)
+            .where(eq(schema.user.id, id))
             .returning();
 
-        if (!customer) throw new NotFoundException('Customer not found');
-        return customer;
+        if (!user) throw new NotFoundException('Customer not found');
+        return user;
     }
 
     async delete(id: string) {
-        const [customer] = await this.db.delete(schema.customers)
-            .where(eq(schema.customers.id, id))
+        const [user] = await this.db.delete(schema.user)
+            .where(eq(schema.user.id, id))
             .returning();
 
-        if (!customer) throw new NotFoundException('Customer not found');
+        if (!user) throw new NotFoundException('Customer not found');
         return { success: true };
     }
 }

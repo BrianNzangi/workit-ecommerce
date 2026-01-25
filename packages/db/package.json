@@ -12,11 +12,12 @@
         "db:studio": "drizzle-kit studio"
     },
     "dependencies": {
+        "dotenv": "latest",
         "drizzle-orm": "latest",
-        "postgres": "latest",
-        "dotenv": "latest"
+        "postgres": "latest"
     },
     "devDependencies": {
+        "@types/node": "^25.0.10",
         "drizzle-kit": "latest",
         "typescript": "latest"
     }

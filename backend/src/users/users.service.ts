@@ -14,45 +14,49 @@ export class UsersService {
     ) { }
 
     async findAll() {
-        const users = await this.db.select().from(schema.adminUsers);
-        return users.map(({ passwordHash, ...user }) => user);
+        return this.db.select().from(schema.user);
     }
 
     async create(input: any) {
-        const passwordHash = await bcrypt.hash(input.password, this.SALT_ROUNDS);
-        const [user] = await this.db.insert(schema.adminUsers).values({
+        const [user] = await this.db.insert(schema.user).values({
+            id: crypto.randomUUID(),
             email: input.email,
+            name: `${input.firstName} ${input.lastName}`,
             firstName: input.firstName,
             lastName: input.lastName,
-            passwordHash,
-            role: input.role,
+            emailVerified: true,
+            role: input.role || 'ADMIN',
+            createdAt: new Date(),
+            updatedAt: new Date(),
         }).returning();
 
-        const { passwordHash: _, ...userWithoutPassword } = user;
-        return userWithoutPassword;
+        return user;
     }
 
     async update(id: string, input: any) {
-        const updateData: any = { ...input, updatedAt: new Date() };
-        if (input.password) {
-            updateData.passwordHash = await bcrypt.hash(input.password, this.SALT_ROUNDS);
-            delete updateData.password;
+        const updateData: any = {
+            ...input,
+            updatedAt: new Date(),
+        };
+
+        if (input.firstName || input.lastName) {
+            // Need to fetch current name parts if only one is provided, or just use naming convention
+            updateData.name = `${input.firstName || ''} ${input.lastName || ''}`.trim();
         }
 
-        const [user] = await this.db.update(schema.adminUsers)
+        const [user] = await this.db.update(schema.user)
             .set(updateData)
-            .where(eq(schema.adminUsers.id, id))
+            .where(eq(schema.user.id, id))
             .returning();
 
         if (!user) throw new NotFoundException('User not found');
 
-        const { passwordHash: _, ...userWithoutPassword } = user;
-        return userWithoutPassword;
+        return user;
     }
 
     async delete(id: string) {
-        const [user] = await this.db.delete(schema.adminUsers)
-            .where(eq(schema.adminUsers.id, id))
+        const [user] = await this.db.delete(schema.user)
+            .where(eq(schema.user.id, id))
             .returning();
 
         if (!user) throw new NotFoundException('User not found');

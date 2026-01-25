@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useAuth } from '@workos-inc/authkit-nextjs/components';
+import { useAuth } from '@/hooks/useAuth';
 import { UserSidebar } from "../../components/user/UserSidebar";
 import { AccountInfo } from "../../components/user/AccountInfo";
 import { BillingAddress } from "../../components/user/BillingAddress";
@@ -26,7 +26,7 @@ interface Order {
 type ActiveSection = 'dashboard' | 'orders' | 'track-order' | 'cart' | 'wishlist' | 'compare' | 'cards-address' | 'browsing-history' | 'settings';
 
 export default function DashboardClient() {
-  const { user } = useAuth();
+  const { customer, isAuthenticated, loading: authLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeSection, setActiveSection] = useState<ActiveSection>('dashboard');
@@ -34,11 +34,11 @@ export default function DashboardClient() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) {
-      router.push('/login');
+    if (!authLoading && !isAuthenticated) {
+      router.push('/?auth=login');
       return;
     }
-  }, [user, router]);
+  }, [isAuthenticated, authLoading, router]);
 
   useEffect(() => {
     const fetchOrders = async () => {

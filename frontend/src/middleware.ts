@@ -1,6 +1,16 @@
-import { authkitMiddleware } from '@workos-inc/authkit-nextjs';
+import { NextResponse, type NextRequest } from "next/server";
 
-export default authkitMiddleware();
+export default async function middleware(request: NextRequest) {
+    // Better Auth uses a session token cookie
+    const sessionToken = request.cookies.get("better-auth.session_token");
+
+    // Example: Protect /account routes
+    if (request.nextUrl.pathname.startsWith("/account") && !sessionToken) {
+        return NextResponse.redirect(new URL("/login", request.url));
+    }
+
+    return NextResponse.next();
+}
 
 export const config = {
     matcher: [

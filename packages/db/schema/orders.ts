@@ -1,6 +1,6 @@
 import { pgTable, varchar, integer, timestamp, index, unique, text, boolean, jsonb } from "drizzle-orm/pg-core";
 import { orderStateEnum, paymentStateEnum } from "./enums";
-import { customers } from "./users";
+import { user } from "./auth";
 
 export const shippingMethods = pgTable("ShippingMethod", {
     id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
@@ -44,7 +44,7 @@ export const shippingCities = pgTable("ShippingCity", {
 
 export const addresses = pgTable("Address", {
     id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
-    customerId: text("customerId").references(() => customers.id, { onDelete: "cascade" }),
+    customerId: text("customerId").references(() => user.id, { onDelete: "cascade" }),
     fullName: varchar("fullName", { length: 255 }).notNull(),
     streetLine1: varchar("streetLine1", { length: 255 }).notNull(),
     streetLine2: varchar("streetLine2", { length: 255 }),
@@ -64,7 +64,7 @@ export const addresses = pgTable("Address", {
 export const orders = pgTable("Order", {
     id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
     code: varchar("code", { length: 255 }).notNull().unique(),
-    customerId: text("customerId").notNull().references(() => customers.id),
+    customerId: text("customerId").notNull().references(() => user.id),
     state: orderStateEnum("state").notNull().default("CREATED"),
     subTotal: integer("subTotal").notNull(),
     shipping: integer("shipping").notNull(),

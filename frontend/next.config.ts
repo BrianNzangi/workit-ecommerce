@@ -40,6 +40,14 @@ const nextConfig: NextConfig = {
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
   },
+  async rewrites() {
+    return [
+      {
+        source: '/uploads/:path*',
+        destination: 'http://localhost:3001/uploads/:path*',
+      },
+    ];
+  },
 };
 
 export default nextConfig;

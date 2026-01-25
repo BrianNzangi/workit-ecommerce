@@ -94,22 +94,26 @@ export class StoreOrdersService {
 
         const [existingCustomer] = await this.db
             .select()
-            .from(schema.customers)
-            .where(eq(schema.customers.email, input.customerEmail))
+            .from(schema.user)
+            .where(eq(schema.user.email, input.customerEmail))
             .limit(1);
 
         if (existingCustomer) {
             customerId = existingCustomer.id;
         } else {
-            // Create customer record (guest or first-time sync)
+            // Create user record (guest or first-time sync)
             const [newCustomer] = await this.db
-                .insert(schema.customers)
+                .insert(schema.user)
                 .values({
+                    id: crypto.randomUUID(),
                     email: input.customerEmail,
-                    passwordHash: '', // User authenticated via external provider (WorkOS) or guest
+                    name: input.customerName,
                     firstName: input.customerName.split(' ')[0] || input.customerName,
                     lastName: input.customerName.split(' ').slice(1).join(' ') || '',
-                    phoneNumber: input.customerPhone,
+                    emailVerified: false,
+                    role: 'CUSTOMER',
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
                 })
                 .returning();
             customerId = newCustomer.id;
@@ -310,18 +314,18 @@ export class StoreOrdersService {
      * Get orders by customer email
      */
     async getCustomerOrdersByEmail(email: string) {
-        // First find the customer
-        const [customer] = await this.db
+        // First find the user
+        const [user] = await this.db
             .select()
-            .from(schema.customers)
-            .where(eq(schema.customers.email, email))
+            .from(schema.user)
+            .where(eq(schema.user.email, email))
             .limit(1);
 
-        if (!customer) {
+        if (!user) {
             return [];
         }
 
-        return this.getCustomerOrders(customer.id);
+        return this.getCustomerOrders(user.id);
     }
 
     /**

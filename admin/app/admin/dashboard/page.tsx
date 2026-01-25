@@ -6,8 +6,7 @@ import { useSession } from 'next-auth/react';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Activity } from 'lucide-react';
-import Link from 'next/link';
-import { TotalSalesCard, TotalOrdersCard, PendingCanceledCard, WeeklyReportCard } from '@/components/dashboard';
+import { TotalSalesCard, TotalOrdersCard, PendingCanceledCard, WeeklyReportCard, RecentOrdersTable } from '@/components/dashboard';
 
 const HEALTH_QUERY = gql`
   query HealthCheck {
@@ -19,45 +18,6 @@ export default function DashboardPage() {
   const { data: session } = useSession();
   const { data: healthData } = useQuery(HEALTH_QUERY);
 
-  const quickActions = [
-    {
-      title: 'Products',
-      description: 'Manage your product catalog',
-      href: '/admin/products',
-      color: 'blue',
-    },
-    {
-      title: 'Orders',
-      description: 'View and manage orders',
-      href: '/admin/orders',
-      color: 'green',
-    },
-    {
-      title: 'Customers',
-      description: 'Manage customer accounts',
-      href: '/admin/customers',
-      color: 'purple',
-    },
-    {
-      title: 'Collections',
-      description: 'Organize products into collections',
-      href: '/admin/collections',
-      color: 'pink',
-    },
-    {
-      title: 'Assets',
-      description: 'Manage images and media',
-      href: '/admin/assets',
-      color: 'indigo',
-    },
-    {
-      title: 'Blog',
-      description: 'Create and manage blog posts',
-      href: '/admin/blog',
-      color: 'yellow',
-    },
-  ];
-
   return (
     <ProtectedRoute>
       <AdminLayout>
@@ -65,7 +25,7 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Welcome back, {session?.user?.name}!
+              Welcome back, {session?.user?.name || 'Admin'}!
             </h1>
             <p className="text-gray-600">
               Here's what's happening with your store today.
@@ -93,27 +53,9 @@ export default function DashboardPage() {
           <WeeklyReportCard />
         </div>
 
-        {/* Quick Actions */}
+        {/* Recent Orders */}
         <div className="mb-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {quickActions.map((action) => (
-              <Link
-                key={action.title}
-                href={action.href}
-                className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-[#FF5023] transition-all"
-              >
-                <h3 className="font-semibold text-gray-900 mb-2">{action.title}</h3>
-                <p className="text-sm text-gray-600">{action.description}</p>
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        {/* Recent Activity */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Activity</h2>
-          <p className="text-gray-500 text-center py-8">No recent activity to display</p>
+          <RecentOrdersTable />
         </div>
       </AdminLayout>
     </ProtectedRoute>
