@@ -2,9 +2,15 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { schema } from "./index";
 
-if (!process.env.DATABASE_URL) {
-    throw new Error("DATABASE_URL is missing");
-}
+const globalForDb = globalThis as unknown as {
+    client: postgres.Sql | undefined;
+    db: ReturnType<typeof drizzle> | undefined;
+};
 
-const client = postgres(process.env.DATABASE_URL!);
-export const db = drizzle(client, { schema });
+export const client = globalForDb.client || postgres(process.env.DATABASE_URL || "postgres://postgres:postgres@localhost:5432/workit-db");
+export const db = globalForDb.db || drizzle(client, { schema });
+
+if (process.env.NODE_ENV !== "production") {
+    globalForDb.client = client;
+    globalForDb.db = db;
+}
