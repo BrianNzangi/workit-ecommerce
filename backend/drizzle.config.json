@@ -1,0 +1,8 @@
+{
+    "schema": "../packages/db/schema/*.ts",
+    "out": "../packages/db/drizzle",
+    "dialect": "postgresql",
+    "dbCredentials": {
+        "url": "postgresql://postgres:%23%23%40Scottish%21@127.0.0.1:5433/workit-db"
+    }
+}
