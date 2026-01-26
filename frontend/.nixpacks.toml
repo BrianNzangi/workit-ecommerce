@@ -1,0 +1,8 @@
+[phases.install]
+package_manager = "pnpm"
+
+[phases.build]
+build_command = "pnpm run build"
+
+[phases.start]
+start_command = "pnpm run start"
