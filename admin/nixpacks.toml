@@ -1,0 +1,11 @@
+[phases.setup]
+nixPkgs = ['nodejs_18', 'pnpm-8']
+
+[phases.install]
+cmds = ['cd .. && pnpm install --frozen-lockfile --filter=admin...']
+
+[phases.build]
+cmds = ['cd .. && pnpm --filter=admin run build']
+
+[start]
+cmd = 'cd .. && pnpm --filter=admin start'
