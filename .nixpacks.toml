@@ -1,10 +1,11 @@
 [phases.setup]
-nixPkgs = ['nodejs', 'pnpm']
+nixPkgs = ['nodejs_18', 'pnpm-8']
+aptPkgs = []
 
 [phases.install]
 cmds = ['pnpm install --frozen-lockfile']
 
-[phases.build]
+[phases.build]  
 cmds = ['pnpm run build']
 
 [start]
