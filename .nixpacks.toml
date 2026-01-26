@@ -1,8 +1,11 @@
+[phases.setup]
+nixPkgs = ['nodejs', 'pnpm']
+
 [phases.install]
-package_manager = "pnpm"
+cmds = ['pnpm install --frozen-lockfile']
 
 [phases.build]
-build_command = "pnpm run build"
+cmds = ['pnpm run build']
 
-[phases.start]
-start_command = "pnpm run start"
+[start]
+cmd = 'pnpm start'
