@@ -1,0 +1,31 @@
+FROM node:18-alpine AS base
+RUN apk add --no-cache libc6-compat
+RUN npm install -g pnpm@9
+WORKDIR /app
+
+FROM base AS deps
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY backend/package.json ./backend/
+COPY frontend/package.json ./frontend/
+COPY admin/package.json ./admin/
+COPY packages ./packages/
+
+RUN pnpm install --frozen-lockfile --filter=admin...
+
+FROM base AS builder
+COPY --from=deps /app /app
+COPY admin ./admin
+COPY packages ./packages
+RUN pnpm --filter=admin run build
+
+FROM node:18-alpine AS runner
+RUN npm install -g pnpm@9
+WORKDIR /app
+
+COPY --from=deps /app /app
+COPY --from=builder /app/admin/dist ./admin/dist
+COPY --from=builder /app/admin/package.json ./admin/package.json
+
+WORKDIR /app/admin
+EXPOSE 3002
+CMD ["pnpm", "start"]
