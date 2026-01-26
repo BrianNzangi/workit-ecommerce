@@ -1,4 +1,4 @@
-FROM node:18-alpine AS base
+FROM node:20-alpine AS base
 RUN apk add --no-cache libc6-compat
 RUN npm install -g pnpm@9
 WORKDIR /app
@@ -18,14 +18,14 @@ COPY admin ./admin
 COPY packages ./packages
 RUN pnpm --filter=admin run build
 
-FROM node:18-alpine AS runner
+FROM node:20-alpine AS runner
 RUN npm install -g pnpm@9
 WORKDIR /app
 
 COPY --from=deps /app /app
-COPY --from=builder /app/admin/dist ./admin/dist
-COPY --from=builder /app/admin/package.json ./admin/package.json
+COPY --from=builder /app/admin/.next ./admin/.next
+COPY --from=builder /app/admin/public ./admin/public
 
 WORKDIR /app/admin
-EXPOSE 3002
+EXPOSE 3000
 CMD ["pnpm", "start"]

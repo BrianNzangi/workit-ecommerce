@@ -1,4 +1,4 @@
-FROM node:18-alpine AS base
+FROM node:20-alpine AS base
 RUN apk add --no-cache libc6-compat
 RUN npm install -g pnpm@9
 WORKDIR /app
@@ -18,7 +18,7 @@ COPY backend ./backend
 COPY packages ./packages
 RUN pnpm --filter=backend run build
 
-FROM node:18-alpine AS runner
+FROM node:20-alpine AS runner
 RUN npm install -g pnpm@9
 WORKDIR /app
 
@@ -26,5 +26,5 @@ COPY --from=deps /app /app
 COPY --from=builder /app/backend/dist ./backend/dist
 
 WORKDIR /app/backend
-EXPOSE 3001
+EXPOSE 3000
 CMD ["pnpm", "start"]
