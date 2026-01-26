@@ -3,7 +3,6 @@ RUN apk add --no-cache libc6-compat
 RUN npm install -g pnpm@9
 WORKDIR /app
 
-# Copy workspace config files
 FROM base AS deps
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY admin/package.json ./admin/package.json
@@ -11,11 +10,9 @@ COPY backend/package.json ./backend/package.json
 COPY frontend/package.json ./frontend/package.json
 COPY packages ./packages/
 
-# Install only production dependencies for admin
 RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
-    pnpm install --frozen-lockfile --prod --filter=admin
+    pnpm install --frozen-lockfile --prod --filter=backend
 
-# Install all dependencies for building
 FROM base AS build-deps
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY admin/package.json ./admin/package.json
@@ -23,27 +20,25 @@ COPY backend/package.json ./backend/package.json
 COPY frontend/package.json ./frontend/package.json
 COPY packages ./packages/
 RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
-    pnpm install --frozen-lockfile --filter=admin...
+    pnpm install --frozen-lockfile --filter=backend...
 
-# Build
 FROM base AS builder
 COPY --from=build-deps /app /app
-COPY admin ./admin
+COPY backend ./backend
 COPY packages ./packages
-RUN pnpm --filter=admin run build
+RUN pnpm --filter=backend run build
 
-# Production image
 FROM node:18-alpine AS runner
 RUN npm install -g pnpm@9
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/admin/node_modules ./admin/node_modules
-COPY --from=builder /app/admin/dist ./admin/dist
-COPY --from=builder /app/admin/package.json ./admin/package.json
+COPY --from=deps /app/backend/node_modules ./backend/node_modules
+COPY --from=builder /app/backend/dist ./backend/dist
+COPY --from=builder /app/backend/package.json ./backend/package.json
 COPY pnpm-workspace.yaml package.json ./
 
-WORKDIR /app/admin
+WORKDIR /app/backend
 EXPOSE 3000
 
 CMD ["pnpm", "start"]
