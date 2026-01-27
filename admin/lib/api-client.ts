@@ -1,5 +1,5 @@
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 type FetchOptions = RequestInit & {
     headers?: Record<string, string>;
@@ -87,7 +87,7 @@ class ApiClient {
     }
 }
 
-export const apiClient = new ApiClient(API_URL);
+export const apiClient = new ApiClient(API_URL || "");
 
 // Helper for consistency with previous axios implementation
 export const setAuthToken = (token: string | null) => {
