@@ -1,5 +1,6 @@
 FROM node:20-alpine AS base
-RUN apk add --no-cache libc6-compat
+# Install build dependencies required for native modules
+RUN apk add --no-cache libc6-compat python3 make g++
 RUN npm install -g pnpm@9
 WORKDIR /app
 
