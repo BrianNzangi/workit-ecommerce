@@ -13,7 +13,7 @@ module.exports = {
     '!**/node_modules/**',
     '!**/.next/**',
     '!**/coverage/**',
-    '!**/prisma/**',
+
   ],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
 };

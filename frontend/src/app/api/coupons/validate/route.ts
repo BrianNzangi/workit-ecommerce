@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Type definition for a Coupon (matching the Prisma schema generally)
+// Type definition for a Coupon (matching the database schema)
 interface MockCoupon {
     code: string;
     type: 'PERCENTAGE' | 'FIXED';
@@ -14,8 +14,7 @@ interface MockCoupon {
 }
 
 // Mock Database for Coupons
-// In a production environment with direct DB access, replace this with Prisma calls.
-// If using a separate backend, fetch from that backend instead.
+// In a production environment with direct DB access, replace this with Drizzle calls.
 const MOCK_COUPONS: Record<string, MockCoupon> = {
     'BACKTOSCHOOL25': {
         code: 'BACKTOSCHOOL25',
@@ -53,7 +52,7 @@ export async function POST(request: NextRequest) {
         const normalizedCode = code.toUpperCase();
 
         // --- DB LOOKUP SIMULATION ---
-        // Replace this line with: const coupon = await prisma.coupon.findUnique({ where: { code: normalizedCode } });
+        // Replace this line with a database call: const coupon = await db.query.coupons.findFirst(...)
         const coupon = MOCK_COUPONS[normalizedCode];
 
         // 1. Check if exists and is enabled

@@ -58,7 +58,7 @@ export const useProductFilter = (initialCategoryId?: number) => {
           id: cat.id,
           name: cat.name,
           slug: cat.slug,
-          count: cat._count?.products || 0 // Use _count from Prisma relation
+          count: cat._count?.products || 0 // Use _count from database relation
         });
         if (cat.children && cat.children.length > 0) {
           flatten(cat.children);
