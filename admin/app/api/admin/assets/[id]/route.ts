@@ -4,12 +4,16 @@ import { getSession } from '@/lib/get-session';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
-export async function DELETE(request: NextRequest) {
+export async function DELETE(
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    const { id } = await params;
     const headersList = await headers();
     const cookie = headersList.get('cookie');
 
     const session = await getSession();
-    const { id } = await params;
+    
     const url = `${BACKEND_URL}/assets/${id}`;
 
     try {

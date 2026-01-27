@@ -4,12 +4,16 @@ import { getSession } from '@/lib/get-session';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
-export async function GET(request: NextRequest) {
+export async function GET(
+    request: NextRequest,
+    { params }: { params: Promise<{ stat: string }> }
+) {
+    const { stat } = await params;
     const headersList = await headers();
     const cookie = headersList.get('cookie');
 
     const session = await getSession();
-    const { stat } = await params;
+    
     const { searchParams } = new URL(request.url);
     const queryString = searchParams.toString();
 

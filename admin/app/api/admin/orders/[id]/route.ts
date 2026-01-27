@@ -4,12 +4,16 @@ import { getSession } from '@/lib/get-session';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://127.0.0.1:3001';
 
-export async function GET(request: NextRequest) {
+export async function GET(
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    const { id } = await params;
     const headersList = await headers();
     const cookie = headersList.get('cookie');
 
     const session = await getSession();
-    const { id } = await params;
+    
     const url = `${BACKEND_URL}/orders/${id}`;
 
     try {
@@ -26,12 +30,16 @@ export async function GET(request: NextRequest) {
     }
 }
 
-export async function PATCH(request: NextRequest) {
+export async function PATCH(
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    const { id } = await params;
     const headersList = await headers();
     const cookie = headersList.get('cookie');
 
     const session = await getSession();
-    const { id } = await params;
+    
     const body = await request.json();
     const url = `${BACKEND_URL}/orders/${id}`;
 
