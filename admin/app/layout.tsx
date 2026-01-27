@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Public_Sans } from "next/font/google";
 import "./globals.css";
-import { SessionProvider } from "@/components/auth/SessionProvider";
+
 
 const publicSans = Public_Sans({
   variable: "--font-public-sans",
@@ -25,12 +25,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${publicSans.variable} font-sans antialiased`}>
-        <SessionProvider>
-          <ApolloWrapper>
-            {children}
-            <Toaster />
-          </ApolloWrapper>
-        </SessionProvider>
+        <ApolloWrapper>
+          {children}
+          <Toaster />
+        </ApolloWrapper>
       </body>
     </html>
   );

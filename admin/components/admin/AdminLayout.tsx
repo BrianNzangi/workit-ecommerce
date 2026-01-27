@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession, signOut } from 'next-auth/react';
+import { useSession, signOut } from '@/lib/auth-client';
 import NextImage from 'next/image';
 import { LogOut, User } from 'lucide-react';
 import { AdminSidebar } from './AdminSidebar';
@@ -15,8 +15,10 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     const { data: session } = useSession();
 
     const handleLogout = async () => {
-        await signOut({ callbackUrl: '/admin/login' });
+        await signOut();
+        window.location.href = '/admin/login';
     };
+
 
     return (
         <div className="flex h-screen bg-gray-50 overflow-hidden">

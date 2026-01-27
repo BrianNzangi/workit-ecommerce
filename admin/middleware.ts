@@ -1,12 +1,8 @@
-import { NextResponse } from "next/server";
-import NextAuth from "next-auth";
-import { authConfig } from "@/lib/auth.config";
+import { NextResponse, type NextRequest } from "next/server";
 
-// Initialize NextAuth
-const { auth } = NextAuth(authConfig);
-
-export default auth(async function middleware(req) {
+export default async function middleware(req: NextRequest) {
     const { pathname } = req.nextUrl;
+    const sessionToken = req.cookies.get("better-auth.session_token");
 
     // Handle preflight requests for Storefront API
     if (req.method === 'OPTIONS' && pathname.startsWith('/api/store')) {
@@ -24,8 +20,7 @@ export default auth(async function middleware(req) {
 
     // Protect admin routes (except login)
     if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
-        // req.auth is automatically populated by the auth wrapper
-        if (!req.auth || !req.auth.user) {
+        if (!sessionToken) {
             const loginUrl = new URL('/admin/login', req.url);
             return NextResponse.redirect(loginUrl);
         }
@@ -33,7 +28,7 @@ export default auth(async function middleware(req) {
 
     // Protect admin API routes
     if (pathname.startsWith('/api/admin')) {
-        if (!req.auth || !req.auth.user) {
+        if (!sessionToken) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
     }
@@ -50,7 +45,8 @@ export default auth(async function middleware(req) {
     }
 
     return res;
-});
+}
+
 
 export const config = {
     matcher: [

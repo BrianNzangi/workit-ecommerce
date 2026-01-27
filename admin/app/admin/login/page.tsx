@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { signIn } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import { Lock, Mail, AlertCircle, Sparkles } from 'lucide-react';
 
@@ -18,15 +18,15 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const result = await signIn('credentials', {
+      const { error } = await signIn.email({
         email,
         password,
-        redirect: false,
+        callbackURL: '/admin/dashboard',
       });
 
-      if (result?.error) {
-        setError('Invalid email or password');
-      } else if (result?.ok) {
+      if (error) {
+        setError(error.message || 'Invalid email or password');
+      } else {
         router.push('/admin/dashboard');
         router.refresh();
       }
@@ -223,7 +223,7 @@ export default function LoginPage() {
           {/* Google Login Button */}
           <button
             type="button"
-            onClick={() => signIn('google', { callbackUrl: '/admin/dashboard' })}
+            onClick={() => signIn.social({ provider: 'google', callbackURL: '/admin/dashboard' })}
             className="w-full py-3 px-4 border-2 border-secondary-200 hover:border-secondary-300 rounded-xl font-medium text-secondary-700 transition-all duration-200 flex items-center justify-center gap-3 hover:bg-secondary-50 focus:outline-none focus:ring-2 focus:ring-secondary-300"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">

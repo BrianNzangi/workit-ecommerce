@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
@@ -11,11 +11,11 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
-  const { data: session, status } = useSession();
+  const { data: session, isPending: loading } = useSession();
   const router = useRouter();
 
   useEffect(() => {
-    if (status === 'loading') return;
+    if (loading) return;
 
     if (!session) {
       router.push('/admin/login');
@@ -26,9 +26,9 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
       // If user doesn't have required role, redirect to dashboard
       router.push('/admin/dashboard');
     }
-  }, [session, status, router, requiredRole]);
+  }, [session, loading, router, requiredRole]);
 
-  if (status === 'loading') {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
         <div className="text-center">
@@ -46,6 +46,7 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
   if (requiredRole && (session.user as any)?.role !== requiredRole) {
     return null;
   }
+
 
   return <>{children}</>;
 }

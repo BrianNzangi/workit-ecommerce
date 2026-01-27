@@ -2,7 +2,7 @@
 
 import { gql } from '@apollo/client';
 import { useQuery } from '@apollo/experimental-nextjs-app-support/ssr';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/auth-client';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Activity } from 'lucide-react';

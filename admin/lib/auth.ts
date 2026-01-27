@@ -1,70 +1,42 @@
-import NextAuth from 'next-auth';
-import Credentials from 'next-auth/providers/credentials';
-import Google from 'next-auth/providers/google';
-import { AuthService } from './services/auth.service';
-import { authConfig } from './auth.config';
+import { betterAuth } from "better-auth";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { db, schema } from "@workit/db";
 
-// AuthService no longer needs Prisma, as it uses the API client
-const authService = new AuthService();
-
-export const { handlers, auth, signIn, signOut } = NextAuth({
-  ...authConfig,
-  providers: [
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    }),
-    Credentials({
-      name: 'Credentials',
-      credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' },
-      },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null;
-        }
-
-        try {
-          const result = await authService.login({
-            email: credentials.email as string,
-            password: credentials.password as string,
-          });
-
-          if (result.user && result.access_token) {
-            return {
-              id: result.user.id,
-              email: result.user.email,
-              name: `${result.user.firstName} ${result.user.lastName}`,
-              role: result.user.role,
-              accessToken: result.access_token,
-            };
-          }
-
-          return null;
-        } catch (error) {
-          console.error('Auth error:', error);
-          return null;
-        }
-      },
-    }),
-  ],
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.role = user.role;
-        token.accessToken = (user as any).accessToken;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as any;
-        (session as any).accessToken = token.accessToken;
-      }
-      return session;
+export const auth = betterAuth({
+  database: drizzleAdapter(db, {
+    provider: "pg",
+    schema: schema,
+  }),
+  emailAndPassword: {
+    enabled: true,
+  },
+  socialProviders: {
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID || "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
     },
   },
+  user: {
+    additionalFields: {
+      role: {
+        type: "string",
+        defaultValue: "ADMIN",
+      },
+      firstName: {
+        type: "string",
+      },
+      lastName: {
+        type: "string",
+      },
+    }
+  },
+  trustedOrigins: [
+    "http://127.0.0.1:3000",
+    "http://localhost:3000",
+    "http://127.0.0.1:3001",
+    "http://localhost:3001",
+    "http://127.0.0.1:3002",
+    "http://localhost:3002",
+  ],
 });
+

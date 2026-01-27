@@ -5,7 +5,7 @@ import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Save, CheckCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/auth-client';
 import SettingsLayout from './SettingsLayout';
 import {
     GeneralTab,
