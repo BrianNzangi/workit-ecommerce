@@ -31,12 +31,11 @@ export const auth = betterAuth({
     }
   },
   trustedOrigins: [
-    "http://127.0.0.1:3000",
-    "http://localhost:3000",
-    "http://127.0.0.1:3001",
-    "http://localhost:3001",
-    "http://127.0.0.1:3002",
+    "https://admin.workit.co.ke",
     "http://localhost:3002",
+    "http://127.0.0.1:3002",
   ],
+  baseURL: process.env.BETTER_AUTH_URL || "https://admin.workit.co.ke",
 });
 
+export type Session = typeof auth.$Infer.Session;
