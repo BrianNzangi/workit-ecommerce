@@ -4,6 +4,8 @@ RUN npm install -g pnpm@9
 WORKDIR /app
 
 FROM base AS deps
+# Copy .npmrc FIRST to match lockfile settings
+COPY .npmrc ./
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY frontend/package.json ./frontend/
 COPY backend/package.json ./backend/
