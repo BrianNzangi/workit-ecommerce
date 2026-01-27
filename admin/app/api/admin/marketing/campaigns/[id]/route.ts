@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { getSession } from '@/lib/get-session';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
@@ -9,11 +9,11 @@ export async function GET(
 ) {
     try {
         const { id } = await params;
-        const session = await auth();
+        const session = await getSession();
 
         const response = await fetch(`${BACKEND_URL}/campaigns/${id}`, {
             headers: {
-                Authorization: `Bearer ${session?.accessToken}`,
+                Authorization: `Bearer ${session?.session.token}`,
             },
         });
 
@@ -39,9 +39,9 @@ export async function PUT(
 ) {
     try {
         const { id } = await params;
-        const session = await auth();
+        const session = await getSession();
 
-        if (!session?.accessToken) {
+        if (!session?.session.token) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
@@ -78,9 +78,9 @@ export async function DELETE(
 ) {
     try {
         const { id } = await params;
-        const session = await auth();
+        const session = await getSession();
 
-        if (!session?.accessToken) {
+        if (!session?.session.token) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 

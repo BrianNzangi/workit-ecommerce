@@ -1,18 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { getSession } from '@/lib/get-session';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
 export async function GET(request: NextRequest) {
     try {
-        const session = await auth();
+        const session = await getSession();
         const { searchParams } = new URL(request.url);
         const queryString = searchParams.toString();
         const url = `${BACKEND_URL}/campaigns${queryString ? `?${queryString}` : ''}`;
 
         const response = await fetch(url, {
             headers: {
-                Authorization: `Bearer ${session?.accessToken}`,
+                Authorization: `Bearer ${session?.session.token}`,
             },
         });
 
@@ -34,9 +34,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
     try {
-        const session = await auth();
+        const session = await getSession();
 
-        if (!session?.accessToken) {
+        if (!session?.session.token) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 

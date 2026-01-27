@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { getSession } from '@/lib/get-session';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
 export async function POST(request: NextRequest) {
-    const session = await auth();
+    const session = await getSession();
 
     // Get the FormData from the request
     const formData = await request.formData();
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${session?.accessToken}`,
+                'Authorization': `Bearer ${session?.session.token}`,
             },
             body: JSON.stringify({ csvData }),
         });

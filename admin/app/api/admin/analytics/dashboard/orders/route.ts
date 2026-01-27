@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { getSession } from '@/lib/get-session';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
 export async function GET(request: NextRequest) {
-    const session = await auth();
+    const session = await getSession();
     const { searchParams } = new URL(request.url);
     const queryString = searchParams.toString();
     const url = `${BACKEND_URL}/analytics/dashboard/orders${queryString ? `?${queryString}` : ''}`;
@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     try {
         const response = await fetch(url, {
             headers: {
-                'Authorization': `Bearer ${session?.accessToken}`,
+                'Authorization': `Bearer ${session?.session.token}`,
             },
         });
         const data = await response.json();

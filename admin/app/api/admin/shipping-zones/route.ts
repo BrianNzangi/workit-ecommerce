@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { getSession } from '@/lib/get-session';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
 export async function POST(request: NextRequest) {
-    const session = await auth();
+    const session = await getSession();
     const body = await request.json();
     const url = `${BACKEND_URL}/shipping-zones`;
 
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${session?.accessToken}`,
+                'Authorization': `Bearer ${session?.session.token}`,
             },
             body: JSON.stringify(body),
         });

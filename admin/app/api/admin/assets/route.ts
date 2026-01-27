@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { getSession } from '@/lib/get-session';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
@@ -7,7 +7,7 @@ import { existsSync } from 'fs';
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
 export async function GET(request: NextRequest) {
-    const session = await auth();
+    const session = await getSession();
     const { searchParams } = new URL(request.url);
     const take = searchParams.get('take') || '50';
     const skip = searchParams.get('skip') || '0';
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     try {
         const response = await fetch(url, {
             headers: {
-                'Authorization': `Bearer ${session?.accessToken}`,
+                'Authorization': `Bearer ${session?.session.token}`,
             },
         });
         const data = await response.json();
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-    const session = await auth();
+    const session = await getSession();
 
     try {
         const formData = await request.formData();
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${session?.accessToken}`,
+                'Authorization': `Bearer ${session?.session.token}`,
             },
             body: JSON.stringify(assetData),
         });
