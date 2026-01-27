@@ -12,7 +12,8 @@ COPY frontend/package.json ./frontend/
 COPY backend/package.json ./backend/
 COPY admin/package.json ./admin/
 COPY packages ./packages/
-RUN pnpm install --frozen-lockfile --filter=frontend...
+# Skip optional dependencies that fail in Alpine
+RUN pnpm install --frozen-lockfile --filter=frontend... --no-optional
 
 FROM base AS builder
 COPY --from=deps /app /app
