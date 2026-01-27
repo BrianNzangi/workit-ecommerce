@@ -1,31 +1,41 @@
 FROM node:20-alpine AS base
-RUN apk add --no-cache libc6-compat
+# Install build dependencies including Rust for lightningcss
+RUN apk add --no-cache libc6-compat python3 make g++ rust cargo
 RUN npm install -g pnpm@9
 WORKDIR /app
 
 FROM base AS deps
+# Copy .npmrc FIRST to match lockfile settings
+COPY .npmrc ./
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY admin/package.json ./admin/
 COPY backend/package.json ./backend/
 COPY frontend/package.json ./frontend/
-COPY admin/package.json ./admin/
 COPY packages ./packages/
-
 RUN pnpm install --frozen-lockfile --filter=admin...
 
 FROM base AS builder
 COPY --from=deps /app /app
 COPY admin ./admin
 COPY packages ./packages
+
+# Build all workspace packages first
+RUN pnpm --filter=@workit/db run build
+RUN pnpm --filter=@workit/validation run build
+
+# Now build admin
 RUN pnpm --filter=admin run build
 
 FROM node:20-alpine AS runner
 RUN npm install -g pnpm@9
 WORKDIR /app
+ENV NODE_ENV=production
 
 COPY --from=deps /app /app
 COPY --from=builder /app/admin/.next ./admin/.next
 COPY --from=builder /app/admin/public ./admin/public
+COPY --from=builder /app/packages ./packages
 
 WORKDIR /app/admin
-EXPOSE 3000
+EXPOSE 3002
 CMD ["pnpm", "start"]
