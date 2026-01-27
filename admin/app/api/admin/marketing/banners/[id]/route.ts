@@ -4,10 +4,7 @@ import { getSession } from '@/lib/get-session';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
-export async function GET(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
     const headersList = await headers();
     const cookie = headersList.get('cookie');
@@ -38,10 +35,7 @@ export async function GET(
     }
 }
 
-export async function PUT(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
     const headersList = await headers();
     const cookie = headersList.get('cookie');
@@ -81,10 +75,7 @@ export async function PUT(
     }
 }
 
-export async function PATCH(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
     const headersList = await headers();
     const cookie = headersList.get('cookie');
@@ -124,10 +115,7 @@ export async function PATCH(
     }
 }
 
-export async function DELETE(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
     const headersList = await headers();
     const cookie = headersList.get('cookie');
@@ -162,3 +150,4 @@ export async function DELETE(
         );
     }
 }
+

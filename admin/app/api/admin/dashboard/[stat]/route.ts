@@ -4,10 +4,7 @@ import { getSession } from '@/lib/get-session';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
-export async function GET(
-    request: NextRequest,
-    { params }: { params: Promise<{ stat: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ stat: string }> }) {
     const { stat } = await params;
     const headersList = await headers();
     const cookie = headersList.get('cookie');
@@ -38,3 +35,4 @@ export async function GET(
         return NextResponse.json({ error: 'Failed to fetch dashboard statistics' }, { status: 500 });
     }
 }
+
