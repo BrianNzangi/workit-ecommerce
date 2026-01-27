@@ -1,19 +1,18 @@
 FROM node:20-alpine AS base
-# Install build dependencies required for native modules
-RUN apk add --no-cache libc6-compat python3 make g++
+# Install build dependencies including Rust for lightningcss
+RUN apk add --no-cache libc6-compat python3 make g++ rust cargo
 RUN npm install -g pnpm@9
 WORKDIR /app
 
 FROM base AS deps
-# Copy .npmrc FIRST to match lockfile settings
 COPY .npmrc ./
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY frontend/package.json ./frontend/
 COPY backend/package.json ./backend/
 COPY admin/package.json ./admin/
 COPY packages ./packages/
-# Skip optional dependencies that fail in Alpine
-RUN pnpm install --frozen-lockfile --filter=frontend... --no-optional
+# Install normally - lightningcss will build with Rust
+RUN pnpm install --frozen-lockfile --filter=frontend...
 
 FROM base AS builder
 COPY --from=deps /app /app
