@@ -1,3 +1,4 @@
+import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/get-session';
 import { writeFile, mkdir } from 'fs/promises';
@@ -7,6 +8,9 @@ import { existsSync } from 'fs';
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
 export async function GET(request: NextRequest) {
+    const headersList = await headers();
+    const cookie = headersList.get('cookie');
+
     const session = await getSession();
     const { searchParams } = new URL(request.url);
     const take = searchParams.get('take') || '50';
@@ -17,7 +21,7 @@ export async function GET(request: NextRequest) {
     try {
         const response = await fetch(url, {
             headers: {
-                'Authorization': `Bearer ${session?.session.token}`,
+                'Cookie': cookie || '',
             },
         });
         const data = await response.json();
@@ -29,6 +33,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+    const headersList = await headers();
+    const cookie = headersList.get('cookie');
+
     const session = await getSession();
 
     try {
@@ -71,7 +78,7 @@ export async function POST(request: NextRequest) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${session?.session.token}`,
+                'Cookie': cookie || '',
             },
             body: JSON.stringify(assetData),
         });

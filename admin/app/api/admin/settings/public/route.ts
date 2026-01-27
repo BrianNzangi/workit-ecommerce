@@ -1,8 +1,12 @@
+import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
 export async function GET(request: NextRequest) {
+    const headersList = await headers();
+    const cookie = headersList.get('cookie');
+
     const url = `${BACKEND_URL}/settings/public`;
 
     try {

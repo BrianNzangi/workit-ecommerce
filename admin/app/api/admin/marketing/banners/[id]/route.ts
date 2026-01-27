@@ -1,19 +1,20 @@
+import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/get-session';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
-export async function GET(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest) {
+    const headersList = await headers();
+    const cookie = headersList.get('cookie');
+
     try {
         const { id } = await params;
         const session = await getSession();
 
         const response = await fetch(`${BACKEND_URL}/banners/${id}`, {
             headers: {
-                Authorization: `Bearer ${session?.session.token}`,
+                'Cookie': cookie || '',
             },
         });
 
@@ -33,10 +34,10 @@ export async function GET(
     }
 }
 
-export async function PUT(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest) {
+    const headersList = await headers();
+    const cookie = headersList.get('cookie');
+
     try {
         const { id } = await params;
         const session = await getSession();
@@ -51,7 +52,7 @@ export async function PUT(
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${session.accessToken}`,
+                'Cookie': cookie || '',
             },
             body: JSON.stringify(body),
         });
@@ -72,10 +73,10 @@ export async function PUT(
     }
 }
 
-export async function PATCH(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest) {
+    const headersList = await headers();
+    const cookie = headersList.get('cookie');
+
     try {
         const { id } = await params;
         const session = await getSession();
@@ -90,7 +91,7 @@ export async function PATCH(
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${session.accessToken}`,
+                'Cookie': cookie || '',
             },
             body: JSON.stringify(body),
         });
@@ -111,10 +112,10 @@ export async function PATCH(
     }
 }
 
-export async function DELETE(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(request: NextRequest) {
+    const headersList = await headers();
+    const cookie = headersList.get('cookie');
+
     try {
         const { id } = await params;
         const session = await getSession();
@@ -126,7 +127,7 @@ export async function DELETE(
         const response = await fetch(`${BACKEND_URL}/banners/${id}`, {
             method: 'DELETE',
             headers: {
-                Authorization: `Bearer ${session.accessToken}`,
+                'Cookie': cookie || '',
             },
         });
 
