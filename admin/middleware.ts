@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 export default async function middleware(req: NextRequest) {
     const { pathname } = req.nextUrl;
-    const sessionToken = req.cookies.get("better-auth.session_token");
+    const sessionToken = req.cookies.get("better-auth.session_token") || req.cookies.get("__Secure-better-auth.session_token");
 
     // Handle preflight requests for Storefront API
     if (req.method === 'OPTIONS' && pathname.startsWith('/api/store')) {
