@@ -3,65 +3,55 @@
 # =========================
 FROM node:20-alpine AS base
 
-# Install system dependencies for native modules
 RUN apk add --no-cache libc6-compat python3 make g++ bash
-
-# Install pnpm globally
-RUN npm install -g pnpm@9
-
-# Required for bcrypt/node-gyp-build during install
-RUN npm install -g node-gyp-build
-
+RUN npm install -g pnpm@9 node-gyp-build
 WORKDIR /app
 
 # =========================
 # Dependencies stage
 # =========================
 FROM base AS deps
-
-# Copy workspace config first (cache-friendly)
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
-
-# Copy package manifests
 COPY backend/package.json ./backend/
 COPY frontend/package.json ./frontend/
 COPY admin/package.json ./admin/
 COPY packages ./packages/
 
-# Install ONLY backend + its dependencies
 RUN pnpm install --no-frozen-lockfile --filter=backend...
 
 # =========================
 # Build stage
 # =========================
 FROM base AS builder
-
 COPY --from=deps /app /app
 COPY backend ./backend
 COPY packages ./packages
 
 # Build shared workspace packages first
+RUN pnpm --filter=@workit/db run build
 RUN pnpm --filter=@workit/validation run build
 
-# Build backend (depends on validation package)
+# Build backend
 RUN pnpm --filter=backend run build
 
 # =========================
 # Runtime stage
 # =========================
 FROM node:20-alpine AS runner
-
 RUN npm install -g pnpm@9
-
 WORKDIR /app
 ENV NODE_ENV=production
 
-# Copy runtime artifacts
-COPY --from=deps /app /app
+# Copy backend dist
 COPY --from=builder /app/backend/dist ./backend/dist
-COPY --from=builder /app/packages ./packages
+
+# Copy built packages
+COPY --from=builder /app/packages/db/dist ./packages/db/dist
+COPY --from=builder /app/packages/validation/dist ./packages/validation/dist
+
+# Copy uploads folder and subfolders with write permissions
+COPY backend/uploads ./backend/uploads
+RUN chmod -R 777 ./backend/uploads
 
 EXPOSE 3001
-
-# Start backend
 CMD ["node", "backend/dist/main.js"]
