@@ -3,7 +3,7 @@
 # =========================
 FROM node:20-bookworm AS base
 
-# Install system dependencies for native Node modules (bcrypt, sharp, lightningcss)
+# System dependencies for native Node modules (bcrypt, sharp, etc.)
 RUN apt-get update && apt-get install -y \
     python3 \
     make \
@@ -14,6 +14,9 @@ RUN apt-get update && apt-get install -y \
 
 # Enable pnpm
 RUN corepack enable && corepack prepare pnpm@9 --activate
+
+# REQUIRED for bcrypt when using pnpm --filter
+RUN npm install -g node-gyp-build
 
 WORKDIR /app
 
@@ -64,7 +67,7 @@ RUN corepack enable && corepack prepare pnpm@9 --activate
 WORKDIR /app
 ENV NODE_ENV=production
 
-# Copy only what is needed at runtime
+# Copy runtime artifacts only
 COPY --from=deps /app /app
 COPY --from=builder /app/admin/.next ./admin/.next
 COPY --from=builder /app/admin/public ./admin/public
