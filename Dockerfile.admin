@@ -1,5 +1,5 @@
 FROM node:20-alpine AS base
-# Install build dependencies including Rust for lightningcss
+# Install build dependencies including Rust for lightningcss AND build tools for bcrypt
 RUN apk add --no-cache libc6-compat python3 make g++ rust cargo
 RUN npm install -g pnpm@9
 WORKDIR /app
@@ -12,7 +12,9 @@ COPY admin/package.json ./admin/
 COPY backend/package.json ./backend/
 COPY frontend/package.json ./frontend/
 COPY packages ./packages/
-RUN pnpm install --frozen-lockfile --filter=admin...
+# Install with --ignore-scripts first, then rebuild bcrypt
+RUN pnpm install --frozen-lockfile --filter=admin... --ignore-scripts
+RUN pnpm rebuild bcrypt --filter=admin...
 
 FROM base AS builder
 COPY --from=deps /app /app
