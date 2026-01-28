@@ -9,7 +9,7 @@ export const user = pgTable("user", {
     createdAt: timestamp("createdAt").notNull(),
     updatedAt: timestamp("updatedAt").notNull(),
     // Custom fields to link with your existing logic
-    role: text("role").$type<"ADMIN" | "CUSTOMER">().default("CUSTOMER"),
+    role: text("role").$type<"ADMIN" | "SUPER_ADMIN" | "CUSTOMER">().default("CUSTOMER"),
     firstName: text("firstName"),
     lastName: text("lastName"),
 });

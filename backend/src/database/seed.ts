@@ -46,7 +46,7 @@ async function seed() {
                 firstName: 'Super',
                 lastName: 'Admin',
                 emailVerified: true,
-                role: 'ADMIN',
+                role: 'SUPER_ADMIN',
                 createdAt: new Date(),
                 updatedAt: new Date(),
             });
