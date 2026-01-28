@@ -1,9 +1,9 @@
 import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards } from '@nestjs/common';
 import { ShippingService } from './shipping.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { BetterAuthGuard } from '../auth/guards/better-auth.guard';
 
 @Controller() // Use base for nested routes if needed, but we'll use specific paths
-@UseGuards(JwtAuthGuard)
+@UseGuards(BetterAuthGuard)
 export class ShippingController {
     constructor(private shippingService: ShippingService) { }
 

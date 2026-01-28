@@ -4,7 +4,7 @@ import { ProductService } from './products.service';
 import { productSchema } from '@workit/validation';
 import type { ProductInput } from '@workit/validation';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { BetterAuthGuard } from '../auth/guards/better-auth.guard';
 
 @Controller('products')
 export class ProductsController {
@@ -31,13 +31,13 @@ export class ProductsController {
         return this.productService.getProduct(id);
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(BetterAuthGuard)
     @Post()
     async createProduct(@Body(new ZodValidationPipe(productSchema)) input: ProductInput) {
         return this.productService.createProduct(input);
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(BetterAuthGuard)
     @Put(':id')
     async updateProduct(
         @Param('id') id: string,
@@ -46,7 +46,7 @@ export class ProductsController {
         return this.productService.updateProduct(id, input);
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(BetterAuthGuard)
     @Patch(':id')
     async patchProduct(
         @Param('id') id: string,
@@ -56,20 +56,20 @@ export class ProductsController {
     }
 
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(BetterAuthGuard)
     @Delete(':id')
     async deleteProduct(@Param('id') id: string) {
         await this.productService.deleteProduct(id);
         return { success: true };
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(BetterAuthGuard)
     @Post('import')
     async importProducts(@Body() body: any) {
         return this.productService.importProducts(body);
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(BetterAuthGuard)
     @Get('export')
     async exportProducts(@Res() res: Response) {
         const csv = await this.productService.exportProducts();
@@ -78,7 +78,7 @@ export class ProductsController {
         res.send(csv);
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(BetterAuthGuard)
     @Get('template')
     async getImportTemplate(@Res() res: Response) {
         const csv = await this.productService.getImportTemplate();

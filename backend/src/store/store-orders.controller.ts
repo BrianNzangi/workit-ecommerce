@@ -1,6 +1,6 @@
 import { Controller, Post, Get, Body, Param, UseGuards, Request } from '@nestjs/common';
 import { StoreOrdersService } from './store-orders.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { BetterAuthGuard } from '../auth/guards/better-auth.guard';
 
 @Controller('store')
 export class StoreOrdersController {
@@ -37,7 +37,7 @@ export class StoreOrdersController {
      * GET /store/orders/me
      * Get customer's orders (requires authentication)
      */
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(BetterAuthGuard)
     @Get('orders/me')
     async getMyOrders(@Request() req: any) {
         return this.storeOrdersService.getCustomerOrders(req.user.id);
@@ -57,7 +57,7 @@ export class StoreOrdersController {
      * GET /store/orders/:id
      * Get single order details (requires authentication)
      */
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(BetterAuthGuard)
     @Get('orders/:id')
     async getOrder(@Param('id') id: string, @Request() req: any) {
         return this.storeOrdersService.getOrder(id, req.user.id);

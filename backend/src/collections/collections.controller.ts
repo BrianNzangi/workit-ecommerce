@@ -1,7 +1,7 @@
 
 import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { CollectionsService } from './collections.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { BetterAuthGuard } from '../auth/guards/better-auth.guard';
 
 @Controller('collections')
 export class CollectionsController {
@@ -23,19 +23,19 @@ export class CollectionsController {
         return this.collectionsService.getCollection(id);
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(BetterAuthGuard)
     @Post()
     async createCollection(@Body() input: any) {
         return this.collectionsService.createCollection(input);
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(BetterAuthGuard)
     @Patch(':id')
     async updateCollection(@Param('id') id: string, @Body() input: any) {
         return this.collectionsService.updateCollection(id, input);
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(BetterAuthGuard)
     @Delete(':id')
     async deleteCollection(@Param('id') id: string) {
         await this.collectionsService.deleteCollection(id);

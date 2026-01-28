@@ -3,7 +3,7 @@ import { AuthService } from './auth.service';
 import { loginSchema, registerSchema } from '@workit/validation';
 import type { LoginInput, RegisterInput } from '@workit/validation';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
+
 import { BetterAuthGuard } from './guards/better-auth.guard';
 
 @Controller('auth')
@@ -26,7 +26,7 @@ export class AuthController {
         return req.user;
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(BetterAuthGuard)
     @Get('me')
     getProfile(@Request() req) {
         return req.user;

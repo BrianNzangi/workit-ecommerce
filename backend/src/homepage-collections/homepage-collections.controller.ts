@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards } from '@nestjs/common';
 import { HomepageCollectionsService } from './homepage-collections.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { BetterAuthGuard } from '../auth/guards/better-auth.guard';
 
 @Controller('homepage-collections')
 export class HomepageCollectionsController {
@@ -16,19 +16,19 @@ export class HomepageCollectionsController {
         return this.homepageCollectionsService.getHomepageCollection(id);
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(BetterAuthGuard)
     @Post()
     async createHomepageCollection(@Body() input: any) {
         return this.homepageCollectionsService.createHomepageCollection(input);
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(BetterAuthGuard)
     @Patch(':id')
     async updateHomepageCollection(@Param('id') id: string, @Body() input: any) {
         return this.homepageCollectionsService.updateHomepageCollection(id, input);
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(BetterAuthGuard)
     @Delete(':id')
     async deleteHomepageCollection(@Param('id') id: string) {
         await this.homepageCollectionsService.deleteHomepageCollection(id);

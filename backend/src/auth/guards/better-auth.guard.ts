@@ -15,6 +15,7 @@ export class BetterAuthGuard implements CanActivate {
 
         // 1. Extract session token from cookie
         const sessionToken = request.cookies['better-auth.session_token'] ||
+            request.cookies['__Secure-better-auth.session_token'] ||
             request.headers['authorization']?.replace('Bearer ', '');
 
         if (!sessionToken) {

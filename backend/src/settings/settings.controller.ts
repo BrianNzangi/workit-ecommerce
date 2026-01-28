@@ -3,7 +3,7 @@ import { SettingsService } from './settings.service';
 import { updateSettingsSchema } from '@workit/validation';
 import type { UpdateSettingsInput } from '@workit/validation';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { BetterAuthGuard } from '../auth/guards/better-auth.guard';
 
 @Controller('settings')
 export class SettingsController {
@@ -31,7 +31,7 @@ export class SettingsController {
      * POST /settings - Save/update settings (Admin)
      * Matches backend-old: POST /api/admin/settings
      */
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(BetterAuthGuard)
     @Post()
     async updateSettings(@Body(new ZodValidationPipe(updateSettingsSchema)) input: UpdateSettingsInput) {
         await this.settingsService.upsertStructuredSettings(input);

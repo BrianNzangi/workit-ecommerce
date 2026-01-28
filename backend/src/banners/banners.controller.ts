@@ -11,14 +11,14 @@ import {
     UseGuards,
 } from '@nestjs/common';
 import { BannersService } from './banners.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { BetterAuthGuard } from '../auth/guards/better-auth.guard';
 
 @Controller('banners')
 export class BannersController {
     constructor(private readonly bannersService: BannersService) { }
 
     @Post()
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(BetterAuthGuard)
     async create(@Body() data: any) {
         return this.bannersService.createBanner(data);
     }
@@ -39,13 +39,13 @@ export class BannersController {
 
     @Put(':id')
     @Patch(':id')
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(BetterAuthGuard)
     async update(@Param('id') id: string, @Body() data: any) {
         return this.bannersService.updateBanner(id, data);
     }
 
     @Delete(':id')
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(BetterAuthGuard)
     async remove(@Param('id') id: string) {
         return this.bannersService.deleteBanner(id);
     }

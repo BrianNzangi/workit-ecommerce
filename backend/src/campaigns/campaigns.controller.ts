@@ -10,14 +10,14 @@ import {
     UseGuards,
 } from '@nestjs/common';
 import { CampaignsService } from './campaigns.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { BetterAuthGuard } from '../auth/guards/better-auth.guard';
 
 @Controller('campaigns')
 export class CampaignsController {
     constructor(private readonly campaignsService: CampaignsService) { }
 
     @Post()
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(BetterAuthGuard)
     async create(@Body() data: any) {
         return this.campaignsService.createCampaign(data);
     }
@@ -54,19 +54,19 @@ export class CampaignsController {
     }
 
     @Put(':id')
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(BetterAuthGuard)
     async update(@Param('id') id: string, @Body() data: any) {
         return this.campaignsService.updateCampaign(id, data);
     }
 
     @Put(':id/stats')
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(BetterAuthGuard)
     async updateStats(@Param('id') id: string, @Body() stats: any) {
         return this.campaignsService.updateCampaignStats(id, stats);
     }
 
     @Delete(':id')
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(BetterAuthGuard)
     async remove(@Param('id') id: string) {
         return this.campaignsService.deleteCampaign(id);
     }

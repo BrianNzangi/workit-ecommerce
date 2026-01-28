@@ -3,7 +3,7 @@ import { BlogService } from './blog.service';
 import { blogPostSchema } from '@workit/validation';
 import type { BlogPostInput } from '@workit/validation';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { BetterAuthGuard } from '../auth/guards/better-auth.guard';
 
 @Controller('blog')
 export class BlogController {
@@ -34,13 +34,13 @@ export class BlogController {
         return this.blogService.getPostBySlug(slug);
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(BetterAuthGuard)
     @Post()
     async createPost(@Body(new ZodValidationPipe(blogPostSchema)) input: BlogPostInput) {
         return this.blogService.createPost(input);
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(BetterAuthGuard)
     @Put(':id')
     async updatePost(
         @Param('id') id: string,
@@ -49,13 +49,13 @@ export class BlogController {
         return this.blogService.updatePost(id, input);
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(BetterAuthGuard)
     @Put(':id/toggle-publish')
     async togglePublish(@Param('id') id: string) {
         return this.blogService.togglePublish(id);
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(BetterAuthGuard)
     @Delete(':id')
     async deletePost(@Param('id') id: string) {
         await this.blogService.deletePost(id);

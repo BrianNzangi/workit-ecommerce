@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { AssetsService } from './assets.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { BetterAuthGuard } from '../auth/guards/better-auth.guard';
 
 @Controller('assets')
 export class AssetsController {
@@ -21,13 +21,13 @@ export class AssetsController {
         return this.assetsService.getAsset(id);
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(BetterAuthGuard)
     @Post()
     async createAsset(@Body() input: any) {
         return this.assetsService.createAsset(input);
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(BetterAuthGuard)
     @Delete(':id')
     async deleteAsset(@Param('id') id: string) {
         await this.assetsService.deleteAsset(id);

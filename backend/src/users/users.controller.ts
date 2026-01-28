@@ -1,9 +1,9 @@
 import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { BetterAuthGuard } from '../auth/guards/better-auth.guard';
 
 @Controller('users')
-@UseGuards(JwtAuthGuard)
+@UseGuards(BetterAuthGuard)
 export class UsersController {
     constructor(private usersService: UsersService) { }
 
