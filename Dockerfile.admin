@@ -1,37 +1,70 @@
-FROM node:20-alpine AS base
-# Install build dependencies including Rust for lightningcss AND build tools for bcrypt
-RUN apk add --no-cache libc6-compat python3 make g++ rust cargo
-RUN npm install -g pnpm@9
+# =========================
+# Base image (shared)
+# =========================
+FROM node:20-bookworm AS base
+
+# Install system dependencies for native Node modules (bcrypt, sharp, lightningcss)
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    build-essential \
+    libc6 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Enable pnpm
+RUN corepack enable && corepack prepare pnpm@9 --activate
+
 WORKDIR /app
 
+
+# =========================
+# Dependencies stage
+# =========================
 FROM base AS deps
-# Copy .npmrc FIRST to match lockfile settings
+
+# Copy workspace config first (cache-friendly)
 COPY .npmrc ./
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+
+# Copy package manifests
 COPY admin/package.json ./admin/
 COPY backend/package.json ./backend/
 COPY frontend/package.json ./frontend/
 COPY packages ./packages/
-# Install dependencies
+
+# Install ONLY admin + its dependencies
 RUN pnpm install --frozen-lockfile --filter=admin...
 
+
+# =========================
+# Build stage
+# =========================
 FROM base AS builder
+
 COPY --from=deps /app /app
 COPY admin ./admin
 COPY packages ./packages
 
-# Build all workspace packages first
+# Build shared workspace packages first
 RUN pnpm --filter=@workit/db run build
 RUN pnpm --filter=@workit/validation run build
 
-# Now build admin
+# Build admin app
 RUN pnpm --filter=admin run build
 
-FROM node:20-alpine AS runner
-RUN npm install -g pnpm@9
+
+# =========================
+# Runtime stage
+# =========================
+FROM node:20-bookworm AS runner
+
+RUN corepack enable && corepack prepare pnpm@9 --activate
+
 WORKDIR /app
 ENV NODE_ENV=production
 
+# Copy only what is needed at runtime
 COPY --from=deps /app /app
 COPY --from=builder /app/admin/.next ./admin/.next
 COPY --from=builder /app/admin/public ./admin/public
@@ -39,4 +72,5 @@ COPY --from=builder /app/packages ./packages
 
 WORKDIR /app/admin
 EXPOSE 3002
+
 CMD ["pnpm", "start"]
