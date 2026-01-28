@@ -1,33 +1,67 @@
+# =========================
+# Base image
+# =========================
 FROM node:20-alpine AS base
-RUN apk add --no-cache libc6-compat
+
+# Install system dependencies for native modules
+RUN apk add --no-cache libc6-compat python3 make g++ bash
+
+# Install pnpm globally
 RUN npm install -g pnpm@9
+
+# Required for bcrypt/node-gyp-build during install
+RUN npm install -g node-gyp-build
+
 WORKDIR /app
 
+# =========================
+# Dependencies stage
+# =========================
 FROM base AS deps
+
+# Copy workspace config first (cache-friendly)
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+
+# Copy package manifests
 COPY backend/package.json ./backend/
 COPY frontend/package.json ./frontend/
 COPY admin/package.json ./admin/
 COPY packages ./packages/
-RUN pnpm install --frozen-lockfile --filter=backend...
 
+# Install ONLY backend + its dependencies
+RUN pnpm install --no-frozen-lockfile --filter=backend...
+
+# =========================
+# Build stage
+# =========================
 FROM base AS builder
+
 COPY --from=deps /app /app
 COPY backend ./backend
 COPY packages ./packages
 
-# BUILD VALIDATION PACKAGE FIRST - This is the critical step!
+# Build shared workspace packages first
 RUN pnpm --filter=@workit/validation run build
 
-# Now build backend (it can find the built validation package)
+# Build backend (depends on validation package)
 RUN pnpm --filter=backend run build
 
+# =========================
+# Runtime stage
+# =========================
 FROM node:20-alpine AS runner
+
 RUN npm install -g pnpm@9
+
 WORKDIR /app
+ENV NODE_ENV=production
+
+# Copy runtime artifacts
 COPY --from=deps /app /app
 COPY --from=builder /app/backend/dist ./backend/dist
 COPY --from=builder /app/packages ./packages
-ENV NODE_ENV=production
+
 EXPOSE 3001
+
+# Start backend
 CMD ["node", "backend/dist/main.js"]
