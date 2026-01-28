@@ -12,6 +12,7 @@ export const user = pgTable("user", {
     role: text("role").$type<"ADMIN" | "SUPER_ADMIN" | "CUSTOMER">().default("CUSTOMER"),
     firstName: text("firstName"),
     lastName: text("lastName"),
+    password: text("password"),
 });
 
 export const session = pgTable("session", {
