@@ -11,10 +11,16 @@ export const auth = betterAuth({
   }),
   password: {
     hash: async (password: string) => {
+      console.log('[AUTH] Hashing password');
       return await bcrypt.hash(password, 10);
     },
     verify: async ({ password, hash }: { password: string; hash: string }) => {
-      return await bcrypt.compare(password, hash);
+      console.log('[AUTH] Verifying password');
+      console.log('[AUTH] Hash from DB:', hash);
+      console.log('[AUTH] Password length:', password.length);
+      const result = await bcrypt.compare(password, hash);
+      console.log('[AUTH] Verification result:', result);
+      return result;
     }
   },
   emailAndPassword: {
