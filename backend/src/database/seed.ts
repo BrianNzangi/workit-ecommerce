@@ -63,7 +63,7 @@ async function seed() {
                 userId: userId,
                 accountId: userId, // Better Auth usage
                 providerId: 'credential',
-                password: passwordHash,
+                password: passwordHash, // This should be correct for Better Auth
                 createdAt: new Date(),
                 updatedAt: new Date(),
             });
