@@ -32,7 +32,6 @@
     "@tiptap/starter-kit": "^3.13.0",
     "@workit/db": "workspace:*",
     "@workit/validation": "workspace:*",
-    "bcrypt": "^6.0.0",
     "better-auth": "^1.4.17",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

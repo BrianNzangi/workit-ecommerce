@@ -4,6 +4,9 @@ import { eq } from 'drizzle-orm';
 import postgres from 'postgres';
 import * as schema from '@workit/db';
 import * as bcrypt from 'bcrypt';
+import { scrypt } from "@noble/hashes/scrypt";
+import { bytesToHex } from "@noble/hashes/utils";
+import * as crypto from "crypto";
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -29,7 +32,10 @@ async function seed() {
             .limit(1);
 
         let userId;
-        const passwordHash = await bcrypt.hash('admin123456', 10);
+        // Use Better Auth's scrypt format for compatibility
+        const salt = crypto.randomBytes(16);
+        const hashBytes = scrypt('admin123456', salt, { N: 16384, r: 8, p: 1, dkLen: 32 });
+        const passwordHash = `${bytesToHex(salt)}:${bytesToHex(hashBytes)}`;
 
         if (existingAuthUser.length === 0) {
             userId = crypto.randomUUID();

@@ -30,6 +30,7 @@
     "@nestjs/passport": "^11.0.0",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/serve-static": "^5.0.4",
+    "@noble/hashes": "2.0.1",
     "@workit/db": "workspace:*",
     "@workit/validation": "workspace:*",
     "bcrypt": "^6.0.0",

@@ -12,9 +12,8 @@ COPY admin/package.json ./admin/
 COPY backend/package.json ./backend/
 COPY frontend/package.json ./frontend/
 COPY packages ./packages/
-# Install with --ignore-scripts first, then rebuild bcrypt
-RUN pnpm install --frozen-lockfile --filter=admin... --ignore-scripts
-RUN pnpm rebuild bcrypt --filter=admin...
+# Install dependencies
+RUN pnpm install --frozen-lockfile --filter=admin...
 
 FROM base AS builder
 COPY --from=deps /app /app
