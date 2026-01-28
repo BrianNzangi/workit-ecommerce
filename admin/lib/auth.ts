@@ -10,6 +10,20 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
+    password: {
+      async hash(password: string) {
+        const bcrypt = await import("bcrypt");
+        return await bcrypt.hash(password, 10);
+      },
+      async verify({ password, hash }: { password: string; hash: string }) {
+        console.log(`[Auth Debug] Verifying password. Password provided: ${!!password}, Hash provided: ${!!hash}`);
+        if (!hash) {
+          console.error(`[Auth Debug] CRITICAL: Hash is missing for password verification!`);
+        }
+        const bcrypt = await import("bcrypt");
+        return await bcrypt.compare(password, hash);
+      },
+    },
   },
   socialProviders: {
     google: {

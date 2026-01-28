@@ -32,10 +32,7 @@ async function seed() {
             .limit(1);
 
         let userId;
-        // Use Better Auth's scrypt format for compatibility
-        const salt = crypto.randomBytes(16);
-        const hashBytes = scrypt('admin123456', salt, { N: 16384, r: 8, p: 1, dkLen: 32 });
-        const passwordHash = `${bytesToHex(salt)}:${bytesToHex(hashBytes)}`;
+        const passwordHash = await bcrypt.hash('admin123456', 10);
 
         if (existingAuthUser.length === 0) {
             userId = crypto.randomUUID();
@@ -67,13 +64,22 @@ async function seed() {
             await db.insert(schema.account).values({
                 id: crypto.randomUUID(),
                 userId: userId,
-                accountId: userId, // Better Auth usage
+                accountId: 'admin@workit.co.ke', // Better Auth email-as-accountId
                 providerId: 'credential',
-                password: passwordHash, // This should be correct for Better Auth
+                password: passwordHash,
                 createdAt: new Date(),
                 updatedAt: new Date(),
             });
             console.log('✅ Auth account created!');
+        } else {
+            await db.update(schema.account)
+                .set({
+                    password: passwordHash,
+                    accountId: 'admin@workit.co.ke', // Ensure accountId is email
+                    updatedAt: new Date()
+                })
+                .where(eq(schema.account.userId, userId));
+            console.log('✅ Auth account synchronized!');
         }
 
         // Legacy/Bridge table
