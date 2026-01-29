@@ -2,9 +2,12 @@ import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
 function getBackendUrl() {
+    // We use bracket notation to prevent Next.js from inlining these values at build time
+    const env = process.env as Record<string, string | undefined>;
     return (
-        process.env.BACKEND_API_URL ||
-        process.env.NEXT_PUBLIC_BACKEND_URL ||
+        env['BACKEND_API_URL'] ||
+        env['NEXT_PUBLIC_BACKEND_URL'] ||
+        env['NEXT_PUBLIC_API_URL'] ||
         'http://localhost:3001'
     ).replace(/\/$/, '');
 }
@@ -17,6 +20,7 @@ export async function proxyRequest(request: NextRequest, customEndpoint?: string
     const headersList = await headers();
     const cookie = headersList.get('cookie');
     const authHeader = headersList.get('authorization');
+    const env = process.env as Record<string, string | undefined>;
 
     const backendUrl = getBackendUrl();
     let url: string;
@@ -39,7 +43,7 @@ export async function proxyRequest(request: NextRequest, customEndpoint?: string
         method: request.method,
         headers: {
             'Content-Type': 'application/json',
-            'x-api-key': process.env.INTERNAL_API_KEY || '',
+            'x-api-key': env['INTERNAL_API_KEY'] || '',
             ...(cookie && { 'Cookie': cookie }),
             ...(authHeader && { 'Authorization': authHeader }),
         },

@@ -35,8 +35,11 @@ export function getImageUrl(url: string | undefined | null): string {
     }
 
     // Determine the base backend URL
-    let backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL ||
-        process.env.NEXT_PUBLIC_API_URL ||
+    // We use bracket notation to prevent Next.js from inlining these values at build time
+    const env = process.env as Record<string, string | undefined>;
+    let backendUrl = env['NEXT_PUBLIC_BACKEND_URL'] ||
+        env['NEXT_PUBLIC_API_URL'] ||
+        env['BACKEND_API_URL'] ||
         'http://localhost:3001';
 
     // Proactive fix for production: If we are in the browser on a workit.co.ke domain

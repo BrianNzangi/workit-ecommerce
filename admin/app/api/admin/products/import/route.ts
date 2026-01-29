@@ -2,13 +2,11 @@ import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/get-session';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-
 export async function POST(request: NextRequest) {
     const headersList = await headers();
     const cookie = headersList.get('cookie');
 
-    const session = await getSession();
+    await getSession();
 
     // Get the FormData from the request
     const formData = await request.formData();
@@ -29,7 +27,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Get headers from first line
-        const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+        const csvHeaders = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
 
         // Parse data rows
         const csvData = lines.slice(1).map(line => {
@@ -54,13 +52,15 @@ export async function POST(request: NextRequest) {
 
             // Create object from headers and values
             const row: any = {};
-            headers.forEach((header, index) => {
+            csvHeaders.forEach((header, index) => {
                 row[header] = values[index]?.replace(/^"|"$/g, '') || '';
             });
             return row;
         });
 
-        const url = `${BACKEND_URL}/products/import`;
+        const env = process.env as Record<string, string | undefined>;
+        const backendUrl = (env['BACKEND_API_URL'] || env['NEXT_PUBLIC_BACKEND_URL'] || 'http://localhost:3001').replace(/\/$/, '');
+        const url = `${backendUrl}/products/import`;
 
         const response = await fetch(url, {
             method: 'POST',

@@ -3,10 +3,12 @@ import { rateLimit } from './rate-limit';
 import { headers } from 'next/headers';
 
 function getBackendUrl() {
+    // We use bracket notation to prevent Next.js from inlining these values at build time
+    const env = process.env as Record<string, string | undefined>;
     return (
-        process.env.BACKEND_API_URL ||
-        process.env.NEXT_PUBLIC_BACKEND_URL ||
-        process.env.NEXT_PUBLIC_API_URL ||
+        env['BACKEND_API_URL'] ||
+        env['NEXT_PUBLIC_BACKEND_URL'] ||
+        env['NEXT_PUBLIC_API_URL'] ||
         'http://localhost:3001'
     ).replace(/\/$/, '');
 }
@@ -59,9 +61,10 @@ export async function proxyFetch(path: string, options: RequestInit = {}) {
         console.log(`[Proxy] Fetching: ${url}`);
     }
 
+    const env = process.env as Record<string, string | undefined>;
     const defaultHeaders: Record<string, string> = {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.INTERNAL_API_KEY || '',
+        'x-api-key': env['INTERNAL_API_KEY'] || '',
     };
 
     const response = await fetch(url, {

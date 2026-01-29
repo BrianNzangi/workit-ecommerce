@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Plus, Trash2, Upload, X, ChevronDown, ChevronUp, Image as ImageIcon } from 'lucide-react';
 import Link from 'next/link';
 import { RichTextEditor } from './RichTextEditor';
+import { getImageUrl } from '@/lib/image-utils';
 
 interface Collection {
     id: string;
@@ -701,7 +702,7 @@ export function ProductForm({ productId, mode }: ProductFormProps) {
                                                 <div key={image.id} className="relative group">
                                                     <div className="w-full h-20 bg-gray-50 rounded border border-gray-200 flex items-center justify-center overflow-hidden">
                                                         <img
-                                                            src={`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'}${image.url}`}
+                                                            src={getImageUrl(image.url)}
                                                             alt={`Product image ${index + 1}`}
                                                             className="max-w-full max-h-full object-contain"
                                                         />
