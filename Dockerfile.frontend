@@ -1,55 +1,117 @@
+# =========================
+# Base image (shared)
+# =========================
 FROM node:20-alpine AS base
+
 # Install build dependencies including Rust for lightningcss
-RUN apk add --no-cache libc6-compat python3 make g++ rust cargo
+RUN apk add --no-cache \
+    libc6-compat \
+    python3 \
+    make \
+    g++ \
+    rust \
+    cargo
+
 RUN npm install -g pnpm@9
+
 WORKDIR /app
 
+
+# =========================
+# Dependencies stage
+# =========================
 FROM base AS deps
+
+# Copy workspace config first (cache-friendly)
 COPY .npmrc ./
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+
+# Copy package manifests
 COPY frontend/package.json ./frontend/
 COPY backend/package.json ./backend/
 COPY admin/package.json ./admin/
 COPY packages ./packages/
-# Install normally - lightningcss will build with Rust
+
+# Install ONLY frontend + its dependencies
+# lightningcss will build with Rust
 RUN pnpm install --frozen-lockfile --filter=frontend...
 
-FROM base AS builder
-# Add build arguments for production
-ARG INTERNAL_API_KEY
-ARG REDIS_URL
-ARG BACKEND_API_URL
-ARG NEXT_PUBLIC_BACKEND_URL
-ARG NEXT_PUBLIC_API_URL
-ARG DATABASE_URL
 
-ENV INTERNAL_API_KEY=$INTERNAL_API_KEY
-ENV REDIS_URL=$REDIS_URL
-ENV BACKEND_API_URL=$BACKEND_API_URL
-ENV NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-ENV DATABASE_URL=$DATABASE_URL
+# =========================
+# Build stage
+# =========================
+FROM base AS builder
 
 COPY --from=deps /app /app
 COPY frontend ./frontend
 COPY packages ./packages
 
-# Build all workspace packages first
+# Build arguments - these are available during build time
+ARG DATABASE_URL=postgresql://build:build@localhost:5432/build
+ARG BACKEND_URL=http://backend:3001
+ARG BACKEND_API_URL=http://backend:3001
+ARG NEXT_PUBLIC_BACKEND_URL=https://api.workit.co.ke
+ARG NEXT_PUBLIC_API_URL=https://api.workit.co.ke
+ARG INTERNAL_API_KEY
+ARG REDIS_URL
+
+# Set as environment variables for build
+# NOTE: BACKEND_URL and BACKEND_API_URL are for server-side, NEXT_PUBLIC_* are for client-side
+ENV DATABASE_URL=$DATABASE_URL
+ENV BACKEND_URL=$BACKEND_URL
+ENV BACKEND_API_URL=$BACKEND_API_URL
+ENV NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV INTERNAL_API_KEY=$INTERNAL_API_KEY
+ENV REDIS_URL=$REDIS_URL
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Build shared workspace packages first
 RUN pnpm --filter=@workit/db run build
 RUN pnpm --filter=@workit/validation run build
 
-# Now build frontend
+# Build frontend app
 RUN pnpm --filter=frontend run build
 
+
+# =========================
+# Runtime stage
+# =========================
 FROM node:20-alpine AS runner
+
 RUN npm install -g pnpm@9
+
 WORKDIR /app
 ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
-COPY --from=deps /app /app
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nextjs -u 1001
+
+# Copy runtime artifacts only
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/frontend/node_modules ./frontend/node_modules
+COPY --from=deps /app/packages ./packages
 COPY --from=builder /app/frontend/.next ./frontend/.next
 COPY --from=builder /app/frontend/public ./frontend/public
-COPY --from=builder /app/packages ./packages
+COPY --from=builder /app/frontend/package.json ./frontend/package.json
+COPY --from=deps /app/package.json ./package.json
+COPY --from=deps /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
+
+# Change ownership to non-root user
+RUN chown -R nextjs:nodejs /app
+
+# Switch to non-root user
+USER nextjs
+
+WORKDIR /app/frontend
 
 EXPOSE 3000
-CMD ["pnpm", "--filter=frontend", "start"]
+
+# Set hostname and port
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+CMD ["pnpm", "start"]
