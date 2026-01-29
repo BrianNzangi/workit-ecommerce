@@ -13,20 +13,9 @@ export class HomepageCollectionsService {
     async getHomepageCollections() {
         try {
             console.log('Fetching homepage collections...');
+            // Reverting to simple query to ensure data visibility
             const collections = await this.db.query.homepageCollections.findMany({
                 orderBy: (homepageCollections, { asc }) => [asc(homepageCollections.sortOrder)],
-                with: {
-                    products: {
-                        with: {
-                            product: {
-                                columns: {
-                                    id: true,
-                                    name: true,
-                                }
-                            }
-                        }
-                    }
-                }
             });
             console.log(`Found ${collections.length} homepage collections`);
             return collections;
@@ -39,14 +28,6 @@ export class HomepageCollectionsService {
     async getHomepageCollection(id: string) {
         const collection = await this.db.query.homepageCollections.findFirst({
             where: eq(homepageCollections.id, id),
-            with: {
-                products: {
-                    with: {
-                        product: true
-                    },
-                    orderBy: (homepageCollectionProducts, { asc }) => [asc(homepageCollectionProducts.sortOrder)],
-                }
-            }
         });
 
         if (!collection) {
@@ -69,7 +50,6 @@ export class HomepageCollectionsService {
         // Auto-assign sort order if not provided
         let sortOrder = input.sortOrder;
         if (sortOrder === undefined || sortOrder === null) {
-            // Get the count of existing collections to determine next sort order
             const allCollections = await this.db.query.homepageCollections.findMany();
             sortOrder = allCollections.length;
         }
@@ -85,7 +65,6 @@ export class HomepageCollectionsService {
     }
 
     async updateHomepageCollection(id: string, input: any) {
-        // If slug is being updated, check for duplicates
         if (input.slug) {
             const existing = await this.db.query.homepageCollections.findFirst({
                 where: eq(homepageCollections.slug, input.slug),

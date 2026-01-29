@@ -61,13 +61,9 @@ COPY --from=builder /app/backend/dist ./backend/dist
 COPY --from=builder /app/packages/db ./packages/db
 COPY --from=builder /app/packages/validation ./packages/validation
 
-# Copy uploads folder as static source for volume initialization
-COPY --from=builder /app/backend/uploads ./backend/uploads_static
-RUN mkdir -p ./backend/uploads && chmod -R 777 ./backend/uploads
-
-# Set up entrypoint for volume preservation
-COPY backend/entrypoint.sh ./backend/entrypoint.sh
-RUN chmod +x ./backend/entrypoint.sh
+# Restore original upload serving
+COPY --from=builder /app/backend/uploads ./backend/uploads
+RUN chmod -R 777 ./backend/uploads
 
 EXPOSE 3001
-ENTRYPOINT ["/app/backend/entrypoint.sh"]
+CMD ["node", "backend/dist/main.js"]

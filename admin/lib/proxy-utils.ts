@@ -30,6 +30,7 @@ export async function proxyRequest(request: NextRequest, customEndpoint?: string
         method: request.method,
         headers: {
             'Content-Type': 'application/json',
+            'x-api-key': process.env.INTERNAL_API_KEY || '',
             ...(cookie && { 'Cookie': cookie }),
             ...(authHeader && { 'Authorization': authHeader }),
         },
