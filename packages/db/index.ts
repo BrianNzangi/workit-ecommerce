@@ -145,6 +145,10 @@ export const productAssetRelations = relations(cms.productAssets, ({ one }) => (
     }),
 }));
 
+export const homepageCollectionRelations = relations(products.homepageCollections, ({ many }) => ({
+    products: many(products.homepageCollectionProducts),
+}));
+
 export const authRelations = relations(auth.session, ({ one }) => ({
     user: one(auth.user, {
         fields: [auth.session.userId],
@@ -174,6 +178,7 @@ export const schema = {
     blogRelations,
     productCollectionRelations,
     homepageCollectionProductRelations,
+    homepageCollectionRelations,
     productAssetRelations,
     orderLineRelations,
     authRelations,

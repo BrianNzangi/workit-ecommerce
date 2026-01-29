@@ -15,6 +15,18 @@ export class HomepageCollectionsService {
             console.log('Fetching homepage collections...');
             const collections = await this.db.query.homepageCollections.findMany({
                 orderBy: (homepageCollections, { asc }) => [asc(homepageCollections.sortOrder)],
+                with: {
+                    products: {
+                        with: {
+                            product: {
+                                columns: {
+                                    id: true,
+                                    name: true,
+                                }
+                            }
+                        }
+                    }
+                }
             });
             console.log(`Found ${collections.length} homepage collections`);
             return collections;
@@ -27,6 +39,14 @@ export class HomepageCollectionsService {
     async getHomepageCollection(id: string) {
         const collection = await this.db.query.homepageCollections.findFirst({
             where: eq(homepageCollections.id, id),
+            with: {
+                products: {
+                    with: {
+                        product: true
+                    },
+                    orderBy: (homepageCollectionProducts, { asc }) => [asc(homepageCollectionProducts.sortOrder)],
+                }
+            }
         });
 
         if (!collection) {
