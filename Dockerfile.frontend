@@ -15,6 +15,15 @@ COPY packages ./packages/
 RUN pnpm install --frozen-lockfile --filter=frontend...
 
 FROM base AS builder
+# Add build arguments for production
+ARG INTERNAL_API_KEY
+ARG REDIS_URL
+ARG BACKEND_API_URL
+
+ENV INTERNAL_API_KEY=$INTERNAL_API_KEY
+ENV REDIS_URL=$REDIS_URL
+ENV BACKEND_API_URL=$BACKEND_API_URL
+
 COPY --from=deps /app /app
 COPY frontend ./frontend
 COPY packages ./packages

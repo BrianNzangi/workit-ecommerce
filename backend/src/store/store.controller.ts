@@ -1,6 +1,8 @@
-import { Controller, Get, Post, Body, Query, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, Param, UseGuards } from '@nestjs/common';
 import { StoreService } from './store.service';
+import { ApiKeyGuard } from '../auth/guards/api-key.guard';
 
+@UseGuards(ApiKeyGuard)
 @Controller('store')
 export class StoreController {
     constructor(private storeService: StoreService) { }
