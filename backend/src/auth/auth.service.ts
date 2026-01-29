@@ -1,5 +1,4 @@
-import { Injectable, Inject, UnauthorizedException, ConflictException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { DRIZZLE } from '../database/database.module';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
@@ -13,7 +12,6 @@ export class AuthService {
 
     constructor(
         @Inject(DRIZZLE) private db: PostgresJsDatabase<typeof schema>,
-        private jwtService: JwtService,
     ) { }
 
     async register(input: RegisterInput) {
@@ -31,23 +29,12 @@ export class AuthService {
             updatedAt: new Date(),
         }).returning();
 
-        // Note: Better Auth handles the account table separately.
-        // For now, we are just ensuring the user exists in the unified table.
-        // Usually, Better Auth registration happens via its own API.
-
-        const payload = { sub: newUser.id, email: newUser.email, role: newUser.role };
         return {
-            access_token: await this.jwtService.signAsync(payload),
             user: newUser,
         };
     }
 
     async login(input: LoginInput) {
-        // Better Auth uses the 'account' table for passwords.
-        // Since we are moving to Better Auth, login should eventually be handled 
-        // by the Better Auth client on the Admin side as well.
-        // This is a temporary bridge.
-
         const user = await this.db.query.user.findFirst({
             where: eq(schema.user.email, input.email),
         });
@@ -71,22 +58,8 @@ export class AuthService {
             throw new UnauthorizedException('Invalid credentials');
         }
 
-        const payload = { sub: user.id, email: user.email, role: user.role };
         return {
-            access_token: await this.jwtService.signAsync(payload),
             user,
         };
-    }
-
-    async validateUser(payload: any) {
-        const user = await this.db.query.user.findFirst({
-            where: eq(schema.user.id, payload.sub),
-        });
-
-        if (!user) {
-            return null;
-        }
-
-        return user;
     }
 }
