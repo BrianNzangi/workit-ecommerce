@@ -49,6 +49,12 @@ COPY --from=deps /app /app
 COPY admin ./admin
 COPY packages ./packages
 
+# Add build arguments for Next.js client-side variables
+ARG NEXT_PUBLIC_BACKEND_URL
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 # Build shared workspace packages first
 RUN pnpm --filter=@workit/db run build
 RUN pnpm --filter=@workit/validation run build
