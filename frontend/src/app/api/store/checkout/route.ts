@@ -1,20 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const BACKEND_URL = process.env.BACKEND_API_URL ||
-    process.env.NEXT_PUBLIC_BACKEND_URL ||
-    process.env.NEXT_PUBLIC_API_URL ||
-    'http://localhost:3001';
+import { proxyFetch } from '@/lib/proxy-utils';
 
 export async function POST(request: NextRequest) {
     const body = await request.json();
-    const url = `${BACKEND_URL}/store/orders/checkout`;
 
     try {
-        const response = await fetch(url, {
+        const response = await proxyFetch('/store/orders/checkout', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
             body: JSON.stringify(body),
         });
 

@@ -1,26 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const BACKEND_URL = process.env.BACKEND_API_URL ||
-    process.env.NEXT_PUBLIC_BACKEND_URL ||
-    process.env.NEXT_PUBLIC_API_URL ||
-    'http://localhost:3001';
+import { proxyFetch } from '@/lib/proxy-utils';
+import { normalizeProducts } from '@/lib/product-normalization';
 
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
 
-    const url = new URL(`${BACKEND_URL}/store/products`);
-
-    // Forward all query parameters
-    searchParams.forEach((value, key) => {
-        url.searchParams.set(key, value);
-    });
-
     try {
-        const response = await fetch(url.toString(), {
+        const response = await proxyFetch(`/store/products?${searchParams.toString()}`, {
             method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
             cache: 'no-store',
         });
 
@@ -28,8 +15,14 @@ export async function GET(request: NextRequest) {
             throw new Error(`Backend API error: ${response.status}`);
         }
 
-        const data = await response.json();
-        return NextResponse.json(data, { status: 200 });
+        const json = await response.json();
+
+        // The backend returns { data: { products: [], pagination: {} } }
+        if (json.data && Array.isArray(json.data.products)) {
+            json.data.products = normalizeProducts(json.data.products);
+        }
+
+        return NextResponse.json(json, { status: 200 });
     } catch (error) {
         console.error('❌ Failed to fetch products:', error);
         return NextResponse.json(

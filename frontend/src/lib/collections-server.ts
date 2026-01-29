@@ -7,10 +7,7 @@
 
 import { Collection, CollectionsQueryParams, CollectionDisplay } from '@/types/collections';
 
-const BACKEND_URL = process.env.BACKEND_API_URL ||
-    process.env.NEXT_PUBLIC_BACKEND_URL ||
-    process.env.NEXT_PUBLIC_API_URL ||
-    'http://localhost:3001';
+import { proxyFetch } from './proxy-utils';
 
 /**
  * Fetch collections from the backend API (Server-Side)
@@ -31,13 +28,8 @@ export async function fetchCollections(
     if (take) queryParams.set('take', take.toString());
     if (skip) queryParams.set('skip', skip.toString());
 
-    const url = `${BACKEND_URL}/api/store/collections?${queryParams.toString()}`;
-
     try {
-        const response = await fetch(url, {
-            headers: {
-                'Content-Type': 'application/json',
-            },
+        const response = await proxyFetch(`/store/collections?${queryParams.toString()}`, {
             // Revalidate every 5 minutes
             next: { revalidate: 300 },
         });
@@ -61,13 +53,8 @@ export async function fetchCollections(
  * @returns Promise<Collection>
  */
 export async function fetchCollectionById(id: string): Promise<Collection> {
-    const url = `${BACKEND_URL}/api/store/collections/${id}`;
-
     try {
-        const response = await fetch(url, {
-            headers: {
-                'Content-Type': 'application/json',
-            },
+        const response = await proxyFetch(`/store/collections/${id}`, {
             next: { revalidate: 300 },
         });
 

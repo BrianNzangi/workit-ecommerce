@@ -28,6 +28,7 @@
     "graphql": "^16.12.0",
     "he": "^1.2.0",
     "icons": "^1.0.0",
+    "ioredis": "^5.9.2",
     "lucide-react": "^0.525.0",
     "next": "^16.0.4",
     "react": "^19.1.0",
@@ -51,10 +52,10 @@
     "baseline-browser-mapping": "^2.9.7",
     "eslint": "^9",
     "eslint-config-next": "^16.0.4",
+    "pnpm": "latest",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.11",
     "tw-animate-css": "^1.3.6",
-    "typescript": "^5",
-    "pnpm": "latest"
+    "typescript": "^5"
   }
 }

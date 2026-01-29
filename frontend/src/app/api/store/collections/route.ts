@@ -1,25 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const BACKEND_URL = process.env.BACKEND_API_URL ||
-    process.env.NEXT_PUBLIC_BACKEND_URL ||
-    process.env.NEXT_PUBLIC_API_URL ||
-    'http://localhost:3001';
+import { proxyFetch } from '@/lib/proxy-utils';
 
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
-    const parentId = searchParams.get('parentId');
-
-    const url = new URL(`${BACKEND_URL}/store/collections`);
-    if (parentId) {
-        url.searchParams.set('parentId', parentId);
-    }
 
     try {
-        const response = await fetch(url.toString(), {
+        const response = await proxyFetch(`/store/collections?${searchParams.toString()}`, {
             method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
             cache: 'no-store',
         });
 

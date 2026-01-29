@@ -1,19 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
-
-const BACKEND_URL = process.env.BACKEND_API_URL ||
-    process.env.NEXT_PUBLIC_BACKEND_URL ||
-    process.env.NEXT_PUBLIC_API_URL ||
-    'http://localhost:3001';
+import { NextResponse } from 'next/server';
+import { proxyFetch } from '@/lib/proxy-utils';
 
 export async function GET() {
-    const url = `${BACKEND_URL}/store/homepage-collections`;
-
     try {
-        const response = await fetch(url, {
+        const response = await proxyFetch('/store/homepage-collections', {
             method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
             cache: 'no-store',
         });
 

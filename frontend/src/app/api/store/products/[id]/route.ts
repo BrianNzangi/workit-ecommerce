@@ -1,23 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const BACKEND_URL = process.env.BACKEND_API_URL ||
-    process.env.NEXT_PUBLIC_BACKEND_URL ||
-    process.env.NEXT_PUBLIC_API_URL ||
-    'http://localhost:3001';
+import { proxyFetch } from '@/lib/proxy-utils';
+import { normalizeProduct } from '@/lib/product-normalization';
 
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
     const { id } = await params;
-    const url = `${BACKEND_URL}/store/products/${id}`;
 
     try {
-        const response = await fetch(url, {
+        const response = await proxyFetch(`/store/products/${id}`, {
             method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
             cache: 'no-store',
         });
 
@@ -25,8 +18,14 @@ export async function GET(
             throw new Error(`Backend API error: ${response.status}`);
         }
 
-        const data = await response.json();
-        return NextResponse.json(data, { status: 200 });
+        const json = await response.json();
+
+        // The backend returns { success: true, data: product }
+        if (json.data) {
+            json.data = normalizeProduct(json.data);
+        }
+
+        return NextResponse.json(json, { status: 200 });
     } catch (error) {
         console.error('❌ Failed to fetch product:', error);
         return NextResponse.json(

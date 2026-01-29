@@ -1,21 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const BACKEND_URL = process.env.BACKEND_API_URL ||
-    process.env.NEXT_PUBLIC_BACKEND_URL ||
-    process.env.NEXT_PUBLIC_API_URL ||
-    'http://localhost:3001';
+import { proxyFetch } from '@/lib/proxy-utils';
 
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
-    const queryString = searchParams.toString();
-    const url = `${BACKEND_URL}/store/banners${queryString ? `?${queryString}` : ''}`;
 
     try {
-        const response = await fetch(url, {
+        const response = await proxyFetch(`/store/banners?${searchParams.toString()}`, {
             method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
             cache: 'no-store',
         });
 
