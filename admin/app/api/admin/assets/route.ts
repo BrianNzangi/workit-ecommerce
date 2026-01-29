@@ -1,9 +1,6 @@
 import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/get-session';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
-import { existsSync } from 'fs';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
@@ -11,7 +8,7 @@ export async function GET(request: NextRequest) {
     const headersList = await headers();
     const cookie = headersList.get('cookie');
 
-    const session = await getSession();
+    await getSession();
     const { searchParams } = new URL(request.url);
     const take = searchParams.get('take') || '50';
     const skip = searchParams.get('skip') || '0';
@@ -36,61 +33,32 @@ export async function POST(request: NextRequest) {
     const headersList = await headers();
     const cookie = headersList.get('cookie');
 
-    const session = await getSession();
+    await getSession();
 
     try {
         const formData = await request.formData();
-        const file = formData.get('file') as File;
-        const folder = formData.get('folder') as string || 'uploads';
 
-        if (!file) {
-            return NextResponse.json({ error: 'No file provided' }, { status: 400 });
-        }
-
-        // Create upload directory in backend if it doesn't exist
-        // Files should be stored in backend/uploads so the backend can serve them
-        const backendUploadsDir = join(process.cwd(), '..', 'backend', 'uploads', folder);
-        if (!existsSync(backendUploadsDir)) {
-            await mkdir(backendUploadsDir, { recursive: true });
-        }
-
-        // Generate unique filename
-        const timestamp = Date.now();
-        const filename = `${timestamp}-${file.name}`;
-        const filepath = join(backendUploadsDir, filename);
-
-        // Write file to disk
-        const bytes = await file.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-        await writeFile(filepath, buffer);
-
-        // Create asset record in backend
-        const assetData = {
-            name: file.name,
-            type: file.type.startsWith('image/') ? 'IMAGE' : 'FILE',
-            mimeType: file.type,
-            fileSize: file.size,
-            source: `/uploads/${folder}/${filename}`,
-            preview: `/uploads/${folder}/${filename}`,
-        };
-
-        const backendResponse = await fetch(`${BACKEND_URL}/assets`, {
+        const backendResponse = await fetch(`${BACKEND_URL}/assets/upload`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
                 'Cookie': cookie || '',
+                // Don't set Content-Type, fetch will set it with boundary
             },
-            body: JSON.stringify(assetData),
+            body: formData,
         });
 
         if (!backendResponse.ok) {
-            return NextResponse.json({ error: 'Failed to create asset record' }, { status: 500 });
+            const errorData = await backendResponse.json().catch(() => ({}));
+            return NextResponse.json(
+                { error: errorData.message || 'Failed to upload asset to backend' },
+                { status: backendResponse.status }
+            );
         }
 
-        const asset = await backendResponse.json();
-        return NextResponse.json(asset, { status: 201 });
+        const data = await backendResponse.json();
+        return NextResponse.json(data, { status: 201 });
     } catch (error) {
-        console.error('Error uploading asset:', error);
+        console.error('Error proxying asset upload:', error);
         return NextResponse.json({ error: 'Failed to upload asset' }, { status: 500 });
     }
 }

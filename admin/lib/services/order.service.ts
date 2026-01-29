@@ -70,13 +70,10 @@ export class OrderService {
    */
   async updateOrderStatus(id: string, state: string): Promise<any> {
     try {
-      const response = await apiClient.request<any>(`/orders/${id}/status`, {
-        method: 'PATCH',
-        body: JSON.stringify({ state }),
-      });
+      const response = await apiClient.patch<any>(`/orders/${id}/status`, { state });
       return response;
     } catch (error: any) {
-      if (error.message.includes('404')) throw notFoundError('Order not found');
+      if (error.message && error.message.includes('404')) throw notFoundError('Order not found');
       throw validationError(error.message || 'Failed to update order status');
     }
   }
@@ -89,7 +86,7 @@ export class OrderService {
       const response = await apiClient.get(`/orders/${id}`);
       return response;
     } catch (error: any) {
-      if (error.message.includes('404')) return null;
+      if (error.message && error.message.includes('404')) return null;
       throw error;
     }
   }
