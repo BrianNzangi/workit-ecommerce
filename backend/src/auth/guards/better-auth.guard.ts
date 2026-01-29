@@ -18,7 +18,6 @@ export class BetterAuthGuard implements CanActivate {
             request.cookies['__Secure-better-auth.session_token'] ||
             request.headers['authorization']?.replace('Bearer ', '');
 
-        console.log('Debug - All cookies:', request.cookies);
         console.log('Debug - Session token:', sessionToken);
 
         if (!sessionToken) {
@@ -26,28 +25,40 @@ export class BetterAuthGuard implements CanActivate {
             throw new UnauthorizedException('No session token found');
         }
 
-        // 2. Query the session table
-        const session = await this.db.query.session.findFirst({
-            where: and(
-                eq(schema.session.token, sessionToken),
-                gt(schema.session.expiresAt, new Date())
-            ),
-            with: {
-                user: true
-            }
-        });
+        // 2. Query the session table - Better Auth uses 'id' not 'token'
+        const [session] = await this.db
+            .select()
+            .from(schema.session)
+            .where(
+                and(
+                    eq(schema.session.id, sessionToken),  // Changed from token to id
+                    gt(schema.session.expiresAt, new Date())
+                )
+            )
+            .limit(1);
 
         console.log('Debug - Session found:', !!session);
-        console.log('Debug - Session data:', session ? 'yes' : 'no');
 
         if (!session || !session.userId) {
             console.log('Invalid or expired session');
             throw new UnauthorizedException('Invalid or expired session');
         }
 
-        // 3. Attach user to request
-        request.user = session.user;
-        console.log('User authenticated:', session.user.email);
+        // 3. Get the user
+        const [user] = await this.db
+            .select()
+            .from(schema.user)
+            .where(eq(schema.user.id, session.userId))
+            .limit(1);
+
+        if (!user) {
+            console.log('User not found');
+            throw new UnauthorizedException('User not found');
+        }
+
+        // 4. Attach user to request
+        request.user = user;
+        console.log('User authenticated:', user.email);
         return true;
     }
 }
