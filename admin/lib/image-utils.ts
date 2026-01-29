@@ -5,10 +5,6 @@
  * Images are served from the backend URL.
  */
 
-// Get backend URL from environment or use default
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ||
-    process.env.NEXT_PUBLIC_API_URL ||
-    'http://localhost:3001';
 
 /**
  * Normalize image URL for use in Next.js application
@@ -38,17 +34,34 @@ export function getImageUrl(url: string | undefined | null): string {
         return url;
     }
 
+    // Determine the base backend URL
+    let backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL ||
+        process.env.NEXT_PUBLIC_API_URL ||
+        'http://localhost:3001';
+
+    // Proactive fix for production: If we are in the browser on a workit.co.ke domain
+    // and the backend URL is still pointing to localhost, switch to the production API.
+    if (typeof window !== 'undefined') {
+        const host = window.location.hostname;
+        if (host.includes('workit.co.ke') && (backendUrl.includes('localhost') || backendUrl.includes('127.0.0.1'))) {
+            backendUrl = 'https://api.workit.co.ke';
+        }
+    }
+
+    // Remove trailing slash from backendUrl if present
+    const cleanBaseUrl = backendUrl.endsWith('/') ? backendUrl.slice(0, -1) : backendUrl;
+
     // If starts with /uploads/, prepend backend URL
     if (url.startsWith('/uploads/')) {
-        return `${BACKEND_URL}${url}`;
+        return `${cleanBaseUrl}${url}`;
     }
 
     // If starts with uploads/ (no leading slash), add it and prepend backend URL
     if (url.startsWith('uploads/')) {
-        return `${BACKEND_URL}/${url}`;
+        return `${cleanBaseUrl}/${url}`;
     }
 
     // For any other relative path, ensure it starts with / and prepend backend URL
     const normalizedPath = url.startsWith('/') ? url : `/${url}`;
-    return `${BACKEND_URL}${normalizedPath}`;
+    return `${cleanBaseUrl}${normalizedPath}`;
 }
