@@ -11,9 +11,17 @@ export class HomepageCollectionsService {
     ) { }
 
     async getHomepageCollections() {
-        return this.db.query.homepageCollections.findMany({
-            orderBy: (homepageCollections, { asc }) => [asc(homepageCollections.sortOrder)],
-        });
+        try {
+            console.log('Fetching homepage collections...');
+            const collections = await this.db.query.homepageCollections.findMany({
+                orderBy: (homepageCollections, { asc }) => [asc(homepageCollections.sortOrder)],
+            });
+            console.log(`Found ${collections.length} homepage collections`);
+            return collections;
+        } catch (error) {
+            console.error('Error in getHomepageCollections:', error);
+            throw error;
+        }
     }
 
     async getHomepageCollection(id: string) {
