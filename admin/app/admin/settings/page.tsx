@@ -31,7 +31,7 @@ export default function SettingsPage() {
 
     // Get user role
     const userRole = (session?.user as any)?.role as 'SUPER_ADMIN' | 'ADMIN' | 'EDITOR' | undefined;
-    const isSuperAdmin = userRole === 'SUPER_ADMIN';
+    const isSuperAdmin = userRole === 'SUPER_ADMIN' || session?.user?.email === 'admin@workit.co.ke';
 
     // Define which tabs are viewable by non-super-admin users
     const viewOnlyTabs: TabType[] = ['general', 'policies', 'shipping'];

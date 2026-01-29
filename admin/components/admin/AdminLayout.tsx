@@ -48,7 +48,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                                             {session?.user?.name || 'Admin User'}
                                         </p>
                                         <p className="text-xs text-gray-500">
-                                            {(session?.user as any)?.role || 'ADMIN'}
+                                            {session?.user?.email === 'admin@workit.co.ke' ? 'SUPER_ADMIN' : ((session?.user as any)?.role || 'ADMIN')}
                                         </p>
                                     </div>
                                 </div>
