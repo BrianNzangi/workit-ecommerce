@@ -53,7 +53,7 @@ export interface HomepageCollectionData {
     slug: string;
     subtitle?: string;
     description?: string;
-    position: number;
+    sortOrder: number;
     status: 'active' | 'draft' | 'archived';
     products: HomepageProduct[];
     createdAt: string;
@@ -148,8 +148,8 @@ export function useHomepageCollections(
             setError(null);
             const data = await fetchHomepageCollections(options);
 
-            // Sort by position
-            const sorted = data.sort((a, b) => a.position - b.position);
+            // Sort by sortOrder
+            const sorted = data.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.title.localeCompare(b.title));
             setCollections(sorted);
         } catch (err) {
             setError(err as Error);

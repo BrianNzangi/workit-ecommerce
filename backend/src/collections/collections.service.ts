@@ -4,7 +4,7 @@ import { DRIZZLE } from '../database/database.module';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '@workit/db';
 import { collections, products } from '@workit/db';
-import { eq, isNull } from 'drizzle-orm';
+import { eq, isNull, asc } from 'drizzle-orm';
 
 @Injectable()
 export class CollectionsService {
@@ -15,7 +15,7 @@ export class CollectionsService {
     async getCollections(parentId?: string, includeChildren?: boolean) {
         // If includeChildren is true, return all collections with nested structure
         if (includeChildren) {
-            const allCollections = await this.db.select().from(collections);
+            const allCollections = await this.db.select().from(collections).orderBy(asc(collections.sortOrder));
 
             // Build tree structure
             const collectionsMap = new Map();
@@ -39,19 +39,26 @@ export class CollectionsService {
                 }
             });
 
-            return rootCollections;
+            // Ensure children are also sorted (though they should be as allCollections was sorted)
+            rootCollections.forEach(root => {
+                if (root.children) {
+                    root.children.sort((a: any, b: any) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+                }
+            });
+
+            return rootCollections.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
         }
 
         // Original filtering logic
         if (parentId !== undefined) {
             // Filter by parentId (null or specific parent)
             if (parentId === 'null' || parentId === '') {
-                return this.db.select().from(collections).where(isNull(collections.parentId));
+                return this.db.select().from(collections).where(isNull(collections.parentId)).orderBy(asc(collections.sortOrder));
             } else {
-                return this.db.select().from(collections).where(eq(collections.parentId, parentId));
+                return this.db.select().from(collections).where(eq(collections.parentId, parentId)).orderBy(asc(collections.sortOrder));
             }
         }
-        return this.db.select().from(collections);
+        return this.db.select().from(collections).orderBy(asc(collections.sortOrder));
     }
 
     async getCollection(id: string) {

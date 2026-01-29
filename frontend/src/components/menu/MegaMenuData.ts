@@ -2,6 +2,7 @@ export interface Category {
   id: number;
   name: string;
   slug: string;
+  sortOrder?: number;
   image?: string | { src: string };
   children?: Category[];
 }

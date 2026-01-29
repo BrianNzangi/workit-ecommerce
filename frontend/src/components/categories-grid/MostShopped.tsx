@@ -18,6 +18,7 @@ interface CollectionItem {
     id: string;
     name: string;
     slug: string;
+    sortOrder: number;
     image?: string;
 }
 
@@ -29,6 +30,7 @@ export default function MostShopped() {
         const fetchCollections = async () => {
             try {
                 const data = await fetchCollectionsClient({
+                    includeChildren: true,
                     take: 50,
                     skip: 0,
                 });
@@ -41,6 +43,7 @@ export default function MostShopped() {
                             id: collection.id,
                             name: collection.name,
                             slug: collection.slug,
+                            sortOrder: collection.sortOrder,
                             image: collection.asset?.preview || collection.asset?.source,
                         });
                     }
@@ -52,12 +55,16 @@ export default function MostShopped() {
                                     id: child.id,
                                     name: child.name,
                                     slug: child.slug,
+                                    sortOrder: child.sortOrder,
                                     image: child.asset?.preview || child.asset?.source,
                                 });
                             }
                         });
                     }
                 });
+
+                // Sort by sortOrder
+                allFeaturedCollections.sort((a, b) => a.sortOrder - b.sortOrder);
 
                 setCollections(allFeaturedCollections);
             } catch (err) {

@@ -45,6 +45,7 @@ export interface CollectionDisplay {
     id: string;
     name: string;
     slug: string;
+    sortOrder?: number;
     image?: string;
     children?: CollectionDisplay[];
 }

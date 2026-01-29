@@ -3,22 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import he from 'he';
 import { ChevronDown } from 'lucide-react';
-import { ORDER } from '@/components/menu/MegaMenuData';
 import MegaMenuItem from '@/components/menu/MegaMenuItem';
 import { fetchNavigationCollectionsDisplayClient } from '@/lib/collections-client';
 import type { CollectionDisplay } from '@/types/collections';
 
 let cachedCollections: CollectionDisplay[] | null = null;
 
-// Sorting helper
-function sortByOrder(a: string, b: string) {
-  const ia = ORDER.indexOf(a);
-  const ib = ORDER.indexOf(b);
-  if (ia === -1 && ib === -1) return a.localeCompare(b); // both missing → alpha
-  if (ia === -1) return 1; // a missing → goes last
-  if (ib === -1) return -1; // b missing → goes last
-  return ia - ib; // both in ORDER → respect position
-}
 
 export default function MegaMenu() {
   const [collections, setCollections] = useState<CollectionDisplay[]>(cachedCollections || []);
@@ -77,7 +67,7 @@ export default function MegaMenu() {
 
   const collectionsWithChildren = collections
     .filter((parent) => parent.children && parent.children.length > 0)
-    .sort((a, b) => sortByOrder(a.name, b.name));
+    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.name.localeCompare(b.name));
 
   return (
     <div className="relative">
@@ -117,7 +107,7 @@ export default function MegaMenu() {
             </h3>
             <ul className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
               {[...(activeParent.children || [])]
-                .sort((a, b) => sortByOrder(a.name, b.name))
+                .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.name.localeCompare(b.name))
                 .map((child) => (
                   <li key={child.id}>
                     <MegaMenuItem

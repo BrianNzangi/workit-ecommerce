@@ -3,17 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import he from 'he';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
-import { Category, ORDER } from '@/components/menu/MegaMenuData';
+import { Category } from '@/components/menu/MegaMenuData';
 import MegaMenuItem from '@/components/menu/MegaMenuItem';
 
 // Sorting helper
-function sortByOrder(a: string, b: string) {
-  const ia = ORDER.indexOf(a);
-  const ib = ORDER.indexOf(b);
-  if (ia === -1 && ib === -1) return a.localeCompare(b);
-  if (ia === -1) return 1;
-  if (ib === -1) return -1;
-  return ia - ib;
+function sortBySortOrder(a: Category, b: Category) {
+  return (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.name.localeCompare(b.name);
 }
 
 let cachedCategories: Category[] | null = null;
@@ -28,10 +23,29 @@ export default function MobileMegaMenu() {
 
     async function fetchCategories() {
       try {
-        const res = await fetch('/api/categories');
-        const data: Category[] = await res.json();
-        cachedCategories = data;
-        setCategories(data);
+        const res = await fetch('/api/collections?includeChildren=true');
+        const data: any[] = await res.json();
+
+        // Transform and filter only root collections
+        const formatted: Category[] = data
+          .filter(c => !c.parentId && c.enabled)
+          .map(c => ({
+            id: c.id,
+            name: c.name,
+            slug: c.slug,
+            sortOrder: c.sortOrder,
+            image: c.asset?.preview || c.asset?.source,
+            children: c.children?.filter((child: any) => child.enabled).map((child: any) => ({
+              id: child.id,
+              name: child.name,
+              slug: child.slug,
+              sortOrder: child.sortOrder,
+              image: child.asset?.preview || child.asset?.source,
+            }))
+          }));
+
+        cachedCategories = formatted;
+        setCategories(formatted);
       } catch (err) {
         console.error('Failed to fetch categories:', err);
       } finally {
@@ -69,7 +83,7 @@ export default function MobileMegaMenu() {
       {/* Grid of items */}
       <ul className="grid grid-cols-2 gap-2">
         {items
-          .sort((a, b) => sortByOrder(a.name, b.name))
+          .sort(sortBySortOrder)
           .map((cat) => {
             const hasChildren = cat.children && cat.children.length > 0;
 
