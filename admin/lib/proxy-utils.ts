@@ -1,11 +1,13 @@
 import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
-const BACKEND_URL = (
-    process.env.BACKEND_API_URL ||
-    process.env.NEXT_PUBLIC_BACKEND_URL ||
-    'http://localhost:3001'
-).replace(/\/$/, '');
+function getBackendUrl() {
+    return (
+        process.env.BACKEND_API_URL ||
+        process.env.NEXT_PUBLIC_BACKEND_URL ||
+        'http://localhost:3001'
+    ).replace(/\/$/, '');
+}
 
 /**
  * Proxies a request to the backend service.
@@ -16,18 +18,19 @@ export async function proxyRequest(request: NextRequest, customEndpoint?: string
     const cookie = headersList.get('cookie');
     const authHeader = headersList.get('authorization');
 
+    const backendUrl = getBackendUrl();
     let url: string;
     if (customEndpoint) {
-        url = `${BACKEND_URL}${customEndpoint}`;
+        url = `${backendUrl}${customEndpoint}`;
     } else {
         const { pathname, search } = new URL(request.url);
         // Map /api/admin/products -> /products
         const backendPath = pathname.replace(/^\/api\/admin/, '');
-        url = `${BACKEND_URL}${backendPath}${search}`;
+        url = `${backendUrl}${backendPath}${search}`;
     }
 
-    if (BACKEND_URL.includes('localhost') && process.env.NODE_ENV === 'production') {
-        console.warn(`⚠️ [Proxy Warning] BACKEND_URL is defaulting to localhost in production! Check your environment variables.`);
+    if (backendUrl.includes('localhost') && process.env.NODE_ENV === 'production') {
+        console.warn(`⚠️ [Proxy Warning] BACKEND_URL is defaulting to localhost in production! Check your environment variables. Current URL: ${url}`);
     }
 
     console.log(`[Proxy] ${request.method} ${request.url} -> ${url}`);
