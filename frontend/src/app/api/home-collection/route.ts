@@ -11,6 +11,8 @@ import { NextResponse } from 'next/server';
 // In development, defaults to localhost:3001
 // In production, this MUST be set
 const BACKEND_URL = process.env.BACKEND_API_URL ||
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
   (process.env.NODE_ENV === 'development' ? 'http://localhost:3001' : '');
 
 /**

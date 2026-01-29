@@ -37,6 +37,7 @@ export function getImageUrl(
 
     // Get backend URL from environment or use default
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL ||
+        process.env.NEXT_PUBLIC_API_URL ||
         process.env.BACKEND_API_URL ||
         'http://localhost:3001';
 
