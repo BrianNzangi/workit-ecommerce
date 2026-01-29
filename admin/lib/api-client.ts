@@ -1,5 +1,19 @@
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// In production, we usually want to hit the local proxy at /api/admin
+// to ensure cookies are forwarded correctly and to avoid CORS issues.
+let API_URL = process.env.NEXT_PUBLIC_API_URL || '/api/admin';
+
+// If it's pointed to localhost but we are in production, default to proxy
+if (typeof window !== 'undefined' &&
+    API_URL.includes('localhost') &&
+    !window.location.hostname.includes('localhost')) {
+    API_URL = '/api/admin';
+}
+
+// Remove trailing slash if present
+if (API_URL.endsWith('/')) {
+    API_URL = API_URL.slice(0, -1);
+}
 
 type FetchOptions = RequestInit & {
     headers?: Record<string, string>;
@@ -138,7 +152,7 @@ class ApiClient {
     }
 }
 
-export const apiClient = new ApiClient(API_URL || "");
+export const apiClient = new ApiClient(API_URL);
 
 export const setAuthToken = (token: string | null) => {
     apiClient.setToken(token);

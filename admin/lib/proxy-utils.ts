@@ -1,7 +1,9 @@
 import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL?.endsWith('/')
+    ? process.env.NEXT_PUBLIC_BACKEND_URL.slice(0, -1)
+    : process.env.NEXT_PUBLIC_BACKEND_URL;
 
 /**
  * Proxies a request to the backend service.
@@ -21,6 +23,8 @@ export async function proxyRequest(request: NextRequest, customEndpoint?: string
         const backendPath = pathname.replace(/^\/api\/admin/, '');
         url = `${BACKEND_URL}${backendPath}${search}`;
     }
+
+    console.log(`[Proxy] ${request.method} ${request.url} -> ${url}`);
 
     const fetchOptions: RequestInit = {
         method: request.method,
