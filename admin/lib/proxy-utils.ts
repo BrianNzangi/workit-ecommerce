@@ -1,9 +1,11 @@
 import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL?.endsWith('/')
-    ? process.env.NEXT_PUBLIC_BACKEND_URL.slice(0, -1)
-    : process.env.NEXT_PUBLIC_BACKEND_URL;
+const BACKEND_URL = (
+    process.env.BACKEND_API_URL ||
+    process.env.NEXT_PUBLIC_BACKEND_URL ||
+    'http://localhost:3001'
+).replace(/\/$/, '');
 
 /**
  * Proxies a request to the backend service.
@@ -22,6 +24,10 @@ export async function proxyRequest(request: NextRequest, customEndpoint?: string
         // Map /api/admin/products -> /products
         const backendPath = pathname.replace(/^\/api\/admin/, '');
         url = `${BACKEND_URL}${backendPath}${search}`;
+    }
+
+    if (BACKEND_URL.includes('localhost') && process.env.NODE_ENV === 'production') {
+        console.warn(`⚠️ [Proxy Warning] BACKEND_URL is defaulting to localhost in production! Check your environment variables.`);
     }
 
     console.log(`[Proxy] ${request.method} ${request.url} -> ${url}`);

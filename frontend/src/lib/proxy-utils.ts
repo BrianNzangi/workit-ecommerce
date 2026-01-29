@@ -2,10 +2,12 @@ import { getCachedData, setCachedData } from './redis';
 import { rateLimit } from './rate-limit';
 import { headers } from 'next/headers';
 
-export const BACKEND_URL = process.env.BACKEND_API_URL ||
+export const BACKEND_URL = (
+    process.env.BACKEND_API_URL ||
     process.env.NEXT_PUBLIC_BACKEND_URL ||
     process.env.NEXT_PUBLIC_API_URL ||
-    'http://localhost:3001';
+    'http://localhost:3001'
+).replace(/\/$/, '');
 
 export async function proxyFetch(path: string, options: RequestInit = {}) {
     // 1. Rate Limiting (Protects the backend from abuse)
@@ -47,6 +49,12 @@ export async function proxyFetch(path: string, options: RequestInit = {}) {
     }
 
     const url = path.startsWith('http') ? path : `${BACKEND_URL}${path}`;
+
+    if (BACKEND_URL.includes('localhost') && process.env.NODE_ENV === 'production') {
+        console.warn(`⚠️ [Proxy Warning] Frontend is defaulting to localhost in production! URL: ${url}`);
+    } else {
+        console.log(`[Proxy] Fetching: ${url}`);
+    }
 
     const defaultHeaders: Record<string, string> = {
         'Content-Type': 'application/json',

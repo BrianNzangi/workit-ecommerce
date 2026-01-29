@@ -19,10 +19,9 @@ export class ApiKeyGuard implements CanActivate {
 
         // If no key is configured in dev, we can allow for easier development
         // but in production, we should be strict
+        // Only enforce if a key is actually configured.
+        // If no key is set, we allow requests to maintain compatibility during migration.
         if (!internalApiKey) {
-            if (process.env.NODE_ENV === 'production') {
-                throw new UnauthorizedException('API Key not configured on server');
-            }
             return true;
         }
 

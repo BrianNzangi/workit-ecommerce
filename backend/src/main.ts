@@ -42,11 +42,32 @@ async function bootstrap() {
     SwaggerModule.setup('api/docs', app, document);
 
     const port = process.env.PORT ?? 3001;
+    const dbUrl = process.env.DATABASE_URL;
+    const uploadsPath = join(__dirname, '..', 'uploads');
+
+    console.log(`🚀 Service starting...`);
+    console.log(`📍 Port: ${port}`);
+    console.log(`📂 Static Assets: ${uploadsPath}`);
+
+    try {
+      const fs = require('fs');
+      if (fs.existsSync(uploadsPath)) {
+        const files = fs.readdirSync(uploadsPath);
+        console.log(`📦 Assets found: ${files.length} items`);
+      } else {
+        console.log(`⚠️  Warning: uploads folder does not exist at ${uploadsPath}`);
+      }
+    } catch (e) {
+      console.log(`⚠️  Failed to check assets folder: ${e.message}`);
+    }
+
+    console.log(`🔑 INTERNAL_API_KEY: ${process.env.INTERNAL_API_KEY ? 'Configured' : 'NOT SET'}`);
+    console.log(`🗄️ DATABASE_URL: ${dbUrl ? `${dbUrl.split('@')[1] || 'Found'}` : 'NOT FOUND - using default local'}`);
+
     await app.listen(port);
-    console.log(`Backend is running on port ${port}`);
-    console.log(`Swagger docs available at http://localhost:${port}/api/docs`);
+    console.log(`✅ Backend is running and ready.`);
   } catch (err) {
-    console.error('Error during bootstrap:', err);
+    console.error('❌ CRITICAL: Error during bootstrap:', err);
     process.exit(1);
   }
 }
