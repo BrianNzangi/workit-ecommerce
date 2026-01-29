@@ -29,6 +29,7 @@
     "@nestjs/jwt": "^11.0.0",
     "@nestjs/passport": "^11.0.0",
     "@nestjs/serve-static": "^5.0.4",
+    "@nestjs/swagger": "^11.2.5",
     "@noble/hashes": "2.0.1",
     "@workit/db": "workspace:*",
     "@workit/validation": "workspace:*",
