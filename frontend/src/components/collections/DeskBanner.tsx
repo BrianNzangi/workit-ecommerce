@@ -17,6 +17,7 @@ export default function DeskBanner({ title }: DeskBannerProps) {
           fill
           className="object-cover"
           priority
+          unoptimized
         />
       </div>
     </Link>

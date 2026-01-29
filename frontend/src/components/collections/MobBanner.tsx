@@ -17,6 +17,7 @@ export default function MobBanner({ title }: MobBannerProps) {
           fill
           className="object-cover"
           priority
+          unoptimized
         />
       </div>
     </Link>

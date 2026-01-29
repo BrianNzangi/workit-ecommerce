@@ -123,7 +123,7 @@ export default function CollectionClient({
               <a
                 key={brand.id}
                 href={brand.link || '#'}
-                className="flex-shrink-0 border border-gray-200 rounded p-1 w-20 h-20 flex items-center justify-center bg-white"
+                className="shrink-0 border border-gray-200 rounded p-1 w-20 h-20 flex items-center justify-center bg-white"
               >
                 {brand.image ? (
                   <Image
@@ -132,6 +132,7 @@ export default function CollectionClient({
                     width={64}
                     height={64}
                     className="max-h-16 w-auto object-contain"
+                    unoptimized
                   />
                 ) : (
                   <span className="text-xs text-gray-500 text-center">{brand.name}</span>

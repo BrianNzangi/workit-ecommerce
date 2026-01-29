@@ -114,6 +114,7 @@ export default function SearchBar() {
                     width={48}
                     height={48}
                     className="object-cover rounded mr-3"
+                    unoptimized
                   />
                 )}
                 <div className="flex-1">

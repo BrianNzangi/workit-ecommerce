@@ -32,6 +32,7 @@ export default function Header() {
               height={70}        // Aspect ratio height
               className="w-full h-auto object-contain"
               priority
+              unoptimized
             />
           </Link>
           {/* Desktop Search */}
@@ -102,6 +103,7 @@ export default function Header() {
                   width={120}   // adjust width as needed
                   height={50}   // adjust height as needed
                   priority
+                  unoptimized
                 />
               </Link>
               <button
