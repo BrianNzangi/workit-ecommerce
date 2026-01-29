@@ -50,7 +50,17 @@ async function seed() {
             console.log('✅ Auth user created!');
         } else {
             userId = existingAuthUser[0].id;
-            console.log('⚠️  Auth user already exists.');
+            // Update to ensure it's SUPER_ADMIN
+            await db.update(schema.user)
+                .set({
+                    role: 'SUPER_ADMIN',
+                    name: 'Super Admin',
+                    firstName: 'Super',
+                    lastName: 'Admin',
+                    updatedAt: new Date()
+                })
+                .where(eq(schema.user.id, userId));
+            console.log('⚠️  Auth user already exists. Updated role to SUPER_ADMIN.');
         }
 
         // Ensure account entry exists for password login

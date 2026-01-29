@@ -1,0 +1,47 @@
+{
+  "users": [
+    {
+      "id": "0mm3zQzuY8Dm2rkPX00OlYsvbuFPpZaL",
+      "name": "Workit Enterprises",
+      "email": "workit.enterprise@gmail.com",
+      "emailVerified": true,
+      "image": "https://lh3.googleusercontent.com/a/ACg8ocKGmkT4Df8WPatNNjCndbstq-4-6SHg1fXvCqm4Y8SjLnp_tw=s96-c",
+      "createdAt": "2026-01-25T14:26:36.009Z",
+      "updatedAt": "2026-01-25T14:26:36.009Z",
+      "role": "CUSTOMER",
+      "firstName": null,
+      "lastName": null,
+      "password": null
+    },
+    {
+      "id": "cf8f1e1c-b4f9-49ed-8312-7c70dff1ea4d",
+      "name": "Admin User",
+      "email": "admin@workit.co.ke",
+      "emailVerified": true,
+      "image": null,
+      "createdAt": "2026-01-28T13:39:15.538Z",
+      "updatedAt": "2026-01-28T13:39:15.538Z",
+      "role": "ADMIN",
+      "firstName": "Admin",
+      "lastName": "User",
+      "password": "$2b$10$qsN7arpmfpBU4cC6e8hHEezu.ljlrQE195oU/koppo/JpyO0fGQxK"
+    }
+  ],
+  "accounts": [
+    {
+      "id": "d020d015-0396-437c-ac59-ad1b2ce8b75e",
+      "accountId": "admin@workit.co.ke",
+      "providerId": "credential",
+      "userId": "cf8f1e1c-b4f9-49ed-8312-7c70dff1ea4d",
+      "accessToken": null,
+      "refreshToken": null,
+      "idToken": null,
+      "accessTokenExpiresAt": null,
+      "refreshTokenExpiresAt": null,
+      "scope": null,
+      "password": "$2b$10$vqvbxP5gbK3g5cABrjmQ5ueThvACv5aPyc8jURpojlwYhs..e8zTu",
+      "createdAt": "2026-01-29T12:19:39.622Z",
+      "updatedAt": "2026-01-29T12:19:39.622Z"
+    }
+  ]
+}
