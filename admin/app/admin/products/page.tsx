@@ -219,7 +219,7 @@ export default function ProductsPage() {
 
         setDeleteLoading(true);
         try {
-            const response = await fetch(`/api/admin/products/${productToDelete.id}`, {
+            const response = await fetch(`/api/products/${productToDelete.id}`, {
                 method: 'DELETE',
             });
 
@@ -254,7 +254,7 @@ export default function ProductsPage() {
 
     const handleExport = async () => {
         try {
-            const response = await fetch('/api/admin/products/export');
+            const response = await fetch('/api/products/export');
             if (response.ok) {
                 const blob = await response.blob();
                 const url = window.URL.createObjectURL(blob);
@@ -274,7 +274,7 @@ export default function ProductsPage() {
 
     const handleDownloadTemplate = async () => {
         try {
-            const response = await fetch('/api/admin/products/template');
+            const response = await fetch('/api/products/template');
             if (response.ok) {
                 const blob = await response.blob();
                 const url = window.URL.createObjectURL(blob);
@@ -302,7 +302,7 @@ export default function ProductsPage() {
             const formData = new FormData();
             formData.append('file', importFile);
 
-            const response = await fetch('/api/admin/products/import', {
+            const response = await fetch('/api/products/import', {
                 method: 'POST',
                 body: formData,
             });
