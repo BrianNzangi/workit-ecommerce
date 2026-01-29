@@ -18,7 +18,11 @@ export class BetterAuthGuard implements CanActivate {
             request.cookies['__Secure-better-auth.session_token'] ||
             request.headers['authorization']?.replace('Bearer ', '');
 
+        console.log('Debug - All cookies:', request.cookies);
+        console.log('Debug - Session token:', sessionToken);
+
         if (!sessionToken) {
+            console.log('No session token found');
             throw new UnauthorizedException('No session token found');
         }
 
@@ -33,12 +37,17 @@ export class BetterAuthGuard implements CanActivate {
             }
         });
 
+        console.log('Debug - Session found:', !!session);
+        console.log('Debug - Session data:', session ? 'yes' : 'no');
+
         if (!session || !session.userId) {
+            console.log('Invalid or expired session');
             throw new UnauthorizedException('Invalid or expired session');
         }
 
         // 3. Attach user to request
         request.user = session.user;
+        console.log('User authenticated:', session.user.email);
         return true;
     }
 }
