@@ -1,9 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { proxyFetch } from "@/lib/proxy-utils";
+import { normalizeProducts } from "@/lib/product-normalization";
+import { Product } from "@/types/product";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
+export async function GET(req: NextRequest) {
+  const { searchParams } = req.nextUrl;
   const query = searchParams.get("q");
 
   if (!query) {
@@ -11,58 +12,38 @@ export async function GET(req: Request) {
   }
 
   try {
-    const response = await fetch(
-      `${BACKEND_URL}/api/store/products?search=${encodeURIComponent(query)}&limit=20`,
+    // We use the store products endpoint for searching
+    const response = await proxyFetch(
+      `/store/products?search=${encodeURIComponent(query)}&limit=20`,
       {
-        cache: 'no-store',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        method: 'GET',
+        // Cache search results briefly (1 minute)
+        next: { revalidate: 60 },
       }
     );
 
     if (!response.ok) {
-      throw new Error(`Backend API returned ${response.status}`);
+      return NextResponse.json(
+        { error: "Search failed", status: response.status },
+        { status: response.status }
+      );
     }
 
-    const data = await response.json();
-    const responseData = data.data || data;
+    const json = await response.json();
 
-    // Transform to match expected format
-    const products = responseData.products?.map((product: any) => ({
-      id: product.id,
-      name: product.name,
-      slug: product.slug,
-      description: product.description,
-      images: product.images?.map((img: any) => ({
-        id: img.id,
-        src: img.url,
-        url: img.url,
-        altText: img.altText,
-      })) || [],
-      image: product.images?.[0]?.url || '',
-      price: String(product.price),
-      regular_price: product.compareAtPrice ? String(product.compareAtPrice) : undefined,
-      variantId: product.id,
-      variants: [{
-        id: product.id,
-        name: product.name,
-        sku: product.sku || '',
-        price: Number(product.price) || 0,
-        compareAtPrice: product.compareAtPrice,
-        status: 'active',
-        inventory: {
-          track: true,
-          stockOnHand: 10, // Default for search preview
-        }
-      }],
-      categories: product.collections || [],
-      brand: product.brand?.name,
-    })) || [];
+    // The backend returns { data: { products: [], pagination: {} } }
+    let products: Product[] = [];
+    if (json.data && Array.isArray(json.data.products)) {
+      // Use our normalization logic for consistent pricing and fields
+      products = normalizeProducts(json.data.products);
+    } else if (Array.isArray(json)) {
+      products = normalizeProducts(json);
+    }
 
+    // Return the normalized products directly for the client search component
     return NextResponse.json(products);
   } catch (error: any) {
-    console.error("Search Error:", error.message);
+    console.error("❌ Search Proxy Error:", error.message);
     return NextResponse.json({ error: "Search failed" }, { status: 500 });
   }
 }

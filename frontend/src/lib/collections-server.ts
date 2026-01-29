@@ -77,7 +77,6 @@ export async function fetchCollectionById(id: string): Promise<Collection> {
  */
 export async function fetchNavigationCollections(): Promise<Collection[]> {
     return fetchCollections({
-        parentId: 'null',
         includeChildren: true,
     });
 }

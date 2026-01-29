@@ -1,72 +1,45 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { proxyFetch } from '@/lib/proxy-utils';
+
 /**
  * Collections API Route
  * 
- * Proxies requests to the backend Collections API
- * GET /api/collections
+ * Proxies requests to the backend store collections API.
+ * Uses proxyFetch for secure API key injection and Redis caching.
  */
-
-import { NextRequest, NextResponse } from 'next/server';
-
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3001';
-
 export async function GET(request: NextRequest) {
+    const { searchParams } = request.nextUrl;
+
     try {
-        // Get query parameters from the request
-        const searchParams = request.nextUrl.searchParams;
-        const parentId = searchParams.get('parentId');
-        const includeChildren = searchParams.get('includeChildren');
-        const take = searchParams.get('take');
-        const skip = searchParams.get('skip');
+        // Build the proxy path with correctly formatted query parameters
+        const proxyParams = new URLSearchParams(searchParams);
 
-        // Build backend URL with query parameters
-        const backendParams = new URLSearchParams();
-        if (parentId) backendParams.set('parentId', parentId);
-        if (includeChildren) backendParams.set('includeChildren', includeChildren);
-        if (take) backendParams.set('take', take);
-        if (skip) backendParams.set('skip', skip);
+        // Ensure assets are included if not specified
+        if (!proxyParams.has('includeAssets')) {
+            proxyParams.set('includeAssets', 'true');
+        }
 
-        // Always include assets for images
-        backendParams.set('includeAssets', 'true');
-
-        const backendUrl = `${BACKEND_URL}/store/collections?${backendParams.toString()}`;
-
-        console.log('🔍 Fetching collections from:', backendUrl);
-
-        // Forward the request to the backend
-        const response = await fetch(backendUrl, {
-            headers: {
-                'Content-Type': 'application/json',
-            },
+        const response = await proxyFetch(`/store/collections?${proxyParams.toString()}`, {
+            method: 'GET',
+            // Default revalidation of 5 minutes
+            next: { revalidate: 300 },
         });
-
-        console.log('📡 Backend response status:', response.status);
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('❌ Backend error response:', errorText);
-            throw new Error(`Backend API error: ${response.status} ${response.statusText} - ${errorText}`);
+            console.error(`❌ Backend API error: ${response.status} ${response.statusText}`, errorText);
+            return NextResponse.json(
+                { error: 'Backend API error', status: response.status },
+                { status: response.status }
+            );
         }
 
         const data = await response.json();
-        console.log('✅ Collections fetched successfully:', data.length || 0, 'items');
-
-        return NextResponse.json(data, {
-            status: 200,
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-
+        return NextResponse.json(data, { status: 200 });
     } catch (error) {
-        console.error('❌ Collections API error:', error);
-        console.error('Stack:', error instanceof Error ? error.stack : 'No stack trace');
-
+        console.error('❌ Collections API proxy error:', error);
         return NextResponse.json(
-            {
-                error: 'Failed to fetch collections',
-                message: error instanceof Error ? error.message : 'Unknown error',
-                backendUrl: `${BACKEND_URL}/api/store/collections`
-            },
+            { error: 'Failed to fetch collections' },
             { status: 500 }
         );
     }
