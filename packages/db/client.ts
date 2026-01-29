@@ -10,6 +10,10 @@ const globalForDb = globalThis as unknown as {
 const getDbUrl = () => {
     const url = process.env.DATABASE_URL;
     if (!url && process.env.NODE_ENV === "production") {
+        // Next.js sets NEXT_PHASE during build. We skip the strict check during build.
+        if (process.env.NEXT_PHASE === 'phase-production-build') {
+            return "postgres://postgres:postgres@localhost:5432/workit-db";
+        }
         throw new Error("CRITICAL: DATABASE_URL is missing in production environment!");
     }
     return url || "postgres://postgres:postgres@localhost:5432/workit-db";
