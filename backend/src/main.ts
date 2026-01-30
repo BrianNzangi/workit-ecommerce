@@ -12,7 +12,7 @@ async function bootstrap() {
     app.use(cookieParser());
 
     // Serve static files from uploads directory
-    app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+    app.useStaticAssets(join(process.cwd(), 'uploads'), {
       prefix: '/uploads',
     });
 
@@ -43,7 +43,7 @@ async function bootstrap() {
 
     const port = process.env.PORT ?? 3001;
     const dbUrl = process.env.DATABASE_URL;
-    const uploadsPath = join(__dirname, '..', 'uploads');
+    const uploadsPath = join(process.cwd(), 'uploads');
 
     console.log(`🚀 Service starting...`);
     console.log(`📍 Port: ${port}`);
