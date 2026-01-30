@@ -10,6 +10,7 @@ async function bootstrap() {
   try {
     const app = await NestFactory.create<NestExpressApplication>(AppModule);
     app.use(cookieParser());
+    app.setGlobalPrefix('api');
 
     // Logging middleware for debugging routing issues
     app.use((req, res, next) => {

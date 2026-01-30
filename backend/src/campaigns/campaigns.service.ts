@@ -1,4 +1,4 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException, ConflictException } from '@nestjs/common';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { eq, desc, and, gte, lte, SQL } from 'drizzle-orm';
 import * as schema from '@workit/db';
@@ -11,6 +11,14 @@ export class CampaignsService {
     ) { }
 
     async createCampaign(data: typeof schema.campaigns.$inferInsert) {
+        if (data.slug) {
+            const existing = await this.db.query.campaigns.findFirst({
+                where: eq(schema.campaigns.slug, data.slug),
+            });
+            if (existing) {
+                throw new ConflictException('Campaign with this slug already exists');
+            }
+        }
         const [campaign] = await this.db
             .insert(schema.campaigns)
             .values(data)

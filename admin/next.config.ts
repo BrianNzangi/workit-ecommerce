@@ -43,14 +43,19 @@ const nextConfig: NextConfig = {
         destination: `${backendUrl}/uploads/:path*`,
       },
       {
-        // Proxy /api/admin/xxx to backend /xxx
-        source: '/api/admin/:path*',
-        destination: `${backendUrl}/:path*`,
+        // Proxy /api/admin/marketing/xxx to backend /api/xxx
+        source: '/api/admin/marketing/:path*',
+        destination: `${backendUrl}/api/:path*`,
       },
       {
-        // Proxy all other /api/xxx (like storefront calls) to backend /xxx
+        // Proxy /api/admin/xxx to backend /api/xxx
+        source: '/api/admin/:path*',
+        destination: `${backendUrl}/api/:path*`,
+      },
+      {
+        // Proxy all other /api/xxx (like storefront calls) to backend /api/xxx
         source: '/api/((?!auth|admin).*)',
-        destination: `${backendUrl}/:1*`,
+        destination: `${backendUrl}/api/:1*`,
       },
     ];
   },

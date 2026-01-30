@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, ConflictException } from '@nestjs/common';
 import { DRIZZLE } from '../database/database.module';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { schema, banners } from '@workit/db';
@@ -11,6 +11,14 @@ export class BannersService {
     ) { }
 
     async createBanner(data: typeof banners.$inferInsert) {
+        if (data.slug) {
+            const existing = await this.db.query.banners.findFirst({
+                where: eq(banners.slug, data.slug),
+            });
+            if (existing) {
+                throw new ConflictException('Banner with this slug already exists');
+            }
+        }
         const [banner] = await this.db.insert(banners).values(data).returning();
         return banner;
     }
