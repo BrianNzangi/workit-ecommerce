@@ -39,10 +39,6 @@ const nextConfig: NextConfig = {
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
     return [
       {
-        source: '/api/admin/marketing/:path*',
-        destination: `${backendUrl}/:path*`,
-      },
-      {
         source: '/api/admin/:path*',
         destination: `${backendUrl}/:path*`,
       },
@@ -51,7 +47,6 @@ const nextConfig: NextConfig = {
         destination: `${backendUrl}/uploads/:path*`,
       },
       {
-        // Proxy all other /api/xxx to backend root
         source: '/api/:path*',
         destination: `${backendUrl}/:path*`,
       },

@@ -16,10 +16,31 @@ async function bootstrap() {
     // it reaches the prefixed router correctly.
     app.use((req: any, res: any, next: any) => {
       const isUpload = req.path.startsWith('/uploads');
-      const isAuth = req.path.startsWith('/auth'); // better-auth handles its own paths
-      if (!req.path.startsWith('/api') && !isUpload && !isAuth) {
-        req.url = `/api${req.url}`;
+      const isAuth = req.path.startsWith('/auth');
+
+      if (isUpload || isAuth) return next();
+
+      let targetPath = req.path;
+
+      // Handle the 'marketing' segment from legacy admin paths
+      if (targetPath.startsWith('/marketing/')) {
+        targetPath = targetPath.replace('/marketing/', '/');
       }
+
+      // Ensure it starts with /api
+      if (!targetPath.startsWith('/api')) {
+        targetPath = `/api${targetPath}`;
+      }
+
+      // If it became something like /api/marketing (due to double match), fix it
+      if (targetPath.startsWith('/api/marketing/')) {
+        targetPath = targetPath.replace('/api/marketing/', '/api/');
+      }
+
+      // Preserve query parameters by only replacing the path portion of the URL
+      const queryString = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
+      req.url = targetPath + queryString;
+
       next();
     });
 
