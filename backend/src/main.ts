@@ -16,9 +16,8 @@ async function bootstrap() {
     // it reaches the prefixed router correctly.
     app.use((req: any, res: any, next: any) => {
       const isUpload = req.path.startsWith('/uploads');
-      const isAuth = req.path.startsWith('/auth');
 
-      if (isUpload || isAuth) return next();
+      if (isUpload) return next();
 
       let targetPath = req.path;
 

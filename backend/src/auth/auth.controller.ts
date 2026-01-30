@@ -1,8 +1,9 @@
-import { Controller, Post, Body, UseGuards, Get, Request } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get, Request, All, Req, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { loginSchema, registerSchema } from '@workit/validation';
 import type { LoginInput, RegisterInput } from '@workit/validation';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
+import { auth } from './better-auth.config';
 
 import { BetterAuthGuard } from './guards/better-auth.guard';
 
@@ -30,5 +31,13 @@ export class AuthController {
     @Get('me')
     getProfile(@Request() req) {
         return req.user;
+    }
+
+    @All('*')
+    async handleAuth(@Req() req: any, @Res() res: any) {
+        // This is necessary for better-auth to handle its own routes 
+        // like /api/auth/sign-in/email, /api/auth/callback, etc.
+        const { toNodeHandler } = await import("better-auth/node");
+        return toNodeHandler(auth)(req, res);
     }
 }
