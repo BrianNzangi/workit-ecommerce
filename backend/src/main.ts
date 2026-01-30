@@ -12,10 +12,22 @@ async function bootstrap() {
     app.use(cookieParser());
     app.setGlobalPrefix('api');
 
+    // Prefix-insurer middleware: ensures that even if the proxy strips /api, 
+    // it reaches the prefixed router correctly.
+    app.use((req: any, res: any, next: any) => {
+      const isUpload = req.path.startsWith('/uploads');
+      const isAuth = req.path.startsWith('/auth'); // better-auth handles its own paths
+      if (!req.path.startsWith('/api') && !isUpload && !isAuth) {
+        req.url = `/api${req.url}`;
+      }
+      next();
+    });
+
     // Logging middleware for debugging routing issues
     app.use((req, res, next) => {
-      if (!req.path.includes('/uploads/')) {
-        console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+      const isUpload = req.originalUrl.includes('/uploads/');
+      if (!isUpload) {
+        console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl} -> ${req.url}`);
       }
       next();
     });
