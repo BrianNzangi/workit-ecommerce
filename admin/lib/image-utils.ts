@@ -34,6 +34,15 @@ export function getImageUrl(url: string | undefined | null): string {
         return url;
     }
 
+    // If starts with /uploads/ or uploads/, return as a relative path for proxying
+    if (url.startsWith('/uploads/')) {
+        return url;
+    }
+
+    if (url.startsWith('uploads/')) {
+        return `/${url}`;
+    }
+
     // Determine the base backend URL
     // We use bracket notation to prevent Next.js from inlining these values at build time
     const env = process.env as Record<string, string | undefined>;
@@ -53,16 +62,6 @@ export function getImageUrl(url: string | undefined | null): string {
 
     // Remove trailing slash from backendUrl if present
     const cleanBaseUrl = backendUrl.endsWith('/') ? backendUrl.slice(0, -1) : backendUrl;
-
-    // If starts with /uploads/, prepend backend URL
-    if (url.startsWith('/uploads/')) {
-        return `${cleanBaseUrl}${url}`;
-    }
-
-    // If starts with uploads/ (no leading slash), add it and prepend backend URL
-    if (url.startsWith('uploads/')) {
-        return `${cleanBaseUrl}/${url}`;
-    }
 
     // For any other relative path, ensure it starts with / and prepend backend URL
     const normalizedPath = url.startsWith('/') ? url : `/${url}`;
