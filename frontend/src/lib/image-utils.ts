@@ -35,17 +35,7 @@ export function getImageUrl(
         return url;
     }
 
-    // If starts with /uploads/ or uploads/, return as a relative path for proxying
-    if (url.startsWith('/uploads/')) {
-        return url;
-    }
-
-    if (url.startsWith('uploads/')) {
-        return `/${url}`;
-    }
-
     // Determine the base backend URL
-    // We use bracket notation to prevent Next.js from inlining these values at build time
     const env = process.env as Record<string, string | undefined>;
     let backendUrl = env['NEXT_PUBLIC_BACKEND_URL'] ||
         env['NEXT_PUBLIC_API_URL'] ||
@@ -64,9 +54,27 @@ export function getImageUrl(
     // Remove trailing slash from backendUrl if present
     const cleanBaseUrl = backendUrl.endsWith('/') ? backendUrl.slice(0, -1) : backendUrl;
 
-    // For any other relative path, ensure it starts with / and prepend backend URL
-    const normalizedPath = url.startsWith('/') ? url : `/${url}`;
-    return `${cleanBaseUrl}${normalizedPath}`;
+    // Handle local paths
+    let relativePath = url;
+
+    // If it already starts with /uploads/, use it as is
+    if (url.startsWith('/uploads/')) {
+        relativePath = url;
+    }
+    // If it starts with uploads/ (no leading slash), add the slash
+    else if (url.startsWith('uploads/')) {
+        relativePath = `/${url}`;
+    }
+    // If it's just a filename (the new format), prepend /uploads/
+    else if (!url.startsWith('/')) {
+        relativePath = `/uploads/${url}`;
+    }
+    // For any other relative path starting with /, assume it might be an upload or other static asset
+    else {
+        relativePath = url;
+    }
+
+    return `${cleanBaseUrl}${relativePath}`;
 }
 
 /**

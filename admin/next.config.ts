@@ -22,6 +22,16 @@ const nextConfig: NextConfig = {
         port: '3002',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'api.workit.co.ke',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'staging.workit.co.ke',
+        pathname: '/**',
+      },
     ],
     dangerouslyAllowSVG: true,
   },

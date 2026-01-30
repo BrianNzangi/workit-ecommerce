@@ -53,8 +53,8 @@ export class AssetsController {
             type: file.mimetype.startsWith('image/') ? 'IMAGE' : 'FILE',
             mimeType: file.mimetype,
             fileSize: file.size,
-            source: `/uploads/${file.filename}`,
-            preview: `/uploads/${file.filename}`,
+            source: file.filename,
+            preview: file.filename,
         });
     }
 
