@@ -43,8 +43,13 @@ const nextConfig: NextConfig = {
         destination: `${backendUrl}/uploads/:path*`,
       },
       {
-        // Proxy all /api requests except /api/auth which is handled locally by Better Auth
-        source: '/api/((?!auth).*)',
+        // Proxy /api/admin/xxx to backend /api/xxx
+        source: '/api/admin/:path*',
+        destination: `${backendUrl}/api/:path*`,
+      },
+      {
+        // Proxy all other /api requests except /api/auth which is handled locally by Better Auth
+        source: '/api/((?!auth|admin).*)',
         destination: `${backendUrl}/api/:1*`,
       },
     ];

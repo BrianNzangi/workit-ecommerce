@@ -1,7 +1,7 @@
 
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException, ConflictException } from '@nestjs/common';
 import { DRIZZLE } from '../database/database.module';
-import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as schema from '@workit/db';
 import { collections, products } from '@workit/db';
 import { eq, isNull, asc } from 'drizzle-orm';
@@ -9,7 +9,7 @@ import { eq, isNull, asc } from 'drizzle-orm';
 @Injectable()
 export class CollectionsService {
     constructor(
-        @Inject(DRIZZLE) private db: NodePgDatabase<typeof schema>,
+        @Inject(DRIZZLE) private db: PostgresJsDatabase<typeof schema>,
     ) { }
 
     async getCollections(parentId?: string, includeChildren?: boolean) {
@@ -70,6 +70,12 @@ export class CollectionsService {
     }
 
     async createCollection(input: any) {
+        if (input.slug) {
+            const existing = await this.db.select().from(collections).where(eq(collections.slug, input.slug));
+            if (existing.length > 0) {
+                throw new ConflictException('Collection with this slug already exists');
+            }
+        }
         const result = await this.db.insert(collections).values(input).returning();
         return result[0];
     }

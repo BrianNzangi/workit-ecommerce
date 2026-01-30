@@ -10,6 +10,7 @@ async function bootstrap() {
   try {
     const app = await NestFactory.create<NestExpressApplication>(AppModule);
     app.use(cookieParser());
+    app.setGlobalPrefix('api');
 
     // Serve static files from uploads directory
     app.useStaticAssets(join(process.cwd(), 'uploads'), {
@@ -25,6 +26,7 @@ async function bootstrap() {
         'https://admin.workit.co.ke',
         'https://workit.co.ke',
         'https://api.workit.co.ke',
+        'https://store.workit.co.ke',
       ],
       credentials: true,
     });

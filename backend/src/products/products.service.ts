@@ -2,7 +2,7 @@ import { Injectable, Inject, NotFoundException, ConflictException } from '@nestj
 import { DRIZZLE } from '../database/database.module';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { schema, products, productCollections, homepageCollectionProducts, productAssets } from '@workit/db';
-import { eq, or, ilike, and } from 'drizzle-orm';
+import { eq, or, ilike, and, ne } from 'drizzle-orm';
 import type { ProductInput } from '@workit/validation';
 
 @Injectable()
@@ -14,12 +14,24 @@ export class ProductService {
     async createProduct(input: ProductInput) {
         const { collections, homepageCollections, assetIds, ...productData } = input;
 
-        const existingProduct = await this.db.query.products.findFirst({
+        // Check for existing product by slug
+        const existingBySlug = await this.db.query.products.findFirst({
             where: eq(products.slug, input.slug),
         });
 
-        if (existingProduct) {
+        if (existingBySlug) {
             throw new ConflictException('Product with this slug already exists');
+        }
+
+        // Check for existing product by SKU if provided
+        if (input.sku) {
+            const existingBySku = await this.db.query.products.findFirst({
+                where: eq(products.sku, input.sku),
+            });
+
+            if (existingBySku) {
+                throw new ConflictException(`Product with SKU "${input.sku}" already exists`);
+            }
         }
 
         const [product] = await this.db.insert(products).values({
@@ -70,6 +82,26 @@ export class ProductService {
 
     async updateProduct(id: string, input: Partial<ProductInput>) {
         const { collections, homepageCollections, assetIds, ...productData } = input;
+
+        // Check for slug conflict if updating slug
+        if (productData.slug) {
+            const existing = await this.db.query.products.findFirst({
+                where: and(eq(products.slug, productData.slug), ne(products.id, id)),
+            });
+            if (existing) {
+                throw new ConflictException('Product with this slug already exists');
+            }
+        }
+
+        // Check for SKU conflict if updating SKU
+        if (productData.sku) {
+            const existing = await this.db.query.products.findFirst({
+                where: and(eq(products.sku, productData.sku), ne(products.id, id)),
+            });
+            if (existing) {
+                throw new ConflictException(`Product with SKU "${productData.sku}" already exists`);
+            }
+        }
 
         const [product] = await this.db.update(products)
             .set({
@@ -159,6 +191,35 @@ export class ProductService {
 
         if (!product) {
             throw new NotFoundException('Product not found');
+        }
+
+        return product;
+    }
+
+    async getProductBySlug(slug: string) {
+        const product = await this.db.query.products.findFirst({
+            where: eq(products.slug, slug),
+            with: {
+                assets: {
+                    with: {
+                        asset: true,
+                    }
+                },
+                collections: {
+                    with: {
+                        collection: true,
+                    }
+                },
+                homepageCollections: {
+                    with: {
+                        collection: true,
+                    }
+                },
+            }
+        });
+
+        if (!product) {
+            throw new NotFoundException(`Product with slug ${slug} not found`);
         }
 
         return product;

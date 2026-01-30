@@ -31,6 +31,11 @@ export class ProductsController {
         return this.productService.getProduct(id);
     }
 
+    @Get('slug/:slug')
+    async getProductBySlug(@Param('slug') slug: string) {
+        return this.productService.getProductBySlug(slug);
+    }
+
     @UseGuards(BetterAuthGuard)
     @Post()
     async createProduct(@Body(new ZodValidationPipe(productSchema)) input: ProductInput) {
