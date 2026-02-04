@@ -1,6 +1,7 @@
 import { FastifyPluginAsync } from "fastify";
 import { db, schema, eq, desc, ilike, inArray, and } from "../../../../lib/db.js";
 import { v4 as uuidv4 } from "uuid";
+import { createCustomerSchema } from "@workit/validation";
 
 export const customersAdminRoutes: FastifyPluginAsync = async (fastify) => {
     // List Customers
@@ -21,7 +22,18 @@ export const customersAdminRoutes: FastifyPluginAsync = async (fastify) => {
     fastify.post("/", {
         preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
     }, async (request, reply) => {
-        const data = request.body as any;
+        const body = request.body as any;
+
+        // Use the new validation schema
+        const validation = createCustomerSchema.safeParse(body);
+        if (!validation.success) {
+            return reply.status(400).send({
+                message: "Validation failed",
+                errors: validation.error.format()
+            });
+        }
+
+        const data = validation.data;
         const { email, password } = data;
 
         // Check availability
@@ -32,7 +44,7 @@ export const customersAdminRoutes: FastifyPluginAsync = async (fastify) => {
             return reply.status(409).send({ message: "Email already exists" });
         }
 
-        const hashedPassword = await import("bcryptjs").then(bcrypt => bcrypt.default.hash(password, 10));
+        const hashedPassword = await import("bcryptjs").then(bcrypt => bcrypt.default.hash((password as string), 10));
         const id = uuidv4();
 
         const [customer] = await db.insert(schema.users).values({
@@ -107,4 +119,3 @@ export const customersAdminRoutes: FastifyPluginAsync = async (fastify) => {
 };
 
 export default customersAdminRoutes;
-

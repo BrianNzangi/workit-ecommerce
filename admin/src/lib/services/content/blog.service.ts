@@ -82,6 +82,17 @@ export class BlogService extends BaseService {
         }
     }
 
+    /**
+     * Get a single blog post by Slug
+     */
+    async getBlogBySlug(slug: string): Promise<any> {
+        try {
+            return await this.adminClient.blog.getBySlug(slug);
+        } catch (error: any) {
+            throw new Error(error.message || 'Blog not found');
+        }
+    }
+
 
 
     /**

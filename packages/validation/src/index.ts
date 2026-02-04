@@ -1,14 +1,6 @@
-import { z } from "zod";
-
-export const loginSchema = z.object({
-    email: z.string().email(),
-    password: z.string().min(6),
-});
-
-export const registerSchema = z.object({
-    email: z.string().email(),
-    password: z.string().min(6),
-    firstName: z.string().min(1),
-    lastName: z.string().min(1),
-    phone: z.string().optional(),
-});
+export * from "./common/index";
+export * from "./identity/index";
+export * from "./catalog/index";
+export * from "./fulfillment/index";
+export * from "./marketing/index";
+export * from "./site/index";

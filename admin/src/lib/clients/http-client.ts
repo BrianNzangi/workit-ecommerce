@@ -101,6 +101,15 @@ class HttpClient {
     }
 
     // Resource namespaces
+    public get auth() {
+        return {
+            login: (data: any) => this.post<any>("/auth/login", data),
+            register: (data: any) => this.post<any>("/auth/register", data),
+            getSession: () => this.get<any>("/auth/get-session"),
+            logout: () => this.post<any>("/auth/logout", {}),
+        };
+    }
+
     public get products() {
         return {
             list: (options?: any) => this.get<any>("/catalog/products/admin", { params: options }),
@@ -227,6 +236,7 @@ class HttpClient {
             create: (data: any) => this.post<any>("/marketing/blog/admin", data),
             update: (id: string, data: any) => this.put<any>(`/marketing/blog/admin/${id}`, data),
             delete: (id: string) => this.delete<any>(`/marketing/blog/admin/${id}`),
+            getBySlug: (slug: string) => this.get<any>(`/marketing/blog/admin/slug/${slug}`),
             togglePublish: (id: string, data: any = {}) => this.patch<any>(`/marketing/blog/admin/${id}/toggle-publish`, data),
         };
     }
