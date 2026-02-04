@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { db } from "@workit/db";
+
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
