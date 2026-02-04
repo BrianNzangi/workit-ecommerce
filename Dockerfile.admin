@@ -59,6 +59,7 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV STOREFRONT_URL=$STOREFRONT_URL
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV SKIP_DB_CHECK=true
 
 # Build shared workspace packages first
 RUN pnpm --filter=@workit/db run build
