@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -14,9 +14,15 @@ import UserMenu from '@/components/menu/UserMenu';
 import { useCartStore } from '@/store/cartStore';
 
 export default function Header() {
+  const [mounted, setMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { isOpen, openCart, closeCart, getTotalQuantity } = useCartStore();
-  const cartItemCount = getTotalQuantity();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const cartItemCount = mounted ? getTotalQuantity() : 0;
 
   return (
     <header id="site-header">

@@ -1,0 +1,42 @@
+type DashboardStats {
+  totalRevenue: Int!
+  orderCount: Int!
+  period: DatePeriod!
+}
+
+type DatePeriod {
+  start: DateTime!
+  end: DateTime!
+}
+
+type RecentOrder {
+  id: ID!
+  code: String!
+  customerName: String!
+  total: Int!
+  state: OrderState!
+  createdAt: DateTime!
+}
+
+type LowStockAlert {
+  id: ID!
+  sku: String!
+  name: String!
+  productName: String!
+  stockOnHand: Int!
+  price: Int!
+}
+
+type TopSellingProduct {
+  productId: ID!
+  productName: String!
+  totalQuantitySold: Int!
+  totalRevenue: Int!
+}
+
+extend type Query {
+  getDashboardStats(startDate: DateTime!, endDate: DateTime!): DashboardStats!
+  getRecentOrders(limit: Int): [RecentOrder!]!
+  getLowStockAlerts(threshold: Int): [LowStockAlert!]!
+  getTopSellingProducts(startDate: DateTime!, endDate: DateTime!, limit: Int): [TopSellingProduct!]!
+}

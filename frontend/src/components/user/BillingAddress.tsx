@@ -250,7 +250,7 @@ export function BillingAddress() {
                     id="county"
                     value={editData.county}
                     onChange={(e) => setEditData({ ...editData, county: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-xs focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none pr-10"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xs focus:outline-none focus:ring-2 focus:ring-primary-900 appearance-none pr-10"
                   >
                     <option value="">Select County</option>
                     <option value="Nairobi">Nairobi</option>
@@ -305,7 +305,7 @@ export function BillingAddress() {
             </Button>
             <Button
               onClick={handleSave}
-              className="bg-[#0046BE] text-white"
+              className="bg-primary-900 text-white"
               disabled={saving}
             >
               {saving ? 'Saving...' : 'Save Changes'}

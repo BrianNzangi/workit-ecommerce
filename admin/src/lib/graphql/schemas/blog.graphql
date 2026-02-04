@@ -1,0 +1,56 @@
+type Blog {
+  id: ID!
+  title: String!
+  slug: String!
+  content: String!
+  excerpt: String
+  published: Boolean!
+  publishedAt: DateTime
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  asset: Asset
+  categories: [BlogCategory!]!
+}
+
+type BlogCategory {
+  id: ID!
+  blogId: String!
+  name: String!
+}
+
+input CreateBlogInput {
+  title: String!
+  slug: String
+  content: String!
+  excerpt: String
+  assetId: String
+  categories: [String!]
+}
+
+input UpdateBlogInput {
+  title: String
+  slug: String
+  content: String
+  excerpt: String
+  assetId: String
+  categories: [String!]
+}
+
+input BlogListOptions {
+  take: Int
+  skip: Int
+  published: Boolean
+}
+
+extend type Query {
+  blog(id: ID!): Blog
+  blogBySlug(slug: String!): Blog
+  blogs(options: BlogListOptions): [Blog!]!
+}
+
+extend type Mutation {
+  createBlog(input: CreateBlogInput!): Blog!
+  updateBlog(id: ID!, input: UpdateBlogInput!): Blog!
+  publishBlog(id: ID!): Blog!
+  unpublishBlog(id: ID!): Blog!
+}

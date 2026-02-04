@@ -1,0 +1,16 @@
+scalar DateTime
+scalar JSON
+
+type ErrorExtensions {
+  code: String!
+  field: String
+  details: JSON
+}
+
+type Query {
+  _health: String!
+}
+
+type Mutation {
+  _ping: String!
+}

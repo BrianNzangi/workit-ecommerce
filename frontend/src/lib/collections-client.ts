@@ -86,9 +86,14 @@ export async function fetchNavigationCollectionsDisplayClient(): Promise<Collect
     try {
         const collections = await fetchNavigationCollectionsClient();
 
+        if (!Array.isArray(collections)) {
+            console.error('fetchNavigationCollectionsClient returned non-array:', collections);
+            return [];
+        }
+
         // Filter only enabled collections and transform
         return collections
-            .filter(collection => collection.enabled)
+            .filter(collection => collection?.enabled)
             .map(transformCollectionForDisplay);
     } catch (error) {
         console.error('Error fetching navigation collections:', error);

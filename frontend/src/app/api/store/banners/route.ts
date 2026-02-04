@@ -15,7 +15,11 @@ export async function GET(request: NextRequest) {
         }
 
         const data = await response.json();
-        return NextResponse.json(data, { status: 200 });
+
+        // backend-v2 returns { banners: [...] }, but frontend expects [...]
+        const banners = data.banners || data;
+
+        return NextResponse.json(banners, { status: 200 });
     } catch (error) {
         console.error('❌ Failed to fetch banners:', error);
         return NextResponse.json(

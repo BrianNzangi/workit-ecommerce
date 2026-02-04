@@ -15,8 +15,8 @@ export function OrderStats({ totalOrders, pendingOrders, completedOrders, loadin
       label: "Total Orders",
       value: loading ? "..." : totalOrders.toString(),
       icon: Package,
-      color: "text-blue-600",
-      bgColor: "bg-blue-50",
+      color: "text-primary-900",
+      bgColor: "bg-primary-50",
     },
     {
       label: "Pending Orders",

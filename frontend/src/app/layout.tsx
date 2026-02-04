@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Toaster } from "react-hot-toast";
 import Header from "../components/layout/Header";
+import CartInitializer from "../components/providers/CartInitializer";
 import Footer from "../components/layout/Footer";
 import "./globals.css";
 import Script from "next/script";
@@ -59,6 +60,7 @@ export default function RootLayout({
         />
       </head>
       <body className="font-sans flex flex-col min-h-screen">
+        <CartInitializer />
         <Header />
         <main className="grow">{children}</main>
         <Footer />

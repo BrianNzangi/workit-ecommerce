@@ -3,7 +3,7 @@
 # =========================
 FROM node:20-bookworm AS base
 
-# System dependencies for native Node modules (bcrypt, sharp, etc.)
+# System dependencies
 RUN apt-get update && apt-get install -y \
     python3 \
     make \
@@ -12,7 +12,6 @@ RUN apt-get update && apt-get install -y \
     libc6 \
     && rm -rf /var/lib/apt/lists/*
 
-# Install pnpm and native build tools
 RUN npm install -g pnpm@9 node-gyp-build
 
 WORKDIR /app
@@ -23,18 +22,17 @@ WORKDIR /app
 # =========================
 FROM base AS deps
 
-# Copy workspace config first (cache-friendly)
 COPY .npmrc ./
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 
-# Copy package manifests
+# Copy package manifests (using backend-v2)
 COPY admin/package.json ./admin/
-COPY backend/package.json ./backend/
+COPY backend-v2/package.json ./backend-v2/
 COPY frontend/package.json ./frontend/
 COPY packages ./packages/
 
 # Install ONLY admin + its dependencies
-RUN pnpm install --frozen-lockfile --filter=admin...
+RUN pnpm install --no-frozen-lockfile --filter=@workit/admin...
 
 
 # =========================
@@ -46,15 +44,14 @@ COPY --from=deps /app /app
 COPY admin ./admin
 COPY packages ./packages
 
-# Build arguments - these are available during build time
-ARG DATABASE_URL=postgresql://build:build@localhost:5432/build
+# Build arguments
+ARG DATABASE_URL
 ARG BACKEND_URL=http://backend:3001
 ARG NEXT_PUBLIC_BACKEND_URL=https://api.workit.co.ke
 ARG NEXT_PUBLIC_API_URL
 ARG STOREFRONT_URL=https://workit.co.ke
 
 # Set as environment variables for build
-# NOTE: BACKEND_URL is for server-side, NEXT_PUBLIC_* are for client-side
 ENV DATABASE_URL=$DATABASE_URL
 ENV BACKEND_URL=$BACKEND_URL
 ENV NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL
@@ -68,7 +65,7 @@ RUN pnpm --filter=@workit/db run build
 RUN pnpm --filter=@workit/validation run build
 
 # Build admin app
-RUN pnpm --filter=admin run build
+RUN pnpm --filter=@workit/admin run build
 
 
 # =========================
@@ -82,7 +79,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Create non-root user for security
+# Create non-root user
 RUN groupadd -r nodejs && useradd -r -g nodejs nodejs
 
 # Copy runtime artifacts only
@@ -95,17 +92,15 @@ COPY --from=builder /app/admin/package.json ./admin/package.json
 COPY --from=deps /app/package.json ./package.json
 COPY --from=deps /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
 
-# Change ownership to non-root user
+# Change ownership
 RUN chown -R nodejs:nodejs /app
 
-# Switch to non-root user
 USER nodejs
 
 WORKDIR /app/admin
 
 EXPOSE 3002
 
-# Set hostname and port
 ENV PORT=3002
 ENV HOSTNAME="0.0.0.0"
 

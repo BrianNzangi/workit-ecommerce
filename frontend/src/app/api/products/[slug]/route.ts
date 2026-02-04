@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+import { proxyFetch } from '@/lib/proxy-utils';
 
 export async function GET(
     request: NextRequest,
@@ -9,15 +8,8 @@ export async function GET(
     try {
         const { slug } = await params;
 
-        // Fetch from backend REST API using the dedicated product detail endpoint
-        const apiUrl = `${BACKEND_URL}/store/products/${slug}`;
-
-        const response = await fetch(apiUrl, {
-            cache: 'no-store',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
+        // Fetch from backend-v2 via proxy
+        const response = await proxyFetch(`/store/products/${slug}`);
 
         if (!response.ok) {
             console.error(`Backend API returned ${response.status}`);
@@ -27,49 +19,29 @@ export async function GET(
             );
         }
 
-        const result = await response.json();
-
-        // Check if request was successful
-        if (!result.success) {
-            return NextResponse.json(
-                { error: result.error?.message || 'Product not found' },
-                { status: 404 }
-            );
-        }
-
-        const productData = result.data;
-
-        if (!productData) {
-            return NextResponse.json(
-                { error: 'Product not found' },
-                { status: 404 }
-            );
-        }
-
-        // Transform backend response to match expected format
-        // The backend now provides a "Simple Product" model without a separate Variant table
-        const productObj = productData;
+        const productObj = await response.json();
 
         // Map backend images (source) to frontend images (url)
-        const mappedImages = productObj.images?.map((img: any) => ({
-            id: img.id,
-            src: img.source || img.url || img.preview,
-            url: img.source || img.url || img.preview,
-            altText: img.altText || productObj.name,
-            position: img.sortOrder ?? 0,
+        const mappedImages = productObj.assets?.map((a: any) => ({
+            id: a.asset.id,
+            src: a.asset.source || a.asset.preview || '',
+            url: a.asset.source || a.asset.preview || '',
+            altText: a.asset.name || productObj.name,
+            position: a.sortOrder ?? 0,
+            featured: a.featured,
         })) || [];
 
-        // If no images from relation, check if there's a featuredImage string (though backend standardizes this)
-        const mainImage = mappedImages[0]?.url || productObj.featuredImage || '';
+        // Main image fallback
+        const featuredAsset = mappedImages.find((img: any) => img.featured) || mappedImages[0];
+        const mainImage = featuredAsset?.url || productObj.featuredImage || '';
 
         // Create a fallback variant for the "Simple Product" model
-        // This ensures the frontend components that expect variants still work
         const fallbackVariant = {
-            id: productObj.id, // Use product ID as variant ID
+            id: productObj.id,
             name: productObj.name,
             sku: productObj.sku || '',
-            price: productObj.salePrice ?? 0,
-            compareAtPrice: productObj.originalPrice,
+            price: Number(productObj.salePrice ?? 0),
+            compareAtPrice: productObj.originalPrice ? Number(productObj.originalPrice) : undefined,
             status: 'active',
             inventory: {
                 track: true,
@@ -85,18 +57,18 @@ export async function GET(
             short_description: productObj.shortDescription || productObj.description?.substring(0, 160),
             images: mappedImages,
             image: mainImage,
-            price: productObj.salePrice ?? 0,
-            compareAtPrice: productObj.originalPrice,
-            variantId: productObj.id, // Fallback to product ID
+            price: Number(productObj.salePrice ?? 0),
+            compareAtPrice: productObj.originalPrice ? Number(productObj.originalPrice) : undefined,
+            variantId: productObj.id,
             stockOnHand: productObj.stockOnHand ?? 0,
             canBuy: (productObj.stockOnHand ?? 0) > 0,
-            variants: [fallbackVariant], // Wrap fallback in array
-            categories: productObj.collections?.map((col: any) => ({
-                id: col.id,
-                name: col.name,
-                slug: col.slug,
+            variants: [fallbackVariant],
+            categories: productObj.collections?.map((c: any) => ({
+                id: c.collection.id,
+                name: c.collection.name,
+                slug: c.collection.slug,
             })) || [],
-            brand: productObj.brand?.name || productObj.brand,
+            brand: productObj.brand,
             stock_status: (productObj.stockOnHand ?? 0) > 0 ? 'instock' : 'outofstock',
             condition: productObj.condition,
             shippingMethod: productObj.shippingMethod ? {

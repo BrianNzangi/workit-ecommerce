@@ -5,7 +5,6 @@ import { db } from "@workit/db";
 
 export async function GET() {
   try {
-    // This execution happens at request time, not build time ✅
     const session = await auth.api.getSession({
       headers: await headers(),
     });
@@ -18,18 +17,39 @@ export async function GET() {
     }
 
     const { user } = session;
+    const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3001';
+    const headerList = await headers();
 
-    // Return billing information from the user record
+    // Fetch customer profile from backend-v2
+    const customerRes = await fetch(`${BACKEND_URL}/identity/customers/me`, {
+      headers: {
+        'cookie': headerList.get('cookie') || '',
+      }
+    });
+
+    // Fetch addresses from backend-v2
+    const addressRes = await fetch(`${BACKEND_URL}/identity/customers/me/addresses`, {
+      headers: {
+        'cookie': headerList.get('cookie') || '',
+      }
+    });
+
+    const customerData = await customerRes.json();
+    const addressData = await addressRes.json();
+
+    // Get the first address as the default billing address if available
+    const primaryAddress = addressData.addresses?.[0] || {};
+
     const billingData = {
-      first_name: (user as any).firstName || user.name?.split(' ')[0] || '',
-      last_name: (user as any).lastName || user.name?.split(' ').slice(1).join(' ') || '',
-      email: user.email || '',
-      phone: '',
-      address_1: '',
-      city: '',
-      county: '',
-      postcode: '',
-      country: 'Kenya',
+      first_name: customerData.firstName || user.name?.split(' ')[0] || '',
+      last_name: customerData.lastName || user.name?.split(' ').slice(1).join(' ') || '',
+      email: customerData.email || user.email || '',
+      phone: primaryAddress.phoneNumber || '',
+      address_1: primaryAddress.streetLine1 || '',
+      city: primaryAddress.city || '',
+      county: primaryAddress.province || '',
+      postcode: primaryAddress.postalCode || '',
+      country: primaryAddress.country || 'Kenya',
     };
 
     return NextResponse.json({

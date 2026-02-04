@@ -125,7 +125,7 @@ export function AccountInfo() {
             <Button variant="outline" onClick={handleCancel}>
               Cancel
             </Button>
-            <Button onClick={handleSave} className="bg-[#0046BE] text-white">
+            <Button onClick={handleSave} className="bg-primary-900 text-white">
               Save Changes
             </Button>
           </DialogFooter>

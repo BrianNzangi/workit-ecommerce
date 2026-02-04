@@ -1,79 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+import { proxyFetch } from '@/lib/proxy-utils';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
 
     // Extract all possible query parameters
-    const page = searchParams.get('page') || '1';
-    const limit = searchParams.get('per_page') || searchParams.get('limit') || '12';
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('per_page') || searchParams.get('limit') || '12');
+    const offset = (page - 1) * limit;
+
     const collectionSlug = searchParams.get('slug') || searchParams.get('collection');
-    const collectionId = searchParams.get('collectionId');
     const brandId = searchParams.get('brandId') || searchParams.get('brand');
-    const searchTerm = searchParams.get('search');
-    const sort = searchParams.get('sort');
-    const minPrice = searchParams.get('minPrice');
-    const maxPrice = searchParams.get('maxPrice');
-    const inStock = searchParams.get('inStock');
-    const sortBy = searchParams.get('sortBy');
-    const sortOrder = searchParams.get('sortOrder');
+    const searchTerm = searchParams.get('search') || searchParams.get('q');
 
-    // Build query parameters for backend REST API
+    // Build query parameters for backend-v2
     const params = new URLSearchParams({
-      page,
-      limit,
+      limit: limit.toString(),
+      offset: offset.toString(),
     });
 
-    // Add optional filters
-    if (collectionSlug) {
-      params.append('collection', collectionSlug);
-    }
-    if (collectionId) {
-      params.append('collectionId', collectionId);
-    }
-    if (brandId) {
-      params.append('brandId', brandId);
-    }
-    if (searchTerm) {
-      params.append('search', searchTerm);
-    }
-    if (sort) {
-      params.append('sort', sort);
-    }
-    if (minPrice) {
-      params.append('minPrice', minPrice);
-    }
-    if (maxPrice) {
-      params.append('maxPrice', maxPrice);
-    }
-    if (inStock) {
-      params.append('inStock', inStock);
-    }
-    if (sortBy) {
-      params.append('sortBy', sortBy);
-    }
-    if (sortOrder) {
-      params.append('sortOrder', sortOrder);
-    }
+    if (collectionSlug) params.append('collection', collectionSlug);
+    if (brandId) params.append('brand', brandId);
+    if (searchTerm) params.append('q', searchTerm);
 
-    // Always use the general products endpoint with filters
-    const apiUrl = `${BACKEND_URL}/store/products?${params.toString()}`;
-
-    // Fetch from backend REST API
-    const response = await fetch(apiUrl, {
-      cache: 'no-store',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    // Fetch from backend-v2 via proxy
+    const response = await proxyFetch(`/store/products?${params.toString()}`);
 
     if (!response.ok) {
       console.error(`Backend API returned ${response.status}`);
-      const errorText = await response.text();
-      console.error('Error response:', errorText);
-
       return NextResponse.json({
         products: [],
         total: 0,
@@ -83,52 +38,41 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await response.json();
+    const products = (data.products || []).map((product: any) => {
+      // Find the featured asset or default to the first one
+      const featuredProductAsset = product.assets?.find((a: any) => a.featured) || product.assets?.[0];
+      const mainImage = featuredProductAsset?.asset?.source || featuredProductAsset?.asset?.preview || '';
 
-    // Backend returns { success: true, data: { products: [], pagination: {} } }
-    const responseData = data.data || data;
-
-    // Transform backend response to match expected format
-    const products = responseData.products?.map((product: any) => {
       return {
         id: product.id,
         name: product.name,
         slug: product.slug,
         description: product.description,
-        images: product.images?.map((img: any) => ({
-          id: img.id,
-          url: img.url,
-          altText: img.altText,
-          position: img.position,
+        images: product.assets?.map((a: any) => ({
+          id: a.asset.id,
+          url: a.asset.source || a.asset.preview || '',
+          source: a.asset.source,
+          preview: a.asset.preview,
+          featured: a.featured,
+          altText: a.asset.name || product.name,
         })) || [],
-        image: product.featuredImage || '',
-        price: product.salePrice ?? 0,
-        compareAtPrice: product.originalPrice,
-        variantId: product.id, // Fallback to product ID for simple products
-        variants: [{
-          id: product.id,
-          name: product.name,
-          sku: product.sku || '',
-          price: product.salePrice ?? 0,
-          compareAtPrice: product.originalPrice,
-          status: 'active',
-          inventory: {
-            track: true,
-            stockOnHand: product.stockOnHand ?? 0,
-          }
-        }],
+        image: mainImage,
+        price: Number(product.salePrice ?? 0),
+        compareAtPrice: product.originalPrice ? Number(product.originalPrice) : undefined,
+        variantId: product.id,
         stockOnHand: product.stockOnHand ?? 0,
-        canBuy: product.stockOnHand > 0,
-        categories: product.collections || [],
+        canBuy: (product.stockOnHand ?? 0) > 0,
+        categories: product.collections?.map((c: any) => c.collection) || [],
         brand: product.brand,
         condition: product.condition,
       };
-    }) || [];
+    });
 
     return NextResponse.json({
       products,
-      total: responseData.pagination?.total || 0,
-      totalPages: responseData.pagination?.totalPages || 1,
-      page: responseData.pagination?.page || 1,
+      total: products.length, // backend-v2 doesn't return total yet in this endpoint
+      totalPages: Math.ceil(products.length / limit) || 1,
+      page: page,
     });
   } catch (error) {
     console.error('Error fetching products from backend:', error);

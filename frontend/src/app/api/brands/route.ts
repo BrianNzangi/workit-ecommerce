@@ -63,7 +63,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json([], { status: 200 });
     }
 
-    const brands = await response.json();
+    const data = await response.json();
+    const brands = data.brands || (Array.isArray(data) ? data : []);
 
     // Transform to match expected format
     const transformedBrands = Array.isArray(brands) ? brands.map((brand: any) => ({

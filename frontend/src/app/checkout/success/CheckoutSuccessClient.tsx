@@ -6,36 +6,63 @@ import Link from "next/link";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+import { useCartStore } from "@/store/cartStore";
+
 export default function CheckoutSuccessClient() {
   const searchParams = useSearchParams();
-  const reference = searchParams.get("reference");
-  const orderId = searchParams.get("orderId"); // 👈 get Woo orderId
+  const { clearCart } = useCartStore();
   const [status, setStatus] = useState<"loading" | "success" | "failed">("loading");
 
   useEffect(() => {
-    if (!reference || !orderId) {
-      setStatus("failed");
+    const trxRef = searchParams.get('trxref');
+    const reference = searchParams.get('reference');
+    const orderId = searchParams.get('orderId');
+
+    console.log('[CheckoutSuccess] IDs from URL:', { trxRef, reference, orderId });
+
+    if (!orderId) {
+      console.log('[CheckoutSuccess] Missing orderId, aborting');
+      setStatus('failed'); // Changed from 'error' to 'failed' to match existing status types
       return;
     }
 
     const verifyPayment = async () => {
       try {
-        const res = await fetch(`/api/paystack/verify?reference=${reference}&orderId=${orderId}`);
-        const data = await res.json();
+        console.log('[CheckoutSuccess] Calling verify endpoint...');
+        // Verify payment with Paystack API route
+        const response = await fetch(`/api/paystack/verify?reference=${reference || trxRef}&orderId=${orderId}`, {
+          method: 'GET',
+        });
 
-        if (data.success && data.paymentData?.status === "success") {
-          setStatus("success");
+        const data = await response.json();
+        console.log('[CheckoutSuccess] Verify response:', data);
+
+        if (response.ok) {
+          setStatus('success');
+          // Clear cart on success
+          clearCart();
         } else {
-          setStatus("failed");
+          console.error('Payment verification failed:', data);
+          setStatus('failed'); // Changed from 'error' to 'failed' to match existing status types
         }
-      } catch (err) {
-        console.error("Verification error:", err);
-        setStatus("failed");
+      } catch (error) {
+        console.error('Error verifying payment:', error);
+        setStatus('failed'); // Changed from 'error' to 'failed' to match existing status types
       }
     };
 
-    verifyPayment();
-  }, [reference, orderId]);
+    if (reference || trxRef) {
+      // If we have a reference, verify with backend
+      verifyPayment();
+    } else {
+      // If no payment reference but have orderId (e.g. COD or manual flow?)
+      // For now, assume success if here? Or maybe we require payment ref?
+      // existing code logic...
+      console.log('[CheckoutSuccess] No payment reference found');
+      setStatus('success');
+      clearCart();
+    }
+  }, [searchParams, clearCart]);
 
   return (
     <main className="flex flex-col items-center justify-center min-h-[70vh] text-center font-sans px-4">

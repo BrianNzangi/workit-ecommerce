@@ -1,0 +1,43 @@
+type ShippingMethod {
+  id: ID!
+  code: String!
+  name: String!
+  description: String
+  price: Int!
+  enabled: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+input CreateShippingMethodInput {
+  code: String!
+  name: String!
+  description: String
+  price: Int!
+  enabled: Boolean
+}
+
+input UpdateShippingMethodInput {
+  code: String
+  name: String
+  description: String
+  price: Int
+  enabled: Boolean
+}
+
+input ShippingMethodListOptions {
+  take: Int
+  skip: Int
+  enabledOnly: Boolean
+}
+
+extend type Query {
+  shippingMethod(id: ID!): ShippingMethod
+  shippingMethods(options: ShippingMethodListOptions): [ShippingMethod!]!
+}
+
+extend type Mutation {
+  createShippingMethod(input: CreateShippingMethodInput!): ShippingMethod!
+  updateShippingMethod(id: ID!, input: UpdateShippingMethodInput!): ShippingMethod!
+  deleteShippingMethod(id: ID!): Boolean!
+}

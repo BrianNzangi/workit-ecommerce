@@ -51,14 +51,23 @@ export async function GET(req: Request) {
 
     const data = await response.json();
 
-    // Backend returns array directly, wrap it in expected format
-    const homepageCollections = Array.isArray(data) ? data : [];
+    // Backend returns array directly,
+    const homepageCollections = data.collections || (Array.isArray(data) ? data : []);
 
     // Transform to match frontend expectations
-    const transformedCollections = homepageCollections.map((collection: any) => ({
-      ...collection,
-      products: normalizeProducts(collection.products)
-    }));
+    const transformedCollections = homepageCollections.map((collection: any) => {
+      // Backend returns products as an array of join objects: { product: { ... } }
+      const products = (collection.products || []).map((p: any) => p.product).filter(Boolean);
+
+      console.log(`Collection ${collection.title || collection.name}: Found ${products.length} products`);
+
+      return {
+        ...collection,
+        products: normalizeProducts(products)
+      };
+    });
+
+    console.log(`Returning ${transformedCollections.length} transformed collections`);
 
     // Return the transformed data
     return NextResponse.json({

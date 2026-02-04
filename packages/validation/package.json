@@ -1,16 +1,15 @@
 {
     "name": "@workit/validation",
-    "version": "0.1.0",
-    "private": true,
-    "main": "./dist/index.js",
-    "types": "./dist/index.d.ts",
+    "version": "1.0.0",
+    "main": "src/index.ts",
+    "types": "src/index.ts",
     "scripts": {
         "build": "tsc"
     },
     "dependencies": {
-        "zod": "latest"
+        "zod": "^3.22.4"
     },
     "devDependencies": {
-        "typescript": "latest"
+        "typescript": "^5.0.0"
     }
 }

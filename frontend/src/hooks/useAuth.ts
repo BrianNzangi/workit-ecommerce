@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useSession, signOut, authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 
@@ -15,13 +16,17 @@ export function useAuth() {
     const { data: session, isPending: loading, error } = useSession();
     const router = useRouter();
 
-    const customer: Customer | null = session?.user ? {
-        id: session.user.id,
-        firstName: (session.user as any).firstName || session.user.name?.split(' ')[0] || '',
-        lastName: (session.user as any).lastName || session.user.name?.split(' ').slice(1).join(' ') || '',
-        emailAddress: session.user.email,
-        phoneNumber: '',
-    } : null;
+    const customer: Customer | null = useMemo(() => {
+        if (!session?.user) return null;
+
+        return {
+            id: session.user.id,
+            firstName: (session.user as any).firstName || session.user.name?.split(' ')[0] || '',
+            lastName: (session.user as any).lastName || session.user.name?.split(' ').slice(1).join(' ') || '',
+            emailAddress: session.user.email,
+            phoneNumber: '',
+        };
+    }, [session?.user]);
 
     const login = async () => {
         router.push('/login');

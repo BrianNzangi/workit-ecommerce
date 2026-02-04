@@ -1,10 +1,11 @@
 // src/store/cartStore.ts
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import axios from 'axios';
 
 export type CartItem = {
-  id: string;
-  variantId: string; // Backend variant ID (NOT the product ID)
+  id: string; // This is the Line ID in backend
+  productId: string;
   name: string;
   image: string;
   price: number;
@@ -14,51 +15,34 @@ export type CartItem = {
 type CartState = {
   isOpen: boolean;
   items: CartItem[];
-  lastUpdated: string | null;
   sessionId: string | null;
+  loading: boolean;
 
   openCart: () => void;
   closeCart: () => void;
 
-  addItem: (item: CartItem) => void;
-  increaseQuantity: (id: string) => void;
-  decreaseQuantity: (id: string) => void;
-  removeItem: (id: string) => void;
-
-  clearCart: () => void;
+  fetchCart: () => Promise<void>;
+  addItem: (product: { id: string; name: string; price: number; image: string }, quantity?: number) => Promise<void>;
+  updateQuantity: (lineId: string, quantity: number) => Promise<void>;
+  increaseQuantity: (lineId: string) => Promise<void>;
+  decreaseQuantity: (lineId: string) => Promise<void>;
+  removeItem: (lineId: string) => Promise<void>;
+  clearCart: () => Promise<void>;
 
   getTotalQuantity: () => number;
-  syncCartToBackend: () => Promise<void>;
 };
 
-// Generate a unique session ID for tracking
+// Generate a unique session ID for guest users
 const generateSessionId = () => {
-  return `cart_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+  return `guest_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 };
 
-// Sync cart data to backend for abandoned cart tracking
-const syncCartToBackend = async (items: CartItem[], sessionId: string) => {
-  if (items.length === 0) return;
-
-  try {
-    const response = await fetch('/api/cart/sync', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        sessionId,
-        items,
-        lastUpdated: new Date().toISOString(),
-      }),
-    });
-
-    if (!response.ok) {
-      console.error('Failed to sync cart to backend');
-    }
-  } catch (error) {
-    console.error('Error syncing cart:', error);
+const getHeaders = (sessionId: string | null) => {
+  const headers: any = { 'Content-Type': 'application/json' };
+  if (sessionId) {
+    headers['x-guest-id'] = sessionId;
   }
+  return headers;
 };
 
 export const useCartStore = create<CartState>()(
@@ -66,108 +50,133 @@ export const useCartStore = create<CartState>()(
     (set, get) => ({
       isOpen: false,
       items: [],
-      lastUpdated: null,
       sessionId: null,
+      loading: false,
 
       openCart: () => set({ isOpen: true }),
       closeCart: () => set({ isOpen: false }),
 
-      addItem: (item) => {
-        const existing = get().items.find((i) => i.id === item.id);
-        const sessionId = get().sessionId || generateSessionId();
-        const lastUpdated = new Date().toISOString();
+      fetchCart: async () => {
+        let { sessionId } = get();
+        if (!sessionId) {
+          sessionId = generateSessionId();
+          set({ sessionId });
+        }
+        set({ loading: true });
+        try {
+          // Use axios for consistency, proxied via /api/cart
+          const response = await axios.get('/api/cart', {
+            headers: getHeaders(sessionId)
+          });
 
-        if (existing) {
-          set({
-            items: get().items.map((i) =>
-              i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
-            ),
-            lastUpdated,
-            sessionId,
-          });
-        } else {
-          set({
-            items: [...get().items, { ...item, quantity: 1 }],
-            lastUpdated,
-            sessionId,
-          });
+          if (response.data) {
+            const mappedItems = (response.data.lines || []).map((line: any) => ({
+              id: line.id, // Line ID
+              productId: line.productId, // Product ID
+              name: line.product.name,
+              price: line.product.salePrice ?? line.product.originalPrice ?? 0,
+              // Simplify asset lookup: first asset's preview, or empty string
+              image: (line.product.assets && line.product.assets.length > 0 && line.product.assets[0].asset)
+                ? line.product.assets[0].asset.preview
+                : '',
+              quantity: line.quantity
+            }));
+            set({ items: mappedItems });
+          }
+        } catch (error) {
+          console.error('Failed to fetch cart:', error);
+        } finally {
+          set({ loading: false });
+        }
+      },
+
+      addItem: async (product, quantity = 1) => {
+        let { sessionId } = get();
+        if (!sessionId) {
+          sessionId = generateSessionId();
+          set({ sessionId });
         }
 
-        // Sync to backend after state update
-        setTimeout(() => {
-          syncCartToBackend(get().items, sessionId);
-        }, 100);
+        try {
+          await axios.post('/api/cart', {
+            productId: product.id,
+            quantity
+          }, { headers: getHeaders(sessionId) });
+
+          // Refetch to get correct Line IDs and totals
+          await get().fetchCart();
+          set({ isOpen: true }); // Open cart on add
+        } catch (error) {
+          console.error('Failed to add item:', error);
+        }
       },
 
-      increaseQuantity: (id) => {
-        const sessionId = get().sessionId || generateSessionId();
-        const lastUpdated = new Date().toISOString();
+      updateQuantity: async (lineId, quantity) => {
+        const { sessionId } = get();
+        if (quantity < 1) return;
 
-        set({
-          items: get().items.map((item) =>
-            item.id === id ? { ...item, quantity: item.quantity + 1 } : item
-          ),
-          lastUpdated,
-          sessionId,
-        });
+        // Optimistic
+        set(state => ({
+          items: state.items.map(i => i.id === lineId ? { ...i, quantity } : i)
+        }));
 
-        // Sync to backend
-        setTimeout(() => {
-          syncCartToBackend(get().items, sessionId);
-        }, 100);
+        try {
+          await axios.put(`/api/cart/${lineId}`, { quantity }, { headers: getHeaders(sessionId) });
+          // No need to refetch if successful, as we updated optimistically
+        } catch (error) {
+          console.error('Failed to update quantity:', error);
+          await get().fetchCart(); // Revert on error
+        }
       },
 
-      decreaseQuantity: (id) => {
-        const updated = get().items
-          .map((item) =>
-            item.id === id ? { ...item, quantity: item.quantity - 1 } : item
-          )
-          .filter((item) => item.quantity > 0);
+      removeItem: async (lineId) => {
+        const { sessionId } = get();
 
-        const sessionId = get().sessionId || generateSessionId();
-        const lastUpdated = new Date().toISOString();
+        // Optimistic
+        set(state => ({
+          items: state.items.filter(i => i.id !== lineId)
+        }));
 
-        set({
-          items: updated,
-          lastUpdated,
-          sessionId,
-        });
-
-        // Sync to backend
-        setTimeout(() => {
-          syncCartToBackend(get().items, sessionId);
-        }, 100);
+        try {
+          await axios.delete(`/api/cart/${lineId}`, { headers: getHeaders(sessionId) });
+        } catch (error) {
+          console.error('Failed to remove item:', error);
+          await get().fetchCart();
+        }
       },
 
-      removeItem: (id) => {
-        const sessionId = get().sessionId || generateSessionId();
-        const lastUpdated = new Date().toISOString();
-
-        set({
-          items: get().items.filter((item) => item.id !== id),
-          lastUpdated,
-          sessionId,
-        });
-
-        // Sync to backend
-        setTimeout(() => {
-          syncCartToBackend(get().items, sessionId);
-        }, 100);
+      increaseQuantity: async (lineId) => {
+        const item = get().items.find(i => i.id === lineId);
+        if (item) {
+          await get().updateQuantity(lineId, item.quantity + 1);
+        }
       },
 
-      clearCart: () => set({ items: [], lastUpdated: null }),
+      decreaseQuantity: async (lineId) => {
+        const item = get().items.find(i => i.id === lineId);
+        if (item && item.quantity > 1) {
+          await get().updateQuantity(lineId, item.quantity - 1);
+        } else if (item && item.quantity === 1) {
+          await get().removeItem(lineId);
+        }
+      },
+
+      clearCart: async () => {
+        const { sessionId } = get();
+        set({ items: [] });
+        try {
+          await axios.delete('/api/cart', { headers: getHeaders(sessionId) });
+        } catch (error) {
+          console.error('Failed to clear cart:', error);
+        }
+      },
 
       getTotalQuantity: () =>
         get().items.reduce((total, item) => total + item.quantity, 0),
-
-      syncCartToBackend: async () => {
-        const { items, sessionId } = get();
-        if (!sessionId) return;
-        await syncCartToBackend(items, sessionId);
-      },
     }),
     {
       name: 'cart-storage',
+      partialize: (state) => ({ sessionId: state.sessionId }), // Only persist session ID, items should be fetched
     }
   )
 );

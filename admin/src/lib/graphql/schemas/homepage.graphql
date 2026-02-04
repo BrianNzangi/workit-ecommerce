@@ -1,0 +1,57 @@
+type HomepageCollection {
+  id: ID!
+  title: String!
+  slug: String!
+  enabled: Boolean!
+  sortOrder: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  products: [HomepageCollectionProduct!]!
+}
+
+type HomepageCollectionProduct {
+  id: ID!
+  collectionId: String!
+  productId: String!
+  sortOrder: Int!
+  collection: HomepageCollection!
+  product: Product!
+}
+
+input CreateHomepageCollectionInput {
+  title: String!
+  slug: String
+  enabled: Boolean
+  sortOrder: Int
+}
+
+input UpdateHomepageCollectionInput {
+  title: String
+  slug: String
+  enabled: Boolean
+  sortOrder: Int
+}
+
+input HomepageCollectionListOptions {
+  take: Int
+  skip: Int
+  enabled: Boolean
+}
+
+input ProductOrderInput {
+  productId: String!
+  sortOrder: Int!
+}
+
+extend type Query {
+  homepageCollection(id: ID!): HomepageCollection
+  homepageCollections(options: HomepageCollectionListOptions): [HomepageCollection!]!
+}
+
+extend type Mutation {
+  createHomepageCollection(input: CreateHomepageCollectionInput!): HomepageCollection!
+  updateHomepageCollection(id: ID!, input: UpdateHomepageCollectionInput!): HomepageCollection!
+  addProductToHomepageCollection(collectionId: ID!, productId: ID!, sortOrder: Int): HomepageCollectionProduct!
+  removeProductFromHomepageCollection(collectionId: ID!, productId: ID!): Boolean!
+  reorderHomepageCollectionProducts(collectionId: ID!, productOrders: [ProductOrderInput!]!): Boolean!
+}

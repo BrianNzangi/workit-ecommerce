@@ -19,10 +19,16 @@ export async function GET(request: NextRequest) {
     const { user } = session;
 
     const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3001';
+    const headerList = await headers();
 
-    // Fetch orders from the new backend by user's email
-    console.log(`Fetching orders for ${user.email} from backend...`);
-    const res = await fetch(`${BACKEND_URL}/store/orders/by-email/${user.email}`);
+    // Fetch orders from the new backend fulfillment module
+    // This uses the session cookie forward to authenticate
+    console.log(`Fetching orders for user ID: ${user.id} from backend-v2...`);
+    const res = await fetch(`${BACKEND_URL}/fulfillment/orders`, {
+      headers: {
+        'cookie': headerList.get('cookie') || '',
+      }
+    });
 
     if (!res.ok) {
       throw new Error(`Backend returned ${res.status}`);

@@ -57,7 +57,8 @@ interface ShippingZone {
   cities: {
     id: string;
     cityTown: string;
-    price: number;
+    standardPrice: number;
+    expressPrice: number;
   }[];
 }
 
@@ -137,10 +138,16 @@ export default function StepBilling({
   // Get unique counties from shipping zones
   const availableCounties = Array.from(new Set(shippingZones.map(zone => zone.county))).sort();
 
-  // Get cities for selected county
+  // Get cities for selected county (handling potential duplicates across methods)
   const getAvailableCities = (county: string) => {
-    const zone = shippingZones.find(z => z.county === county);
-    return zone?.cities.map(c => c.cityTown).sort() || [];
+    const zones = shippingZones.filter(z => z.county === county);
+    const citiesSet = new Set<string>();
+    zones.forEach(zone => {
+      zone.cities.forEach(city => {
+        if (city.cityTown) citiesSet.add(city.cityTown);
+      });
+    });
+    return Array.from(citiesSet).sort();
   };
 
   const availableCities = selectedCounty ? getAvailableCities(selectedCounty) : [];

@@ -36,10 +36,17 @@ export function normalizeProduct(product: any): Product {
             : String(product.id),
 
         // Ensure imagery is mapped correctly if missing
+        images: product.images || (product.assets?.map((a: any) => ({
+            id: a.asset?.id,
+            url: a.asset?.url || a.asset?.source || a.asset?.preview,
+            altText: a.asset?.altText || product.name,
+        })) || []),
         image: product.image || product.featuredImage ||
-            (product.images && (product.images[0]?.url || product.images[0]?.preview || product.images[0]?.source)),
+            (product.images && (product.images[0]?.url || product.images[0]?.preview || product.images[0]?.source)) ||
+            (product.assets && (product.assets[0]?.asset?.url || product.assets[0]?.asset?.source || product.assets[0]?.asset?.preview)),
         featuredImage: product.featuredImage || product.image ||
-            (product.images && (product.images[0]?.url || product.images[0]?.preview || product.images[0]?.source)),
+            (product.images && (product.images[0]?.url || product.images[0]?.preview || product.images[0]?.source)) ||
+            (product.assets && (product.assets[0]?.asset?.url || product.assets[0]?.asset?.source || product.assets[0]?.asset?.preview)),
 
         // Ensure variants array exists for components that expect it
         variants: (product.variants && product.variants.length > 0)

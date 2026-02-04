@@ -67,6 +67,17 @@ export async function proxyFetch(path: string, options: RequestInit = {}) {
         'x-api-key': env['INTERNAL_API_KEY'] || '',
     };
 
+    // Forward cookies if available
+    try {
+        const headerList = await headers();
+        const cookie = headerList.get('cookie');
+        if (cookie) {
+            defaultHeaders['cookie'] = cookie;
+        }
+    } catch (e) {
+        // next/headers might throw if called outside of request context
+    }
+
     const response = await fetch(url, {
         ...options,
         headers: {

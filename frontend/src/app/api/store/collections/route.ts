@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
         }
 
         const data = await response.json();
-        return NextResponse.json(data, { status: 200 });
+        return NextResponse.json(data.collections || [], { status: 200 });
     } catch (error) {
         console.error('❌ Failed to fetch collections:', error);
         return NextResponse.json(

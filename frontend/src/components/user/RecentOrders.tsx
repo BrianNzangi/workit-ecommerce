@@ -30,7 +30,7 @@ export function RecentOrders({ orders, loading }: RecentOrdersProps) {
       case 'completed':
         return <CheckCircle className="text-green-600" size={28} />;
       case 'processing':
-        return <Clock className="text-blue-600" size={28} />;
+        return <Clock className="text-primary-900" size={28} />;
       case 'shipped':
         return <Truck className="text-orange-600" size={28} />;
       case 'cancelled':
@@ -85,7 +85,7 @@ export function RecentOrders({ orders, loading }: RecentOrdersProps) {
           <h3 className="text-lg font-medium text-gray-900 mb-2">No Orders Yet</h3>
           <p className="text-gray-600 mb-4">You have not placed any orders yet.</p>
           <Link href="/">
-            <Button className="bg-[#0046BE] text-white">
+            <Button className="bg-primary-900 text-white">
               Start Shopping
             </Button>
           </Link>
@@ -115,7 +115,7 @@ export function RecentOrders({ orders, loading }: RecentOrdersProps) {
                   {order.line_items.length} item{order.line_items.length !== 1 ? 's' : ''}
                 </div>
                 <Link href={`/orders/${order.id}`}>
-                  <Button variant="outline" size="sm" className="flex items-center text-[#0046BE] hover:shdow-sm  gap-2">
+                  <Button variant="outline" size="sm" className="flex items-center text-primary-900 hover:shdow-sm  gap-2">
                     <Eye size={14} />
                     Order Details
                   </Button>

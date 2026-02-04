@@ -1,24 +1,33 @@
 {
     "name": "@workit/db",
-    "version": "0.1.0",
-    "private": true,
-    "main": "./dist/index.js",
-    "types": "./dist/index.d.ts",
+    "version": "1.0.0",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "type": "module",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "default": "./dist/index.js"
+        }
+    },
     "scripts": {
         "build": "tsc",
-        "dev": "tsc --watch",
-        "db:generate": "drizzle-kit generate",
-        "db:push": "drizzle-kit push",
-        "db:studio": "drizzle-kit studio"
+        "generate": "drizzle-kit generate",
+        "migrate": "drizzle-kit migrate"
+    },
+    "peerDependencies": {
+        "drizzle-orm": "^0.45.1"
     },
     "dependencies": {
-        "dotenv": "latest",
-        "drizzle-orm": "latest",
-        "postgres": "latest"
+        "@types/bcryptjs": "^2.4.6",
+        "bcryptjs": "^3.0.3",
+        "dotenv": "^16.4.5",
+        "postgres": "^3.4.8",
+        "drizzle-orm": "^0.45.1"
     },
     "devDependencies": {
-        "@types/node": "^25.0.10",
         "drizzle-kit": "latest",
-        "typescript": "latest"
+        "drizzle-orm": "^0.45.1",
+        "typescript": "^5.0.0"
     }
 }

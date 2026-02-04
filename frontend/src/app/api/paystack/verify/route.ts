@@ -29,17 +29,14 @@ export async function GET(req: Request) {
     // ✅ Step 2: If payment successful, update order status in backend via REST
     let updatedOrder = null;
     if (paymentData.status === "success") {
-      const response = await fetch(`${BACKEND_URL}/store/payments/verify`, {
+      const response = await fetch(`${BACKEND_URL}/checkout/verify`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           orderId,
-          reference,
-          amount: paymentData.amount / 100, // Paystack is in cents, our backend expects currency units
-          status: 'success',
-          provider: 'PAYSTACK'
+          paymentReference: reference,
         }),
       });
 

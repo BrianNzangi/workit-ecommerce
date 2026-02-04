@@ -1,17 +1,16 @@
 {
     "compilerOptions": {
-        "target": "ES2022",
-        "module": "commonjs",
-        "moduleResolution": "node",
-        "declaration": true,
-        "outDir": "./dist",
+        "target": "ESNext",
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
         "strict": true,
         "esModuleInterop": true,
-        "skipLibCheck": true
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "declaration": true,
+        "outDir": "./dist"
     },
     "include": [
-        "./index.ts",
-        "./client.ts",
-        "./schema/**/*.ts"
+        "src/**/*"
     ]
 }

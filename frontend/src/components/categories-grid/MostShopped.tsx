@@ -36,9 +36,10 @@ export default function MostShopped() {
                 });
 
                 const allFeaturedCollections: CollectionItem[] = [];
+                const addedIds = new Set<string>(); // Track IDs to prevent duplicates
 
                 data.forEach((collection: Collection) => {
-                    if (collection.showInMostShopped === true) {
+                    if (collection.showInMostShopped === true && !addedIds.has(collection.id)) {
                         allFeaturedCollections.push({
                             id: collection.id,
                             name: collection.name,
@@ -46,11 +47,12 @@ export default function MostShopped() {
                             sortOrder: collection.sortOrder,
                             image: collection.asset?.preview || collection.asset?.source,
                         });
+                        addedIds.add(collection.id);
                     }
 
                     if (collection.children && collection.children.length > 0) {
                         collection.children.forEach((child: any) => {
-                            if (child.showInMostShopped === true) {
+                            if (child.showInMostShopped === true && !addedIds.has(child.id)) {
                                 allFeaturedCollections.push({
                                     id: child.id,
                                     name: child.name,
@@ -58,6 +60,7 @@ export default function MostShopped() {
                                     sortOrder: child.sortOrder,
                                     image: child.asset?.preview || child.asset?.source,
                                 });
+                                addedIds.add(child.id);
                             }
                         });
                     }

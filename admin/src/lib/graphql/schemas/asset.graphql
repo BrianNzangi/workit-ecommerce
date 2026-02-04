@@ -1,0 +1,45 @@
+enum AssetType {
+  IMAGE
+  VIDEO
+  DOCUMENT
+}
+
+type Asset {
+  id: ID!
+  name: String!
+  type: AssetType!
+  mimeType: String!
+  fileSize: Int!
+  source: String!
+  preview: String!
+  width: Int
+  height: Int
+  createdAt: DateTime!
+}
+
+input UploadAssetInput {
+  file: String!
+  fileName: String!
+  mimeType: String!
+  folder: String
+}
+
+type AssetUploadResult {
+  asset: Asset!
+}
+
+input AssetListOptions {
+  type: AssetType
+  take: Int
+  skip: Int
+}
+
+extend type Query {
+  asset(id: ID!): Asset
+  assets(options: AssetListOptions): [Asset!]!
+}
+
+extend type Mutation {
+  uploadAsset(input: UploadAssetInput!): AssetUploadResult!
+  deleteAsset(id: ID!): Boolean!
+}

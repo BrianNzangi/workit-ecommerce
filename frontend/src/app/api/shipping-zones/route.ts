@@ -1,26 +1,22 @@
 import { NextResponse } from 'next/server';
-
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3001';
+import { proxyFetch } from '@/lib/proxy-utils';
 
 export async function GET() {
     try {
-        const response = await fetch(`${BACKEND_URL}/store/shipping/zones`, {
-            cache: 'no-store',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
+        const response = await proxyFetch('/store/shipping');
 
         if (!response.ok) {
             console.error(`Backend API returned ${response.status}`);
             return NextResponse.json(
-                { success: false, error: 'Failed to fetch shipping zones' },
+                { success: false, error: 'Failed to fetch shipping zones from backend' },
                 { status: response.status }
             );
         }
 
         const data = await response.json();
-        return NextResponse.json({ success: true, data });
+        // The backend /store/shipping returns { methods: [...] }
+        // We'll return the methods array as the data
+        return NextResponse.json({ success: true, data: data.methods });
     } catch (error) {
         console.error('Error fetching shipping zones:', error);
         return NextResponse.json(

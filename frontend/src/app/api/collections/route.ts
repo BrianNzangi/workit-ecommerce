@@ -9,6 +9,7 @@ import { proxyFetch } from '@/lib/proxy-utils';
  */
 export async function GET(request: NextRequest) {
     const { searchParams } = request.nextUrl;
+    console.log(`[Collections API] Received params: ${searchParams.toString()}`);
 
     try {
         // Build the proxy path with correctly formatted query parameters
@@ -35,7 +36,11 @@ export async function GET(request: NextRequest) {
         }
 
         const data = await response.json();
-        return NextResponse.json(data, { status: 200 });
+
+        // backend-v2 returns { collections: [...] }, but frontend expects [...]
+        const collections = Array.isArray(data) ? data : (data.collections || []);
+
+        return NextResponse.json(collections, { status: 200 });
     } catch (error) {
         console.error('❌ Collections API proxy error:', error);
         return NextResponse.json(

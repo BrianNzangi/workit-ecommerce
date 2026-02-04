@@ -68,7 +68,7 @@ export const useCheckout = (user: User) => {
       phone: '',
     },
     payment: { method: 'card' },
-    items: [],
+    items: items, // use items from useCartStore directly
     totals: {
       subtotal: 0,
       shipping: 0,
@@ -230,31 +230,52 @@ export const useCheckout = (user: User) => {
   };
 
   const createOrder = async (): Promise<{ id: string; total: string }> => {
-    const orderRes = await fetch("/api/orders/create", {
+    // Map addresses to backend format
+    const shippingAddress = {
+      fullName: `${stepData.shipping.first_name} ${stepData.shipping.last_name}`,
+      streetLine1: stepData.shipping.address_1,
+      streetLine2: stepData.shipping.address_2 || "",
+      city: stepData.shipping.city,
+      province: stepData.shipping.county,
+      postalCode: stepData.shipping.postcode,
+      phoneNumber: stepData.shipping.phone,
+      country: stepData.shipping.country
+    };
+
+    const billingAddress = {
+      fullName: `${stepData.billing.first_name} ${stepData.billing.last_name}`,
+      streetLine1: stepData.billing.address_1,
+      streetLine2: "", // Billing in store doesn't have address_2
+      city: stepData.billing.city,
+      province: stepData.billing.county,
+      postalCode: stepData.billing.postcode,
+      phoneNumber: stepData.billing.phone,
+      country: stepData.billing.country
+    };
+
+    // Get session ID from cart store
+    const sessionId = useCartStore.getState().sessionId;
+
+    const orderRes = await fetch("/api/checkout/initiate", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(sessionId ? { "x-guest-id": sessionId } : {})
+      },
       body: JSON.stringify({
-        customer: user,
-        items,
-        billing: stepData.billing,
-        shipping: stepData.shipping,
-        payment: stepData.payment,
-        totals: stepData.totals,
-        coupon: coupon?.code
+        shippingAddress,
+        billingAddress,
+        shippingMethodId: "standard" // TODO: Get from store
       }),
     });
 
-    const orderData: OrderResponse = await orderRes.json();
+    const orderData = await orderRes.json();
 
-    if (!orderData.success) {
-      throw new Error(orderData.error || "Order creation failed");
+    if (!orderRes.ok) {
+      throw new Error(orderData.message || "Order creation failed");
     }
 
-    if (!orderData.order) {
-      throw new Error("Order not found");
-    }
-
-    return orderData.order;
+    return { id: orderData.orderId, total: String(orderData.total) };
   };
 
   const processPaystackPayment = async (order: { id: string; total: string }) => {

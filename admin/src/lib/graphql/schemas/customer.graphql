@@ -1,0 +1,89 @@
+type Customer {
+  id: ID!
+  email: String!
+  firstName: String!
+  lastName: String!
+  phoneNumber: String
+  enabled: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  addresses: [Address!]!
+  orders: [Order!]!
+}
+
+type Address {
+  id: ID!
+  customerId: String
+  fullName: String!
+  streetLine1: String!
+  streetLine2: String
+  city: String!
+  province: String!
+  postalCode: String!
+  country: String!
+  phoneNumber: String!
+  defaultShipping: Boolean!
+  defaultBilling: Boolean!
+}
+
+input RegisterCustomerInput {
+  email: String!
+  password: String!
+  firstName: String!
+  lastName: String!
+  phoneNumber: String
+}
+
+input UpdateCustomerInput {
+  email: String
+  firstName: String
+  lastName: String
+  phoneNumber: String
+  enabled: Boolean
+}
+
+input CreateAddressInput {
+  customerId: String!
+  fullName: String!
+  streetLine1: String!
+  streetLine2: String
+  city: String!
+  province: String!
+  postalCode: String!
+  country: String
+  phoneNumber: String!
+  defaultShipping: Boolean
+  defaultBilling: Boolean
+}
+
+input UpdateAddressInput {
+  fullName: String
+  streetLine1: String
+  streetLine2: String
+  city: String
+  province: String
+  postalCode: String
+  country: String
+  phoneNumber: String
+  defaultShipping: Boolean
+  defaultBilling: Boolean
+}
+
+input CustomerSearchOptions {
+  take: Int
+  skip: Int
+}
+
+extend type Query {
+  customer(id: ID!): Customer
+  searchCustomers(searchTerm: String!, options: CustomerSearchOptions): [Customer!]!
+  customerOrders(customerId: ID!): [Order!]!
+}
+
+extend type Mutation {
+  registerCustomer(input: RegisterCustomerInput!): Customer!
+  updateCustomer(id: ID!, input: UpdateCustomerInput!): Customer!
+  createAddress(customerId: ID!, input: CreateAddressInput!): Address!
+  updateAddress(id: ID!, input: UpdateAddressInput!): Address!
+  deleteAddress(id: ID!): Boolean!
+}

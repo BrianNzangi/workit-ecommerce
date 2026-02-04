@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+import { proxyFetch } from '@/lib/proxy-utils';
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,15 +14,9 @@ export async function GET(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Fetch products from the collection using the general store products endpoint
-    const response = await fetch(
-      `${BACKEND_URL}/store/products?collection=${collectionSlug}&limit=${limit}`,
-      {
-        cache: 'no-store',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
+    // Fetch products from backend-v2 via proxy
+    const response = await proxyFetch(
+      `/store/products?collection=${collectionSlug}&limit=${limit}`
     );
 
     if (!response.ok) {
@@ -31,34 +24,35 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await response.json();
-    const responseData = data.data || data;
+    let products = data.products || [];
 
-    // Filter out the excluded product if specified
-    let products = responseData.products || [];
     if (excludeProductId) {
       products = products.filter((p: any) => p.id !== excludeProductId);
     }
 
     // Transform to match expected format
-    const transformedProducts = products.map((product: any) => ({
-      id: product.id,
-      name: product.name,
-      slug: product.slug,
-      description: product.description,
-      images: product.images?.map((img: any) => ({
-        id: img.id,
-        src: img.url,
-        url: img.url,
-        altText: img.altText,
-      })) || [],
-      image: product.featuredImage || product.image || '',
-      price: Number(product.salePrice || product.price || 0),
-      compareAtPrice: (product.originalPrice || product.compareAtPrice) ? Number(product.originalPrice || product.compareAtPrice) : undefined,
-      categories: product.collections || [],
-      brand: product.brand,
-      canBuy: product.stockOnHand > 0 || product.inStock,
-      variantId: product.id, // Fallback for simple products
-    }));
+    const transformedProducts = products.map((product: any) => {
+      const mainImage = product.assets?.[0]?.asset?.url || '';
+
+      return {
+        id: product.id,
+        name: product.name,
+        slug: product.slug,
+        description: product.description,
+        images: product.assets?.map((a: any) => ({
+          id: a.asset.id,
+          url: a.asset.url,
+          altText: a.asset.altText || product.name,
+        })) || [],
+        image: mainImage,
+        price: Number(product.salePrice ?? 0),
+        compareAtPrice: product.originalPrice ? Number(product.originalPrice) : undefined,
+        categories: product.collections?.map((c: any) => c.collection) || [],
+        brand: product.brand,
+        canBuy: (product.stockOnHand ?? 0) > 0,
+        variantId: product.id,
+      };
+    });
 
     return NextResponse.json({ products: transformedProducts });
   } catch (error) {

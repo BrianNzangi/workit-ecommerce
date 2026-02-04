@@ -1,0 +1,45 @@
+enum PaymentState {
+  PENDING
+  AUTHORIZED
+  SETTLED
+  DECLINED
+  CANCELLED
+  ERROR
+}
+
+type Payment {
+  id: ID!
+  orderId: String!
+  method: String!
+  amount: Int!
+  state: PaymentState!
+  transactionId: String
+  paystackRef: String
+  metadata: JSON
+  errorMessage: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+input InitializePaymentInput {
+  orderId: String!
+  email: String!
+  amount: Int!
+  callbackUrl: String
+}
+
+type InitializePaymentResponse {
+  authorizationUrl: String!
+  accessCode: String!
+  reference: String!
+}
+
+extend type Query {
+  payment(id: ID!): Payment
+  paymentByReference(reference: String!): Payment
+  paymentByOrderId(orderId: ID!): Payment
+}
+
+extend type Mutation {
+  initializePayment(input: InitializePaymentInput!): InitializePaymentResponse!
+}

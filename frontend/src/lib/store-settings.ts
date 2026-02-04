@@ -38,7 +38,7 @@ export interface StoreConfig {
  */
 export async function fetchStoreSettings(): Promise<StoreSettings> {
     try {
-        const response = await fetch(`${BACKEND_URL}/settings/public`, {
+        const response = await fetch(`${BACKEND_URL}/site/settings`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',

@@ -1,0 +1,65 @@
+enum BannerPosition {
+  HERO
+  DEALS
+  DEALS_HORIZONTAL
+  MIDDLE
+  BOTTOM
+  COLLECTION_TOP
+}
+
+type Banner {
+  id: ID!
+  title: String!
+  slug: String!
+  position: BannerPosition!
+  link: String
+  enabled: Boolean!
+  sortOrder: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  image: Asset
+  mobileImage: Asset
+  collection: Collection
+}
+
+input CreateBannerInput {
+  title: String!
+  slug: String
+  position: BannerPosition!
+  link: String
+  enabled: Boolean
+  sortOrder: Int
+  imageId: String
+  mobileImageId: String
+  collectionId: String
+}
+
+input UpdateBannerInput {
+  title: String
+  slug: String
+  position: BannerPosition
+  link: String
+  enabled: Boolean
+  sortOrder: Int
+  imageId: String
+  mobileImageId: String
+  collectionId: String
+}
+
+input BannerListOptions {
+  take: Int
+  skip: Int
+  position: BannerPosition
+  enabled: Boolean
+}
+
+extend type Query {
+  banner(id: ID!): Banner
+  bannerBySlug(slug: String!): Banner
+  banners(options: BannerListOptions): [Banner!]!
+}
+
+extend type Mutation {
+  createBanner(input: CreateBannerInput!): Banner!
+  updateBanner(id: ID!, input: UpdateBannerInput!): Banner!
+}

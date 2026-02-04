@@ -1,0 +1,64 @@
+type Collection {
+  id: ID!
+  name: String!
+  slug: String!
+  description: String
+  parentId: String
+  enabled: Boolean!
+  sortOrder: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  parent: Collection
+  children: [Collection!]!
+  products: [ProductCollection!]!
+  asset: Asset
+}
+
+type ProductCollection {
+  id: ID!
+  productId: String!
+  collectionId: String!
+  sortOrder: Int!
+  product: Product!
+  collection: Collection!
+}
+
+input CreateCollectionInput {
+  name: String!
+  slug: String
+  description: String
+  parentId: String
+  enabled: Boolean
+  sortOrder: Int
+  assetId: String
+}
+
+input UpdateCollectionInput {
+  name: String
+  slug: String
+  description: String
+  parentId: String
+  enabled: Boolean
+  sortOrder: Int
+  assetId: String
+}
+
+input CollectionListOptions {
+  take: Int
+  skip: Int
+  parentId: String
+  includeChildren: Boolean
+}
+
+extend type Query {
+  collection(id: ID!, includeChildren: Boolean): Collection
+  collections(options: CollectionListOptions): [Collection!]!
+}
+
+extend type Mutation {
+  createCollection(input: CreateCollectionInput!): Collection!
+  updateCollection(id: ID!, input: UpdateCollectionInput!): Collection!
+  assignProductToCollection(productId: ID!, collectionId: ID!, sortOrder: Int): ProductCollection!
+  removeProductFromCollection(productId: ID!, collectionId: ID!): Boolean!
+  updateCollectionSortOrder(id: ID!, sortOrder: Int!): Collection!
+}

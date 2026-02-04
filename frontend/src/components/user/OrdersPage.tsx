@@ -52,7 +52,7 @@ export function OrdersPage() {
       case 'completed':
         return <CheckCircle className="text-green-700" size={28} />;
       case 'processing':
-        return <Clock className="text-blue-600" size={28} />;
+        return <Clock className="text-primary-900" size={28} />;
       case 'shipped':
         return <Truck className="text-orange-600" size={28} />;
       case 'cancelled':
@@ -88,7 +88,7 @@ export function OrdersPage() {
           <XCircle className="text-red-600 mb-4 mx-auto" size={64} />
           <h1 className="text-xl font-semibold mb-2">Error Loading Orders</h1>
           <p className="text-muted-foreground mb-6">{error}</p>
-          <Button onClick={() => window.location.reload()} className="bg-[#1F2323] text-white">
+          <Button onClick={() => window.location.reload()} className="bg-secondary-900 text-white">
             Try Again
           </Button>
         </div>
@@ -105,7 +105,7 @@ export function OrdersPage() {
           <Package className="text-gray-400 mb-4 mx-auto" size={64} />
           <h2 className="text-xl font-semibold mb-2">No Orders Yet</h2>
           <p className="text-muted-foreground mb-6">You have not placed any orders yet.</p>
-          <Button asChild className="bg-[#0046BE] text-white">
+          <Button asChild className="bg-primary-900 text-white">
             <Link href="/">Start Shopping</Link>
           </Button>
         </div>

@@ -93,13 +93,23 @@ export default function StepShipping({
       return { standardPrice: 0, expressPrice: null };
     }
 
-    const zone = shippingZones.find(z => z.county === billingData.county);
-    const city = zone?.cities.find(c => c.cityTown === billingData.city);
+    // A city might be in multiple zones (one for each method)
+    // We look for any city record that matches the name in a zone matching the county
+    const zones = shippingZones.filter(z => z.county === billingData.county);
+    let standardPrice = 0;
+    let expressPrice: number | null = null;
 
-    return {
-      standardPrice: city?.standardPrice || 0,
-      expressPrice: city?.expressPrice || null,
-    };
+    for (const zone of zones) {
+      const city = zone.cities.find(c => c.cityTown === billingData.city);
+      if (city) {
+        // Divide by 100 as backend stores cents (e.g. 40000 -> 400 KES)
+        standardPrice = city.standardPrice / 100;
+        expressPrice = city.expressPrice ? city.expressPrice / 100 : null;
+        break;
+      }
+    }
+
+    return { standardPrice, expressPrice };
   };
 
   const { standardPrice, expressPrice } = getCityPricing();

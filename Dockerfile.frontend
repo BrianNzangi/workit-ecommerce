@@ -3,7 +3,7 @@
 # =========================
 FROM node:20-alpine AS base
 
-# Install build dependencies including Rust for lightningcss
+# Install build dependencies
 RUN apk add --no-cache \
     libc6-compat \
     python3 \
@@ -16,25 +16,23 @@ RUN npm install -g pnpm@9
 
 WORKDIR /app
 
-
 # =========================
 # Dependencies stage
 # =========================
 FROM base AS deps
 
-# Copy workspace config first (cache-friendly)
+# Copy workspace config first
 COPY .npmrc ./
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 
-# Copy package manifests
+# Copy package manifests (using backend-v2)
 COPY frontend/package.json ./frontend/
-COPY backend/package.json ./backend/
+COPY backend-v2/package.json ./backend-v2/
 COPY admin/package.json ./admin/
 COPY packages ./packages/
 
 # Install ONLY frontend + its dependencies
-# lightningcss will build with Rust
-RUN pnpm install --frozen-lockfile --filter=frontend...
+RUN pnpm install --no-frozen-lockfile --filter=@workit/frontend...
 
 
 # =========================
@@ -46,8 +44,8 @@ COPY --from=deps /app /app
 COPY frontend ./frontend
 COPY packages ./packages
 
-# Build arguments - these are available during build time
-ARG DATABASE_URL=postgresql://build:build@localhost:5432/build
+# Build arguments
+ARG DATABASE_URL
 ARG BACKEND_URL=http://backend:3001
 ARG BACKEND_API_URL=http://backend:3001
 ARG NEXT_PUBLIC_BACKEND_URL=https://api.workit.co.ke
@@ -56,7 +54,6 @@ ARG INTERNAL_API_KEY
 ARG REDIS_URL
 
 # Set as environment variables for build
-# NOTE: BACKEND_URL and BACKEND_API_URL are for server-side, NEXT_PUBLIC_* are for client-side
 ENV DATABASE_URL=$DATABASE_URL
 ENV BACKEND_URL=$BACKEND_URL
 ENV BACKEND_API_URL=$BACKEND_API_URL
@@ -72,7 +69,7 @@ RUN pnpm --filter=@workit/db run build
 RUN pnpm --filter=@workit/validation run build
 
 # Build frontend app
-RUN pnpm --filter=frontend run build
+RUN pnpm --filter=@workit/frontend run build
 
 
 # =========================
@@ -86,7 +83,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Create non-root user for security
+# Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nextjs -u 1001
 
@@ -100,17 +97,15 @@ COPY --from=builder /app/frontend/package.json ./frontend/package.json
 COPY --from=deps /app/package.json ./package.json
 COPY --from=deps /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
 
-# Change ownership to non-root user
+# Change ownership
 RUN chown -R nextjs:nodejs /app
 
-# Switch to non-root user
 USER nextjs
 
 WORKDIR /app/frontend
 
 EXPOSE 3000
 
-# Set hostname and port
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 

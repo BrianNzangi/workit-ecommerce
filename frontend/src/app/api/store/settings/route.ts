@@ -11,7 +11,7 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3001';
 
 export async function GET() {
     try {
-        const response = await fetch(`${BACKEND_URL}/settings/public`, {
+        const response = await fetch(`${BACKEND_URL}/site/settings`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',

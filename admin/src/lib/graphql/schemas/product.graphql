@@ -1,0 +1,136 @@
+type Product {
+  id: ID!
+  name: String!
+  slug: String!
+  description: String
+  enabled: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  variants: [ProductVariant!]!
+  optionGroups: [ProductOptionGroup!]!
+  assets: [ProductAsset!]!
+  collections: [ProductCollection!]!
+}
+
+type ProductAsset {
+  id: ID!
+  productId: String!
+  assetId: String!
+  sortOrder: Int!
+  featured: Boolean!
+  asset: Asset!
+}
+
+type ProductVariant {
+  id: ID!
+  productId: String!
+  name: String!
+  sku: String!
+  price: Int!
+  stockOnHand: Int!
+  enabled: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  options: [ProductVariantOption!]!
+}
+
+type ProductOptionGroup {
+  id: ID!
+  productId: String!
+  code: String!
+  name: String!
+  options: [ProductOption!]!
+}
+
+type ProductOption {
+  id: ID!
+  groupId: String!
+  code: String!
+  name: String!
+}
+
+type ProductVariantOption {
+  id: ID!
+  variantId: String!
+  optionId: String!
+  option: ProductOption!
+}
+
+input CreateProductInput {
+  name: String!
+  slug: String
+  description: String
+  enabled: Boolean
+}
+
+input UpdateProductInput {
+  name: String
+  slug: String
+  description: String
+  enabled: Boolean
+}
+
+input CreateVariantInput {
+  productId: String!
+  name: String!
+  sku: String!
+  price: Int!
+  stockOnHand: Int
+  enabled: Boolean
+  optionIds: [String!]
+}
+
+input UpdateVariantInput {
+  name: String
+  sku: String
+  price: Int
+  stockOnHand: Int
+  enabled: Boolean
+}
+
+input ProductListOptions {
+  take: Int
+  skip: Int
+  includeDeleted: Boolean
+}
+
+input SearchProductsOptions {
+  take: Int
+  skip: Int
+  enabledOnly: Boolean
+  inStockOnly: Boolean
+  groupByProduct: Boolean
+}
+
+type SearchResult {
+  id: ID!
+  productId: ID!
+  name: String!
+  slug: String!
+  price: Int!
+  image: String
+  sku: String!
+  stockOnHand: Int!
+}
+
+extend type Query {
+  product(id: ID!, includeDeleted: Boolean): Product
+  products(options: ProductListOptions): [Product!]!
+  searchProducts(searchTerm: String!, options: ProductListOptions): [Product!]!
+  searchProductsEnhanced(searchTerm: String!, options: SearchProductsOptions): [SearchResult!]!
+}
+
+extend type Mutation {
+  createProduct(input: CreateProductInput!): Product!
+  updateProduct(id: ID!, input: UpdateProductInput!): Product!
+  deleteProduct(id: ID!): Boolean!
+  
+  addVariantToProduct(input: CreateVariantInput!): ProductVariant!
+  updateVariant(id: ID!, input: UpdateVariantInput!): ProductVariant!
+  updateVariantStock(id: ID!, stockOnHand: Int!): ProductVariant!
+  
+  addAssetToProduct(productId: ID!, assetId: ID!, sortOrder: Int, featured: Boolean): ProductAsset!
+  removeAssetFromProduct(productId: ID!, assetId: ID!): Boolean!
+  setFeaturedAsset(productId: ID!, assetId: ID!): ProductAsset!
+}

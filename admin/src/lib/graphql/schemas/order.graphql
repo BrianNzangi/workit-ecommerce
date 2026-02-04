@@ -1,0 +1,105 @@
+enum OrderState {
+  CREATED
+  PAYMENT_PENDING
+  PAYMENT_AUTHORIZED
+  PAYMENT_SETTLED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+type Order {
+  id: ID!
+  code: String!
+  customerId: String!
+  state: OrderState!
+  subTotal: Int!
+  shipping: Int!
+  tax: Int!
+  total: Int!
+  currencyCode: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  customer: Customer!
+  lines: [OrderLine!]!
+  shippingAddress: Address
+  billingAddress: Address
+  payments: [Payment!]!
+}
+
+type OrderLine {
+  id: ID!
+  orderId: String!
+  variantId: String!
+  quantity: Int!
+  linePrice: Int!
+  variant: ProductVariant!
+}
+
+input CreateOrderLineInput {
+  variantId: String!
+  quantity: Int!
+}
+
+input OrderAddressInput {
+  fullName: String!
+  streetLine1: String!
+  streetLine2: String
+  city: String!
+  province: String!
+  postalCode: String!
+  country: String
+  phoneNumber: String!
+}
+
+input CreateOrderInput {
+  customerId: String
+  shippingAddressId: String
+  billingAddressId: String
+  email: String
+  firstName: String
+  lastName: String
+  phoneNumber: String
+  password: String
+  shippingAddress: OrderAddressInput
+  billingAddress: OrderAddressInput
+  lines: [CreateOrderLineInput!]!
+  shippingMethodId: String
+  shippingCost: Int
+  tax: Int
+}
+
+input OrderListOptions {
+  take: Int
+  skip: Int
+  sortBy: String
+  sortOrder: String
+  state: OrderState
+}
+
+input OrderSearchOptions {
+  take: Int
+  skip: Int
+}
+
+type InventoryItem {
+  id: ID!
+  sku: String!
+  name: String!
+  productName: String!
+  stockOnHand: Int!
+  price: Int!
+  enabled: Boolean!
+}
+
+extend type Query {
+  order(id: ID!): Order
+  orders(options: OrderListOptions): [Order!]!
+  searchOrders(searchTerm: String!, options: OrderSearchOptions): [Order!]!
+  inventory(lowStockThreshold: Int): [InventoryItem!]!
+}
+
+extend type Mutation {
+  createOrder(input: CreateOrderInput!): Order!
+  updateOrderStatus(id: ID!, state: OrderState!): Order!
+}

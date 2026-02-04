@@ -3,6 +3,8 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db, schema } from "@workit/db";
 
 export const auth = betterAuth({
+    secret: process.env.BETTER_AUTH_SECRET || "pvhf6y7u8i9o0p1q2r3s4t5u6v7w8x9y",
+    baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
     database: drizzleAdapter(db, {
         provider: "pg",
         schema: schema,
@@ -31,9 +33,11 @@ export const auth = betterAuth({
         }
     },
     trustedOrigins: [
+        "https://admin.workit.co.ke",
         "http://127.0.0.1:3000",
         "http://localhost:3000",
         "http://127.0.0.1:3001",
         "http://localhost:3001",
+        "http://localhost:3002",
     ],
 });

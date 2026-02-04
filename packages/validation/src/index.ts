@@ -1,5 +1,14 @@
-export * from "./auth";
-export * from "./products";
-export * from "./orders";
-export * from "./settings";
-export * from "./blog";
+import { z } from "zod";
+
+export const loginSchema = z.object({
+    email: z.string().email(),
+    password: z.string().min(6),
+});
+
+export const registerSchema = z.object({
+    email: z.string().email(),
+    password: z.string().min(6),
+    firstName: z.string().min(1),
+    lastName: z.string().min(1),
+    phone: z.string().optional(),
+});

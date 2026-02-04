@@ -1,7 +1,12 @@
 import { createAuthClient } from "better-auth/react";
 
 export const authClient = createAuthClient({
-    baseURL: process.env.NEXT_PUBLIC_FRONTEND_BASE_URL || "http://127.0.0.1:3000",
+    baseURL: "http://localhost:3000/api/auth", // Proxy via Next.js
 });
 
-export const { useSession, signIn, signUp, signOut } = authClient;
+export const {
+    signIn,
+    signOut,
+    signUp,
+    useSession
+} = authClient;

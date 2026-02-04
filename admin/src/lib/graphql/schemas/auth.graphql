@@ -1,0 +1,45 @@
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+  EDITOR
+}
+
+type AdminUser {
+  id: ID!
+  email: String!
+  firstName: String!
+  lastName: String!
+  role: AdminRole!
+  enabled: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type AuthPayload {
+  token: String!
+  user: AdminUser!
+  expiresAt: DateTime!
+}
+
+input RegisterAdminInput {
+  email: String!
+  password: String!
+  firstName: String!
+  lastName: String!
+  role: AdminRole
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+extend type Query {
+  me: AdminUser
+}
+
+extend type Mutation {
+  register(input: RegisterAdminInput!): AuthPayload!
+  login(input: LoginInput!): AuthPayload!
+  logout: Boolean!
+}
