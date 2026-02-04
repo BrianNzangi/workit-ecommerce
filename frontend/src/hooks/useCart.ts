@@ -12,7 +12,7 @@ export interface CartItem {
     id: string;
     lineId: string; // For cart line items
     productId: string;
-    variantId?: string;
+    variantId: string | null;
     name: string;
     price: number;
     priceWithTax: number; // Price including tax
@@ -43,9 +43,9 @@ export function useCart() {
     // Transform cart store items to match the expected CartItem interface
     const cart = useMemo<Cart>(() => {
         const transformedItems: CartItem[] = storeItems.map(item => ({
-            id: item.id,
-            lineId: item.id, // Use same ID for line items
-            productId: item.id,
+            id: item.productId,
+            lineId: item.id, // Use store item ID as lineId
+            productId: item.productId,
             variantId: item.variantId, // Map from store item
             name: item.name,
             price: item.price,

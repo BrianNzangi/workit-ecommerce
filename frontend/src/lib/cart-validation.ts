@@ -5,8 +5,9 @@
  */
 
 export interface CartItem {
-    id: string;
-    variantId: string;
+    id: string; // This is the Line ID in backend
+    productId: string;
+    variantId: string | null;
     name: string;
     image: string;
     price: number;

@@ -15,11 +15,12 @@ export const cartLines = pgTable("CartLine", {
     id: text("id").primaryKey().notNull(),
     cartId: text("cartId").notNull().references(() => carts.id, { onDelete: 'cascade' }),
     productId: text("productId").notNull().references(() => products.id, { onDelete: 'cascade' }),
+    variantId: text("variantId"),
     quantity: integer("quantity").default(1).notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 }, (t) => ({
-    unq: unique().on(t.cartId, t.productId),
+    unq: unique().on(t.cartId, t.productId, t.variantId),
 }));
 
 // End of tables

@@ -6,6 +6,7 @@ import axios from 'axios';
 export type CartItem = {
   id: string; // This is the Line ID in backend
   productId: string;
+  variantId: string | null;
   name: string;
   image: string;
   price: number;
@@ -22,7 +23,7 @@ type CartState = {
   closeCart: () => void;
 
   fetchCart: () => Promise<void>;
-  addItem: (product: { id: string; name: string; price: number; image: string }, quantity?: number) => Promise<void>;
+  addItem: (item: { id: string; variantId?: string; name: string; price: number; image: string; quantity?: number }) => Promise<void>;
   updateQuantity: (lineId: string, quantity: number) => Promise<void>;
   increaseQuantity: (lineId: string) => Promise<void>;
   decreaseQuantity: (lineId: string) => Promise<void>;
@@ -73,6 +74,7 @@ export const useCartStore = create<CartState>()(
             const mappedItems = (response.data.lines || []).map((line: any) => ({
               id: line.id, // Line ID
               productId: line.productId, // Product ID
+              variantId: line.variantId || null,
               name: line.product.name,
               price: line.product.salePrice ?? line.product.originalPrice ?? 0,
               // Simplify asset lookup: first asset's preview, or empty string
@@ -90,8 +92,9 @@ export const useCartStore = create<CartState>()(
         }
       },
 
-      addItem: async (product, quantity = 1) => {
+      addItem: async (item) => {
         let { sessionId } = get();
+        const quantity = item.quantity || 1;
         if (!sessionId) {
           sessionId = generateSessionId();
           set({ sessionId });
@@ -99,7 +102,8 @@ export const useCartStore = create<CartState>()(
 
         try {
           await axios.post('/api/cart', {
-            productId: product.id,
+            productId: item.id,
+            variantId: item.variantId,
             quantity
           }, { headers: getHeaders(sessionId) });
 

@@ -6,15 +6,20 @@ import QueryProvider from "../components/providers/QueryProvider";
 import Footer from "../components/layout/Footer";
 import "./globals.css";
 import Script from "next/script";
-import { Barlow } from 'next/font/google';
+// import { Barlow } from 'next/font/google';
 
-const barlow = Barlow({
-  subsets: ['latin'],
-  weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
-  style: ['normal', 'italic'],
-  variable: '--font-barlow',
-  display: 'swap',
-});
+// const barlow = Barlow({
+//   subsets: ['latin'],
+//   weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
+//   style: ['normal', 'italic'],
+//   variable: '--font-barlow',
+//   display: 'swap',
+// });
+
+const barlow = {
+  variable: 'font-barlow', // Fallback to a class-like string since the variable won't be loaded
+  className: '',
+};
 
 export const metadata: Metadata = {
   title: "Shop Phones, Laptops & Gadgets Online for less on Workit",

@@ -51,11 +51,12 @@ export const cartPublicRoutes: FastifyPluginAsync = async (fastify) => {
             tags: ["Cart"],
             body: z.object({
                 productId: z.string(),
+                variantId: z.string().optional(),
                 quantity: z.number().min(1).default(1)
             })
         }
     }, async (request, reply) => {
-        const { productId, quantity } = request.body as any;
+        const { productId, variantId, quantity } = request.body as any;
         const userId = (request as any).user?.id;
         const guestId = request.headers['x-guest-id'] as string;
 
@@ -84,7 +85,8 @@ export const cartPublicRoutes: FastifyPluginAsync = async (fastify) => {
         const existingLine = await (db as any).query.cartLines.findFirst({
             where: and(
                 eq(schema.cartLines.cartId as any, cart!.id),
-                eq(schema.cartLines.productId as any, productId)
+                eq(schema.cartLines.productId as any, productId),
+                variantId ? eq((schema.cartLines as any).variantId, variantId) : eq((schema.cartLines as any).variantId, null)
             )
         });
 
@@ -99,6 +101,7 @@ export const cartPublicRoutes: FastifyPluginAsync = async (fastify) => {
                 id: uuidv4(),
                 cartId: cart!.id,
                 productId,
+                variantId: variantId || null,
                 quantity
             });
         }
