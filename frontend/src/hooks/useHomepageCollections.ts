@@ -5,8 +5,9 @@
  * This follows the Storefront Integration Guide patterns.
  */
 
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Variant } from '@/types/variant';
+import axios from 'axios';
 
 /**
  * Product interface matching the backend API response
@@ -138,35 +139,19 @@ async function fetchHomepageCollections(
 export function useHomepageCollections(
     options: UseHomepageCollectionsOptions = {}
 ): UseHomepageCollectionsReturn {
-    const [collections, setCollections] = useState<HomepageCollectionData[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<Error | null>(null);
-
-    const loadCollections = async () => {
-        try {
-            setLoading(true);
-            setError(null);
+    const { data, isLoading, error, refetch } = useQuery({
+        queryKey: ['homepage-collections', options],
+        queryFn: async () => {
             const data = await fetchHomepageCollections(options);
-
             // Sort by sortOrder
-            const sorted = data.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.title.localeCompare(b.title));
-            setCollections(sorted);
-        } catch (err) {
-            setError(err as Error);
-            console.error('Error loading homepage collections:', err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        loadCollections();
-    }, [JSON.stringify(options)]);
+            return data.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.title.localeCompare(b.title));
+        },
+    });
 
     return {
-        collections,
-        loading,
-        error,
-        refetch: loadCollections,
+        collections: data || [],
+        loading: isLoading,
+        error: error as Error | null,
+        refetch: async () => { await refetch(); },
     };
 }
