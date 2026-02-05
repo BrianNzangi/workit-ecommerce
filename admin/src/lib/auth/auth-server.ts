@@ -61,7 +61,7 @@ export const auth = betterAuth({
         "http://127.0.0.1:3002",
     ],
 
-    baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3002",
+    baseURL: process.env.BETTER_AUTH_URL,
 });
 
 /**
