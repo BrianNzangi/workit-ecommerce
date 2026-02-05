@@ -10,8 +10,7 @@ export class AuthService extends BaseService {
         try {
             const response = await this.adminClient.auth.register(input);
 
-            // Note: The Encore register endpoint currently returns { success, user } but no token.
-            // You might need to login separately or update the backend to return a session/token.
+            // Note: The register endpoint returns { success, user }
             const { user } = response;
 
             return {
@@ -53,19 +52,16 @@ export class AuthService extends BaseService {
      */
     async getUserFromToken(token: string): Promise<any | null> {
         try {
-            // Using raw fetch because this endpoint isn't exposed via the Encore client directly
-            // or is part of the wildcard /auth/* handler.
-            const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+            const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001";
             const response = await fetch(`${baseUrl}/auth/get-session`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
-                    // Also try cookie header if token is in cookie format, but usually Bearer is fine for API
                 },
             });
 
             if (!response.ok) return null;
             const data = await response.json();
-            return data; // Expected { session, user } or similar from Better Auth
+            return data; // Expected { session, user }
         } catch (error) {
             return null;
         }

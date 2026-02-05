@@ -7,7 +7,7 @@ import { createAuthClient } from "better-auth/react";
  * Use this for client-side authentication operations
  */
 export const authClient = createAuthClient({
-    baseURL: process.env.NEXT_PUBLIC_ADMIN_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : undefined),
+    baseURL: typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_ADMIN_BASE_URL || "http://localhost:3002"),
 });
 
 /**

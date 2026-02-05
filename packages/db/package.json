@@ -13,7 +13,9 @@
     "scripts": {
         "build": "tsc",
         "generate": "drizzle-kit generate",
-        "migrate": "drizzle-kit migrate"
+        "migrate": "drizzle-kit migrate",
+        "push": "drizzle-kit push",
+        "seed": "node dist/seed.js"
     },
     "peerDependencies": {
         "drizzle-orm": "^0.45.1"

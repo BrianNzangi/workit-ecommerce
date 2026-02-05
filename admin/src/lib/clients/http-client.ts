@@ -46,7 +46,7 @@ class HttpClient {
             headers.set("Content-Type", "application/json");
         }
 
-        // Forward cookies for SSR if needed (similar to previous encore client)
+        // Forward cookies for SSR if needed
         if (typeof window === "undefined") {
             try {
                 const { headers: nextHeaders } = await import("next/headers");

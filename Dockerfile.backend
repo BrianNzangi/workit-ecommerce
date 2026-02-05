@@ -66,4 +66,4 @@ RUN mkdir -p ./backend-v2/uploads
 RUN chmod -R 777 ./backend-v2/uploads
 
 EXPOSE 3001
-CMD ["node", "backend-v2/dist/server.js"]
+CMD ["sh", "-c", "pnpm --filter @workit/db migrate && pnpm --filter @workit/db seed && node backend-v2/dist/server.js"]
