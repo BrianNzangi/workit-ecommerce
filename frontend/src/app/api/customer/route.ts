@@ -21,14 +21,14 @@ export async function GET() {
     const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3001';
     const headerList = await headers();
 
-    // Fetch customer profile from backend-v2
+    // Fetch customer profile from backend
     const customerRes = await fetch(`${BACKEND_URL}/identity/customers/me`, {
       headers: {
         'cookie': headerList.get('cookie') || '',
       }
     });
 
-    // Fetch addresses from backend-v2
+    // Fetch addresses from backend
     const addressRes = await fetch(`${BACKEND_URL}/identity/customers/me/addresses`, {
       headers: {
         'cookie': headerList.get('cookie') || '',

@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
 
     // Fetch orders from the new backend fulfillment module
     // This uses the session cookie forward to authenticate
-    console.log(`Fetching orders for user ID: ${user.id} from backend-v2...`);
+    console.log(`Fetching orders for user ID: ${user.id} from backend...`);
     const res = await fetch(`${BACKEND_URL}/fulfillment/orders`, {
       headers: {
         'cookie': headerList.get('cookie') || '',

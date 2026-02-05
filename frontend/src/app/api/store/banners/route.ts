@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
 
         const data = await response.json();
 
-        // backend-v2 returns { banners: [...] }, but frontend expects [...]
+        // backend returns { banners: [...] }, but frontend expects [...]
         const banners = data.banners || data;
 
         return NextResponse.json(banners, { status: 200 });

@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
 
         const data = await response.json();
 
-        // backend-v2 returns { collections: [...] }, but frontend expects [...]
+        // backend returns { collections: [...] }, but frontend expects [...]
         const collections = Array.isArray(data) ? data : (data.collections || []);
 
         return NextResponse.json(collections, { status: 200 });

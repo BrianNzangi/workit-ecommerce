@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     const brandId = searchParams.get('brandId') || searchParams.get('brand');
     const searchTerm = searchParams.get('search') || searchParams.get('q');
 
-    // Build query parameters for backend-v2
+    // Build query parameters for backend
     const params = new URLSearchParams({
       limit: limit.toString(),
       offset: offset.toString(),
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     if (brandId) params.append('brand', brandId);
     if (searchTerm) params.append('q', searchTerm);
 
-    // Fetch from backend-v2 via proxy
+    // Fetch from backend via proxy
     const response = await proxyFetch(`/store/products?${params.toString()}`);
 
     if (!response.ok) {
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       products,
-      total: products.length, // backend-v2 doesn't return total yet in this endpoint
+      total: products.length, // backend doesn't return total yet in this endpoint
       totalPages: Math.ceil(products.length / limit) || 1,
       page: page,
     });

@@ -1,5 +1,5 @@
 {
-    "name": "@workit/backend-v2",
+    "name": "@workit/backend",
     "version": "1.0.0",
     "type": "module",
     "description": "Workit Backend migrated to Fastify",

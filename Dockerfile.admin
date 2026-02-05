@@ -25,9 +25,9 @@ FROM base AS deps
 COPY .npmrc ./
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 
-# Copy package manifests (using backend-v2)
+# Copy package manifests (using backend)
 COPY admin/package.json ./admin/
-COPY backend-v2/package.json ./backend-v2/
+COPY backend/package.json ./backend/
 COPY frontend/package.json ./frontend/
 COPY packages ./packages/
 

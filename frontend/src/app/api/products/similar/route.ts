@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Fetch products from backend-v2 via proxy
+    // Fetch products from backend via proxy
     const response = await proxyFetch(
       `/store/products?collection=${collectionSlug}&limit=${limit}`
     );

@@ -61,7 +61,7 @@ export default function ShippingTab({ readOnly = false }: ShippingTabProps) {
                 const data = await response.json();
                 setMethods(data);
 
-                // Flatten zones from all methods - backend-v2 returns methods with nested zones and cities
+                // Flatten zones from all methods - backend returns methods with nested zones and cities
                 const allZones: ShippingZone[] = [];
                 data.forEach((method: any) => {
                     if (method.zones) {

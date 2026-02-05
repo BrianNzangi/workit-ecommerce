@@ -8,7 +8,7 @@ export async function GET(
     try {
         const { slug } = await params;
 
-        // Fetch from backend-v2 via proxy
+        // Fetch from backend via proxy
         const response = await proxyFetch(`/store/products/${slug}`);
 
         if (!response.ok) {
