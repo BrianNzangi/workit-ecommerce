@@ -1,68 +1,14 @@
-DO $$ BEGIN
- CREATE TYPE "public"."AdminRole" AS ENUM('SUPER_ADMIN', 'ADMIN', 'EDITOR');
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- CREATE TYPE "public"."AssetType" AS ENUM('IMAGE', 'VIDEO', 'DOCUMENT');
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- CREATE TYPE "public"."BannerPosition" AS ENUM('HERO', 'DEALS', 'DEALS_HORIZONTAL', 'MIDDLE', 'BOTTOM', 'COLLECTION_TOP');
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- CREATE TYPE "public"."CampaignStatus" AS ENUM('DRAFT', 'SCHEDULED', 'ACTIVE', 'COMPLETED', 'PAUSED', 'CANCELLED');
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- CREATE TYPE "public"."CampaignType" AS ENUM('SEASONAL', 'PROMOTIONAL', 'PRODUCT_LAUNCH', 'HOLIDAY', 'LOYALTY', 'RE_ENGAGEMENT', 'OTHER');
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- CREATE TYPE "public"."DiscountType" AS ENUM('PERCENTAGE', 'FIXED_AMOUNT', 'FREE_SHIPPING', 'BUY_X_GET_Y', 'NONE');
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- CREATE TYPE "public"."EmailStatus" AS ENUM('PENDING', 'SENT', 'OPENED', 'CLICKED', 'BOUNCED', 'FAILED');
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- CREATE TYPE "public"."OrderState" AS ENUM('CREATED', 'PAYMENT_PENDING', 'PAYMENT_AUTHORIZED', 'PAYMENT_SETTLED', 'SHIPPED', 'DELIVERED', 'CANCELLED');
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- CREATE TYPE "public"."PaymentState" AS ENUM('PENDING', 'AUTHORIZED', 'SETTLED', 'DECLINED', 'CANCELLED', 'ERROR');
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- CREATE TYPE "public"."ProductCondition" AS ENUM('NEW', 'REFURBISHED');
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- CREATE TYPE "public"."SubscriberStatus" AS ENUM('SUBSCRIBED', 'UNSUBSCRIBED', 'BOUNCED', 'COMPLAINED');
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
+CREATE TYPE "public"."AdminRole" AS ENUM('SUPER_ADMIN', 'ADMIN', 'EDITOR');--> statement-breakpoint
+CREATE TYPE "public"."AssetType" AS ENUM('IMAGE', 'VIDEO', 'DOCUMENT');--> statement-breakpoint
+CREATE TYPE "public"."BannerPosition" AS ENUM('HERO', 'DEALS', 'DEALS_HORIZONTAL', 'MIDDLE', 'BOTTOM', 'COLLECTION_TOP');--> statement-breakpoint
+CREATE TYPE "public"."CampaignStatus" AS ENUM('DRAFT', 'SCHEDULED', 'ACTIVE', 'COMPLETED', 'PAUSED', 'CANCELLED');--> statement-breakpoint
+CREATE TYPE "public"."CampaignType" AS ENUM('SEASONAL', 'PROMOTIONAL', 'PRODUCT_LAUNCH', 'HOLIDAY', 'LOYALTY', 'RE_ENGAGEMENT', 'OTHER');--> statement-breakpoint
+CREATE TYPE "public"."DiscountType" AS ENUM('PERCENTAGE', 'FIXED_AMOUNT', 'FREE_SHIPPING', 'BUY_X_GET_Y', 'NONE');--> statement-breakpoint
+CREATE TYPE "public"."EmailStatus" AS ENUM('PENDING', 'SENT', 'OPENED', 'CLICKED', 'BOUNCED', 'FAILED');--> statement-breakpoint
+CREATE TYPE "public"."OrderState" AS ENUM('CREATED', 'PAYMENT_PENDING', 'PAYMENT_AUTHORIZED', 'PAYMENT_SETTLED', 'SHIPPED', 'DELIVERED', 'CANCELLED');--> statement-breakpoint
+CREATE TYPE "public"."PaymentState" AS ENUM('PENDING', 'AUTHORIZED', 'SETTLED', 'DECLINED', 'CANCELLED', 'ERROR');--> statement-breakpoint
+CREATE TYPE "public"."ProductCondition" AS ENUM('NEW', 'REFURBISHED');--> statement-breakpoint
+CREATE TYPE "public"."SubscriberStatus" AS ENUM('SUBSCRIBED', 'UNSUBSCRIBED', 'BOUNCED', 'COMPLAINED');
 --> statement-breakpoint
 CREATE TABLE "account" (
 	"id" text PRIMARY KEY NOT NULL,
