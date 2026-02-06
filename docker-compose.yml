@@ -19,5 +19,14 @@ services:
       timeout: 5s
       retries: 5
 
+  drizzle-studio:
+    image: ghcr.io/drizzle-team/drizzle-studio:latest
+    container_name: drizzle-studio
+    ports:
+      - "4983:4983"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+    restart: unless-stopped
+
 volumes:
   postgres_data:

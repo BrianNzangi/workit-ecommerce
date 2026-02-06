@@ -5,15 +5,20 @@
         "dev": "npx pnpm turbo dev",
         "build": "npx pnpm turbo build",
         "lint": "npx pnpm turbo lint",
-        "start": "npx pnpm turbo start"
+        "start": "npx pnpm turbo start",
+        "db:studio": "pnpm --filter @workit/db studio"
     },
     "devDependencies": {
         "turbo": "latest"
     },
-    "packageManager": "pnpm@9.0.0",
+    "packageManager": "pnpm@10.28.2",
     "pnpm": {
         "overrides": {
             "unrs-resolver": "npm:is-buffer@^2.0.5"
-        }
+        },
+        "onlyBuiltDependencies": [
+            "esbuild",
+            "sharp"
+        ]
     }
 }

@@ -15,7 +15,8 @@
         "generate": "drizzle-kit generate",
         "migrate": "drizzle-kit migrate",
         "push": "drizzle-kit push",
-        "seed": "node dist/seed.js"
+        "seed": "node dist/seed.js",
+        "studio": "tsx ../../node_modules/drizzle-kit/bin.cjs studio --config drizzle.config.ts"
     },
     "peerDependencies": {
         "drizzle-orm": "^0.45.1"
@@ -24,12 +25,13 @@
         "@types/bcryptjs": "^2.4.6",
         "bcryptjs": "^3.0.3",
         "dotenv": "^16.4.5",
-        "postgres": "^3.4.8",
-        "drizzle-orm": "^0.45.1"
+        "drizzle-orm": "^0.45.1",
+        "postgres": "^3.4.8"
     },
     "devDependencies": {
         "drizzle-kit": "latest",
         "drizzle-orm": "^0.45.1",
+        "tsx": "^4.21.0",
         "typescript": "^5.0.0"
     }
 }
