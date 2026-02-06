@@ -66,5 +66,4 @@ RUN mkdir -p ./backend/uploads
 RUN chmod -R 777 ./backend/uploads
 
 EXPOSE 3001
-EXPOSE 4983
 CMD ["node", "backend/dist/server.js"]

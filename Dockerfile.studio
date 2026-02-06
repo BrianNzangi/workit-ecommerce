@@ -1,0 +1,23 @@
+FROM node:20-alpine
+
+# Install pnpm
+RUN npm install -g pnpm
+
+WORKDIR /app
+
+# Copy workspace files
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+
+# Copy packages
+COPY packages ./packages
+
+# Install dependencies
+RUN pnpm install --no-frozen-lockfile
+
+# Set working directory to db package
+WORKDIR /app/packages/db
+
+EXPOSE 4983
+
+# Run studio from db package
+CMD ["pnpm", "run", "studio"]

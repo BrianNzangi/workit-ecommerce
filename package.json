@@ -6,7 +6,8 @@
         "build": "npx pnpm turbo build",
         "lint": "npx pnpm turbo lint",
         "start": "npx pnpm turbo start",
-        "db:studio": "pnpm --filter @workit/db studio"
+        "db:studio": "pnpm --filter @workit/db studio",
+        "studio": "pnpm --filter @workit/db studio"
     },
     "devDependencies": {
         "turbo": "latest"

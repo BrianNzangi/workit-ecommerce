@@ -16,7 +16,7 @@
         "migrate": "drizzle-kit migrate",
         "push": "drizzle-kit push",
         "seed": "node dist/seed.js",
-        "studio": "tsx ../../node_modules/drizzle-kit/bin.cjs studio --config drizzle.config.ts"
+        "studio": "drizzle-kit studio --host 0.0.0.0 --port 4983"
     },
     "peerDependencies": {
         "drizzle-orm": "^0.45.1"
