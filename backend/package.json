@@ -8,7 +8,7 @@
         "dev": "tsx watch src/server.ts",
         "build": "tsc",
         "start": "node dist/server.js",
-        "studio": "drizzle-kit studio --host 0.0.0.0 --port 4983"
+        "studio": "drizzle-kit studio --host 0.0.0.0 --port 4983 --config drizzle.config.ts"
     },
     "dependencies": {
         "@fastify/auth": "^5.0.0",
