@@ -19,14 +19,35 @@ services:
       timeout: 5s
       retries: 5
 
-  drizzle-studio:
-    image: ghcr.io/drizzle-team/drizzle-studio:latest
-    container_name: drizzle-studio
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: workit-backend
     ports:
+      - "3001:3001"
       - "4983:4983"
     environment:
       - DATABASE_URL=${DATABASE_URL}
     restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  studio:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: drizzle-studio
+    command: pnpm --filter @workit/backend studio
+    ports:
+      - "4984:4983"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
 
 volumes:
   postgres_data:
