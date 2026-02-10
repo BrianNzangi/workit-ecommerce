@@ -70,7 +70,7 @@ RUN pnpm --filter=@workit/db run build
 RUN pnpm --filter=@workit/validation run build
 
 # Build frontend app
-RUN pnpm --filter=@workit/frontend run build
+RUN DATABASE_URL=postgres://dummy:dummy@localhost:5432/dummy pnpm --filter=@workit/frontend run build
 
 
 # =========================
