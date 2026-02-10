@@ -15,10 +15,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write # Critical: Fixes the 'denied: write_package' error
+      packages: write
     
     strategy:
-      fail-fast: false # Continues building other services even if one fails
+      fail-fast: false
       matrix:
         include:
           - service: backend
@@ -33,24 +33,30 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
+      # 1. Log in first
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      
+
+      # 2. REQUIRED: This creates the special 'buildkit' builder
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 3. Extract Metadata
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
-          # Result: ghcr.io/briannzangi/backend
           images: ${{ env.IMAGE_BASE }}/${{ matrix.service }}
           tags: |
             type=raw,value=latest
             type=sha,format=long
 
+      # 4. Now Build and Push (Cache will work now)
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
@@ -59,7 +65,6 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          # Caching speeds up subsequent builds significantly
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
