@@ -1,5 +1,5 @@
 import { pgTable, text, varchar, integer, boolean, doublePrecision, unique, timestamp, foreignKey } from "drizzle-orm/pg-core";
-import { assetTypeEnum, productConditionEnum } from "./enums.js";
+import { assetTypeEnum, productConditionEnum } from "./enums";
 
 export const assets = pgTable("Asset", {
     id: text("id").primaryKey().notNull(),

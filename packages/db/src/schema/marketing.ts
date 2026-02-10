@@ -1,6 +1,6 @@
 import { pgTable, text, varchar, integer, boolean, timestamp, unique } from "drizzle-orm/pg-core";
-import { bannerPositionEnum, campaignStatusEnum, campaignTypeEnum, discountTypeEnum } from "./enums.js";
-import { assets, collections, products } from "./catalog.js";
+import { bannerPositionEnum, campaignStatusEnum, campaignTypeEnum, discountTypeEnum } from "./enums";
+import { assets, collections, products } from "./catalog";
 
 export const banners = pgTable("Banner", {
     id: text("id").primaryKey().notNull(),
