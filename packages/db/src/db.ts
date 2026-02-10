@@ -24,7 +24,7 @@ if (!connectionString) {
 // Use a dummy connection string during build to prevent postgres-js from throwing
 const client = postgres(connectionString || "postgresql://postgres:postgres@localhost:5432/workit-db", {
     max: isBuildTime ? 0 : undefined,
-    onnotices: isBuildTime ? () => { } : undefined,
+    onnotice: isBuildTime ? () => { } : undefined,
 });
 
 export const db = drizzle(client, { schema }) as any;
