@@ -45,7 +45,7 @@ COPY frontend ./frontend
 COPY packages ./packages
 
 # Build arguments
-ARG DATABASE_URL
+ARG DATABASE_URL=postgres://dummy:dummy@localhost:5432/dummy
 ARG BACKEND_URL=http://backend:3001
 ARG BACKEND_API_URL=http://backend:3001
 ARG NEXT_PUBLIC_BACKEND_URL=https://api.workit.co.ke
