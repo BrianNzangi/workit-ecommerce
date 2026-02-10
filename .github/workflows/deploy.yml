@@ -1,21 +1,24 @@
-name: Build and Push Docker Images
+name: CI/CD Pipeline
 
 on:
   push:
     branches: [main]
+  workflow_dispatch: # Allows you to run this manually from the Actions tab
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  # Matches the path: ghcr.io/briannzangi/workit-ecommerce
+  IMAGE_BASE: ghcr.io/${{ github.repository_owner }}/workit-ecommerce
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write
+      packages: write # Critical: Fixes the 'denied: write_package' error
     
     strategy:
+      fail-fast: false # Continues building other services even if one fails
       matrix:
         include:
           - service: backend
@@ -28,7 +31,8 @@ jobs:
             dockerfile: Dockerfile.studio
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
       
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -37,11 +41,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       
-      - name: Extract metadata (tags, labels) for Docker
+      - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ github.repository }}/${{ matrix.service }}
+          # Result: ghcr.io/briannzangi/backend
+          images: ${{ env.IMAGE_BASE }}/${{ matrix.service }}
           tags: |
             type=raw,value=latest
             type=sha,format=long
@@ -54,3 +59,23 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          # Caching speeds up subsequent builds significantly
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Dokploy Redeploy
+        # Ensure you have added these secrets in GitHub Repo Settings > Secrets > Actions
+        env:
+          DOKPLOY_BACKEND_WEBHOOK: ${{ secrets.DOKPLOY_BACKEND_WEBHOOK }}
+          DOKPLOY_FRONTEND_WEBHOOK: ${{ secrets.DOKPLOY_FRONTEND_WEBHOOK }}
+          DOKPLOY_ADMIN_WEBHOOK: ${{ secrets.DOKPLOY_ADMIN_WEBHOOK }}
+          DOKPLOY_STUDIO_WEBHOOK: ${{ secrets.DOKPLOY_STUDIO_WEBHOOK }}
+        run: |
+          curl -X POST "$DOKPLOY_BACKEND_WEBHOOK"
+          curl -X POST "$DOKPLOY_FRONTEND_WEBHOOK"
+          curl -X POST "$DOKPLOY_ADMIN_WEBHOOK"
+          curl -X POST "$DOKPLOY_STUDIO_WEBHOOK"
