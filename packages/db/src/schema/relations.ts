@@ -1,9 +1,9 @@
 import { relations } from "drizzle-orm";
-import * as catalog from "./catalog";
-import * as marketing from "./marketing";
-import * as identity from "./identity";
-import * as fulfillment from "./fulfillment";
-import * as cart from "./cart";
+import * as catalog from "./catalog.js";
+import * as marketing from "./marketing.js";
+import * as identity from "./identity.js";
+import * as fulfillment from "./fulfillment.js";
+import * as cart from "./cart.js";
 
 // Catalog Relations
 export const productsRelations = relations(catalog.products, ({ many, one }) => ({

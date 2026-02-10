@@ -1,8 +1,8 @@
 import { pgTable, text, varchar, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
-import { orderStateEnum, paymentStateEnum } from "./enums";
-import { users, addresses } from "./identity";
-import { products } from "./catalog";
+import { orderStateEnum, paymentStateEnum } from "./enums.js";
+import { users, addresses } from "./identity.js";
+import { products } from "./catalog.js";
 
 export const orders = pgTable("Order", {
     id: text("id").primaryKey().notNull(),

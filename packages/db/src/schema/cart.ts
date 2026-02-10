@@ -1,7 +1,7 @@
 import { pgTable, text, integer, timestamp, unique } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
-import { users } from "./identity";
-import { products } from "./catalog";
+import { users } from "./identity.js";
+import { products } from "./catalog.js";
 
 export const carts = pgTable("Cart", {
     id: text("id").primaryKey().notNull(),
