@@ -12,11 +12,11 @@
     },
     "scripts": {
         "build": "tsc",
-        "generate": "drizzle-kit generate",
-        "migrate": "drizzle-kit migrate",
-        "push": "drizzle-kit push",
+        "generate": "tsx ../../node_modules/drizzle-kit/bin.cjs generate",
+        "migrate": "tsx ../../node_modules/drizzle-kit/bin.cjs migrate",
+        "push": "tsx ../../node_modules/drizzle-kit/bin.cjs push",
         "seed": "node dist/seed.js",
-        "studio": "drizzle-kit studio --host 0.0.0.0 --port 4983"
+        "studio": "tsx ../../node_modules/drizzle-kit/bin.cjs studio --host 0.0.0.0 --port 4983"
     },
     "peerDependencies": {
         "drizzle-orm": "^0.45.1"
