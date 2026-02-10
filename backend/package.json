@@ -7,7 +7,8 @@
     "scripts": {
         "dev": "tsx watch src/server.ts",
         "build": "tsc",
-        "start": "node dist/server.js"
+        "start": "node dist/server.js",
+        "db:push": "drizzle-kit push --dialect=postgresql --url=$DATABASE_URL --schema=./dist/db/schema.js"
     },
     "dependencies": {
         "@fastify/auth": "^5.0.0",
@@ -26,6 +27,7 @@
         "bcryptjs": "^3.0.3",
         "better-auth": "^1.1.0",
         "dotenv": "^16.4.5",
+        "drizzle-kit": "^0.31.8",
         "drizzle-orm": "^0.45.1",
         "fastify": "^5.0.0",
         "fastify-plugin": "^5.0.0",
@@ -36,7 +38,6 @@
     },
     "devDependencies": {
         "@types/node": "^20.0.0",
-        "drizzle-kit": "^0.31.8",
         "tsx": "^4.19.1",
         "typescript": "^5.0.0"
     }
