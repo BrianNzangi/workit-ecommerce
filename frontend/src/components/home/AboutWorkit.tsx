@@ -15,10 +15,10 @@ export default function AboutWorkit() {
 
       <div>
         <h1 className="font-sans text-base md:text-lg lg:text-2xl font-bold text-gray-900">
-          Your Go-To Electronics Store in Nairobi CBD
+          Your Go-To Electronics Store in Biashara Street, Nairobi CBD
         </h1>
         <p className="font-sans text-gray-700 text-sm md:text-md lg:text-lg">
-          {`Located on Moi Avenue in Nairobi, Workit is your one-stop destination for the latest electronics at unbeatable prices. From smartphones, laptops, and tablets to accessories, headphones, and smart home devices, we stock products that fit every tech need. Our team ensures genuine, high-quality products with competitive pricing and fast, reliable service. Whether you're upgrading your gadgets, shopping for essentials, or hunting for the newest tech releases, Workit makes electronics shopping in Nairobi effortless and enjoyable. Visit us in the heart of the CBD and experience seamless service, expert advice, and the latest tech at your fingertips.`}
+          {`Located on Biashara Street in Nairobi, Workit is your one-stop destination for the latest electronics at unbeatable prices. From smartphones, laptops, and tablets to accessories, headphones, and smart home devices, we stock products that fit every tech need. Our team ensures genuine, high-quality products with competitive pricing and fast, reliable service. Whether you're upgrading your gadgets, shopping for essentials, or hunting for the newest tech releases, Workit makes electronics shopping in Nairobi effortless and enjoyable. Visit us in the heart of the CBD and experience seamless service, expert advice, and the latest tech at your fingertips.`}
         </p>
       </div>
     </section>
