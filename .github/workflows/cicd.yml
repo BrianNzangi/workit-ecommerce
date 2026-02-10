@@ -34,6 +34,7 @@ jobs:
         env:
           # Add build-time env vars if necessary
           NEXT_TELEMETRY_DISABLED: 1
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
   deploy:
     needs: build-and-lint
