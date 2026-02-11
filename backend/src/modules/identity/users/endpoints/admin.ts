@@ -28,7 +28,7 @@ export const usersAdminRoutes: FastifyPluginAsync = async (fastify) => {
             password = await (bcrypt.default || bcrypt).hash(password, 10);
         }
 
-        // Derive `name` from firstName + lastName (required)
+        // Derive `name` from firstName + lastName (always required)
         const name = `${data.firstName || ''} ${data.lastName || ''}`.trim() || data.email;
 
         const [user] = await db.insert(schema.users).values({
