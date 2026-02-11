@@ -24,6 +24,9 @@ RUN pnpm install --no-frozen-lockfile --filter=@workit/backend...
 # =========================
 FROM base AS builder
 COPY --from=deps /app /app
+
+# This ARG changes every CI run, busting the Docker layer cache
+ARG CACHE_BUSTER
 COPY backend ./backend
 COPY packages ./packages
 

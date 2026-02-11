@@ -79,13 +79,13 @@ jobs:
           context: .
           file: Dockerfile.${{ matrix.service }}
           push: true
+          no-cache: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          # Fixes Next.js "DATABASE_URL not defined" crash during build
           build-args: |
+            CACHE_BUSTER=${{ github.run_id }}
             DATABASE_URL=postgres://dummy:dummy@localhost:5432/dummy
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: type=gha,mode=min
 
   # 3. SMART DEPLOY (Only pings Dokploy for changed services)
   deploy:
