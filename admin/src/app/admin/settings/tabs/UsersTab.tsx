@@ -12,8 +12,8 @@ interface UsersTabProps {
     onDeleteUser: (userId: string) => Promise<void>;
     onCreateUser: (user: {
         email: string;
-        firstName: string;
-        lastName: string;
+        firstName?: string;
+        lastName?: string;
         password: string;
         role: 'SUPER_ADMIN' | 'ADMIN' | 'EDITOR';
     }) => Promise<void>;
@@ -40,9 +40,9 @@ export default function UsersTab({
     const [creatingUser, setCreatingUser] = useState(false);
 
     const handleCreateUser = async () => {
-        // Validate fields
-        if (!newUser.email || !newUser.firstName || !newUser.lastName || !newUser.password) {
-            alert('Please fill in all fields');
+        // Validate required fields
+        if (!newUser.email || !newUser.password) {
+            alert('Please fill in email and password');
             return;
         }
 
@@ -107,7 +107,7 @@ export default function UsersTab({
                     <div className="grid grid-cols-2 gap-4 mb-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                First Name *
+                                First Name
                             </label>
                             <input
                                 type="text"
@@ -121,7 +121,7 @@ export default function UsersTab({
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Last Name *
+                                Last Name
                             </label>
                             <input
                                 type="text"

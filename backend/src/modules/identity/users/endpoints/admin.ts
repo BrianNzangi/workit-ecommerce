@@ -28,23 +28,25 @@ export const usersAdminRoutes: FastifyPluginAsync = async (fastify) => {
             password = await (bcrypt.default || bcrypt).hash(password, 10);
         }
 
-        // Derive `name` from firstName + lastName (always required)
-        const name = `${data.firstName || ''} ${data.lastName || ''}`.trim() || data.email;
+        // Derive `name` from firstName + lastName (fall back to email)
+        const firstName = data.firstName || '';
+        const lastName = data.lastName || '';
+        const name = `${firstName} ${lastName}`.trim() || data.email;
 
-        // Destructure out fields we set explicitly to prevent `undefined` values
-        // from the request body overriding them (Drizzle treats undefined as SQL DEFAULT)
-        const { name: _n, id: _id, password: _p, image: _img, enabled: _en, phoneNumber: _ph, ...safeData } = data;
+        fastify.log.info({ name, firstName, lastName }, "Creating user with name");
 
-        fastify.log.info({ name, firstName: data.firstName, lastName: data.lastName }, "CRITICAL DEBUG - Inserting user with name");
-
+        // Explicitly set every field — NO spread to avoid Drizzle treating undefined as SQL DEFAULT
         const [user] = await db.insert(schema.users).values({
-            ...safeData,
             id,
             name,
+            email: data.email,
+            emailVerified: true,
+            role: data.role || 'ADMIN',
+            firstName: firstName || null,
+            lastName: lastName || null,
             password,
-            emailVerified: true, // Internal users are verified by default
             createdAt: new Date(),
-            updatedAt: new Date()
+            updatedAt: new Date(),
         }).returning();
 
         return user;
