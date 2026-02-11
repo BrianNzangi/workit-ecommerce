@@ -43,6 +43,7 @@ export const buildApp = async () => {
     await app.register(import("@fastify/static"), {
         root: join(process.cwd(), "uploads"),
         prefix: "/uploads/",
+        decorateReply: false,
     });
 
     // Register Swagger
