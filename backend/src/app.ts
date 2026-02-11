@@ -41,7 +41,7 @@ export const buildApp = async () => {
 
     // Register Static
     await app.register(import("@fastify/static"), {
-        root: join(__dirname, "../uploads"),
+        root: join(process.cwd(), "uploads"),
         prefix: "/uploads/",
     });
 
