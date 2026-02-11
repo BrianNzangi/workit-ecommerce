@@ -21,7 +21,7 @@ export const buildApp = async () => {
 
     // REGISTER STATIC FIRST - Before any other plugins/autoload
     await app.register(import("@fastify/static"), {
-        root: "/app/uploads",
+        root: "/app/backend/uploads",
         prefix: "/uploads/",
         decorateReply: false,
     });
