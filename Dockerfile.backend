@@ -23,19 +23,31 @@ RUN pnpm install --no-frozen-lockfile --filter=@workit/backend...
 # Build stage
 # =========================
 FROM base AS builder
-COPY --from=deps /app /app
 
-# This ARG changes every CI run, busting the Docker layer cache
+# Copy only the necessary parts from deps (NOT /app wholesale)
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/package.json ./package.json
+COPY --from=deps /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
+COPY --from=deps /app/pnpm-lock.yaml ./pnpm-lock.yaml
+
+# Copy fresh source code (.dockerignore keeps 'dist' and 'node_modules' out)
 ARG CACHE_BUSTER
 COPY backend ./backend
 COPY packages ./packages
+
+# Copy workspace package node_modules from deps
+COPY --from=deps /app/backend/node_modules ./backend/node_modules
+COPY --from=deps /app/packages/db/node_modules ./packages/db/node_modules
+COPY --from=deps /app/packages/validation/node_modules ./packages/validation/node_modules
 
 # Build shared workspace packages first
 RUN pnpm --filter=@workit/db run build
 RUN pnpm --filter=@workit/validation run build
 
-# Build backend (rm -rf dist forces fresh compilation, bypasses layer cache)
-RUN cd backend && rm -rf dist && cd .. && pnpm --filter=@workit/backend run build
+# Build backend fresh
+WORKDIR /app/backend
+RUN rm -rf dist && pnpm run build
+WORKDIR /app
 
 # =========================
 # Runtime stage
