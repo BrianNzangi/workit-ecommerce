@@ -69,9 +69,7 @@ COPY --from=builder /app/backend/dist ./backend/dist
 COPY --from=builder /app/packages/db ./packages/db
 COPY --from=builder /app/packages/validation ./packages/validation
 
-# Restore original upload serving if applicable
-RUN mkdir -p ./backend/uploads
-RUN chmod -R 777 ./backend/uploads
+
 
 EXPOSE 3001
 CMD ["node", "backend/dist/server.js"]

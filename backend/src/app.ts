@@ -9,6 +9,7 @@ import { serializerCompiler, validatorCompiler, ZodTypeProvider, jsonSchemaTrans
 import fastifySwagger from "@fastify/swagger";
 import fastifySwaggerUi from "@fastify/swagger-ui";
 
+import { storageService } from "./lib/storage.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -19,15 +20,27 @@ export const buildApp = async () => {
         ignoreTrailingSlash: true,
     }).withTypeProvider<ZodTypeProvider>();
 
-    // REGISTER STATIC FIRST - Before any other plugins/autoload
-    await app.register(import("@fastify/static"), {
-        root: "/app/backend/uploads",
-        prefix: "/uploads/",
-        decorateReply: false,
+    // Proxy route: serve files from MinIO/S3 at /uploads/:filename
+    app.get("/uploads/:filename", async (request, reply) => {
+        const { filename } = request.params as { filename: string };
+        try {
+            const { stream, contentType, contentLength } = await storageService.getObject(filename);
+            reply.header("Content-Type", contentType || "application/octet-stream");
+            if (contentLength) {
+                reply.header("Content-Length", contentLength);
+            }
+            reply.header("Cache-Control", "public, max-age=31536000, immutable");
+            return reply.send(stream);
+        } catch (err: any) {
+            if (err.name === "NoSuchKey" || err.$metadata?.httpStatusCode === 404) {
+                return reply.status(404).send({ message: "File not found" });
+            }
+            throw err;
+        }
     });
 
     // Manual test route to verify the code is fresh
-    app.get("/test-deploy", async () => ({ status: "v2-path-fixed", timestamp: new Date() }));
+    app.get("/test-deploy", async () => ({ status: "v3-minio", timestamp: new Date() }));
 
     // Set Zod compilers
     app.setValidatorCompiler(validatorCompiler);

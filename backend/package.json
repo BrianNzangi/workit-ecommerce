@@ -11,13 +11,13 @@
         "db:push": "drizzle-kit push --dialect=postgresql --url=$DATABASE_URL --schema=./dist/db/schema.js"
     },
     "dependencies": {
+        "@aws-sdk/client-s3": "^3.987.0",
         "@fastify/auth": "^5.0.0",
         "@fastify/autoload": "^6.0.0",
         "@fastify/cors": "^10.0.0",
         "@fastify/jwt": "^9.0.0",
         "@fastify/multipart": "^9.4.0",
         "@fastify/sensible": "^6.0.0",
-        "@fastify/static": "^9.0.0",
         "@fastify/swagger": "^9.0.0",
         "@fastify/swagger-ui": "^5.0.0",
         "@types/bcryptjs": "^2.4.6",
