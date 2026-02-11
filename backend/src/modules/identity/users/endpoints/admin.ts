@@ -31,8 +31,14 @@ export const usersAdminRoutes: FastifyPluginAsync = async (fastify) => {
         // Derive `name` from firstName + lastName (always required)
         const name = `${data.firstName || ''} ${data.lastName || ''}`.trim() || data.email;
 
+        // Destructure out fields we set explicitly to prevent `undefined` values
+        // from the request body overriding them (Drizzle treats undefined as SQL DEFAULT)
+        const { name: _n, id: _id, password: _p, image: _img, enabled: _en, phoneNumber: _ph, ...safeData } = data;
+
+        fastify.log.info({ name, firstName: data.firstName, lastName: data.lastName }, "CRITICAL DEBUG - Inserting user with name");
+
         const [user] = await db.insert(schema.users).values({
-            ...data,
+            ...safeData,
             id,
             name,
             password,

@@ -31,8 +31,8 @@ COPY packages ./packages
 RUN pnpm --filter=@workit/db run build
 RUN pnpm --filter=@workit/validation run build
 
-# Build backend
-RUN pnpm --filter=@workit/backend run build
+# Build backend (rm -rf dist forces fresh compilation, bypasses layer cache)
+RUN cd backend && rm -rf dist && cd .. && pnpm --filter=@workit/backend run build
 
 # =========================
 # Runtime stage
