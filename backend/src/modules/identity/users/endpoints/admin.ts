@@ -28,9 +28,13 @@ export const usersAdminRoutes: FastifyPluginAsync = async (fastify) => {
             password = await (bcrypt.default || bcrypt).hash(password, 10);
         }
 
+        // Derive `name` from firstName + lastName (required NOT NULL column)
+        const name = `${data.firstName || ''} ${data.lastName || ''}`.trim() || data.email;
+
         const [user] = await db.insert(schema.users).values({
             ...data,
             id,
+            name,
             password,
             emailVerified: true, // Internal users are verified by default
             createdAt: new Date(),
@@ -50,6 +54,11 @@ export const usersAdminRoutes: FastifyPluginAsync = async (fastify) => {
         // Don't allow updating password via this endpoint for now to keep it simple
         // If password is sent, hash it or ignore it. Let's ignore it to avoid accidental changes.
         const { password, ...updateData } = data;
+
+        // Keep `name` in sync when firstName/lastName change
+        if (updateData.firstName || updateData.lastName) {
+            updateData.name = `${updateData.firstName || ''} ${updateData.lastName || ''}`.trim();
+        }
 
         const [user] = await db.update(schema.users)
             .set({ ...updateData, updatedAt: new Date() })
