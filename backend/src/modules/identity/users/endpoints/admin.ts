@@ -11,7 +11,7 @@ export const usersAdminRoutes: FastifyPluginAsync = async (fastify) => {
         const results = await db.query.users.findMany({
             orderBy: [desc(schema.users.createdAt)],
         });
-        return results; // Return flat array as expected by frontend
+        return results; // Return flat array as expected by front
     });
 
     // New User (Internal)
