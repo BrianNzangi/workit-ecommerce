@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ProtectedRoute } from '@/components/login/ProtectedRoute';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { ArrowLeft, Save, Trash2, Plus, Search, GripVertical } from 'lucide-react';
+import { getImageUrl } from '@/lib/shared/images';
 
 interface HomepageCollection {
     id: string;
@@ -295,7 +296,7 @@ export default function EditHomepageCollectionPage({ params }: { params: Promise
                                         <div className="flex items-center gap-4">
                                             <div className="w-12 h-12 bg-gray-200 rounded-xs overflow-hidden flex-shrink-0">
                                                 {item.product.assets?.[0]?.asset?.preview ? (
-                                                    <img src={item.product.assets[0].asset.preview} alt="" className="w-full h-full object-cover" />
+                                                    <img src={getImageUrl(item.product.assets[0].asset.preview)} alt="" className="w-full h-full object-cover" />
                                                 ) : (
                                                     <div className="w-full h-full flex items-center justify-center text-gray-400">?</div>
                                                 )}
@@ -360,7 +361,7 @@ export default function EditHomepageCollectionPage({ params }: { params: Promise
                                                 <div className="flex items-center gap-4">
                                                     <div className="w-10 h-10 bg-gray-200 rounded-xs overflow-hidden flex-shrink-0">
                                                         {product.assets?.[0]?.asset?.preview && (
-                                                            <img src={product.assets[0].asset.preview} alt="" className="w-full h-full object-cover" />
+                                                            <img src={getImageUrl(product.assets[0].asset.preview)} alt="" className="w-full h-full object-cover" />
                                                         )}
                                                     </div>
                                                     <div>

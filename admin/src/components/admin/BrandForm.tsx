@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Upload, X } from 'lucide-react';
 import Link from 'next/link';
+import { getImageUrl } from '@/lib/shared/images';
 
 interface BrandFormProps {
     brandId?: string;
@@ -48,7 +49,7 @@ export function BrandForm({ brandId, mode }: BrandFormProps) {
                 });
                 // Set preview if logo exists
                 if (data.logoUrl) {
-                    setLogoPreview(data.logoUrl);
+                    setLogoPreview(getImageUrl(data.logoUrl));
                 }
             } else {
                 setError('Brand not found');
