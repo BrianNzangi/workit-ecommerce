@@ -19,6 +19,16 @@ export const buildApp = async () => {
         ignoreTrailingSlash: true,
     }).withTypeProvider<ZodTypeProvider>();
 
+    // REGISTER STATIC FIRST - Before any other plugins/autoload
+    await app.register(import("@fastify/static"), {
+        root: "/app/uploads",
+        prefix: "/uploads/",
+        decorateReply: false,
+    });
+
+    // Manual test route to verify the code is fresh
+    app.get("/test-deploy", async () => ({ status: "v2-path-fixed", timestamp: new Date() }));
+
     // Set Zod compilers
     app.setValidatorCompiler(validatorCompiler);
     app.setSerializerCompiler(serializerCompiler);
@@ -38,13 +48,6 @@ export const buildApp = async () => {
 
     // Register Multipart
     await app.register(import("@fastify/multipart"));
-
-    // Register Static
-    await app.register(import("@fastify/static"), {
-        root: join(process.cwd(), "uploads"),
-        prefix: "/uploads/",
-        decorateReply: false,
-    });
 
     // Register Swagger
     await app.register(fastifySwagger, {
