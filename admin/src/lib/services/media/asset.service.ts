@@ -15,9 +15,8 @@ export class AssetService extends BaseService {
             formData.append('file', input.file, input.fileName);
             if (input.folder) formData.append('folder', input.folder);
 
-            // Note: Use raw fetch for file upload as the SDK might not handle FormData seamlessly
-            const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-            const response = await fetch(`${baseUrl}/catalog/assets/admin/upload`, {
+            // Use the admin's own API proxy route (not the backend directly)
+            const response = await fetch('/api/admin/assets', {
                 method: 'POST',
                 body: formData,
                 credentials: 'include',

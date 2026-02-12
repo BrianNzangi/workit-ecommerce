@@ -294,7 +294,7 @@ export default function EditHomepageCollectionPage({ params }: { params: Promise
                                 {collection.products.map((item) => (
                                     <div key={item.product.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-xs bg-gray-50">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 bg-gray-200 rounded-xs overflow-hidden flex-shrink-0">
+                                            <div className="w-12 h-12 bg-gray-200 rounded-xs overflow-hidden shrink-0">
                                                 {item.product.assets?.[0]?.asset?.preview ? (
                                                     <img src={getImageUrl(item.product.assets[0].asset.preview)} alt="" className="w-full h-full object-cover" />
                                                 ) : (
@@ -359,7 +359,7 @@ export default function EditHomepageCollectionPage({ params }: { params: Promise
                                         {searchResults.map((product) => (
                                             <div key={product.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-xs hover:bg-gray-50">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="w-10 h-10 bg-gray-200 rounded-xs overflow-hidden flex-shrink-0">
+                                                    <div className="w-10 h-10 bg-gray-200 rounded-xs overflow-hidden shrink-0">
                                                         {product.assets?.[0]?.asset?.preview && (
                                                             <img src={getImageUrl(product.assets[0].asset.preview)} alt="" className="w-full h-full object-cover" />
                                                         )}
