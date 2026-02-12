@@ -156,7 +156,18 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
             offset: skip,
             with: {
                 asset: true,
-                ...(includeChildren ? { children: { with: { asset: true } } } : {})
+                ...(includeChildren ? {
+                    children: {
+                        where: eq(schema.collections.enabled, true),
+                        with: {
+                            asset: true,
+                            children: {
+                                where: eq(schema.collections.enabled, true),
+                                with: { asset: true }
+                            }
+                        }
+                    }
+                } : {})
             }
         });
         return { collections: results };

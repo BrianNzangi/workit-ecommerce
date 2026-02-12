@@ -67,11 +67,21 @@ export const collectionsAdminRoutes: FastifyPluginAsync = async (fastify) => {
     // New Collection
     fastify.post("/", {
         preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
-    }, async (request) => {
-        const collectionData = request.body as any;
-        const id = uuidv4();
-        const [collection] = await db.insert(schema.collections).values({ ...collectionData, id }).returning();
-        return { collection, success: true };
+    }, async (request, reply) => {
+        try {
+            const collectionData = request.body as any;
+            const id = uuidv4();
+            const [collection] = await db.insert(schema.collections).values({ ...collectionData, id }).returning();
+            return { collection, success: true };
+        } catch (error: any) {
+            if (error.code === '23505' && error.message.includes('Collection_slug_unique')) {
+                return reply.status(400).send({
+                    success: false,
+                    message: "A collection with this slug already exists. Please use a unique slug."
+                });
+            }
+            throw error;
+        }
     });
 
     // Search Collections
@@ -101,11 +111,21 @@ export const collectionsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Update Collection Handler
     const updateCollectionHandler = async (request: any, reply: any) => {
-        const { id } = request.params as any;
-        const collectionData = request.body as any;
-        const [collection] = await db.update(schema.collections).set({ ...collectionData, updatedAt: new Date() }).where(eq(schema.collections.id, id)).returning();
-        if (!collection) return reply.status(404).send({ message: "Collection not found" });
-        return { collection, success: true };
+        try {
+            const { id } = request.params as any;
+            const collectionData = request.body as any;
+            const [collection] = await db.update(schema.collections).set({ ...collectionData, updatedAt: new Date() }).where(eq(schema.collections.id, id)).returning();
+            if (!collection) return reply.status(404).send({ message: "Collection not found" });
+            return { collection, success: true };
+        } catch (error: any) {
+            if (error.code === '23505' && error.message.includes('Collection_slug_unique')) {
+                return reply.status(400).send({
+                    success: false,
+                    message: "A collection with this slug already exists. Please use a unique slug."
+                });
+            }
+            throw error;
+        }
     };
 
     // Edit Collection

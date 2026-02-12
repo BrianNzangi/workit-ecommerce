@@ -12,7 +12,7 @@ export const banners = pgTable("Banner", {
     sortOrder: integer("sortOrder").default(0).notNull(),
     desktopImageId: text("desktopImageId").references(() => assets.id),
     mobileImageId: text("mobileImageId").references(() => assets.id),
-    collectionId: text("collectionId").references(() => collections.id),
+    collectionId: text("collectionId").references(() => collections.id, { onDelete: 'set null' }),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });

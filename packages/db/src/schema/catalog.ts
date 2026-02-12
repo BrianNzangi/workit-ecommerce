@@ -41,7 +41,7 @@ export const collections = pgTable("Collection", {
     parentFk: foreignKey({
         columns: [t.parentId],
         foreignColumns: [t.id],
-    }),
+    }).onDelete('set null'),
 }));
 
 export const products = pgTable("Product", {
