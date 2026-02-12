@@ -59,8 +59,13 @@ export const buildApp = async () => {
     });
     await app.register(authPlugin);
 
-    // Register Multipart
-    await app.register(import("@fastify/multipart"));
+    // Register Multipart with file upload limits
+    await app.register(import("@fastify/multipart"), {
+        limits: {
+            fileSize: 10 * 1024 * 1024, // 10MB max file size
+            files: 1,                    // 1 file at a time
+        },
+    });
 
     // Register Swagger
     await app.register(fastifySwagger, {

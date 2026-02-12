@@ -38,15 +38,8 @@ const nextConfig: NextConfig = {
   async rewrites() {
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
     return [
-      // Explicit Assets Rewrite (Priority)
-      {
-        source: '/api/admin/assets',
-        destination: `${backendUrl}/catalog/assets/admin`,
-      },
-      {
-        source: '/api/admin/assets/:path*',
-        destination: `${backendUrl}/catalog/assets/admin/:path*`,
-      },
+      // NOTE: /api/admin/assets is handled by the route.ts handler (not a rewrite)
+      // to properly support file uploads with streaming body
       // Catalog
       {
         source: '/api/admin/products/:path*',
