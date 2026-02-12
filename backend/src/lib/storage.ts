@@ -84,8 +84,12 @@ export class StorageService {
 }
 
 // Singleton instance — configured via environment variables
+const defaultEndpoint = process.env.NODE_ENV === 'production'
+    ? "http://minio:9000"      // Docker network hostname
+    : "http://localhost:9000"; // Local dev
+
 export const storageService = new StorageService({
-    endpoint: process.env.S3_ENDPOINT || "http://minio:9000",
+    endpoint: process.env.S3_ENDPOINT || defaultEndpoint,
     accessKey: process.env.S3_ACCESS_KEY || "minioadmin",
     secretKey: process.env.S3_SECRET_KEY || "5smbsqzmpdy1f464",
     bucket: process.env.S3_BUCKET || "workit-bucket",
