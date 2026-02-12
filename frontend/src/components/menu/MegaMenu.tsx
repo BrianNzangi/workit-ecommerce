@@ -167,10 +167,10 @@ export default function MegaMenu() {
                       </Link>
                     </div>
 
-                    {/* Grid of L2 (Groups) */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-10 gap-y-12">
+                    {/* Columns of L2 (Groups) - Masonry Style */}
+                    <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-10">
                       {activeL1.children?.map((l2) => (
-                        <div key={l2.id} className="flex flex-col">
+                        <div key={l2.id} className="break-inside-avoid mb-4 flex flex-col">
                           <h4 className="font-bold text-[#1F2323] text-lg mb-4 tracking-wider border-b border-gray-200 pb-2">
                             {he.decode(l2.name)}
                           </h4>
