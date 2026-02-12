@@ -68,6 +68,7 @@ export function transformCollectionForDisplay(collection: Collection): Collectio
         id: collection.id,
         name: collection.name,
         slug: collection.slug,
+        parentId: collection.parentId,
         sortOrder: collection.sortOrder,
         image: collection.asset?.preview || collection.asset?.source,
         children: collection.children
