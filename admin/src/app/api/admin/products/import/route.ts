@@ -1,12 +1,20 @@
 import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { getSession } from '@/lib/server';
+
+function getBackendUrl() {
+    const env = process.env as Record<string, string | undefined>;
+    return (
+        env['BACKEND_API_URL'] ||
+        env['BACKEND_URL'] ||
+        env['NEXT_PUBLIC_BACKEND_URL'] ||
+        env['NEXT_PUBLIC_API_URL'] ||
+        'http://localhost:3001'
+    ).replace(/\/$/, '');
+}
 
 export async function POST(request: NextRequest) {
     const headersList = await headers();
     const cookie = headersList.get('cookie');
-
-    await getSession();
 
     // Get the FormData from the request
     const formData = await request.formData();
@@ -58,9 +66,8 @@ export async function POST(request: NextRequest) {
             return row;
         });
 
-        const env = process.env as Record<string, string | undefined>;
-        const backendUrl = (env['BACKEND_API_URL'] || env['NEXT_PUBLIC_BACKEND_URL'] || 'http://localhost:3001').replace(/\/$/, '');
-        const url = `${backendUrl}/products/import`;
+        const backendUrl = getBackendUrl();
+        const url = `${backendUrl}/catalog/products/admin/import`;
 
         const response = await fetch(url, {
             method: 'POST',

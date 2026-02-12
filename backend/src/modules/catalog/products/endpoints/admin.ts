@@ -208,6 +208,185 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
         await db.delete(schema.products as any).where(inArray(schema.products.id as any, ids));
         return { success: true, count: ids.length };
     });
+
+    // ─── Download CSV Template ────────────────────────────────────
+    fastify.get("/template", {
+        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+    }, async (_request, reply) => {
+        const headers = [
+            'name', 'slug', 'sku', 'description', 'salePrice', 'originalPrice',
+            'stockOnHand', 'enabled', 'condition', 'brandSlug', 'collections', 'vat', 'vatInclusive'
+        ];
+
+        const sampleRow = [
+            'Example Product', 'example-product', 'SKU-001', 'Product description here',
+            '1500', '2000', '20', 'true', 'NEW', 'brand-slug', 'collection-slug-1|collection-slug-2',
+            '16', 'true'
+        ];
+
+        const csv = headers.join(',') + '\n' + sampleRow.join(',') + '\n';
+
+        reply.header('Content-Type', 'text/csv');
+        reply.header('Content-Disposition', 'attachment; filename="product-import-template.csv"');
+        return reply.send(csv);
+    });
+
+    // ─── Export Products as CSV ───────────────────────────────────
+    fastify.get("/export", {
+        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+    }, async (_request, reply) => {
+        const allProducts = await (db as any).query.products.findMany({
+            orderBy: [desc(schema.products.createdAt as any)],
+            with: {
+                collections: { with: { collection: true } },
+                brand: true,
+            },
+        });
+
+        const headers = [
+            'name', 'slug', 'sku', 'description', 'salePrice', 'originalPrice',
+            'stockOnHand', 'enabled', 'condition', 'brandSlug', 'collections', 'vat', 'vatInclusive'
+        ];
+
+        const escapeCSV = (val: any) => {
+            const str = val === null || val === undefined ? '' : String(val);
+            if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                return `"${str.replace(/"/g, '""')}"`;
+            }
+            return str;
+        };
+
+        const rows = allProducts.map((p: any) => [
+            escapeCSV(p.name),
+            escapeCSV(p.slug),
+            escapeCSV(p.sku),
+            escapeCSV(p.description),
+            escapeCSV(p.salePrice),
+            escapeCSV(p.originalPrice),
+            escapeCSV(p.stockOnHand),
+            escapeCSV(p.enabled),
+            escapeCSV(p.condition),
+            escapeCSV(p.brand?.slug || ''),
+            escapeCSV((p.collections || []).map((pc: any) => pc.collection?.slug).filter(Boolean).join('|')),
+            escapeCSV(p.vat),
+            escapeCSV(p.vatInclusive),
+        ].join(','));
+
+        const csv = headers.join(',') + '\n' + rows.join('\n') + '\n';
+
+        reply.header('Content-Type', 'text/csv');
+        reply.header('Content-Disposition', `attachment; filename="products-export-${Date.now()}.csv"`);
+        return reply.send(csv);
+    });
+
+    // ─── Import Products from CSV data ───────────────────────────
+    fastify.post("/import", {
+        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+    }, async (request, reply) => {
+        const { csvData } = request.body as { csvData: any[] };
+
+        if (!Array.isArray(csvData) || csvData.length === 0) {
+            return reply.status(400).send({ error: 'No data provided' });
+        }
+
+        // Pre-fetch brands and collections for lookup
+        const allBrands = await (db as any).query.brands.findMany();
+        const allCollections = await (db as any).query.collections.findMany();
+
+        const brandBySlug = new Map(allBrands.map((b: any) => [b.slug, b.id]));
+        const collectionBySlug = new Map(allCollections.map((c: any) => [c.slug, c.id]));
+
+        let created = 0;
+        let updated = 0;
+        let skipped = 0;
+        const errors: string[] = [];
+
+        for (let i = 0; i < csvData.length; i++) {
+            const row = csvData[i];
+            try {
+                if (!row.name || !row.slug) {
+                    errors.push(`Row ${i + 1}: Missing required fields (name, slug)`);
+                    skipped++;
+                    continue;
+                }
+
+                const productData: any = {
+                    name: row.name,
+                    slug: row.slug,
+                    sku: row.sku || null,
+                    description: row.description || null,
+                    salePrice: row.salePrice ? parseFloat(row.salePrice) : null,
+                    originalPrice: row.originalPrice ? parseFloat(row.originalPrice) : null,
+                    stockOnHand: row.stockOnHand ? parseInt(row.stockOnHand) : 20,
+                    enabled: row.enabled !== undefined ? row.enabled === 'true' || row.enabled === true : true,
+                    condition: row.condition || 'NEW',
+                    vat: row.vat ? parseFloat(row.vat) : 0,
+                    vatInclusive: row.vatInclusive !== undefined ? row.vatInclusive === 'true' || row.vatInclusive === true : true,
+                };
+
+                // Resolve brand
+                if (row.brandSlug && brandBySlug.has(row.brandSlug)) {
+                    productData.brandId = brandBySlug.get(row.brandSlug);
+                }
+
+                // Check if product exists by slug
+                const existing = await (db as any).query.products.findFirst({
+                    where: eq(schema.products.slug as any, row.slug),
+                });
+
+                let productId: string;
+
+                if (existing) {
+                    // Update existing product
+                    await db.update(schema.products as any)
+                        .set({ ...productData, updatedAt: new Date() })
+                        .where(eq(schema.products.id as any, existing.id));
+                    productId = existing.id;
+                    updated++;
+                } else {
+                    // Create new product
+                    productId = uuidv4();
+                    await db.insert(schema.products as any).values({ ...productData, id: productId });
+                    created++;
+                }
+
+                // Handle collections (pipe-separated slugs)
+                if (row.collections) {
+                    const collSlugs = String(row.collections).split('|').map((s: string) => s.trim()).filter(Boolean);
+                    const collIds = collSlugs
+                        .map((slug: string) => collectionBySlug.get(slug))
+                        .filter((id): id is string => !!id);
+
+                    if (collIds.length > 0) {
+                        // Remove existing and re-add
+                        await db.delete(schema.productCollections as any)
+                            .where(eq(schema.productCollections.productId as any, productId));
+                        await db.insert(schema.productCollections as any).values(
+                            collIds.map((cid: string, idx: number) => ({
+                                id: uuidv4(),
+                                productId,
+                                collectionId: cid,
+                                sortOrder: idx,
+                            }))
+                        );
+                    }
+                }
+
+            } catch (err: any) {
+                errors.push(`Row ${i + 1} (${row.name || 'unknown'}): ${err.message}`);
+                skipped++;
+            }
+        }
+
+        return {
+            success: true,
+            created,
+            updated,
+            skipped,
+            total: csvData.length,
+            errors: errors.length > 0 ? errors : undefined,
+        };
+    });
 };
 
 export default productsAdminRoutes;
