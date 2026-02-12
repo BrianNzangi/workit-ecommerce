@@ -2,111 +2,121 @@
 
 import React, { useEffect, useState } from 'react';
 import he from 'he';
-import { ChevronRight, ChevronLeft } from 'lucide-react';
-import { Category } from '@/components/menu/MegaMenuData';
+import Link from 'next/link';
+import { ChevronRight, ChevronLeft, X } from 'lucide-react';
+import { fetchNavigationCollectionsDisplayClient } from '@/lib/collections-client';
+import type { CollectionDisplay } from '@/types/collections';
 import MegaMenuItem from '@/components/menu/MegaMenuItem';
 
-// Sorting helper
-function sortBySortOrder(a: Category, b: Category) {
-  return (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.name.localeCompare(b.name);
-}
-
-let cachedCategories: Category[] | null = null;
+let cachedCollections: CollectionDisplay[] | null = null;
 
 export default function MobileMegaMenu() {
-  const [categories, setCategories] = useState<Category[]>(cachedCategories || []);
-  const [loading, setLoading] = useState(!cachedCategories);
-  const [path, setPath] = useState<Category[]>([]); // breadcrumb path
+  const [collections, setCollections] = useState<CollectionDisplay[]>(cachedCollections || []);
+  const [loading, setLoading] = useState(!cachedCollections);
+  const [path, setPath] = useState<CollectionDisplay[]>([]); // active drill-down path
 
   useEffect(() => {
-    if (cachedCategories) return;
+    if (cachedCollections) return;
 
-    async function fetchCategories() {
+    async function fetchCollections() {
       try {
-        const res = await fetch('/api/collections?includeChildren=true');
-        const data: any[] = await res.json();
-
-        // Transform and filter only root collections
-        const formatted: Category[] = data
-          .filter(c => !c.parentId && c.enabled)
-          .map(c => ({
-            id: c.id,
-            name: c.name,
-            slug: c.slug,
-            sortOrder: c.sortOrder,
-            image: c.asset?.preview || c.asset?.source,
-            children: c.children?.filter((child: any) => child.enabled).map((child: any) => ({
-              id: child.id,
-              name: child.name,
-              slug: child.slug,
-              sortOrder: child.sortOrder,
-              image: child.asset?.preview || child.asset?.source,
-            }))
-          }));
-
-        cachedCategories = formatted;
-        setCategories(formatted);
+        const data = await fetchNavigationCollectionsDisplayClient();
+        cachedCollections = data;
+        setCollections(data);
       } catch (err) {
-        console.error('Failed to fetch categories:', err);
+        console.error('Failed to fetch collections:', err);
       } finally {
         setLoading(false);
       }
     }
 
-    fetchCategories();
+    fetchCollections();
   }, []);
 
-  if (loading) return <div className="p-4">Loading menu...</div>;
+  if (loading) return <div className="p-4 animate-pulse">Loading menu...</div>;
 
   const current = path[path.length - 1] || null;
+
+  // If no path, show L1. If at L1, show L2. If at L2, show L3.
   const items = current
     ? current.children || []
-    : categories.filter((c) => c.children && c.children.length > 0);
+    : collections;
+
+  const handleBack = () => {
+    setPath(path.slice(0, -1));
+  };
+
+  const handleSelect = (col: CollectionDisplay) => {
+    if (col.children && col.children.length > 0) {
+      setPath([...path, col]);
+    }
+  };
 
   return (
-    <div className="p-2 font-sans">
-      {/* Breadcrumb header */}
-      <div className="flex items-center justify-between mb-4">
-        {path.length > 0 && (
+    <div className="font-sans flex flex-col h-full bg-white">
+      {/* Navigator Header */}
+      <div className="flex items-center gap-3 px-2 py-4 border-b border-gray-100">
+        {path.length > 0 ? (
           <button
-            className="inline-flex items-center gap-1 text-sm text-gray-600"
-            onClick={() => setPath(path.slice(0, -1))}
+            className="p-2 -ml-2 text-gray-600 hover:bg-gray-50 rounded-full transition-colors"
+            onClick={handleBack}
           >
-            <ChevronLeft size={16} /> Back
+            <ChevronLeft size={24} />
           </button>
-        )}
-        <div className="font-semibold text-gray-900 text-base">
-          {current ? he.decode(current.name) : 'Categories'}
+        ) : null}
+        <div className="font-bold text-gray-900 text-lg">
+          {current ? he.decode(current.name) : 'Shop by Category'}
         </div>
       </div>
 
-      {/* Grid of items */}
-      <ul className="grid grid-cols-2 gap-2">
-        {items
-          .sort(sortBySortOrder)
-          .map((cat) => {
+      {/* List Area */}
+      <ul className="flex-1 overflow-y-auto pt-2 pb-10">
+        {items.length === 0 ? (
+          <li className="p-4 text-gray-500 italic text-sm text-center">No categories found in this section</li>
+        ) : (
+          items.map((cat) => {
             const hasChildren = cat.children && cat.children.length > 0;
+            const isL2Group = path.length === 1; // current is L1, so items are L2
 
             return (
-              <li key={cat.id}>
+              <li key={cat.id} className="border-b border-gray-50 last:border-0">
                 {hasChildren ? (
                   <button
-                    onClick={() => setPath([...path, cat])}
-                    className="w-full flex items-center justify-between bg-gray-100 rounded-sm px-3 py-4 text-left hover:bg-gray-200 transition"
+                    onClick={() => handleSelect(cat)}
+                    className="w-full flex items-center justify-between px-4 py-4 text-left hover:bg-gray-50 transition-colors"
                   >
-                    <span className="font-medium">{he.decode(cat.name)}</span>
-                    <ChevronRight size={16} />
+                    <div className="flex flex-col">
+                      <span className={`font-medium text-gray-800 ${isL2Group ? 'uppercase text-xs tracking-wider text-gray-500' : 'text-base'}`}>
+                        {he.decode(cat.name)}
+                      </span>
+                    </div>
+                    <ChevronRight size={20} className="text-gray-400" />
                   </button>
                 ) : (
-                  <MegaMenuItem
-                    title={cat.name}
-                    image={typeof cat.image === 'string' ? cat.image : cat.image?.src}
-                    href={`/collections/${cat.slug}`}
-                  />
+                  <div className="px-2">
+                    <MegaMenuItem
+                      title={cat.name}
+                      image={cat.image}
+                      href={`/collections/${cat.slug}`}
+                    />
+                  </div>
                 )}
               </li>
             );
-          })}
+          })
+        )}
+
+        {/* At depth 1 or 2, show "Shop all" link */}
+        {current && (
+          <li className="mt-4 px-4">
+            <Link
+              href={`/collections/${current.slug}`}
+              className="block w-full text-center py-3 bg-primary-900 text-white font-bold rounded-xs hover:bg-black transition-colors"
+            >
+              Shop all {he.decode(current.name)}
+            </Link>
+          </li>
+        )}
       </ul>
     </div>
   );

@@ -108,16 +108,18 @@ export default function CollectionsPage() {
     const renderCollection = (collection: Collection, level = 0) => {
         const hasChildren = collection.children && collection.children.length > 0;
         const isExpanded = expandedCollections.has(collection.id);
+        const isGroup = level === 1; // L2 items are grouping labels
+
+        const indentClass = level === 0 ? '' : level === 1 ? 'ml-8 bg-gray-50/50' : 'ml-16 bg-gray-50/30';
 
         return (
             <div key={collection.id}>
                 <div
-                    className={`flex items-center gap-4 p-4 border-b border-gray-200 hover:bg-gray-50 ${level > 0 ? 'ml-8 bg-gray-50/50' : ''
-                        }`}
+                    className={`flex items-center gap-4 p-4 border-b border-gray-200 hover:bg-gray-50 ${indentClass}`}
                 >
                     {/* Expand/Collapse Button */}
                     <div className="w-6 flex items-center justify-center">
-                        {level === 0 && hasChildren ? (
+                        {hasChildren ? (
                             <button
                                 onClick={() => toggleExpanded(collection.id)}
                                 className="text-gray-600 hover:text-gray-900 transition-colors"
@@ -137,9 +139,14 @@ export default function CollectionsPage() {
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                             <h3 className="text-sm font-medium text-gray-900 truncate">{collection.name}</h3>
-                            {level === 0 && hasChildren && (
+                            {isGroup && (
+                                <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-amber-100 text-amber-800">
+                                    Group
+                                </span>
+                            )}
+                            {hasChildren && (
                                 <span className="text-xs text-gray-500 shrink-0">
-                                    ({collection.children!.length} subcollection{collection.children!.length !== 1 ? 's' : ''})
+                                    ({collection.children!.length} {level === 0 ? 'group' : 'subcollection'}{collection.children!.length !== 1 ? 's' : ''})
                                 </span>
                             )}
                         </div>
@@ -201,7 +208,7 @@ export default function CollectionsPage() {
                     </div>
                 </div>
 
-                {/* Children (Subcollections) */}
+                {/* Children (Subcollections / L3) */}
                 {hasChildren && isExpanded && (
                     <div>
                         {collection.children!.map((child) => renderCollection(child, level + 1))}

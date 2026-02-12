@@ -18,8 +18,15 @@ export const collectionsAdminRoutes: FastifyPluginAsync = async (fastify) => {
             withRelations.children = {
                 orderBy: [desc(schema.collections.name as any)],
                 with: {
-                    asset: true, // Asset for children 
-                    products: true // Products for children count?
+                    asset: true,
+                    products: true,
+                    children: {
+                        orderBy: [desc(schema.collections.name as any)],
+                        with: {
+                            asset: true,
+                            products: true,
+                        }
+                    }
                 }
             };
         }
@@ -29,25 +36,30 @@ export const collectionsAdminRoutes: FastifyPluginAsync = async (fastify) => {
             with: withRelations
         });
 
-        // Manual count if needed, or rely on frontend to handle missing _count
-        // Drizzle query API doesn't do Prisma-style _count easily without extras
-        // For now, let's just make sure children are returned.
-
-        // Map results to include _count for frontend compatibility
-        return {
-            collections: results.map((collection: any) => ({
-                ...collection,
+        const mapCollection = (col: any): any => ({
+            ...col,
+            _count: {
+                products: col.products?.length || 0
+            },
+            children: col.children?.map((child: any) => ({
+                ...child,
                 _count: {
-                    products: collection.products?.length || 0
+                    products: child.products?.length || 0
                 },
-                children: collection.children?.map((child: any) => ({
-                    ...child,
+                children: child.children?.map((grandchild: any) => ({
+                    ...grandchild,
                     _count: {
-                        products: child.products?.length || 0
-                    }
+                        products: grandchild.products?.length || 0
+                    },
+                    products: undefined,
                 })),
-                products: undefined
+                products: undefined,
             })),
+            products: undefined
+        });
+
+        return {
+            collections: results.map(mapCollection),
             success: true
         };
     });

@@ -16,7 +16,7 @@ export default function MegaMenuItem({ title, image, href }: MegaMenuItemProps) 
     <div className="group block w-full">
       <a
         href={href}
-        className="block bg-gray-100 rounded-md overflow-hidden transition"
+        className="block bg-gray-100 rounded-sm overflow-hidden transition"
       >
         <div className="relative aspect-4/2 w-full">
           {image ? (

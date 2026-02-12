@@ -6,20 +6,6 @@ import QueryProvider from "../components/providers/QueryProvider";
 import Footer from "../components/layout/Footer";
 import "./globals.css";
 import Script from "next/script";
-// import { Barlow } from 'next/font/google';
-
-// const barlow = Barlow({
-//   subsets: ['latin'],
-//   weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
-//   style: ['normal', 'italic'],
-//   variable: '--font-barlow',
-//   display: 'swap',
-// });
-
-const barlow = {
-  variable: 'font-barlow', // Fallback to a class-like string since the variable won't be loaded
-  className: '',
-};
 
 export const metadata: Metadata = {
   title: "Shop Phones, Laptops & Gadgets Online for less on Workit",
@@ -55,7 +41,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en" className={barlow.variable}>
+    <html lang="en">
       <head>
         {/* JSON-LD SEO */}
         <Script
@@ -64,8 +50,11 @@ export default function RootLayout({
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet" />
       </head>
-      <body className="font-sans flex flex-col min-h-screen">
+      <body className="font-barlow flex flex-col min-h-screen">
         <QueryProvider>
           <CartInitializer />
           <Header />
@@ -85,7 +74,7 @@ export default function RootLayout({
               boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)', // shadow-lg
               padding: '16px',
               fontSize: '14px',
-              fontFamily: 'var(--font-barlow), sans-serif',
+              fontFamily: 'Barlow, sans-serif',
             },
             // Success toast
             success: {
