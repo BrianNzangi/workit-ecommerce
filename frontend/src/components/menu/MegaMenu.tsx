@@ -90,9 +90,9 @@ export default function MegaMenu() {
   if (loading) {
     return (
       <div className="h-10 w-full flex items-center gap-4">
-        <div className="h-8 w-40 bg-gray-100 animate-pulse rounded" />
-        <div className="h-4 w-24 bg-gray-50 animate-pulse rounded" />
-        <div className="h-4 w-24 bg-gray-50 animate-pulse rounded" />
+        <div className="h-8 w-40 bg-secondary-100 animate-pulse rounded" />
+        <div className="h-4 w-24 bg-secondary-50 animate-pulse rounded" />
+        <div className="h-4 w-24 bg-secondary-50 animate-pulse rounded" />
       </div>
     );
   }
@@ -125,12 +125,12 @@ export default function MegaMenu() {
 
           <div className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-8">
             <div
-              className={`bg-white flex flex-col md:flex-row shadow-2xl border border-gray-100 rounded-b-lg overflow-hidden ${isOpen ? 'pointer-events-auto' : 'pointer-events-none'
+              className={`bg-white flex flex-col md:flex-row shadow-2xl border border-secondary-100 rounded-b-lg overflow-hidden ${isOpen ? 'pointer-events-auto' : 'pointer-events-none'
                 }`}
               style={{ maxHeight: '640px' }}
             >
               {/* L1 Vertical Sidebar (Left) */}
-              <div className="w-full md:w-80 bg-gray-50 border-r border-gray-100 overflow-y-auto overflow-x-hidden">
+              <div className="w-full md:w-80 bg-secondary-50 border-r border-secondary-100 overflow-y-auto overflow-x-hidden">
                 <ul className="py-2">
                   {dropdownCollections.map((l1) => (
                     <li
@@ -138,7 +138,7 @@ export default function MegaMenu() {
                       onMouseEnter={() => setActiveL1(l1)}
                       className={`group flex items-center justify-between px-6 py-3 cursor-pointer transition-all duration-200 ${activeL1?.id === l1.id
                         ? 'bg-white text-primary-900 border-l-4 border-primary-900'
-                        : 'text-gray-700 hover:bg-gray-50 border-l-4 border-transparent'
+                        : 'text-secondary-700 hover:bg-secondary-50 border-l-4 border-transparent'
                         }`}
                     >
                       <span className="font-medium text-base truncate pr-2">{he.decode(l1.name)}</span>
@@ -161,7 +161,7 @@ export default function MegaMenu() {
                       <Link
                         href={`/collections/${activeL1.slug}`}
                         onClick={() => setIsOpen(false)}
-                        className="text-gray-900 font-bold text-lg hover:text-primary-900 transition-colors inline-flex items-center gap-3"
+                        className="text-secondary-900 font-bold text-lg hover:text-primary-900 transition-colors inline-flex items-center gap-3"
                       >
                         Shop all {he.decode(activeL1.name)} <ChevronRight size={24} />
                       </Link>
@@ -171,7 +171,7 @@ export default function MegaMenu() {
                     <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-10">
                       {activeL1.children?.map((l2) => (
                         <div key={l2.id} className="break-inside-avoid mb-4 flex flex-col">
-                          <h4 className="font-bold text-[#1F2323] text-lg mb-4 tracking-wider border-b border-gray-200 pb-2">
+                          <h4 className="font-semibold text-secondary-900 text-lg mb-4 tracking-wider border-b border-secondary-200 pb-2">
                             {he.decode(l2.name)}
                           </h4>
                           <ul className="space-y-3">
@@ -180,7 +180,7 @@ export default function MegaMenu() {
                                 <Link
                                   href={`/collections/${l3.slug}`}
                                   onClick={() => setIsOpen(false)}
-                                  className="text-gray-500 hover:text-primary-900 transition-colors inline-block text-base font-medium hover:translate-x-1"
+                                  className="text-secondary-900 hover:text-primary-900 transition-colors inline-block text-base font-medium hover:translate-x-1"
                                 >
                                   {he.decode(l3.name)}
                                 </Link>
@@ -199,12 +199,12 @@ export default function MegaMenu() {
       </div>
 
       {/* Standalone L1s - Outside Hover Zone */}
-      <div className="hidden md:flex items-center gap-6 border-l border-gray-100 pl-8">
+      <div className="hidden md:flex items-center gap-6 border-l border-secondary-100 pl-8">
         {standaloneL1s.map((l1) => (
           <Link
             key={l1.id}
             href={`/collections/${l1.slug}`}
-            className="text-base font-semibold text-gray-600 hover:text-primary-900 transition-colors uppercase tracking-wide whitespace-nowrap"
+            className="text-base font-semibold text-secondary-900 hover:text-primary-900 transition-colors tracking-wide whitespace-nowrap"
           >
             {he.decode(l1.name)}
           </Link>
