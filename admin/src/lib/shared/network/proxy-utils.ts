@@ -6,6 +6,7 @@ function getBackendUrl() {
     const env = process.env as Record<string, string | undefined>;
     return (
         env['BACKEND_API_URL'] ||
+        env['BACKEND_URL'] ||
         env['NEXT_PUBLIC_BACKEND_URL'] ||
         env['NEXT_PUBLIC_API_URL'] ||
         'http://localhost:3001'
