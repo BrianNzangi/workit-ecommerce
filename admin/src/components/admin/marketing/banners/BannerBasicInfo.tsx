@@ -98,8 +98,10 @@ export function BannerBasicInfo({
                         >
                             <option value="">Select a collection (optional)</option>
                             {collectionOptions.map((option) => (
-                                <option key={option.id} value={option.id}>
-                                    {'  '.repeat(option.level)}{option.name}
+                                <option key={option.id} value={option.id} className="py-1">
+                                    {option.level === 0 ? '' : option.level === 1 ? '  └ ' : '    └ '}
+                                    {option.name}
+                                    {option.level === 0 ? ' (Category)' : option.level === 1 ? ' (Group)' : ' (Sub)'}
                                 </option>
                             ))}
                         </select>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Plus, Trash2, Upload, X, ChevronDown, ChevronUp, Image as ImageIcon } from 'lucide-react';
 import { HomepageCollectionService } from '@/lib/services';
@@ -429,6 +429,61 @@ export function ProductForm({ productId, mode }: ProductFormProps) {
             setLoading(false);
             setUploadingImages(false);
         }
+    };
+
+    const renderCollectionItem = (collection: Collection, level = 0) => {
+        const isExpanded = expandedCollections.has(collection.id);
+        const hasChildren = collection.children && collection.children.length > 0;
+
+        return (
+            <div key={collection.id}>
+                <div className={`flex items-center gap-2 ${level > 0 ? 'ml-6 mt-1' : ''}`}>
+                    <label className={`flex-1 flex items-center gap-3 p-2 border border-gray-200 rounded-xs hover:bg-gray-50 cursor-pointer ${level === 0 ? 'font-semibold bg-gray-50/10' : 'text-gray-700'}`}>
+                        <input
+                            type="checkbox"
+                            checked={selectedCollections.includes(collection.id)}
+                            onChange={() => toggleCollection(collection.id)}
+                            className="w-4 h-4 text-primary-800 border-gray-300 rounded focus:ring-primary-600"
+                        />
+                        <div className="flex flex-col">
+                            <span className="text-sm">
+                                {collection.name}
+                            </span>
+                            <div className="flex gap-1 mt-0.5">
+                                {level === 0 && <span className="px-1 py-0.5 text-[8px] uppercase bg-gray-100 text-gray-500 font-bold border border-gray-200 rounded-xs">Category</span>}
+                                {level === 1 && <span className="px-1 py-0.5 text-[8px] uppercase bg-amber-50 text-amber-600 font-bold border border-amber-100 rounded-xs">Group</span>}
+                                {level === 2 && <span className="px-1 py-0.5 text-[8px] uppercase bg-blue-50 text-blue-600 font-bold border border-blue-100 rounded-xs">Sub-collection</span>}
+                            </div>
+                        </div>
+                        {hasChildren && (
+                            <span className="text-[10px] text-gray-400 ml-auto shrink-0 font-medium italic">
+                                ({collection.children!.length})
+                            </span>
+                        )}
+                    </label>
+
+                    {hasChildren && (
+                        <button
+                            type="button"
+                            onClick={() => toggleExpanded(collection.id)}
+                            className="p-2 hover:bg-gray-100 rounded transition-colors"
+                        >
+                            {isExpanded ? (
+                                <ChevronUp className="w-4 h-4 text-gray-600" />
+                            ) : (
+                                <ChevronDown className="w-4 h-4 text-gray-600" />
+                            )}
+                        </button>
+                    )}
+                </div>
+
+                {hasChildren && isExpanded && (
+                    <div className="border-l-2 border-gray-100 ml-3">
+                        {collection.children!.map((child) => renderCollectionItem(child, level + 1))}
+                    </div>
+                )}
+            </div>
+        );
     };
 
     if (fetchLoading) {
@@ -866,68 +921,7 @@ export function ProductForm({ productId, mode }: ProductFormProps) {
                                             <div className="p-2 space-y-1">
                                                 {collections
                                                     .filter((c) => !c.parentId)
-                                                    .map((collection) => {
-                                                        const isExpanded = expandedCollections.has(collection.id);
-                                                        const hasChildren = collection.children && collection.children.length > 0;
-
-                                                        return (
-                                                            <div key={collection.id}>
-                                                                <div className="flex items-center gap-2">
-                                                                    <label className="flex-1 flex items-center gap-3 p-2 border border-gray-200 rounded-xs hover:bg-gray-50 cursor-pointer">
-                                                                        <input
-                                                                            type="checkbox"
-                                                                            checked={selectedCollections.includes(collection.id)}
-                                                                            onChange={() => toggleCollection(collection.id)}
-                                                                            className="w-4 h-4 text-primary-800 border-gray-300 rounded focus:ring-primary-600"
-                                                                        />
-                                                                        <span className="text-sm font-medium text-gray-900">
-                                                                            {collection.name}
-                                                                        </span>
-                                                                        {hasChildren && (
-                                                                            <span className="text-xs text-gray-500">
-                                                                                ({collection.children!.length})
-                                                                            </span>
-                                                                        )}
-                                                                    </label>
-
-                                                                    {hasChildren && (
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={() => toggleExpanded(collection.id)}
-                                                                            className="p-2 hover:bg-gray-100 rounded transition-colors"
-                                                                        >
-                                                                            {isExpanded ? (
-                                                                                <ChevronUp className="w-4 h-4 text-gray-600" />
-                                                                            ) : (
-                                                                                <ChevronDown className="w-4 h-4 text-gray-600" />
-                                                                            )}
-                                                                        </button>
-                                                                    )}
-                                                                </div>
-
-                                                                {hasChildren && isExpanded && (
-                                                                    <div className="ml-6 mt-1 space-y-1">
-                                                                        {collection.children!.map((child) => (
-                                                                            <label
-                                                                                key={child.id}
-                                                                                className="flex items-center gap-3 p-2 pl-4 border-l-2 border-gray-300 hover:border-primary-800 hover:bg-gray-50 cursor-pointer rounded-r-xs"
-                                                                            >
-                                                                                <input
-                                                                                    type="checkbox"
-                                                                                    checked={selectedCollections.includes(child.id)}
-                                                                                    onChange={() => toggleCollection(child.id)}
-                                                                                    className="w-4 h-4 text-primary-800 border-gray-300 rounded focus:ring-primary-600"
-                                                                                />
-                                                                                <span className="text-sm text-gray-700">
-                                                                                    {child.name}
-                                                                                </span>
-                                                                            </label>
-                                                                        ))}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        );
-                                                    })}
+                                                    .map((collection) => renderCollectionItem(collection))}
                                             </div>
                                         )}
                                     </div>

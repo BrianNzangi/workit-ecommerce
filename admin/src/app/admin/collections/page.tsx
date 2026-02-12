@@ -108,21 +108,31 @@ export default function CollectionsPage() {
     const renderCollection = (collection: Collection, level = 0) => {
         const hasChildren = collection.children && collection.children.length > 0;
         const isExpanded = expandedCollections.has(collection.id);
-        const isGroup = level === 1; // L2 items are grouping labels
 
-        const indentClass = level === 0 ? '' : level === 1 ? 'ml-8 bg-gray-50/50' : 'ml-16 bg-gray-50/30';
+        // Level-specific styling and labeling
+        const isCategory = level === 0;
+        const isGroup = level === 1;
+        const isSubCollection = level === 2;
+
+        const indentClass = isCategory ? '' : isGroup ? 'ml-8 bg-gray-50/50' : 'ml-16 bg-blue-50/20';
+
+        const getLevelBadge = () => {
+            if (isCategory) return <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-xs bg-primary-100 text-primary-900 border border-primary-200">Category</span>;
+            if (isGroup) return <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-xs bg-amber-100 text-amber-800 border border-amber-200">Group</span>;
+            return <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-xs bg-blue-100 text-blue-800 border border-blue-200">Sub-collection</span>;
+        };
 
         return (
             <div key={collection.id}>
                 <div
-                    className={`flex items-center gap-4 p-4 border-b border-gray-200 hover:bg-gray-50 ${indentClass}`}
+                    className={`flex items-center gap-4 p-4 border-b border-gray-200 hover:bg-white transition-colors ${indentClass}`}
                 >
                     {/* Expand/Collapse Button */}
                     <div className="w-6 flex items-center justify-center">
                         {hasChildren ? (
                             <button
                                 onClick={() => toggleExpanded(collection.id)}
-                                className="text-gray-600 hover:text-gray-900 transition-colors"
+                                className="text-gray-600 hover:text-primary-900 transition-colors"
                             >
                                 {isExpanded ? (
                                     <ChevronDown className="w-5 h-5" />
@@ -131,50 +141,48 @@ export default function CollectionsPage() {
                                 )}
                             </button>
                         ) : level > 0 ? (
-                            <div className="text-gray-400 text-sm">└</div>
+                            <div className="text-gray-300 text-sm ml-1 select-none">└</div>
                         ) : null}
                     </div>
 
                     {/* Collection Name & Info */}
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                            <h3 className="text-sm font-medium text-gray-900 truncate">{collection.name}</h3>
-                            {isGroup && (
-                                <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-amber-100 text-amber-800">
-                                    Group
-                                </span>
-                            )}
+                            <h3 className={`text-sm font-semibold truncate ${isCategory ? 'text-gray-900' : 'text-gray-700'}`}>
+                                {collection.name}
+                            </h3>
+                            {getLevelBadge()}
                             {hasChildren && (
-                                <span className="text-xs text-gray-500 shrink-0">
-                                    ({collection.children!.length} {level === 0 ? 'group' : 'subcollection'}{collection.children!.length !== 1 ? 's' : ''})
+                                <span className="text-[10px] text-gray-500 font-medium shrink-0 italic">
+                                    ({collection.children!.length} {isCategory ? 'groups' : 'subs'})
                                 </span>
                             )}
                         </div>
-                        <p className="text-xs text-gray-500 truncate">{collection.slug}</p>
+                        <p className="text-[10px] font-mono text-gray-400 truncate">{collection.slug}</p>
                     </div>
 
                     {/* Sort Order Column */}
                     <div className="w-20 text-center">
-                        <span className="text-sm text-gray-700">{collection.sortOrder}</span>
+                        <span className="text-xs font-medium text-gray-600">Ord: {collection.sortOrder}</span>
                     </div>
 
                     {/* Most Shopped Column */}
                     <div className="w-32 flex items-center justify-center">
                         {collection.showInMostShopped ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-xs bg-purple-100 text-purple-800">
+                            <span className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-bold uppercase rounded-xs bg-purple-100 text-purple-800">
                                 <TrendingUp className="w-3 h-3" />
                                 Featured
                             </span>
                         ) : (
-                            <span className="text-xs text-gray-400">-</span>
+                            <span className="text-xs text-gray-300">-</span>
                         )}
                     </div>
 
                     {/* Products Count */}
                     <div className="w-24 text-center">
                         {collection._count && (
-                            <span className="text-xs text-gray-500">
-                                {collection._count.products} product{collection._count.products !== 1 ? 's' : ''}
+                            <span className="text-[11px] font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                                {collection._count.products} Product{collection._count.products !== 1 ? 's' : ''}
                             </span>
                         )}
                     </div>
@@ -182,9 +190,9 @@ export default function CollectionsPage() {
                     {/* Status Badge */}
                     <div className="w-24 flex justify-center">
                         <span
-                            className={`px-2 py-1 text-xs font-semibold rounded-xs ${collection.enabled
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-gray-100 text-gray-800'
+                            className={`px-2 py-1 text-[10px] font-bold uppercase rounded-xs ${collection.enabled
+                                ? 'bg-green-100 text-green-800 border border-green-200'
+                                : 'bg-gray-100 text-gray-600 border border-gray-200'
                                 }`}
                         >
                             {collection.enabled ? 'Active' : 'Inactive'}
@@ -195,22 +203,22 @@ export default function CollectionsPage() {
                     <div className="flex gap-2">
                         <Link
                             href={`/admin/collections/${collection.id}/edit`}
-                            className="text-gray-600 hover:text-[#FF5023] transition-colors"
+                            className="p-1.5 text-gray-400 hover:text-primary-900 hover:bg-primary-50 rounded-xs transition-all"
                         >
                             <Edit className="w-4 h-4" />
                         </Link>
                         <button
                             onClick={() => handleDelete(collection.id, collection.name)}
-                            className="text-gray-600 hover:text-red-600 transition-colors"
+                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xs transition-all"
                         >
                             <Trash2 className="w-4 h-4" />
                         </button>
                     </div>
                 </div>
 
-                {/* Children (Subcollections / L3) */}
+                {/* Children (Subcollections / L2 / L3) */}
                 {hasChildren && isExpanded && (
-                    <div>
+                    <div className="border-l-2 border-primary-50">
                         {collection.children!.map((child) => renderCollection(child, level + 1))}
                     </div>
                 )}

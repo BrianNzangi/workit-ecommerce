@@ -167,28 +167,51 @@ export default function MegaMenu() {
                       </Link>
                     </div>
 
-                    {/* Columns of L2 (Groups) - Masonry Style */}
-                    <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-10">
-                      {activeL1.children?.map((l2) => (
-                        <div key={l2.id} className="break-inside-avoid mb-4 flex flex-col">
-                          <h4 className="font-semibold text-secondary-900 text-lg mb-4 tracking-wider border-b border-secondary-200 pb-2">
-                            {he.decode(l2.name)}
-                          </h4>
-                          <ul className="space-y-3">
-                            {l2.children?.map((l3) => (
-                              <li key={l3.id}>
-                                <Link
-                                  href={`/collections/${l3.slug}`}
-                                  onClick={() => setIsOpen(false)}
-                                  className="text-secondary-900 hover:text-primary-900 transition-colors inline-block text-base font-medium hover:translate-x-1"
-                                >
-                                  {he.decode(l3.name)}
-                                </Link>
-                              </li>
+                    {/* Columns of L2 (Groups) - Manual Masonry for Horizontal Order */}
+                    <div className="flex flex-row gap-10">
+                      {[1, 2, 3, 4].map((colNum) => {
+                        // Filter children for this column based on screen size
+                        // Column 1: Always visible
+                        // Column 2: Visible on sm+
+                        // Column 3: Visible on lg+
+                        // Column 4: Visible on xl+
+                        const isVisibleClass =
+                          colNum === 1 ? 'flex' :
+                            colNum === 2 ? 'hidden sm:flex' :
+                              colNum === 3 ? 'hidden lg:flex' :
+                                'hidden xl:flex';
+
+                        return (
+                          <div key={colNum} className={`flex-1 flex flex-col gap-8 ${isVisibleClass}`}>
+                            {activeL1.children?.filter((_, index) => {
+                              // Dynamic distribution based on visible columns
+                              // This is a bit complex for pure CSS, so we'll simplify:
+                              // We'll use 4 columns and let CSS hide the empty ones or 
+                              // we calculate the target column based on the max columns (4).
+                              return index % 4 === colNum - 1;
+                            }).map((l2) => (
+                              <div key={l2.id} className="flex flex-col">
+                                <h4 className="font-semibold text-secondary-900 text-lg mb-4 tracking-wider border-b border-secondary-200 pb-2">
+                                  {he.decode(l2.name)}
+                                </h4>
+                                <ul className="space-y-3">
+                                  {l2.children?.map((l3) => (
+                                    <li key={l3.id}>
+                                      <Link
+                                        href={`/collections/${l3.slug}`}
+                                        onClick={() => setIsOpen(false)}
+                                        className="text-secondary-900 hover:text-primary-900 transition-colors inline-block text-base font-medium hover:translate-x-1"
+                                      >
+                                        {he.decode(l3.name)}
+                                      </Link>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
                             ))}
-                          </ul>
-                        </div>
-                      ))}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
