@@ -6,6 +6,7 @@ interface CollectionDisplaySettingsProps {
     enabled: boolean;
     showInMostShopped: boolean;
     sortOrder: number;
+    mostShoppedSortOrder: number;
     handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
@@ -13,13 +14,15 @@ export function CollectionDisplaySettings({
     enabled,
     showInMostShopped,
     sortOrder,
+    mostShoppedSortOrder,
     handleChange
 }: CollectionDisplaySettingsProps) {
     return (
         <div className="space-y-6">
             <div className="bg-white rounded-xs shadow-xs border border-gray-200 p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">Display Settings</h2>
-                <div className="space-y-4">
+                <div className="space-y-6">
+                    {/* Enable Toggle */}
                     <div className="flex items-center gap-2">
                         <input
                             type="checkbox"
@@ -33,7 +36,28 @@ export function CollectionDisplaySettings({
                             Enable Collection
                         </label>
                     </div>
-                    <div className="space-y-4">
+
+                    {/* Directory Sort Order - Always Visible */}
+                    <div className="pt-4 border-t border-gray-100">
+                        <label htmlFor="sortOrder" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                            Directory Sort Order
+                        </label>
+                        <input
+                            type="number"
+                            id="sortOrder"
+                            name="sortOrder"
+                            value={sortOrder}
+                            onChange={handleChange}
+                            min="0"
+                            className="w-full max-w-[200px] px-3 py-2 text-sm border border-gray-300 rounded-xs focus:ring-2 focus:ring-primary-900 focus:border-transparent"
+                        />
+                        <p className="mt-1.5 text-[10px] text-gray-500">
+                            Controls order in the main collections directory.
+                        </p>
+                    </div>
+
+                    {/* Most Shopped Toggle & Sort Order */}
+                    <div className="pt-4 border-t border-gray-100">
                         <div className="flex items-start gap-2">
                             <input
                                 type="checkbox"
@@ -49,27 +73,27 @@ export function CollectionDisplaySettings({
                                     Show in Most Shopped
                                 </label>
                                 <p className="text-xs text-gray-500 mt-1">
-                                    Display this collection in the "Most Shopped" section on the storefront
+                                    Display in the "Most Shopped" homepage section
                                 </p>
 
                                 {showInMostShopped && (
-                                    <div className="mt-4 pt-4 border-t border-gray-100 animate-in fade-in slide-in-from-top-1 duration-200">
+                                    <div className="mt-4 animate-in fade-in slide-in-from-top-1 duration-200">
                                         <div className="max-w-[200px]">
-                                            <label htmlFor="sortOrder" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
-                                                Section Sort Order
+                                            <label htmlFor="mostShoppedSortOrder" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                                                Most Shopped Sort Order
                                             </label>
                                             <input
                                                 type="number"
-                                                id="sortOrder"
-                                                name="sortOrder"
-                                                value={sortOrder}
+                                                id="mostShoppedSortOrder"
+                                                name="mostShoppedSortOrder"
+                                                value={mostShoppedSortOrder}
                                                 onChange={handleChange}
                                                 min="0"
                                                 placeholder="0"
                                                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded-xs focus:ring-2 focus:ring-primary-900 focus:border-transparent"
                                             />
-                                            <p className="mt-1.5 text-[10px] text-gray-500 leading-tight">
-                                                Determines position in "Most Shopped" section. Lower numbers appear first.
+                                            <p className="mt-1.5 text-[10px] text-gray-500">
+                                                Controls position in homepage carousel.
                                             </p>
                                         </div>
                                     </div>

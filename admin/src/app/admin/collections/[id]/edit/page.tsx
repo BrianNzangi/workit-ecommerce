@@ -43,6 +43,7 @@ export default function EditCollectionPage() {
         enabled: true,
         showInMostShopped: false,
         sortOrder: 0,
+        mostShoppedSortOrder: 0,
         assetId: '',
     });
     const [imageFile, setImageFile] = useState<File | null>(null);
@@ -74,6 +75,7 @@ export default function EditCollectionPage() {
                     enabled: data.enabled,
                     showInMostShopped: data.showInMostShopped || false,
                     sortOrder: data.sortOrder,
+                    mostShoppedSortOrder: data.mostShoppedSortOrder || 0,
                     assetId: data.assetId || '',
                 });
 
@@ -203,6 +205,7 @@ export default function EditCollectionPage() {
                     assetId: assetId || null,
                     parentId: formData.parentId || null,
                     sortOrder: parseInt(formData.sortOrder.toString()),
+                    mostShoppedSortOrder: parseInt(formData.mostShoppedSortOrder.toString()),
                 }),
             });
 
@@ -291,6 +294,7 @@ export default function EditCollectionPage() {
                                 enabled={formData.enabled}
                                 showInMostShopped={formData.showInMostShopped}
                                 sortOrder={formData.sortOrder}
+                                mostShoppedSortOrder={formData.mostShoppedSortOrder}
                                 handleChange={handleChange}
                             />
 

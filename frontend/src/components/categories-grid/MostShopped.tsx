@@ -20,7 +20,7 @@ interface CollectionItem {
     id: string;
     name: string;
     slug: string;
-    sortOrder: number;
+    mostShoppedSortOrder: number;
     count: number;
     image?: string;
 }
@@ -47,7 +47,7 @@ export default function MostShopped() {
                             id: collection.id,
                             name: collection.name,
                             slug: collection.slug,
-                            sortOrder: collection.sortOrder,
+                            mostShoppedSortOrder: collection.mostShoppedSortOrder || 0,
                             count: collection._count?.products || 0,
                             image: collection.asset?.preview || collection.asset?.source,
                         });
@@ -61,7 +61,7 @@ export default function MostShopped() {
                                     id: child.id,
                                     name: child.name,
                                     slug: child.slug,
-                                    sortOrder: child.sortOrder,
+                                    mostShoppedSortOrder: child.mostShoppedSortOrder || 0,
                                     count: child._count?.products || 0,
                                     image: child.asset?.preview || child.asset?.source,
                                 });
@@ -71,8 +71,8 @@ export default function MostShopped() {
                     }
                 });
 
-                // Sort by sortOrder
-                allFeaturedCollections.sort((a, b) => a.sortOrder - b.sortOrder);
+                // Sort by mostShoppedSortOrder
+                allFeaturedCollections.sort((a, b) => a.mostShoppedSortOrder - b.mostShoppedSortOrder);
 
                 setCollections(allFeaturedCollections);
             } catch (err) {

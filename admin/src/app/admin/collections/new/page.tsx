@@ -34,6 +34,7 @@ export default function NewCollectionPage() {
         enabled: true,
         showInMostShopped: false,
         sortOrder: 0,
+        mostShoppedSortOrder: 0,
         assetId: '',
     });
     const [imageFile, setImageFile] = useState<File | null>(null);
@@ -137,6 +138,7 @@ export default function NewCollectionPage() {
                     assetId: assetId || null,
                     parentId: formData.parentId || null,
                     sortOrder: parseInt(formData.sortOrder.toString()),
+                    mostShoppedSortOrder: parseInt(formData.mostShoppedSortOrder.toString()),
                 }),
             });
 
@@ -213,6 +215,7 @@ export default function NewCollectionPage() {
                                 enabled={formData.enabled}
                                 showInMostShopped={formData.showInMostShopped}
                                 sortOrder={formData.sortOrder}
+                                mostShoppedSortOrder={formData.mostShoppedSortOrder}
                                 handleChange={handleChange}
                             />
 

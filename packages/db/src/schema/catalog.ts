@@ -33,6 +33,7 @@ export const collections = pgTable("Collection", {
     parentId: text("parentId"),
     enabled: boolean("enabled").default(true).notNull(),
     showInMostShopped: boolean("showInMostShopped").default(false).notNull(),
+    mostShoppedSortOrder: integer("mostShoppedSortOrder").default(0).notNull(),
     sortOrder: integer("sortOrder").default(0).notNull(),
     assetId: text("assetId").references(() => assets.id),
     createdAt: timestamp("createdAt").defaultNow().notNull(),

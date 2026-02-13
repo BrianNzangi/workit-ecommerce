@@ -27,6 +27,7 @@ export interface Collection {
     parentId: string | null;
     enabled: boolean;
     showInMostShopped: boolean;
+    mostShoppedSortOrder: number;
     sortOrder: number;
     assetId: string | null;
     createdAt: string;
