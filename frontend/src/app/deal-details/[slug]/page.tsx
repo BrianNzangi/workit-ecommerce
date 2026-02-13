@@ -12,8 +12,9 @@ export default async function ProductDetailPage({ params }: Props) {
 
   try {
     // Fetch the specific product by slug from our API
+    const baseUrl = process.env.NEXT_PUBLIC_FRONTEND_BASE_URL || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/products/${slug}`,
+      `${baseUrl}/api/products/${slug}`,
       {
         cache: 'no-store',
       }
@@ -63,8 +64,9 @@ export default async function ProductDetailPage({ params }: Props) {
     // Fetch categories (optional)
     let allCategories: Category[] = [];
     try {
+      const baseUrl = process.env.NEXT_PUBLIC_FRONTEND_BASE_URL || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
       const categoriesRes = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/collections?includeChildren=true`,
+        `${baseUrl}/api/collections?includeChildren=true&take=1000`,
         { cache: 'no-store' }
       );
       if (categoriesRes.ok) {

@@ -14,7 +14,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // Fetch collections to get actual collection data
   let collections: Collection[] = [];
   try {
-    const collectionsRes = await fetch(`${process.env.NEXT_PUBLIC_FRONTEND_BASE_URL || 'http://localhost:3000'}/api/collections?includeChildren=true`, {
+    const baseUrl = process.env.NEXT_PUBLIC_FRONTEND_BASE_URL || 'http://localhost:3000';
+    const collectionsRes = await fetch(`${baseUrl}/api/collections?includeChildren=true&take=1000`, {
       cache: 'force-cache'
     });
 
@@ -83,7 +84,8 @@ export default async function CollectionPage({ params }: Props) {
   // Fetch all collections using API route - MUST include children
   let collections: Collection[] = []
   try {
-    const collectionsRes = await fetch(`${process.env.NEXT_PUBLIC_FRONTEND_BASE_URL || 'http://localhost:3000'}/api/collections?includeChildren=true`, {
+    const baseUrl = process.env.NEXT_PUBLIC_FRONTEND_BASE_URL || 'http://localhost:3000';
+    const collectionsRes = await fetch(`${baseUrl}/api/collections?includeChildren=true&take=1000`, {
       cache: 'no-store'
     })
 
@@ -124,8 +126,9 @@ export default async function CollectionPage({ params }: Props) {
   let products: Product[] = []
   if (collection) {
     try {
+      const baseUrl = process.env.NEXT_PUBLIC_FRONTEND_BASE_URL || 'http://localhost:3000';
       const productsRes = await fetch(
-        `${process.env.NEXT_PUBLIC_FRONTEND_BASE_URL || 'http://localhost:3000'}/api/products?slug=${collection.slug}&per_page=20`,
+        `${baseUrl}/api/products?slug=${collection.slug}&per_page=20`,
         { cache: 'no-store' }
       )
 

@@ -144,7 +144,7 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
     const collectionsQuerySchema = z.object({
         includeChildren: z.coerce.boolean().optional().default(false),
         parentId: z.string().optional(),
-        take: z.coerce.number().optional().default(50),
+        take: z.coerce.number().optional().default(1000),
         skip: z.coerce.number().optional().default(0),
     });
 
