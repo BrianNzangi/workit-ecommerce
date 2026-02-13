@@ -79,23 +79,6 @@ export default function CollectionClient({
       </div>
     );
 
-  if (category && products.length === 0)
-    return (
-      <div className="container mx-auto px-4 py-10 font-sans text-center space-y-4">
-        <h1 className="text-3xl font-bold">No products found</h1>
-        <p className="text-gray-600">
-          We are currently adding more products. Check back soon for new arrivals!
-        </p>
-        <p className="text-gray-500">Explore other categories while we stock up.</p>
-        <Link
-          href="/"
-          className="inline-block mt-4 px-6 py-2 bg-red-600 text-white rounded-lg shadow hover:bg-red-700 transition"
-        >
-          Shop Popular Items
-        </Link>
-      </div>
-    );
-
   return (
     <>
       <Head>
@@ -106,7 +89,7 @@ export default function CollectionClient({
         />
       </Head>
 
-      <div className="container mx-auto px-4 py-4 space-y-6">
+      <div className="max-w-[1280px] mx-auto px-4 py-4 space-y-8">
         <Breadcrumbs
           paths={[
             { label: 'Home', href: '/' },
@@ -114,57 +97,88 @@ export default function CollectionClient({
             { label: category?.name || fullSlug, href: '' },
           ]}
         />
+
         <PageBanner title={category?.name || fullSlug} />
 
-        {/* Brands + Sort */}
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex overflow-x-auto gap-2">
-            {brands.slice(0, 8).map((brand) => (
-              <a
-                key={brand.id}
-                href={brand.link || '#'}
-                className="shrink-0 border border-gray-200 rounded p-1 w-20 h-20 flex items-center justify-center bg-white"
-              >
-                {brand.image ? (
-                  <Image
-                    src={brand.image.src}
-                    alt={brand.name}
-                    width={64}
-                    height={64}
-                    className="max-h-16 w-auto object-contain"
-                    unoptimized
-                  />
-                ) : (
-                  <span className="text-xs text-gray-500 text-center">{brand.name}</span>
-                )}
-              </a>
-            ))}
-          </div>
+        {/* Unified Filter & Sort Toolbar */}
+        <div className="space-y-4">
+          <ProductFilters
+            selectedCategory={category?.id ?? null}
+            collectionSlug={category?.slug}
+            sortBy={sortBy}
+            onSortChange={setSortBy}
+            onFilterChange={(filters) => {
+              console.log('Filters updated:', filters);
+            }}
+          />
 
-          <ProductSorter sortBy={sortBy} onSortChange={setSortBy} />
+          {/* Brands Quick-Access (Optional) */}
+          {brands.length > 0 && (
+            <div className="flex overflow-x-auto gap-3 pb-2 custom-scrollbar">
+              {brands.slice(0, 10).map((brand) => (
+                <a
+                  key={brand.id}
+                  href={brand.link || '#'}
+                  className="shrink-0 border border-gray-100 rounded-lg p-2 w-24 h-24 flex items-center justify-center bg-white shadow-sm hover:shadow-md transition-shadow"
+                >
+                  {brand.image ? (
+                    <Image
+                      src={brand.image.src}
+                      alt={brand.name}
+                      width={80}
+                      height={80}
+                      className="max-h-20 w-auto object-contain"
+                      unoptimized
+                    />
+                  ) : (
+                    <span className="text-xs text-gray-400 font-bold text-center px-1">{brand.name}</span>
+                  )}
+                </a>
+              ))}
+            </div>
+          )}
         </div>
 
-        <div className="grid md:grid-cols-4 gap-6">
-          <aside className="hidden md:block col-span-1 border border-gray-100 rounded-sm p-4 bg-white shadow-xs self-start">
-            <ProductFilters
-              selectedCategory={category?.id ?? null}
-              collectionSlug={category?.slug}
-              onFilterChange={({ category: newCategory }) => {
-                console.log('Filter change:', newCategory);
-              }}
-            />
-          </aside>
+        <div className="grid grid-cols-1 gap-8">
+          <section className="w-full">
+            {sortedProducts.length > 0 ? (
+              <div className="space-y-10">
+                <ColProductGrid products={sortedProducts} />
+                <ProductPagination
+                  currentPage={currentPage}
+                  isLastPage={isLastPage}
+                  onPageChange={(page) => {
+                    if (!isLastPage || page < currentPage) setCurrentPage(page);
+                  }}
+                />
+              </div>
+            ) : (
+              <div className="bg-white border border-gray-100 rounded-xl p-16 text-center space-y-8 shadow-sm">
+                <div className="space-y-4">
+                  <h2 className="text-4xl font-extrabold text-gray-900 tracking-tight">No products found</h2>
+                  <p className="text-xl text-gray-500 max-w-lg mx-auto leading-relaxed">
+                    We are currently adding more products to <strong>{category?.name}</strong>. Check back soon for new arrivals!
+                  </p>
+                </div>
 
-          <section className="col-span-3">
-            <ColProductGrid products={sortedProducts} />
+                <div className="pt-6 space-y-8">
+                  <div className="flex items-center justify-center gap-4">
+                    <span className="h-px w-12 bg-gray-200"></span>
+                    <p className="text-gray-400 font-bold uppercase tracking-[0.2em] text-xs">
+                      Explore our popular picks
+                    </p>
+                    <span className="h-px w-12 bg-gray-200"></span>
+                  </div>
 
-            <ProductPagination
-              currentPage={currentPage}
-              isLastPage={isLastPage}
-              onPageChange={(page) => {
-                if (!isLastPage || page < currentPage) setCurrentPage(page);
-              }}
-            />
+                  <Link
+                    href="/"
+                    className="inline-flex items-center justify-center px-10 py-4 bg-primary-900 text-white font-black rounded-xl shadow-xl hover:bg-primary-800 transition-all transform hover:-translate-y-1 active:scale-95 text-lg"
+                  >
+                    Shop Popular Items
+                  </Link>
+                </div>
+              </div>
+            )}
           </section>
         </div>
       </div>

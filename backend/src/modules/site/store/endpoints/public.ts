@@ -11,6 +11,21 @@ const productsQuerySchema = z.object({
 });
 
 export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
+    // Helper to get all sub-collection IDs recursively
+    const getRecursiveCollectionIds = async (parentId: string): Promise<string[]> => {
+        const children = await db.query.collections.findMany({
+            where: eq(schema.collections.parentId, parentId),
+            columns: { id: true }
+        });
+
+        let ids = [parentId];
+        for (const child of children) {
+            const subIds = await getRecursiveCollectionIds(child.id);
+            ids = [...ids, ...subIds];
+        }
+        return ids;
+    };
+
     // Products
     fastify.get("/products", {
         schema: {
@@ -28,9 +43,12 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
             });
 
             if (col) {
+                // Get this collection and all its children IDs recursively
+                const allCollectionIds = await getRecursiveCollectionIds(col.id);
+
                 const productConnections = await db.select({ productId: schema.productCollections.productId })
                     .from(schema.productCollections)
-                    .where(eq(schema.productCollections.collectionId, col.id));
+                    .where(inArray(schema.productCollections.collectionId, allCollectionIds));
 
                 const productIds = productConnections.map((p: any) => p.productId);
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import ProductGrid from "@/components/home/ProductGrid";
 import ProductFilters from "@/components/filters/ProductFilters";
@@ -22,6 +23,8 @@ export default function CollectionsClient() {
     changeCategory
   } = useProductFilter(initialCategoryId);
 
+  const [sortBy, setSortBy] = useState('popularity');
+
   const handleFilterChange = (filters: {
     category?: number | null;
     tag?: number[];
@@ -36,36 +39,32 @@ export default function CollectionsClient() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 font-sans">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Filters Sidebar */}
-          <div className="lg:w-1/4">
-            <ProductFilters
-              selectedCategory={currentCategory?.id ? parseInt(currentCategory.id) : null}
-              onFilterChange={handleFilterChange}
-            />
-          </div>
+    <main className="min-h-screen bg-gray-50 font-sans py-8">
+      <div className="max-w-[1280px] mx-auto px-4 space-y-8">
+        <div className="space-y-6">
+          <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">
+            {currentCategory ? `Products in ${currentCategory.name}` : search ? `Search results for "${search}"` : 'All Products'}
+          </h1>
+          <p className="text-gray-500 font-medium">
+            {loading ? 'Loading...' : error ? 'Error loading products' : `${products.length} products found`}
+          </p>
 
-          {/* Products Grid */}
-          <div className="lg:w-3/4">
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                {currentCategory ? `Products in ${currentCategory.name}` : search ? `Search results for "${search}"` : 'All Products'}
-              </h1>
-              <p className="text-gray-600">
-                {loading ? 'Loading...' : error ? 'Error loading products' : `${products.length} products found`}
-              </p>
+          <ProductFilters
+            selectedCategory={currentCategory?.id ? parseInt(currentCategory.id) : null}
+            sortBy={sortBy}
+            onSortChange={setSortBy}
+            onFilterChange={handleFilterChange}
+          />
+        </div>
+
+        <div className="w-full">
+          {error && (
+            <div className="bg-red-50 border border-red-100 text-red-600 px-6 py-4 rounded-lg mb-8">
+              {error}
             </div>
+          )}
 
-            {error && (
-              <div className="text-red-600 mb-4">
-                {error}
-              </div>
-            )}
-
-            <ProductGrid products={products} />
-          </div>
+          <ProductGrid products={products} />
         </div>
       </div>
     </main>
