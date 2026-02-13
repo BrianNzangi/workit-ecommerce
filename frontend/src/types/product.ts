@@ -7,6 +7,9 @@ export interface ProductFilter {
   minPrice?: number;
   maxPrice?: number;
   onSale?: boolean;
+  inStock?: boolean;
+  shippingMethodId?: string;
+  brand?: number[];
 }
 
 // Category/Collection type

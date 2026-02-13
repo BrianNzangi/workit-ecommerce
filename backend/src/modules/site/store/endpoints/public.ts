@@ -1,5 +1,5 @@
 import { FastifyPluginAsync } from "fastify";
-import { db, schema, and, eq, or, ilike, desc, count, isNull, inArray, asc } from "../../../../lib/db.js";
+import { db, schema, and, eq, or, ilike, desc, count, isNull, inArray, asc, isNotNull, gt } from "../../../../lib/db.js";
 import { z } from "zod";
 
 const productsQuerySchema = z.object({
@@ -7,7 +7,10 @@ const productsQuerySchema = z.object({
     offset: z.coerce.number().default(0),
     collection: z.string().optional(),
     brand: z.string().optional(),
-    q: z.string().optional()
+    q: z.string().optional(),
+    shippingMethodId: z.string().optional(),
+    onSale: z.coerce.boolean().optional(),
+    inStock: z.coerce.boolean().optional(),
 });
 
 export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
@@ -33,7 +36,7 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
             querystring: productsQuerySchema
         }
     }, async (request) => {
-        const { limit, offset, collection, brand, q } = request.query as z.infer<typeof productsQuerySchema>;
+        const { limit, offset, collection, brand, q, shippingMethodId, onSale, inStock } = request.query as z.infer<typeof productsQuerySchema>;
 
         const whereClauses = [eq(schema.products.enabled, true)];
 
@@ -63,6 +66,15 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
         }
         if (brand) {
             whereClauses.push(eq(schema.products.brandId, brand));
+        }
+        if (shippingMethodId) {
+            whereClauses.push(eq(schema.products.shippingMethodId, shippingMethodId));
+        }
+        if (onSale) {
+            whereClauses.push(isNotNull(schema.products.salePrice));
+        }
+        if (inStock) {
+            whereClauses.push(gt(schema.products.stockOnHand, 0));
         }
         if (q) {
             whereClauses.push(or(

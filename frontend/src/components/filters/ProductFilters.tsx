@@ -15,6 +15,8 @@ interface ProductFiltersProps {
     minPrice?: number;
     maxPrice?: number;
     onSale?: boolean;
+    inStock?: boolean;
+    shippingMethodId?: string;
   }) => void;
 }
 
@@ -58,6 +60,8 @@ export default function ProductFilters({
   const [selectedBrands, setSelectedBrands] = useState<number[]>([]);
   const [priceRange, setPriceRange] = useState<{ min?: number; max?: number }>({});
   const [onSale, setOnSale] = useState(false);
+  const [inStock, setInStock] = useState(false);
+  const [shippingMethodId, setShippingMethodId] = useState<string | undefined>(undefined);
 
   // UI states
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -89,7 +93,7 @@ export default function ProductFilters({
             });
             return flattened;
           };
-          categoriesData = flattenCategories(rawCategories);
+          categoriesData = flattenCategories(rawCategories).filter(cat => !cat.parentId);
         }
         setCategories(categoriesData);
 
@@ -129,8 +133,10 @@ export default function ProductFilters({
       minPrice: priceRange.min,
       maxPrice: priceRange.max,
       onSale: onSale || undefined,
+      inStock: inStock || undefined,
+      shippingMethodId: shippingMethodId,
     });
-  }, [selectedCategory, selectedTags, selectedBrands, priceRange, onSale, onFilterChange]);
+  }, [selectedCategory, selectedTags, selectedBrands, priceRange, onSale, inStock, shippingMethodId, onFilterChange]);
 
   const handleBrandToggle = (brandId: number) => {
     setSelectedBrands(prev =>
@@ -145,6 +151,8 @@ export default function ProductFilters({
     setSelectedBrands([]);
     setPriceRange({});
     setOnSale(false);
+    setInStock(false);
+    setShippingMethodId(undefined);
     onFilterChange({});
   };
 
@@ -180,15 +188,31 @@ export default function ProductFilters({
     }
   };
 
-  if (loading) {
+  const renderCategoryItem = (cat: Category, level = 0) => {
+    const isSelected = selectedCategory === cat.id;
+    const hasChildren = cat.children && cat.children.length > 0;
+
     return (
-      <div className="flex gap-4">
-        {[1, 2, 3, 4].map(i => (
-          <div key={i} className="h-12 w-32 bg-gray-50 border border-gray-200 rounded animate-pulse" />
-        ))}
+      <div key={cat.id} className="w-full">
+        <button
+          onClick={() => onFilterChange({ category: cat.id })}
+          className={`w-full text-left p-3 rounded-lg text-sm transition-colors flex items-center justify-between ${isSelected ? 'bg-primary-900/10 text-primary-900 font-bold border border-primary-900/20' : 'hover:bg-gray-50 text-gray-700'}`}
+          style={{ paddingLeft: `${(level * 12) + 12}px` }}
+        >
+          <span className="flex items-center gap-2">
+            {level > 0 && <span className="w-1.5 h-1.5 bg-gray-300 rounded-full" />}
+            {he.decode(cat.name)}
+          </span>
+          <span className={`text-xs ${isSelected ? 'text-primary-900' : 'opacity-60'}`}>({cat.count})</span>
+        </button>
+        {hasChildren && (
+          <div className="mt-1">
+            {cat.children!.map(child => renderCategoryItem(child, level + 1))}
+          </div>
+        )}
       </div>
     );
-  }
+  };
 
   // Common button styles to match the image
   const buttonBaseClass = "h-14 px-5 flex items-center justify-center border border-gray-200 bg-white text-sm font-medium transition-all hover:bg-gray-50 active:bg-gray-100 min-w-[120px]";
@@ -366,16 +390,8 @@ export default function ProductFilters({
                   <LayoutGrid size={14} />
                   Categories
                 </h3>
-                <div className="space-y-2">
-                  {categories.slice(0, 10).map(cat => (
-                    <button
-                      key={cat.id}
-                      onClick={() => onFilterChange({ ...priceRange, category: cat.id })}
-                      className={`w-full text-left p-3 rounded-lg text-sm transition-colors ${selectedCategory === cat.id ? 'bg-primary-900 text-white font-bold' : 'hover:bg-gray-50 text-gray-700'}`}
-                    >
-                      {he.decode(cat.name)} <span className="text-xs opacity-60 ml-1">({cat.count})</span>
-                    </button>
-                  ))}
+                <div className="space-y-1 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                  {categories.map(cat => renderCategoryItem(cat))}
                 </div>
               </section>
 
@@ -409,19 +425,42 @@ export default function ProductFilters({
                 </div>
               </section>
 
-              {/* Advanced Attributes (Placeholder) */}
+              {/* Advanced Attributes */}
               <section>
                 <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                   <TagIcon size={14} />
                   More Attributes
                 </h3>
                 <div className="grid grid-cols-2 gap-2">
-                  {['In Stock', 'Best Seller', 'Highly Rated', 'Local Delivery'].map(attr => (
-                    <label key={attr} className="flex items-center space-x-2 p-2 border border-gray-100 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                      <input type="checkbox" className="w-4 h-4 text-primary-900 border-gray-300 rounded" />
-                      <span className="text-xs text-gray-600 truncate">{attr}</span>
-                    </label>
-                  ))}
+                  <label className="flex items-center space-x-2 p-2 border border-gray-100 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={inStock}
+                      onChange={(e) => setInStock(e.target.checked)}
+                      className="w-4 h-4 text-primary-900 border-gray-300 rounded"
+                    />
+                    <span className="text-xs text-gray-600 truncate">In Stock</span>
+                  </label>
+
+                  <label className="flex items-center space-x-2 p-2 border border-gray-100 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={shippingMethodId === 'express'}
+                      onChange={(e) => setShippingMethodId(e.target.checked ? 'express' : undefined)}
+                      className="w-4 h-4 text-primary-900 border-gray-300 rounded"
+                    />
+                    <span className="text-xs text-gray-600 truncate">Express Shipping</span>
+                  </label>
+
+                  <label className="flex items-center space-x-2 p-2 border border-gray-100 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={shippingMethodId === 'standard'}
+                      onChange={(e) => setShippingMethodId(e.target.checked ? 'standard' : undefined)}
+                      className="w-4 h-4 text-primary-900 border-gray-300 rounded"
+                    />
+                    <span className="text-xs text-gray-600 truncate">Standard Shipping</span>
+                  </label>
                 </div>
               </section>
             </div>

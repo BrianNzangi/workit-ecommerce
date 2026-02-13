@@ -20,7 +20,8 @@ export default function CollectionsClient() {
     currentCategory,
     loading,
     error,
-    changeCategory
+    changeCategory,
+    updateFilters
   } = useProductFilter(initialCategoryId);
 
   const [sortBy, setSortBy] = useState('popularity');
@@ -32,9 +33,13 @@ export default function CollectionsClient() {
     minPrice?: number;
     maxPrice?: number;
     onSale?: boolean;
+    inStock?: boolean;
+    shippingMethodId?: string;
   }) => {
-    if (filters.category !== undefined) {
+    if (filters.category !== undefined && filters.category !== initialCategoryId) {
       changeCategory(filters.category || 0);
+    } else {
+      updateFilters(filters);
     }
   };
 

@@ -33,6 +33,11 @@ export const useProductFilter = (initialCategoryId?: number) => {
       if (filters.minPrice) params.append('min_price', filters.minPrice.toString());
       if (filters.maxPrice) params.append('max_price', filters.maxPrice.toString());
       if (filters.onSale) params.append('on_sale', 'true');
+      if (filters.inStock) params.append('inStock', 'true');
+      if (filters.shippingMethodId) params.append('shippingMethodId', filters.shippingMethodId);
+      if (filters.brand && filters.brand.length > 0) {
+        params.append('brand', filters.brand[0].toString()); // For now, handle single brand if that's what backend expects or multiple if it handles it
+      }
 
       const response = await fetch(`/api/products?${params.toString()}`);
       if (!response.ok) throw new Error('Failed to fetch products');
