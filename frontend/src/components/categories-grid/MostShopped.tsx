@@ -14,11 +14,14 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
+import MostShoppedCard from '../collections/MostShoppedCard';
+
 interface CollectionItem {
     id: string;
     name: string;
     slug: string;
     sortOrder: number;
+    count: number;
     image?: string;
 }
 
@@ -31,20 +34,21 @@ export default function MostShopped() {
             try {
                 const data = await fetchCollectionsClient({
                     includeChildren: true,
-                    take: 50,
+                    take: 100, // Increased to get more potential featured items
                     skip: 0,
                 });
 
                 const allFeaturedCollections: CollectionItem[] = [];
-                const addedIds = new Set<string>(); // Track IDs to prevent duplicates
+                const addedIds = new Set<string>();
 
-                data.forEach((collection: Collection) => {
+                data.forEach((collection: any) => {
                     if (collection.showInMostShopped === true && !addedIds.has(collection.id)) {
                         allFeaturedCollections.push({
                             id: collection.id,
                             name: collection.name,
                             slug: collection.slug,
                             sortOrder: collection.sortOrder,
+                            count: collection._count?.products || 0,
                             image: collection.asset?.preview || collection.asset?.source,
                         });
                         addedIds.add(collection.id);
@@ -58,6 +62,7 @@ export default function MostShopped() {
                                     name: child.name,
                                     slug: child.slug,
                                     sortOrder: child.sortOrder,
+                                    count: child._count?.products || 0,
                                     image: child.asset?.preview || child.asset?.source,
                                 });
                                 addedIds.add(child.id);
@@ -81,64 +86,39 @@ export default function MostShopped() {
     }, []);
 
     const renderSkeleton = () => (
-        <div className="flex flex-col items-center justify-center animate-pulse">
-            <div className="w-[90px] h-[90px] rounded-lg bg-gray-200 mb-2" />
-            <div className="h-3 w-16 bg-gray-200 rounded" />
-        </div>
+        <div className="w-full aspect-[4/5] bg-gray-100 animate-pulse rounded-3xl" />
     );
 
     const renderCollection = (collection: CollectionItem) => (
-        <SwiperSlide key={collection.id}>
-            <Link
-                href={`/collections/${collection.slug}`}
-                className="flex flex-col items-center justify-center group transition-transform duration-300"
-            >
-                {/* Image Container - 90x90 Square */}
-                <div className="relative w-[90px] h-[90px] overflow-hidden mb-1 rounded-lg">
-                    {collection.image ? (
-                        <Image
-                            src={getImageUrl(collection.image)}
-                            alt={collection.name}
-                            fill
-                            className="object-cover"
-                            sizes="90px"
-                            unoptimized
-                        />
-                    ) : (
-                        <div className="w-full h-full flex items-center justify-center p-2">
-                            <span className="text-gray-400 text-[10px] font-bold text-center uppercase tracking-tighter">
-                                {collection.name}
-                            </span>
-                        </div>
-                    )}
-                </div>
-
-                {/* Collection Name */}
-                <div className="min-h-[2.4rem] md:min-h-[2.8rem] flex items-start justify-center px-1">
-                    <h3 className="font-sans text-[11px] md:text-[16px] font-normal text-gray-800 text-center leading-tight group-hover:text-primary group-hover:underline transition-all">
-                        {collection.name}
-                    </h3>
-                </div>
-            </Link>
+        <SwiperSlide key={collection.id} className="h-auto!">
+            <MostShoppedCard
+                name={collection.name}
+                slug={collection.slug}
+                count={collection.count}
+                image={collection.image}
+            />
         </SwiperSlide>
     );
 
     return (
-        <section className="py-6 sm:py-8 lg:pt-4">
+        <section className="py-12 bg-[#fafafa]">
             <div className="container mx-auto px-4 md:px-6 lg:px-8">
                 {/* Section Header */}
-                <div className="flex items-center justify-between mb-4 sm:mb-5">
-                    <h2 className="font-sans text-xl sm:text-2xl font-bold text-gray-900">
-                        Most Shopped
-                    </h2>
+                <div className="flex items-end justify-between mb-8">
+                    <div className="space-y-2">
+                        <h2 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
+                            Most Shopped
+                        </h2>
+                        <div className="h-1 w-12 bg-primary-900 rounded-full" />
+                    </div>
                 </div>
 
                 {/* Collections Carousel */}
-                <div className="relative -mx-2 px-2">
+                <div className="relative">
                     {loading ? (
-                        <div className="flex gap-3 overflow-hidden">
-                            {Array.from({ length: 8 }, (_, i) => (
-                                <div key={i} className="flex-none">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                            {Array.from({ length: 6 }, (_, i) => (
+                                <div key={i}>
                                     {renderSkeleton()}
                                 </div>
                             ))}
@@ -146,33 +126,33 @@ export default function MostShopped() {
                     ) : (
                         <Swiper
                             modules={[Navigation, Pagination]}
-                            spaceBetween={12}
-                            slidesPerView={3.5}
+                            spaceBetween={24}
+                            slidesPerView={2.2}
                             navigation
                             pagination={{ clickable: true, dynamicBullets: true }}
                             breakpoints={{
                                 480: {
-                                    slidesPerView: 4.5,
-                                    spaceBetween: 14,
+                                    slidesPerView: 2.5,
+                                    spaceBetween: 16,
                                 },
                                 640: {
-                                    slidesPerView: 5.5,
-                                    spaceBetween: 16,
-                                },
-                                768: {
-                                    slidesPerView: 6.5,
-                                    spaceBetween: 16,
-                                },
-                                1024: {
-                                    slidesPerView: 8.5,
+                                    slidesPerView: 3.5,
                                     spaceBetween: 20,
                                 },
+                                768: {
+                                    slidesPerView: 4.5,
+                                    spaceBetween: 24,
+                                },
+                                1024: {
+                                    slidesPerView: 5.5,
+                                    spaceBetween: 24,
+                                },
                                 1280: {
-                                    slidesPerView: 10.5,
+                                    slidesPerView: 6.5,
                                     spaceBetween: 24,
                                 },
                             }}
-                            className="most-shopped-swiper pb-10!"
+                            className="most-shopped-swiper pb-12!"
                         >
                             {collections.map(renderCollection)}
                         </Swiper>
@@ -181,27 +161,42 @@ export default function MostShopped() {
             </div>
 
             <style jsx global>{`
+                .most-shopped-swiper {
+                    overflow: visible !important;
+                }
                 .most-shopped-swiper .swiper-button-next,
                 .most-shopped-swiper .swiper-button-prev {
-                    color: var(--primary);
-                    background: white;
-                    width: 32px;
-                    height: 32px;
+                    color: white;
+                    background: #111;
+                    width: 44px;
+                    height: 44px;
                     border-radius: 50%;
-                    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-                    border: 1px solid #f3f4f6;
+                    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+                    top: 40%;
                 }
                 .most-shopped-swiper .swiper-button-next:after,
                 .most-shopped-swiper .swiper-button-prev:after {
-                    font-size: 14px;
+                    font-size: 16px;
                     font-weight: bold;
                 }
+                .most-shopped-swiper .swiper-button-next {
+                    right: -22px;
+                }
+                .most-shopped-swiper .swiper-button-prev {
+                    left: -22px;
+                }
                 .most-shopped-swiper .swiper-pagination-bullet-active {
-                    background: var(--primary);
+                    background: #111;
                 }
                 .most-shopped-swiper .swiper-button-disabled {
                     opacity: 0;
                     pointer-events: none;
+                }
+                @media (max-width: 768px) {
+                    .most-shopped-swiper .swiper-button-next,
+                    .most-shopped-swiper .swiper-button-prev {
+                        display: none;
+                    }
                 }
             `}</style>
         </section>
