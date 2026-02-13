@@ -54,6 +54,7 @@ export async function fetchCollectionsClient(
 export async function fetchNavigationCollectionsClient(): Promise<Collection[]> {
     return fetchCollectionsClient({
         includeChildren: true,
+        parentId: 'null',
     });
 }
 
@@ -73,6 +74,7 @@ export function transformCollectionForDisplay(collection: Collection): Collectio
         image: collection.asset?.preview || collection.asset?.source,
         children: collection.children
             ?.filter(child => child.enabled)
+            .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
             .map(transformCollectionForDisplay),
     };
 }
@@ -92,10 +94,11 @@ export async function fetchNavigationCollectionsDisplayClient(): Promise<Collect
             return [];
         }
 
-        // Filter only enabled collections and transform
+        // Filter only enabled collections, transform, and sort top-level
         return collections
             .filter(collection => collection?.enabled)
-            .map(transformCollectionForDisplay);
+            .map(transformCollectionForDisplay)
+            .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
     } catch (error) {
         console.error('Error fetching navigation collections:', error);
         return [];

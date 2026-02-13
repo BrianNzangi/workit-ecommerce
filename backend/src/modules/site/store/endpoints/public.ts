@@ -1,5 +1,5 @@
 import { FastifyPluginAsync } from "fastify";
-import { db, schema, and, eq, or, ilike, desc, count, isNull, inArray } from "../../../../lib/db.js";
+import { db, schema, and, eq, or, ilike, desc, count, isNull, inArray, asc } from "../../../../lib/db.js";
 import { z } from "zod";
 
 const productsQuerySchema = z.object({
@@ -154,15 +154,18 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
             where: whereClause,
             limit: take,
             offset: skip,
+            orderBy: [asc(collections.sortOrder)],
             with: {
                 asset: true,
                 ...(includeChildren ? {
                     children: {
                         where: eq(schema.collections.enabled, true),
+                        orderBy: [asc(schema.collections.sortOrder)],
                         with: {
                             asset: true,
                             children: {
                                 where: eq(schema.collections.enabled, true),
+                                orderBy: [asc(schema.collections.sortOrder)],
                                 with: { asset: true }
                             }
                         }
