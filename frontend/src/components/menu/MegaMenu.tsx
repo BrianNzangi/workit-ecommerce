@@ -70,6 +70,7 @@ export default function MegaMenu() {
 
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
+      document.body.style.overflow = 'hidden';
     } else {
       document.removeEventListener('mousedown', handleClickOutside);
       document.body.style.overflow = '';
@@ -120,14 +121,11 @@ export default function MegaMenu() {
             }`}
           style={{ top: 'var(--header-height)' }}
         >
-          {/* Important: Invisible bridge to maintain hover between button and panel if there's a gap */}
-          <div className="h-2 w-full" />
-
           <div className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-8">
             <div
               className={`bg-white flex flex-col md:flex-row shadow-2xl border border-secondary-100 rounded-b-lg overflow-hidden ${isOpen ? 'pointer-events-auto' : 'pointer-events-none'
                 }`}
-              style={{ maxHeight: '640px' }}
+              style={{ maxHeight: 'calc(100vh - var(--header-height))' }}
             >
               {/* L1 Vertical Sidebar (Left) */}
               <div className="w-full md:w-80 bg-secondary-50 border-r border-secondary-100 overflow-y-auto overflow-x-hidden">
