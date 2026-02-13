@@ -1,5 +1,5 @@
 import { FastifyPluginAsync } from "fastify";
-import { db, schema, eq, desc, ilike, inArray } from "../../../../lib/db.js";
+import { db, schema, eq, desc, ilike, inArray, asc } from "../../../../lib/db.js";
 import { v4 as uuidv4 } from "uuid";
 
 export const collectionsAdminRoutes: FastifyPluginAsync = async (fastify) => {
@@ -16,12 +16,12 @@ export const collectionsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
         if (includeChildren === 'true') {
             withRelations.children = {
-                orderBy: [desc(schema.collections.name as any)],
+                orderBy: [asc(schema.collections.sortOrder as any)],
                 with: {
                     asset: true,
                     products: true,
                     children: {
-                        orderBy: [desc(schema.collections.name as any)],
+                        orderBy: [asc(schema.collections.sortOrder as any)],
                         with: {
                             asset: true,
                             products: true,
@@ -32,7 +32,7 @@ export const collectionsAdminRoutes: FastifyPluginAsync = async (fastify) => {
         }
 
         const results = await (db as any).query.collections.findMany({
-            orderBy: [desc(schema.collections.name as any)],
+            orderBy: [asc(schema.collections.sortOrder as any)],
             with: withRelations
         });
 
