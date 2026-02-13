@@ -93,12 +93,10 @@ export function ProductForm({ productId, mode }: ProductFormProps) {
     const [collections, setCollections] = useState<Collection[]>([]);
     const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
     const [expandedCollections, setExpandedCollections] = useState<Set<string>>(new Set());
-    const [isCollectionsOpen, setIsCollectionsOpen] = useState(false);
 
     // Homepage Collection state
     const [homepageCollections, setHomepageCollections] = useState<HomepageCollection[]>([]);
     const [selectedHomepageCollections, setSelectedHomepageCollections] = useState<string[]>([]);
-    const [isHomepageCollectionsOpen, setIsHomepageCollectionsOpen] = useState(false);
 
     // Brand state
     const [brands, setBrands] = useState<Brand[]>([]);
@@ -199,7 +197,21 @@ export function ProductForm({ productId, mode }: ProductFormProps) {
             if (response.ok) {
                 const result = await response.json();
                 const data = result.collections || result;
-                setCollections(Array.isArray(data) ? data : []);
+                const collectionsData = Array.isArray(data) ? data : [];
+                setCollections(collectionsData);
+
+                // Auto-expand all collections that have children
+                const allParentIds = new Set<string>();
+                const addParentIds = (items: Collection[]) => {
+                    items.forEach(item => {
+                        if (item.children && item.children.length > 0) {
+                            allParentIds.add(item.id);
+                            addParentIds(item.children);
+                        }
+                    });
+                };
+                addParentIds(collectionsData);
+                setExpandedCollections(allParentIds);
             }
         } catch (error) {
             console.error('Error fetching collections:', error);
@@ -437,48 +449,58 @@ export function ProductForm({ productId, mode }: ProductFormProps) {
 
         return (
             <div key={collection.id}>
-                <div className={`flex items-center gap-2 ${level > 0 ? 'ml-6 mt-1' : ''}`}>
-                    <label className={`flex-1 flex items-center gap-3 p-2 border border-gray-200 rounded-xs hover:bg-gray-50 cursor-pointer ${level === 0 ? 'font-semibold bg-gray-50/10' : 'text-gray-700'}`}>
+                <div className={`flex items-center group/item ${level > 0 ? 'ml-4' : ''}`}>
+                    {/* Compact row */}
+                    <div className="flex-1 flex items-center gap-2 py-1 px-1 hover:bg-gray-100/50 rounded transition-colors cursor-pointer">
                         <input
                             type="checkbox"
                             checked={selectedCollections.includes(collection.id)}
                             onChange={() => toggleCollection(collection.id)}
-                            className="w-4 h-4 text-primary-800 border-gray-300 rounded focus:ring-primary-600"
+                            className="w-3.5 h-3.5 text-primary-800 border-gray-300 rounded focus:ring-primary-600 cursor-pointer"
                         />
-                        <div className="flex flex-col">
-                            <span className="text-sm">
-                                {collection.name}
-                            </span>
-                            <div className="flex gap-1 mt-0.5">
-                                {level === 0 && <span className="px-1 py-0.5 text-[8px] uppercase bg-gray-100 text-gray-500 font-bold border border-gray-200 rounded-xs">Category</span>}
-                                {level === 1 && <span className="px-1 py-0.5 text-[8px] uppercase bg-amber-50 text-amber-600 font-bold border border-amber-100 rounded-xs">Group</span>}
-                                {level === 2 && <span className="px-1 py-0.5 text-[8px] uppercase bg-blue-50 text-blue-600 font-bold border border-blue-100 rounded-xs">Sub-collection</span>}
+
+                        <div
+                            className="flex-1 flex items-center justify-between gap-2"
+                            onClick={() => toggleCollection(collection.id)}
+                        >
+                            <div className="flex items-center gap-2">
+                                <span className={`text-sm ${level === 0 ? 'font-bold text-gray-900' : 'text-gray-700'}`}>
+                                    {collection.name}
+                                </span>
+
+                                <div className="flex gap-1">
+                                    {level === 0 && <span className="px-1 text-[7px] uppercase bg-gray-100 text-gray-500 font-bold border border-gray-200 rounded-[2px]">L1</span>}
+                                    {level === 1 && <span className="px-1 text-[7px] uppercase bg-amber-50 text-amber-600 font-bold border border-amber-100 rounded-[2px]">L2</span>}
+                                    {level === 2 && <span className="px-1 text-[7px] uppercase bg-blue-50 text-blue-600 font-bold border border-blue-100 rounded-[2px]">L3</span>}
+                                </div>
                             </div>
+
+                            {hasChildren && (
+                                <span className="text-[10px] text-gray-400 font-medium italic">
+                                    ({collection.children!.length})
+                                </span>
+                            )}
                         </div>
-                        {hasChildren && (
-                            <span className="text-[10px] text-gray-400 ml-auto shrink-0 font-medium italic">
-                                ({collection.children!.length})
-                            </span>
-                        )}
-                    </label>
+                    </div>
 
                     {hasChildren && (
                         <button
                             type="button"
                             onClick={() => toggleExpanded(collection.id)}
-                            className="p-2 hover:bg-gray-100 rounded transition-colors"
+                            className="p-1.5 hover:bg-gray-100 rounded transition-colors ml-1"
                         >
                             {isExpanded ? (
-                                <ChevronUp className="w-4 h-4 text-gray-600" />
+                                <ChevronUp className="w-3.5 h-3.5 text-gray-500" />
                             ) : (
-                                <ChevronDown className="w-4 h-4 text-gray-600" />
+                                <ChevronDown className="w-3.5 h-3.5 text-gray-500" />
                             )}
                         </button>
                     )}
                 </div>
 
+                {/* Sub-items */}
                 {hasChildren && isExpanded && (
-                    <div className="border-l-2 border-gray-100 ml-3">
+                    <div className="border-l border-gray-100 ml-2.5 pl-1.5 mb-1">
                         {collection.children!.map((child) => renderCollectionItem(child, level + 1))}
                     </div>
                 )}
@@ -897,99 +919,70 @@ export function ProductForm({ productId, mode }: ProductFormProps) {
                         <div className="bg-white rounded-xs shadow-xs border border-gray-200 p-6">
                             <h2 className="text-lg font-semibold text-gray-900 mb-4">Collections</h2>
 
-                            {/* Dropdown Trigger */}
-                            <div className="relative">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsCollectionsOpen(!isCollectionsOpen)}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-xs bg-white text-left focus:ring-2 focus:ring-primary-600 focus:border-transparent flex items-center justify-between hover:border-gray-400 transition-colors"
-                                >
-                                    <span className="text-sm text-gray-700">
-                                        {selectedCollections.length > 0
-                                            ? `${selectedCollections.length} selected`
-                                            : 'Select collections...'}
-                                    </span>
-                                    <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${isCollectionsOpen ? 'rotate-180' : ''}`} />
-                                </button>
-
-                                {/* Dropdown Menu */}
-                                {isCollectionsOpen && (
-                                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-xs shadow-lg max-h-64 overflow-y-auto">
-                                        {collections.length === 0 ? (
-                                            <p className="text-sm text-gray-500 p-3">No collections available</p>
-                                        ) : (
-                                            <div className="p-2 space-y-1">
-                                                {collections
-                                                    .filter((c) => !c.parentId)
-                                                    .map((collection) => renderCollectionItem(collection))}
-                                            </div>
-                                        )}
+                            <div className="border border-gray-200 rounded-xs overflow-hidden">
+                                {collections.length === 0 ? (
+                                    <p className="text-sm text-gray-500 p-4 bg-gray-50 italic">No collections available</p>
+                                ) : (
+                                    <div className="p-4 space-y-2 max-h-[500px] overflow-y-auto bg-gray-50/30">
+                                        {collections
+                                            .filter((c) => !c.parentId)
+                                            .map((collection) => renderCollectionItem(collection))}
                                     </div>
                                 )}
                             </div>
+                            <p className="mt-2 text-xs text-gray-500">
+                                Select one or more collections this product belongs to.
+                            </p>
                         </div>
 
                         {/* Homepage Collections */}
                         <div className="bg-white rounded-xs shadow-xs border border-gray-200 p-6">
                             <h2 className="text-lg font-semibold text-gray-900 mb-4">Homepage Collections</h2>
 
-                            {/* Dropdown Trigger */}
-                            <div className="relative">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsHomepageCollectionsOpen(!isHomepageCollectionsOpen)}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-xs bg-white text-left focus:ring-2 focus:ring-primary-600 focus:border-transparent flex items-center justify-between hover:border-gray-400 transition-colors"
-                                >
-                                    <span className="text-sm text-gray-700">
-                                        {selectedHomepageCollections.length > 0
-                                            ? `${selectedHomepageCollections.length} selected`
-                                            : 'Select homepage collections...'}
-                                    </span>
-                                    <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${isHomepageCollectionsOpen ? 'rotate-180' : ''}`} />
-                                </button>
+                            <div className="border border-gray-200 rounded-xs overflow-hidden">
+                                {homepageCollections.length === 0 ? (
+                                    <p className="text-sm text-gray-500 p-4 bg-gray-50 italic">No homepage collections available</p>
+                                ) : (
+                                    <div className="p-2 space-y-1 max-h-[400px] overflow-y-auto bg-gray-50/30">
+                                        {homepageCollections.map((collection) => (
+                                            <label
+                                                key={collection.id}
+                                                className="flex items-center gap-3 px-3 py-1.5 border border-gray-100 rounded-xs bg-white hover:bg-gray-50 cursor-pointer transition-colors group"
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedHomepageCollections.includes(collection.id)}
+                                                    onChange={() => toggleHomepageCollection(collection.id)}
+                                                    className="w-3.5 h-3.5 text-primary-800 border-gray-300 rounded focus:ring-primary-600 cursor-pointer"
+                                                />
+                                                <div className="flex-1 flex items-center justify-between gap-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-sm font-medium text-gray-900 group-hover:text-primary-800 transition-colors">
+                                                            {collection.title}
+                                                        </span>
+                                                        <span className="text-[10px] text-gray-500 font-mono">
+                                                            ({collection.slug})
+                                                        </span>
+                                                    </div>
 
-                                {/* Dropdown Menu */}
-                                {isHomepageCollectionsOpen && (
-                                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-xs shadow-lg max-h-64 overflow-y-auto">
-                                        {homepageCollections.length === 0 ? (
-                                            <p className="text-sm text-gray-500 p-3">No homepage collections available</p>
-                                        ) : (
-                                            <div className="p-2 space-y-2">
-                                                {homepageCollections.map((collection) => (
-                                                    <label
-                                                        key={collection.id}
-                                                        className="flex items-center gap-3 p-3 border border-gray-200 rounded-xs hover:bg-gray-50 cursor-pointer"
-                                                    >
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={selectedHomepageCollections.includes(collection.id)}
-                                                            onChange={() => toggleHomepageCollection(collection.id)}
-                                                            className="w-4 h-4 text-primary-800 border-gray-300 rounded focus:ring-primary-600"
-                                                        />
-                                                        <div className="flex-1">
-                                                            <span className="text-sm font-medium text-gray-900">
-                                                                {collection.title}
-                                                            </span>
-                                                            <span className="ml-2 text-xs text-gray-500">
-                                                                ({collection.slug})
-                                                            </span>
-                                                        </div>
-                                                        {collection.enabled ? (
-                                                            <span className="px-2 py-1 text-xs font-semibold rounded-full bg-primary-50 text-primary-700">
-                                                                Active
-                                                            </span>
-                                                        ) : (
-                                                            <span className="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-600">
-                                                                Inactive
-                                                            </span>
-                                                        )}
-                                                    </label>
-                                                ))}
-                                            </div>
-                                        )}
+                                                    {collection.enabled ? (
+                                                        <span className="px-1.5 text-[9px] font-bold uppercase tracking-wider rounded-xs bg-primary-50 text-primary-700 border border-primary-100/50">
+                                                            Active
+                                                        </span>
+                                                    ) : (
+                                                        <span className="px-1.5 text-[9px] font-bold uppercase tracking-wider rounded-xs bg-gray-100 text-gray-600 border border-gray-200/50">
+                                                            Draft
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </label>
+                                        ))}
                                     </div>
                                 )}
                             </div>
+                            <p className="mt-2 text-xs text-gray-500">
+                                Featured sections on the home page where this product will appear.
+                            </p>
                         </div>
 
                     </div>
