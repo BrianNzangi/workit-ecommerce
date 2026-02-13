@@ -39,9 +39,9 @@ export default function Header() {
   const cartItemCount = mounted ? getTotalQuantity() : 0;
 
   return (
-    <header id="site-header" ref={headerRef} className="relative">
+    <header id="site-header" ref={headerRef} className="sticky top-0 z-50 bg-white shadow-xs">
       {/* Top Bar */}
-      <div className="bg-white font-sans text-secondary-900 border-b border-secondary-200">
+      <div className="bg-white font-sans text-secondary-900 border-b border-gray-200">
         <div className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-8 py-4 flex items-center justify-between gap-4 flex-wrap md:flex-nowrap">
           {/* Logo */}
           <Link href="/" className="inline-block relative w-[150px] sm:w-[180px] md:w-[200px] lg:w-[120px] xl:w-[150px] h-auto">
@@ -156,7 +156,7 @@ export default function Header() {
       </div>
 
       {/* Row 2: Categories & Links (desktop only) */}
-      <div className="bg-white text-secondary-900 border-b border-secondary-50 shadow-sm hidden md:block">
+      <div className="bg-white text-secondary-900 border-b border-gray-100 shadow-xs hidden md:block">
         <div className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-8 py-2 flex justify-between items-center">
           <MegaMenu />
         </div>

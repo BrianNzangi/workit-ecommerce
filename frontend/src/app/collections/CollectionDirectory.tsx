@@ -86,7 +86,7 @@ export default function CollectionDirectory() {
                                 href={`/collections/${l1.slug}`}
                                 className="block space-y-4"
                             >
-                                <div className="aspect-[16/9] bg-white border border-gray-100 rounded-3xl p-8 flex flex-col justify-between transition-all duration-300 group-hover:shadow-2xl group-hover:shadow-primary-900/10 group-hover:-translate-y-1 relative overflow-hidden">
+                                <div className="aspect-video bg-white border border-gray-100 rounded-3xl p-8 flex flex-col justify-between transition-all duration-300 group-hover:shadow-2xl group-hover:shadow-primary-900/10 group-hover:-translate-y-1 relative overflow-hidden">
                                     {/* Subtle background pattern/blob */}
                                     <div className="absolute -right-8 -top-8 w-32 h-32 bg-primary-50 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
