@@ -199,19 +199,8 @@ export function ProductForm({ productId, mode }: ProductFormProps) {
                 const data = result.collections || result;
                 const collectionsData = Array.isArray(data) ? data : [];
                 setCollections(collectionsData);
-
-                // Auto-expand all collections that have children
-                const allParentIds = new Set<string>();
-                const addParentIds = (items: Collection[]) => {
-                    items.forEach(item => {
-                        if (item.children && item.children.length > 0) {
-                            allParentIds.add(item.id);
-                            addParentIds(item.children);
-                        }
-                    });
-                };
-                addParentIds(collectionsData);
-                setExpandedCollections(allParentIds);
+                // L1 closed by default, no auto-expansion here anymore
+                setExpandedCollections(new Set());
             }
         } catch (error) {
             console.error('Error fetching collections:', error);
@@ -331,9 +320,18 @@ export function ProductForm({ productId, mode }: ProductFormProps) {
     const toggleExpanded = (collectionId: string) => {
         setExpandedCollections((prev) => {
             const newSet = new Set(prev);
+
+            // Check if this is an L1 collection (top-level)
+            const isL1 = collections.some(c => c.id === collectionId && !c.parentId);
+
             if (newSet.has(collectionId)) {
                 newSet.delete(collectionId);
             } else {
+                if (isL1) {
+                    // Accordion: close all other L1 collections
+                    const l1Ids = collections.filter(c => !c.parentId).map(c => c.id);
+                    l1Ids.forEach(id => newSet.delete(id));
+                }
                 newSet.add(collectionId);
             }
             return newSet;
@@ -356,6 +354,30 @@ export function ProductForm({ productId, mode }: ProductFormProps) {
         try {
             const newAssetIds: string[] = [];
 
+            // Helper to recursively collect parent IDs for all selected L3 collections
+            const getAllSelectedAndParentIds = () => {
+                const allIds = new Set<string>();
+
+                const addIdAndAncestors = (id: string, items: Collection[]) => {
+                    for (const item of items) {
+                        if (item.id === id) {
+                            allIds.add(id);
+                            return true;
+                        }
+                        if (item.children && addIdAndAncestors(id, item.children)) {
+                            allIds.add(item.id);
+                            return true;
+                        }
+                    }
+                    return false;
+                };
+
+                selectedCollections.forEach(id => {
+                    addIdAndAncestors(id, collections);
+                });
+
+                return Array.from(allIds);
+            };
             // Upload new images and collect asset IDs
             if (selectedFiles.length > 0) {
                 setUploadingImages(true);
@@ -399,7 +421,7 @@ export function ProductForm({ productId, mode }: ProductFormProps) {
                         vat: formData.vatInclusive ? 0 : parseFloat(formData.vat),
                         vatInclusive: formData.vatInclusive,
                         assetIds: allAssetIds,
-                        collections: selectedCollections,
+                        collections: getAllSelectedAndParentIds(),
                         homepageCollections: selectedHomepageCollections,
                     }),
                 });
@@ -423,7 +445,7 @@ export function ProductForm({ productId, mode }: ProductFormProps) {
                         vat: formData.vatInclusive ? 0 : parseFloat(formData.vat),
                         vatInclusive: formData.vatInclusive,
                         assetIds: allAssetIds,
-                        collections: selectedCollections,
+                        collections: getAllSelectedAndParentIds(),
                         homepageCollections: selectedHomepageCollections,
                     }),
                 });
@@ -446,25 +468,50 @@ export function ProductForm({ productId, mode }: ProductFormProps) {
     const renderCollectionItem = (collection: Collection, level = 0) => {
         const isExpanded = expandedCollections.has(collection.id);
         const hasChildren = collection.children && collection.children.length > 0;
+        const isSelected = selectedCollections.includes(collection.id);
+
+        // Helper to check if this collection or any of its descendants are selected
+        const hasAnySelectedDescendant = (col: Collection): boolean => {
+            if (!col.children) return false;
+            return col.children.some(child =>
+                selectedCollections.includes(child.id) || hasAnySelectedDescendant(child)
+            );
+        };
+
+        const isImplicitlySelected = !isSelected && hasAnySelectedDescendant(collection);
 
         return (
             <div key={collection.id}>
                 <div className={`flex items-center group/item ${level > 0 ? 'ml-4' : ''}`}>
                     {/* Compact row */}
                     <div className="flex-1 flex items-center gap-2 py-1 px-1 hover:bg-gray-100/50 rounded transition-colors cursor-pointer">
-                        <input
-                            type="checkbox"
-                            checked={selectedCollections.includes(collection.id)}
-                            onChange={() => toggleCollection(collection.id)}
-                            className="w-3.5 h-3.5 text-primary-800 border-gray-300 rounded focus:ring-primary-600 cursor-pointer"
-                        />
+                        {level === 2 ? (
+                            <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => toggleCollection(collection.id)}
+                                className="w-3.5 h-3.5 text-primary-800 border-gray-300 rounded focus:ring-2 focus:ring-primary-600 cursor-pointer"
+                            />
+                        ) : (
+                            <div className="w-3.5 h-3.5 flex items-center justify-center shrink-0">
+                                {isImplicitlySelected && (
+                                    <div className="w-1.5 h-1.5 bg-primary-600 rounded-full" title="Contains selected sub-collections" />
+                                )}
+                            </div>
+                        )}
 
                         <div
                             className="flex-1 flex items-center justify-between gap-2"
-                            onClick={() => toggleCollection(collection.id)}
+                            onClick={() => {
+                                if (level === 2) {
+                                    toggleCollection(collection.id);
+                                } else if (hasChildren) {
+                                    toggleExpanded(collection.id);
+                                }
+                            }}
                         >
                             <div className="flex items-center gap-2">
-                                <span className={`text-sm ${level === 0 ? 'font-bold text-gray-900' : 'text-gray-700'}`}>
+                                <span className={`text-sm ${level === 0 ? 'font-bold text-gray-900' : level === 1 ? 'font-medium text-gray-800' : 'text-gray-700'}`}>
                                     {collection.name}
                                 </span>
 
