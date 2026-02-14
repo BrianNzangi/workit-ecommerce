@@ -73,7 +73,7 @@ export default function MostShopped() {
     }, []);
 
     const renderSkeleton = () => (
-        <div className="relative w-[120px] h-[120px] bg-gray-100 animate-pulse rounded-full" />
+        <div className="relative w-[120px] h-[120px] bg-gray-100 animate-pulse rounded-lg" />
     );
 
     const renderCollection = (collection: CollectionItem) => (
@@ -102,7 +102,7 @@ export default function MostShopped() {
                 <div className="relative">
                     {loading ? (
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                            {Array.from({ length: 6 }, (_, i) => (
+                            {Array.from({ length: 11 }, (_, i) => (
                                 <div key={i}>
                                     {renderSkeleton()}
                                 </div>
