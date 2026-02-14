@@ -97,29 +97,6 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
         return { products: results };
     });
 
-    const productParamsSchema = z.object({
-        idOrSlug: z.string()
-    });
-
-    fastify.get("/products/:idOrSlug", {
-        schema: {
-            tags: ["Catalog"],
-            params: productParamsSchema
-        }
-    }, async (request, reply) => {
-        const { idOrSlug } = request.params as z.infer<typeof productParamsSchema>;
-        const product = await db.query.products.findFirst({
-            where: or(eq(schema.products.id, idOrSlug), eq(schema.products.slug, idOrSlug)),
-            with: {
-                assets: { with: { asset: true } },
-                collections: { with: { collection: true } },
-                brand: true
-            }
-        });
-        if (!product) return reply.status(404).send({ message: "Product not found" });
-        return product;
-    });
-
     const searchQuerySchema = z.object({
         q: z.string()
     });
@@ -140,6 +117,30 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
             with: { assets: { with: { asset: true } } }
         });
         return { products: results };
+    });
+
+    const productParamsSchema = z.object({
+        idOrSlug: z.string()
+    });
+
+    // Show Product (by ID or Slug)
+    fastify.get("/products/:idOrSlug", {
+        schema: {
+            tags: ["Catalog"],
+            params: productParamsSchema
+        }
+    }, async (request, reply) => {
+        const { idOrSlug } = request.params as z.infer<typeof productParamsSchema>;
+        const product = await db.query.products.findFirst({
+            where: or(eq(schema.products.id, idOrSlug), eq(schema.products.slug, idOrSlug)),
+            with: {
+                assets: { with: { asset: true } },
+                collections: { with: { collection: true } },
+                brand: true
+            }
+        });
+        if (!product) return reply.status(404).send({ message: "Product not found" });
+        return product;
     });
 
     // Brands
