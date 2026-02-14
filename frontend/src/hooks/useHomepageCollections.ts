@@ -137,10 +137,13 @@ async function fetchHomepageCollections(
  * ```
  */
 export function useHomepageCollections(
-    options: UseHomepageCollectionsOptions = {}
+    options: UseHomepageCollectionsOptions = {},
+    queryConfig: any = {}
 ): UseHomepageCollectionsReturn {
     const { data, isLoading, error, refetch } = useQuery({
         queryKey: ['homepage-collections', options],
+        enabled: queryConfig.enabled !== undefined ? queryConfig.enabled : true,
+        ...queryConfig,
         queryFn: async () => {
             const data = await fetchHomepageCollections(options);
             // Sort by sortOrder
@@ -149,7 +152,7 @@ export function useHomepageCollections(
     });
 
     return {
-        collections: data || [],
+        collections: (data as HomepageCollectionData[] | undefined) || [],
         loading: isLoading,
         error: error as Error | null,
         refetch: async () => { await refetch(); },

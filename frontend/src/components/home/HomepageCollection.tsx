@@ -198,10 +198,20 @@ function CollectionCarousel({ collection }: CollectionCarouselProps) {
  * Homepage Collections Component
  * Fetches and displays all active homepage collections
  */
-export default function HomepageCollection() {
-  const { collections, loading, error } = useHomepageCollections({ status: 'active' });
+interface HomepageCollectionProps {
+  initialCollections?: HomepageCollectionData[];
+}
 
-  if (loading) {
+export default function HomepageCollection({ initialCollections }: HomepageCollectionProps) {
+  const { collections: hookCollections, loading, error } = useHomepageCollections(
+    { status: 'active' },
+    { enabled: !initialCollections }
+  );
+
+  const collections = initialCollections || hookCollections;
+  const isInitialLoading = !initialCollections && loading;
+
+  if (isInitialLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-center items-center min-h-[400px]">

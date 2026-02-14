@@ -33,23 +33,39 @@ export const metadata: Metadata = {
   },
 };
 
+import { getMostShoppedCollections, getHomepageCollections, getBanners } from '@/lib/home-server';
+
+export const revalidate = 10; // Revalidate every 10 seconds for "instant" update feel
+
 export default async function Home() {
+  const [
+    heroBanners,
+    dealsBanners,
+    mostShoppedData,
+    homepageCollectionsData
+  ] = await Promise.all([
+    getBanners('HERO'),
+    getBanners('DEALS'),
+    getMostShoppedCollections(),
+    getHomepageCollections(),
+  ]);
+
   return (
     <div className="space-y-12 bg-white">
       {/* Home Banner */}
-      <HeroSection />
+      <HeroSection initialBanners={heroBanners} />
 
       {/* Most Shopped Collections */}
-      <MostShopped />
+      <MostShopped initialCollections={mostShoppedData} />
 
       {/* Promotional Deals */}
-      <Deals />
+      <Deals initialDeals={dealsBanners} />
 
       {/* Horizontal Banner Deal */}
       <HorizontalBanner />
 
-      {/* Homepage Collections - Component fetches its own data */}
-      <HomepageCollection />
+      {/* Homepage Collections - Now pre-fetched on server */}
+      <HomepageCollection initialCollections={homepageCollectionsData} />
 
       <FeaturedBlogs />
       <AboutWorkit />
