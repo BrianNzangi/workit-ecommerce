@@ -32,7 +32,9 @@ export async function GET(request: NextRequest) {
 
     // Transform to match expected format
     const transformedProducts = products.map((product: any) => {
-      const mainImage = product.assets?.[0]?.asset?.url || '';
+      // Find the featured asset or default to the first one
+      const featuredProductAsset = product.assets?.find((a: any) => a.featured) || product.assets?.[0];
+      const mainImage = featuredProductAsset?.asset?.source || featuredProductAsset?.asset?.preview || '';
 
       return {
         id: product.id,
@@ -41,8 +43,11 @@ export async function GET(request: NextRequest) {
         description: product.description,
         images: product.assets?.map((a: any) => ({
           id: a.asset.id,
-          url: a.asset.url,
-          altText: a.asset.altText || product.name,
+          url: a.asset.source || a.asset.preview || '',
+          source: a.asset.source,
+          preview: a.asset.preview,
+          featured: a.featured,
+          altText: a.asset.name || product.name,
         })) || [],
         image: mainImage,
         price: Number(product.salePrice ?? 0),

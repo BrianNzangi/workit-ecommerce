@@ -112,29 +112,29 @@ export default function MostShopped() {
                         <Swiper
                             modules={[Navigation, Pagination]}
                             spaceBetween={24}
-                            slidesPerView={2.2}
+                            slidesPerView={2}
                             navigation
                             pagination={{ clickable: true, dynamicBullets: true }}
                             allowTouchMove={false} // Disable touch/swipe
                             breakpoints={{
                                 480: {
-                                    slidesPerView: 2.5,
+                                    slidesPerView: 2,
                                     spaceBetween: 16,
                                 },
                                 640: {
-                                    slidesPerView: 3.5,
+                                    slidesPerView: 3,
                                     spaceBetween: 20,
                                 },
                                 768: {
-                                    slidesPerView: 4.5,
+                                    slidesPerView: 4,
                                     spaceBetween: 24,
                                 },
                                 1024: {
-                                    slidesPerView: 5.5,
+                                    slidesPerView: 5,
                                     spaceBetween: 24,
                                 },
                                 1280: {
-                                    slidesPerView: 6.5,
+                                    slidesPerView: 6,
                                     spaceBetween: 24,
                                 },
                             }}
@@ -148,7 +148,7 @@ export default function MostShopped() {
 
             <style jsx global>{`
                 .most-shopped-swiper {
-                    overflow: visible !important;
+                    overflow: hidden !important;
                 }
                 .most-shopped-swiper .swiper-button-next,
                 .most-shopped-swiper .swiper-button-prev {
@@ -159,6 +159,7 @@ export default function MostShopped() {
                     border-radius: 50%;
                     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
                     top: 40%;
+                    z-index: 20;
                 }
                 .most-shopped-swiper .swiper-button-next:after,
                 .most-shopped-swiper .swiper-button-prev:after {
@@ -166,10 +167,10 @@ export default function MostShopped() {
                     font-weight: bold;
                 }
                 .most-shopped-swiper .swiper-button-next {
-                    right: -22px;
+                    right: 10px;
                 }
                 .most-shopped-swiper .swiper-button-prev {
-                    left: -22px;
+                    left: 10px;
                 }
                 .most-shopped-swiper .swiper-pagination-bullet-active {
                     background: #111;
