@@ -92,7 +92,7 @@ export default function MostShopped() {
                 {/* Section Header */}
                 <div className="flex items-end justify-between mb-8">
                     <div className="space-y-2">
-                        <h2 className="text-xl md:text-2xl font-black text-gray-900 tracking-tight">
+                        <h2 className="text-xl md:text-2xl font-bold text-secondary-900 tracking-tight">
                             Most Shopped
                         </h2>
                     </div>
@@ -112,32 +112,10 @@ export default function MostShopped() {
                         <Swiper
                             modules={[Navigation, Pagination]}
                             spaceBetween={24}
-                            slidesPerView={2}
+                            slidesPerView="auto"
                             navigation
                             pagination={{ clickable: true, dynamicBullets: true }}
                             allowTouchMove={false} // Disable touch/swipe
-                            breakpoints={{
-                                480: {
-                                    slidesPerView: 2,
-                                    spaceBetween: 16,
-                                },
-                                640: {
-                                    slidesPerView: 3,
-                                    spaceBetween: 20,
-                                },
-                                768: {
-                                    slidesPerView: 4,
-                                    spaceBetween: 24,
-                                },
-                                1024: {
-                                    slidesPerView: 5,
-                                    spaceBetween: 24,
-                                },
-                                1280: {
-                                    slidesPerView: 6,
-                                    spaceBetween: 24,
-                                },
-                            }}
                             className="most-shopped-swiper pb-12!"
                         >
                             {collections.map(renderCollection)}
@@ -150,27 +128,30 @@ export default function MostShopped() {
                 .most-shopped-swiper {
                     overflow: hidden !important;
                 }
+                .most-shopped-swiper .swiper-slide {
+                    width: auto !important;
+                }
                 .most-shopped-swiper .swiper-button-next,
                 .most-shopped-swiper .swiper-button-prev {
                     color: white;
                     background: #111;
-                    width: 44px;
-                    height: 44px;
+                    width: 32px;
+                    height: 32px;
                     border-radius: 50%;
-                    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-                    top: 40%;
+                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                    top: 35%;
                     z-index: 20;
                 }
                 .most-shopped-swiper .swiper-button-next:after,
                 .most-shopped-swiper .swiper-button-prev:after {
-                    font-size: 16px;
+                    font-size: 12px;
                     font-weight: bold;
                 }
                 .most-shopped-swiper .swiper-button-next {
-                    right: 10px;
+                    right: 4px;
                 }
                 .most-shopped-swiper .swiper-button-prev {
-                    left: 10px;
+                    left: 4px;
                 }
                 .most-shopped-swiper .swiper-pagination-bullet-active {
                     background: #111;

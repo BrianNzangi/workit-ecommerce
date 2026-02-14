@@ -16,21 +16,21 @@ export default function MostShoppedCard({ name, slug, image }: MostShoppedCardPr
     return (
         <Link
             href={`/collections/${slug}`}
-            className="block group"
+            className="block group mx-auto w-[120px]"
         >
-            <div>
-                <div className="relative z-10 space-y-4">
-                    <div className="relative w-full aspect-square bg-gray-50 rounded-full overflow-hidden">
+            <div className="flex flex-col items-center">
+                <div className="relative z-10 space-y-2 w-full text-center">
+                    <div className="relative w-[120px] h-[120px] bg-white border border-gray-100 rounded-full overflow-hidden mx-auto">
                         {image ? (
                             <Image
                                 src={getImageUrl(image)}
                                 alt={name}
                                 fill
-                                className="object-cover"
+                                className="object-cover p-2"
                                 unoptimized
                             />
                         ) : (
-                            <div className="w-full h-full flex items-center justify-center p-4">
+                            <div className="w-full h-full flex items-center justify-center p-2">
                                 <span className="text-gray-300 text-[10px] font-bold text-center uppercase tracking-tighter">
                                     {he.decode(name)}
                                 </span>
