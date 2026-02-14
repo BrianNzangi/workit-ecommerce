@@ -9,11 +9,10 @@ import { getImageUrl } from '@/lib/image-utils';
 interface MostShoppedCardProps {
     name: string;
     slug: string;
-    count: number;
     image?: string;
 }
 
-export default function MostShoppedCard({ name, slug, count, image }: MostShoppedCardProps) {
+export default function MostShoppedCard({ name, slug, image }: MostShoppedCardProps) {
     return (
         <Link
             href={`/collections/${slug}`}
@@ -46,9 +45,6 @@ export default function MostShoppedCard({ name, slug, count, image }: MostShoppe
                         <h3 className="text-xs md:text-sm font-bold text-gray-900 group-hover:text-primary-900 transition-colors line-clamp-2">
                             {he.decode(name)}
                         </h3>
-                        <p className="text-[10px] font-bold text-gray-400">
-                            {count} Products
-                        </p>
                     </div>
                 </div>
 

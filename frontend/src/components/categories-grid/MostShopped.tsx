@@ -1,11 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { getImageUrl } from '@/lib/image-utils';
 import { fetchCollectionsClient } from '@/lib/collections-client';
-import type { Collection } from '@/types/collections';
 
 // Import Swiper components and styles
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -21,7 +17,6 @@ interface CollectionItem {
     name: string;
     slug: string;
     mostShoppedSortOrder: number;
-    count: number;
     image?: string;
 }
 
@@ -48,7 +43,6 @@ export default function MostShopped() {
                             name: collection.name,
                             slug: collection.slug,
                             mostShoppedSortOrder: collection.mostShoppedSortOrder || 0,
-                            count: collection._count?.products || 0,
                             image: collection.asset?.preview || collection.asset?.source,
                         });
                         addedIds.add(collection.id);
@@ -62,7 +56,6 @@ export default function MostShopped() {
                                     name: child.name,
                                     slug: child.slug,
                                     mostShoppedSortOrder: child.mostShoppedSortOrder || 0,
-                                    count: child._count?.products || 0,
                                     image: child.asset?.preview || child.asset?.source,
                                 });
                                 addedIds.add(child.id);
@@ -86,7 +79,7 @@ export default function MostShopped() {
     }, []);
 
     const renderSkeleton = () => (
-        <div className="w-full aspect-[4/5] bg-gray-100 animate-pulse rounded-3xl" />
+        <div className="w-full aspect-4/5 bg-gray-100 animate-pulse rounded-3xl" />
     );
 
     const renderCollection = (collection: CollectionItem) => (
@@ -94,7 +87,6 @@ export default function MostShopped() {
             <MostShoppedCard
                 name={collection.name}
                 slug={collection.slug}
-                count={collection.count}
                 image={collection.image}
             />
         </SwiperSlide>
@@ -106,10 +98,9 @@ export default function MostShopped() {
                 {/* Section Header */}
                 <div className="flex items-end justify-between mb-8">
                     <div className="space-y-2">
-                        <h2 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
+                        <h2 className="text-xl md:text-2xl font-black text-gray-900 tracking-tight">
                             Most Shopped
                         </h2>
-                        <div className="h-1 w-12 bg-primary-900 rounded-full" />
                     </div>
                 </div>
 
@@ -130,6 +121,7 @@ export default function MostShopped() {
                             slidesPerView={2.2}
                             navigation
                             pagination={{ clickable: true, dynamicBullets: true }}
+                            allowTouchMove={false} // Disable touch/swipe
                             breakpoints={{
                                 480: {
                                     slidesPerView: 2.5,
