@@ -36,33 +36,26 @@ export default function MostShopped() {
                 const allFeaturedCollections: CollectionItem[] = [];
                 const addedIds = new Set<string>();
 
-                data.forEach((collection: any) => {
-                    if (collection.showInMostShopped === true && !addedIds.has(collection.id)) {
-                        allFeaturedCollections.push({
-                            id: collection.id,
-                            name: collection.name,
-                            slug: collection.slug,
-                            mostShoppedSortOrder: collection.mostShoppedSortOrder || 0,
-                            image: collection.asset?.preview || collection.asset?.source,
-                        });
-                        addedIds.add(collection.id);
-                    }
+                const findFeaturedRecursively = (items: any[]) => {
+                    items.forEach((item: any) => {
+                        if (item.showInMostShopped === true && !addedIds.has(item.id)) {
+                            allFeaturedCollections.push({
+                                id: item.id,
+                                name: item.name,
+                                slug: item.slug,
+                                mostShoppedSortOrder: item.mostShoppedSortOrder || 0,
+                                image: item.asset?.preview || item.asset?.source,
+                            });
+                            addedIds.add(item.id);
+                        }
 
-                    if (collection.children && collection.children.length > 0) {
-                        collection.children.forEach((child: any) => {
-                            if (child.showInMostShopped === true && !addedIds.has(child.id)) {
-                                allFeaturedCollections.push({
-                                    id: child.id,
-                                    name: child.name,
-                                    slug: child.slug,
-                                    mostShoppedSortOrder: child.mostShoppedSortOrder || 0,
-                                    image: child.asset?.preview || child.asset?.source,
-                                });
-                                addedIds.add(child.id);
-                            }
-                        });
-                    }
-                });
+                        if (item.children && item.children.length > 0) {
+                            findFeaturedRecursively(item.children);
+                        }
+                    });
+                };
+
+                findFeaturedRecursively(data);
 
                 // Sort by mostShoppedSortOrder
                 allFeaturedCollections.sort((a, b) => a.mostShoppedSortOrder - b.mostShoppedSortOrder);
