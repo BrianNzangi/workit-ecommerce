@@ -148,7 +148,7 @@ export default async function CollectionPage({ params }: Props) {
   const brands: Brand[] = []
 
   return (
-    <div className="bg-[#F8F9FC] min-h-screen">
+    <div className="bg-white min-h-screen">
       <CollectionClient
         fullSlug={fullSlug}
         category={collection}

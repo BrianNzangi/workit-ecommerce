@@ -44,7 +44,7 @@ export default function CollectionsClient() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 font-sans py-8">
+    <main className="min-h-screen bg-white font-sans py-8">
       <div className="max-w-[1280px] mx-auto px-4 space-y-8">
         <div className="space-y-6">
           <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">

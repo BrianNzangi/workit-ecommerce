@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ChevronRight, Menu, X } from 'lucide-react';
 import { fetchNavigationCollectionsDisplayClient } from '@/lib/collections-client';
 import type { CollectionDisplay } from '@/types/collections';
+import { motion, AnimatePresence } from 'framer-motion';
 
 let cachedCollections: CollectionDisplay[] | null = null;
 
@@ -15,8 +16,15 @@ export default function MegaMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const [activeL1, setActiveL1] = useState<CollectionDisplay | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const closeImmediately = () => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+    setIsOpen(false);
+  };
 
   const handleMouseEnter = () => {
     if (closeTimeoutRef.current) {
@@ -99,106 +107,102 @@ export default function MegaMenu() {
   }
 
   return (
-    <div className="font-sans flex items-center gap-8" ref={menuRef}>
-      {/* Megamenu Hover Zone */}
+    <div className="font-sans flex items-center gap-8 relative" ref={menuRef}>
+      {/* Megamenu Trigger Zone */}
       <div
-        className="relative"
+        className="h-full flex items-center"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
         {/* Trigger Button */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center gap-2 py-2 text-secondary-900 hover:text-primary-900 transition-colors shrink-0"
+          className="flex items-center gap-3 py-3 text-secondary-900 hover:text-primary-900 transition-colors shrink-0 group"
         >
-          <Menu size={24} />
-          <span className="font-semibold text-lg">Shop by Category</span>
+          <Menu size={24} className="group-hover:scale-110 transition-transform" />
+          <span className="font-bold text-lg tracking-tight">Shop by Category</span>
         </button>
 
-        {/* Sidebar Panel */}
-        <div
-          className={`fixed left-0 right-0 z-50 transform transition-all duration-300 ease-in-out ${isOpen ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0 pointer-events-none'
-            }`}
-          style={{ top: 'var(--header-height)' }}
-        >
-          <div className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-8">
-            <div
-              className={`bg-white flex flex-col md:flex-row shadow-2xl border border-secondary-100 rounded-b-lg overflow-hidden ${isOpen ? 'pointer-events-auto' : 'pointer-events-none'
-                }`}
-              style={{ maxHeight: 'calc(100vh - var(--header-height))' }}
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-x-0 bottom-0 z-50 pointer-events-none"
+              style={{ top: 'var(--header-height)' }}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
             >
-              {/* L1 Vertical Sidebar (Left) */}
-              <div className="w-full md:w-80 bg-secondary-50 border-r border-secondary-100 overflow-y-auto overflow-x-hidden">
-                <ul className="py-2">
-                  {dropdownCollections.map((l1) => (
-                    <li
-                      key={l1.id}
-                      onMouseEnter={() => setActiveL1(l1)}
-                      className={`group flex items-center justify-between px-6 py-3 cursor-pointer transition-all duration-200 ${activeL1?.id === l1.id
-                        ? 'bg-white text-primary-900 border-l-4 border-primary-900'
-                        : 'text-secondary-700 hover:bg-secondary-50 border-l-4 border-transparent'
-                        }`}
-                    >
-                      <span className="font-medium text-base truncate pr-2">{he.decode(l1.name)}</span>
-                      <ChevronRight
-                        size={18}
-                        className={`transition-all duration-300 ${activeL1?.id === l1.id ? 'translate-x-1 opacity-100 text-primary-900' : 'opacity-30 group-hover:opacity-100 group-hover:translate-x-0.5'
-                          }`}
-                      />
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              <div className="flex w-full h-full pointer-events-auto">
+                {/* Left Offset Spacer - Invisible, matches container's margin-left */}
+                <div className="flex-1 h-full" />
 
-              {/* L2 & L3 Content Area (Right) */}
-              {activeL1 && (
-                <div className="flex-1 bg-white overflow-y-auto p-10 min-h-[400px]">
-                  <div className="animate-in fade-in slide-in-from-left-4 duration-300">
-                    {/* Header with "Shop all" */}
-                    <div className="mb-8 flex items-center justify-between pb-5">
-                      <Link
-                        href={`/collections/${activeL1.slug}`}
-                        onClick={() => setIsOpen(false)}
-                        className="text-secondary-900 font-bold text-lg hover:text-primary-900 transition-colors inline-flex items-center gap-3"
+                <div className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-8 flex shrink-0 h-full relative">
+                  {/* L1 Vertical Sidebar (Left) - Flush with container start */}
+                  <div className="w-80 bg-white border-r border-secondary-100 overflow-y-auto overflow-x-hidden shrink-0 shadow-xl">
+                    <ul className="">
+                      {dropdownCollections.map((l1) => (
+                        <li
+                          key={l1.id}
+                          onMouseEnter={() => setActiveL1(l1)}
+                          className={`group flex items-center justify-between px-6 py-4 cursor-pointer transition-all duration-200 border-b border-secondary-100 last:border-b-0 ${activeL1?.id === l1.id
+                            ? 'bg-secondary-50 text-primary-900 border-l-4 border-primary-900'
+                            : 'text-secondary-700 hover:bg-secondary-50/50 border-l-4 border-transparent'
+                            }`}
+                        >
+                          <span className={`font-semibold text-base truncate pr-2 ${activeL1?.id === l1.id ? 'translate-x-1' : ''} transition-transform`}>
+                            {he.decode(l1.name)}
+                          </span>
+                          <ChevronRight
+                            size={18}
+                            className={`transition-all duration-300 ${activeL1?.id === l1.id ? 'translate-x-1 opacity-100 text-primary-900' : 'opacity-0 group-hover:opacity-100 translate-x-[-4px] group-hover:translate-x-0'
+                              }`}
+                          />
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* L2 & L3 Content Area (Right) */}
+                  <AnimatePresence>
+                    {activeL1 && (
+                      <motion.div
+                        key={activeL1.id}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -10 }}
+                        transition={{ duration: 0.2 }}
+                        className="flex-1 bg-white overflow-y-auto shadow-xl"
                       >
-                        Shop all {he.decode(activeL1.name)} <ChevronRight size={24} />
-                      </Link>
-                    </div>
+                        <div className="p-10 min-w-[800px]">
+                          {/* Header with "Shop all" */}
+                          <div className="mb-8 flex items-center justify-between pb-5 border-b border-secondary-100">
+                            <Link
+                              href={`/collections/${activeL1.slug}`}
+                              onClick={() => setIsOpen(false)}
+                              className="text-secondary-900 font-bold text-xl hover:text-primary-900 transition-colors inline-flex items-center gap-3 group"
+                            >
+                              Shop all {he.decode(activeL1.name)}
+                              <ChevronRight size={24} className="group-hover:translate-x-1 transition-transform" />
+                            </Link>
+                          </div>
 
-                    {/* Columns of L2 (Groups) - Manual Masonry for Horizontal Order */}
-                    <div className="flex flex-row gap-10">
-                      {[1, 2, 3, 4].map((colNum) => {
-                        // Filter children for this column based on screen size
-                        // Column 1: Always visible
-                        // Column 2: Visible on sm+
-                        // Column 3: Visible on lg+
-                        // Column 4: Visible on xl+
-                        const isVisibleClass =
-                          colNum === 1 ? 'flex' :
-                            colNum === 2 ? 'hidden sm:flex' :
-                              colNum === 3 ? 'hidden lg:flex' :
-                                'hidden xl:flex';
-
-                        return (
-                          <div key={colNum} className={`flex-1 flex flex-col gap-8 ${isVisibleClass}`}>
-                            {activeL1.children?.filter((_, index) => {
-                              // Dynamic distribution based on visible columns
-                              // This is a bit complex for pure CSS, so we'll simplify:
-                              // We'll use 4 columns and let CSS hide the empty ones or 
-                              // we calculate the target column based on the max columns (4).
-                              return index % 4 === colNum - 1;
-                            }).map((l2) => (
+                          {/* Columns of L2 (Groups) */}
+                          <div className="grid grid-cols-3 gap-10">
+                            {activeL1.children?.map((l2) => (
                               <div key={l2.id} className="flex flex-col">
-                                <h4 className="font-semibold text-secondary-900 text-lg mb-4 tracking-wider border-b border-secondary-200 pb-2">
+                                <h4 className="font-bold text-secondary-900 text-base mb-4 tracking-wider uppercase border-l-2 border-primary-900 pl-3">
                                   {he.decode(l2.name)}
                                 </h4>
-                                <ul className="space-y-3">
+                                <ul className="space-y-2.5">
                                   {l2.children?.map((l3) => (
                                     <li key={l3.id}>
                                       <Link
                                         href={`/collections/${l3.slug}`}
                                         onClick={() => setIsOpen(false)}
-                                        className="text-secondary-900 hover:text-primary-900 transition-colors inline-block text-base font-medium hover:translate-x-1"
+                                        className="text-secondary-600 hover:text-primary-900 transition-colors inline-block text-sm font-medium hover:translate-x-1"
                                       >
                                         {he.decode(l3.name)}
                                       </Link>
@@ -208,37 +212,51 @@ export default function MegaMenu() {
                               </div>
                             ))}
                           </div>
-                        );
-                      })}
-                    </div>
-                  </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
-              )}
-            </div>
-          </div>
-        </div>
+
+                {/* Right Extension - Covers the area from container end to screen edge */}
+                <div
+                  className={`flex-1 transition-colors duration-200 ${activeL1 ? 'bg-white' : 'bg-transparent'}`}
+
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      {/* Standalone L1s - Outside Hover Zone */}
-      <div className="hidden md:flex items-center gap-6 border-l border-secondary-100 pl-8">
+      {/* Standalone L1s */}
+      <div className="hidden md:flex items-center gap-8 border-l border-secondary-100 pl-8">
         {standaloneL1s.map((l1) => (
           <Link
             key={l1.id}
             href={`/collections/${l1.slug}`}
-            className="text-base font-semibold text-secondary-900 hover:text-primary-900 transition-colors tracking-wide whitespace-nowrap"
+            className="text-base font-bold text-secondary-900 hover:text-primary-900 transition-colors tracking-tight whitespace-nowrap"
           >
             {he.decode(l1.name)}
           </Link>
         ))}
       </div>
 
-      {/* Backdrop - Outside the hover zone */}
-      <div
-        className={`fixed inset-0 bg-black/40 z-40 transition-opacity duration-300 ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-          }`}
-        onClick={() => setIsOpen(false)}
-        style={{ top: 'var(--header-height)' }}
-      />
+      {/* Backdrop */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/40 z-40 pointer-events-auto"
+            onClick={closeImmediately}
+            onMouseEnter={closeImmediately}
+            style={{ top: 'var(--header-height)' }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

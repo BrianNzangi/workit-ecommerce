@@ -17,7 +17,7 @@ export default function Header() {
   const [mounted, setMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { isOpen, openCart, closeCart, getTotalQuantity } = useCartStore();
-  const headerRef = useRef<HTMLElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -39,131 +39,133 @@ export default function Header() {
   const cartItemCount = mounted ? getTotalQuantity() : 0;
 
   return (
-    <header id="site-header" ref={headerRef} className="sticky top-0 z-50 bg-white shadow-xs">
-      {/* Top Bar */}
-      <div className="bg-white font-sans text-secondary-900 border-b border-gray-200">
-        <div className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-8 py-4 flex items-center justify-between gap-4 flex-wrap md:flex-nowrap">
-          {/* Logo */}
-          <Link href="/" className="inline-block relative w-[150px] sm:w-[180px] md:w-[200px] lg:w-[120px] xl:w-[150px] h-auto">
-            <Image
-              src="/workit-logo.png"
-              alt="Workit Logo"
-              width={250}        // Max width
-              height={70}        // Aspect ratio height
-              className="w-full h-auto object-contain"
-              priority
-              unoptimized
-            />
-          </Link>
-          {/* Desktop Search */}
-          <div className="hidden md:flex grow max-w-3xl w-full">
-            <SearchBar />
-          </div>
+    <div ref={headerRef}>
+      <header id="site-header" className="sticky top-0 z-50 bg-white shadow-xs">
+        {/* Top Bar */}
+        <div className="bg-white font-sans text-secondary-900 border-b border-gray-300">
+          <div className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-8 py-4 flex items-center justify-between gap-4 flex-wrap md:flex-nowrap">
+            {/* Logo */}
+            <Link href="/" className="inline-block relative w-[150px] sm:w-[180px] md:w-[200px] lg:w-[120px] xl:w-[150px] h-auto">
+              <Image
+                src="/workit-logo.png"
+                alt="Workit Logo"
+                width={250}        // Max width
+                height={70}        // Aspect ratio height
+                className="w-full h-auto object-contain"
+                priority
+                unoptimized
+              />
+            </Link>
+            {/* Desktop Search */}
+            <div className="hidden md:flex grow max-w-3xl w-full">
+              <SearchBar />
+            </div>
 
-          {/* Desktop Icons */}
-          <div className="hidden md:flex items-center gap-6 text-secondary-900">
-            <UserMenu />
-            <button
-              onClick={openCart}
-              className="relative flex items-center gap-2 font-sans text-md text-secondary-900 hover:text-primary-900 transition-colors"
-            >
-              <div className="relative">
-                <ShoppingBag className="h-6 w-6" />
-                {cartItemCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-primary-900 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                    {cartItemCount}
-                  </span>
-                )}
-              </div>
-              <span className='text-lg font-medium'>Cart</span>
-            </button>
-          </div>
-
-          {/* Mobile Hamburger & Cart */}
-          <div className="md:hidden flex items-center gap-2">
-            <button
-              onClick={openCart}
-              className="relative text-secondary-900"
-            >
-              <div className="relative">
-                <ShoppingBag className="h-6 w-6" />
-                {cartItemCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-primary-900 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                    {cartItemCount}
-                  </span>
-                )}
-              </div>
-            </button>
-
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="text-secondary-900"
-              aria-label="Toggle Menu"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Search (full width) */}
-        <div className="md:hidden px-4 pb-2">
-          <SearchBar />
-        </div>
-
-        {/* Mobile Slide-in Menu */}
-        <div
-          className={`fixed inset-0 z-50 transition-colors duration-300 ${mobileMenuOpen ? 'bg-black/50 pointer-events-auto' : 'bg-transparent pointer-events-none'
-            }`}
-          onClick={() => setMobileMenuOpen(false)}
-        >
-          <div
-            className={`absolute top-0 left-0 h-full w-[85%] max-w-[400px] bg-white shadow-2xl transform transition-transform duration-300 ease-in-out flex flex-col overflow-hidden ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-              }`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Mobile Menu Header */}
-            <div className="flex justify-between items-center p-4 border-b">
-              <Link href="/" onClick={() => setMobileMenuOpen(false)} className="inline-block relative w-[100px] h-auto">
-                <Image
-                  src="/workit-logo.png"
-                  alt="Workit Logo"
-                  width={120}
-                  height={50}
-                  className="w-full h-auto object-contain"
-                  priority
-                  unoptimized
-                />
-              </Link>
+            {/* Desktop Icons */}
+            <div className="hidden md:flex items-center gap-6 text-secondary-900">
+              <UserMenu />
               <button
-                onClick={() => setMobileMenuOpen(false)}
-                className="p-2 hover:bg-gray-100 rounded-full text-gray-700"
-                aria-label="Close Menu"
+                onClick={openCart}
+                className="relative flex items-center gap-2 font-sans text-md text-secondary-900 hover:text-primary-900 transition-colors"
               >
-                <X className="w-6 h-6" />
+                <div className="relative">
+                  <ShoppingBag className="h-6 w-6" />
+                  {cartItemCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-primary-900 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                      {cartItemCount}
+                    </span>
+                  )}
+                </div>
+                <span className='text-lg font-medium'>Cart</span>
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-4 py-2">
-              <MobileMegaMenu />
-              <div className="border-t border-gray-100 mt-4 pt-4">
-                <AccountAccordion />
+            {/* Mobile Hamburger & Cart */}
+            <div className="md:hidden flex items-center gap-2">
+              <button
+                onClick={openCart}
+                className="relative text-secondary-900"
+              >
+                <div className="relative">
+                  <ShoppingBag className="h-6 w-6" />
+                  {cartItemCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-primary-900 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                      {cartItemCount}
+                    </span>
+                  )}
+                </div>
+              </button>
+
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="text-secondary-900"
+                aria-label="Toggle Menu"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile Search (full width) */}
+          <div className="md:hidden px-4 pb-2">
+            <SearchBar />
+          </div>
+
+          {/* Mobile Slide-in Menu */}
+          <div
+            className={`fixed inset-0 z-50 transition-colors duration-300 ${mobileMenuOpen ? 'bg-black/50 pointer-events-auto' : 'bg-transparent pointer-events-none'
+              }`}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            <div
+              className={`absolute top-0 left-0 h-full w-[85%] max-w-[400px] bg-white shadow-2xl transform transition-transform duration-300 ease-in-out flex flex-col overflow-hidden ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+                }`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Mobile Menu Header */}
+              <div className="flex justify-between items-center p-4 border-b">
+                <Link href="/" onClick={() => setMobileMenuOpen(false)} className="inline-block relative w-[100px] h-auto">
+                  <Image
+                    src="/workit-logo.png"
+                    alt="Workit Logo"
+                    width={120}
+                    height={50}
+                    className="w-full h-auto object-contain"
+                    priority
+                    unoptimized
+                  />
+                </Link>
+                <button
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="p-2 hover:bg-gray-100 rounded-full text-gray-700"
+                  aria-label="Close Menu"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto px-4 py-2">
+                <MobileMegaMenu />
+                <div className="border-t border-gray-100 mt-4 pt-4">
+                  <AccountAccordion />
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Row 2: Categories & Links (desktop only) */}
-      <div className="bg-white text-secondary-900 border-b border-gray-100 shadow-xs hidden md:block">
+      {/* Row 2: Categories & Links (desktop only) - Non-sticky */}
+      <div className="bg-white text-secondary-900 border-b border-gray-300 hidden md:block">
         <div className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-8 py-2 flex justify-between items-center">
           <MegaMenu />
         </div>
       </div>
 
       <CartSlide isOpen={isOpen} onClose={closeCart} />
-    </header>
+    </div>
   );
 }
 
