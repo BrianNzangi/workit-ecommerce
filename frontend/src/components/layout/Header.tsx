@@ -158,7 +158,7 @@ export default function Header() {
       </header>
 
       {/* Row 2: Categories & Links (desktop only) - Non-sticky */}
-      <div className="bg-white text-secondary-900 border-b border-gray-300 hidden md:block">
+      <div className="bg-white text-secondary-900 border-b border-gray-300 hidden md:block relative">
         <div className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-8 py-2 flex justify-between items-center">
           <MegaMenu />
         </div>

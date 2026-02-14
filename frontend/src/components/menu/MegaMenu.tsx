@@ -107,7 +107,7 @@ export default function MegaMenu() {
   }
 
   return (
-    <div className="font-sans flex items-center gap-8 relative" ref={menuRef}>
+    <div className="font-sans flex items-center gap-8" ref={menuRef}>
       {/* Megamenu Trigger Zone */}
       <div
         className="h-full flex items-center"
@@ -130,18 +130,17 @@ export default function MegaMenu() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-x-0 bottom-0 z-50 pointer-events-none"
-              style={{ top: 'var(--header-height)' }}
+              className="absolute top-full left-0 right-0 z-50 pointer-events-none"
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}
             >
-              <div className="flex w-full h-full pointer-events-auto">
-                {/* Left Offset Spacer - Invisible, matches container's margin-left */}
-                <div className="flex-1 h-full" />
+              <div className="flex w-full h-[calc(100vh-var(--header-height))] pointer-events-auto">
+                {/* Left Offset Spacer - Invisible */}
+                <div className="flex-1 h-full bg-transparent" />
 
-                <div className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-8 flex shrink-0 h-full relative">
-                  {/* L1 Vertical Sidebar (Left) - Flush with container start */}
-                  <div className="w-80 bg-white border-r border-secondary-100 overflow-y-auto overflow-x-hidden shrink-0 shadow-xl">
+                <div className="container mx-auto pl-4 sm:pl-0 md:pl-8 lg:pl-8 xl:pl-10 2xl:pl-8 pr-0 flex shrink-0 h-full relative">
+                  {/* L1 Vertical Sidebar (Left) */}
+                  <div className="w-80 bg-white border-r border-secondary-100 overflow-y-auto overflow-x-hidden shrink-0">
                     <ul className="">
                       {dropdownCollections.map((l1) => (
                         <li
@@ -174,7 +173,7 @@ export default function MegaMenu() {
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -10 }}
                         transition={{ duration: 0.2 }}
-                        className="flex-1 bg-white overflow-y-auto shadow-xl"
+                        className="flex-1 bg-white overflow-y-auto"
                       >
                         <div className="p-10 min-w-[800px]">
                           {/* Header with "Shop all" */}
@@ -221,7 +220,7 @@ export default function MegaMenu() {
                 {/* Right Extension - Covers the area from container end to screen edge */}
                 <div
                   className={`flex-1 transition-colors duration-200 ${activeL1 ? 'bg-white' : 'bg-transparent'}`}
-
+                  style={{ marginLeft: '-1px' }}
                 />
               </div>
             </motion.div>
@@ -250,10 +249,9 @@ export default function MegaMenu() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 bg-black/40 z-40 pointer-events-auto"
+            className="absolute top-full left-0 right-0 h-[200vh] bg-black/40 z-40 pointer-events-auto"
             onClick={closeImmediately}
             onMouseEnter={closeImmediately}
-            style={{ top: 'var(--header-height)' }}
           />
         )}
       </AnimatePresence>
