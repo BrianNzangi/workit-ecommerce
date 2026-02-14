@@ -165,56 +165,47 @@ export default function MegaMenu() {
                   </div>
 
                   {/* L2 & L3 Content Area (Right) */}
-                  <AnimatePresence>
+                  <div className={`flex-1 bg-white overflow-y-auto transition-all duration-300 ${activeL1 ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
                     {activeL1 && (
-                      <motion.div
-                        key={activeL1.id}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -10 }}
-                        transition={{ duration: 0.2 }}
-                        className="flex-1 bg-white overflow-y-auto"
-                      >
-                        <div className="p-10 min-w-[800px]">
-                          {/* Header with "Shop all" */}
-                          <div className="mb-8 flex items-center justify-between pb-5 border-b border-secondary-100">
-                            <Link
-                              href={`/collections/${activeL1.slug}`}
-                              onClick={() => setIsOpen(false)}
-                              className="text-secondary-900 font-bold text-xl hover:text-primary-900 transition-colors inline-flex items-center gap-3 group"
-                            >
-                              Shop all {he.decode(activeL1.name)}
-                              <ChevronRight size={24} className="group-hover:translate-x-1 transition-transform" />
-                            </Link>
-                          </div>
-
-                          {/* Columns of L2 (Groups) */}
-                          <div className="grid grid-cols-3 gap-10">
-                            {activeL1.children?.map((l2) => (
-                              <div key={l2.id} className="flex flex-col">
-                                <h4 className="font-bold text-secondary-900 text-base mb-4 tracking-wider uppercase border-l-2 border-primary-900 pl-3">
-                                  {he.decode(l2.name)}
-                                </h4>
-                                <ul className="space-y-2.5">
-                                  {l2.children?.map((l3) => (
-                                    <li key={l3.id}>
-                                      <Link
-                                        href={`/collections/${l3.slug}`}
-                                        onClick={() => setIsOpen(false)}
-                                        className="text-secondary-600 hover:text-primary-900 transition-colors inline-block text-sm font-medium hover:translate-x-1"
-                                      >
-                                        {he.decode(l3.name)}
-                                      </Link>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            ))}
-                          </div>
+                      <div className="p-10 min-w-[800px]">
+                        {/* Header with "Shop all" */}
+                        <div className="mb-8 flex items-center justify-between pb-5 border-b border-secondary-100">
+                          <Link
+                            href={`/collections/${activeL1.slug}`}
+                            onClick={() => setIsOpen(false)}
+                            className="text-secondary-900 font-bold text-xl hover:text-primary-900 transition-colors inline-flex items-center gap-3 group"
+                          >
+                            Shop all {he.decode(activeL1.name)}
+                            <ChevronRight size={24} className="group-hover:translate-x-1 transition-transform" />
+                          </Link>
                         </div>
-                      </motion.div>
+
+                        {/* Columns of L2 (Groups) */}
+                        <div className="grid grid-cols-3 gap-10">
+                          {activeL1.children?.map((l2) => (
+                            <div key={l2.id} className="flex flex-col">
+                              <h4 className="font-bold text-secondary-900 text-base mb-4 tracking-wider uppercase border-l-2 border-primary-900 pl-3">
+                                {he.decode(l2.name)}
+                              </h4>
+                              <ul className="space-y-2.5">
+                                {l2.children?.map((l3) => (
+                                  <li key={l3.id}>
+                                    <Link
+                                      href={`/collections/${l3.slug}`}
+                                      onClick={() => setIsOpen(false)}
+                                      className="text-secondary-600 hover:text-primary-900 transition-colors inline-block text-sm font-medium hover:translate-x-1"
+                                    >
+                                      {he.decode(l3.name)}
+                                    </Link>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     )}
-                  </AnimatePresence>
+                  </div>
                 </div>
 
                 {/* Right Extension - Covers the area from container end to screen edge */}
