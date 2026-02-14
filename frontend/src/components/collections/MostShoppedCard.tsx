@@ -26,7 +26,7 @@ export default function MostShoppedCard({ name, slug, image }: MostShoppedCardPr
                                 src={getImageUrl(image)}
                                 alt={name}
                                 fill
-                                className="object-cover p-2"
+                                className="object-cover"
                                 unoptimized
                             />
                         ) : (
