@@ -30,16 +30,11 @@ interface Banner {
     };
 }
 
-interface DealsProps {
-    initialDeals?: Banner[];
-}
-
-export default function Deals({ initialDeals }: DealsProps) {
-    const [deals, setDeals] = useState<Banner[]>(initialDeals || []);
-    const [loading, setLoading] = useState(!initialDeals);
+export default function Deals() {
+    const [deals, setDeals] = useState<Banner[]>([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (initialDeals) return;
         async function fetchDeals() {
             try {
                 const response = await fetch('/api/store/banners?position=DEALS&enabled=true');

@@ -20,17 +20,11 @@ interface CollectionItem {
     image?: string;
 }
 
-interface MostShoppedProps {
-    initialCollections?: CollectionItem[];
-}
-
-export default function MostShopped({ initialCollections }: MostShoppedProps) {
-    const [collections, setCollections] = useState<CollectionItem[]>(initialCollections || []);
-    const [loading, setLoading] = useState(!initialCollections);
+export default function MostShopped() {
+    const [collections, setCollections] = useState<CollectionItem[]>([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (initialCollections) return;
-
         const fetchCollections = async () => {
             try {
                 const data = await fetchCollectionsClient({

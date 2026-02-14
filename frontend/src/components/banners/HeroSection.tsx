@@ -32,13 +32,9 @@ interface Banner {
     };
 }
 
-interface HeroSectionProps {
-    initialBanners?: Banner[];
-}
-
-export default function HeroSection({ initialBanners }: HeroSectionProps) {
-    const [banners, setBanners] = useState<Banner[]>(initialBanners || []);
-    const [loading, setLoading] = useState(!initialBanners);
+export default function HeroSection() {
+    const [banners, setBanners] = useState<Banner[]>([]);
+    const [loading, setLoading] = useState(true);
     const [currentSlide, setCurrentSlide] = useState(0);
     const [isPlaying, setIsPlaying] = useState(true);
     const [touchStart, setTouchStart] = useState<number | null>(null);
@@ -50,7 +46,6 @@ export default function HeroSection({ initialBanners }: HeroSectionProps) {
 
     // ---------------- Fetch banners from API ----------------
     useEffect(() => {
-        if (initialBanners) return;
         async function fetchBanners() {
             try {
                 const response = await fetch('/api/store/banners?position=HERO&enabled=true');
