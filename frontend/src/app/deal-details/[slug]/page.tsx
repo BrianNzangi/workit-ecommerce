@@ -57,7 +57,7 @@ export default async function ProductDetailPage({ params }: Props) {
       sku: productObj.sku || '',
       price: Number(productObj.salePrice ?? 0),
       compareAtPrice: productObj.originalPrice ? Number(productObj.originalPrice) : undefined,
-      status: 'active',
+      status: 'active' as const,
       inventory: {
         track: true,
         stockOnHand: productObj.stockOnHand ?? 0,
@@ -84,7 +84,7 @@ export default async function ProductDetailPage({ params }: Props) {
         slug: c.collection.slug,
       })) || [],
       brand: productObj.brand,
-      stock_status: (productObj.stockOnHand ?? 0) > 0 ? 'instock' : 'outofstock',
+      inStock: (productObj.stockOnHand ?? 0) > 0,
       condition: productObj.condition,
       shippingMethod: productObj.shippingMethod ? {
         id: productObj.shippingMethod.id,
