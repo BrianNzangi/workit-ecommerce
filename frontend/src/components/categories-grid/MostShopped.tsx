@@ -28,8 +28,9 @@ export default function MostShopped() {
         const fetchCollections = async () => {
             try {
                 const data = await fetchCollectionsClient({
+                    parentId: 'null', // Start with root collections
                     includeChildren: true,
-                    take: 100, // Increased to get more potential featured items
+                    take: 100,
                     skip: 0,
                 });
 
