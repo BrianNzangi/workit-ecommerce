@@ -39,8 +39,8 @@ export default function Header() {
   const cartItemCount = mounted ? getTotalQuantity() : 0;
 
   return (
-    <div ref={headerRef}>
-      <header id="site-header" className="sticky top-0 z-50 bg-white shadow-xs">
+    <div ref={headerRef} className="sticky top-0 z-50 bg-white shadow-xs">
+      <header id="site-header" className="bg-white">
         {/* Top Bar */}
         <div className="bg-white font-sans text-secondary-900 border-b border-gray-300">
           <div className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-8 py-4 flex items-center justify-between gap-4 flex-wrap md:flex-nowrap">
