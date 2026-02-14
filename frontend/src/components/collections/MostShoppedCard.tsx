@@ -20,7 +20,7 @@ export default function MostShoppedCard({ name, slug, image }: MostShoppedCardPr
         >
             <div className="flex flex-col items-center">
                 <div className="relative z-10 space-y-2 w-full text-center">
-                    <div className="relative w-[120px] h-[120px] bg-white border border-gray-100 rounded-full overflow-hidden mx-auto">
+                    <div className="relative w-[120px] h-[120px] bg-white border border-gray-100 rounded-lg overflow-hidden mx-auto">
                         {image ? (
                             <Image
                                 src={getImageUrl(image)}
