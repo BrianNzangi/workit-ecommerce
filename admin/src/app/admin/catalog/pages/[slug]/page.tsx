@@ -20,11 +20,11 @@ import { httpClient } from '@/lib/clients/http-client';
 import { RichTextEditor } from '@/components/admin/RichTextEditor';
 
 const PAGE_TITLES: Record<string, string> = {
-    'warranty-refunds': 'Warranty & Refunds',
+    'warranty-refunds': 'Returns and Refunds Policy',
     'shipping-policy': 'Shipping Policy',
     'terms-of-service': 'Terms Of Service',
     'privacy-policy': 'Privacy Policy',
-    'returns-claims': 'Returns & Claims',
+    'returns-claims': 'Return Policy',
 };
 
 export default function ContentPage() {

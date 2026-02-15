@@ -6,25 +6,32 @@ export async function GET(
 ) {
   try {
     const { slug } = await params;
-    const wordpressUrl = process.env.NEXT_PUBLIC_WORDPRESS_URL;
-    const response = await fetch(`${wordpressUrl}/wp-json/wp/v2/pages?slug=${slug}`);
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+    const response = await fetch(`${backendUrl}/site/settings`);
 
     if (!response.ok) {
-      return NextResponse.json({ error: 'Failed to fetch page' }, { status: response.status });
+      return NextResponse.json({ error: 'Failed to fetch settings' }, { status: response.status });
     }
 
-    const pages = await response.json();
+    const settings = await response.json();
+    const settingKey = `page_${slug.replace(/-/g, '_')}`;
+    const pageData = settings[settingKey];
 
-    if (pages.length === 0) {
+    if (!pageData) {
       return NextResponse.json({ error: 'Page not found' }, { status: 404 });
     }
 
-    const page = pages[0];
+    // Handle both object-style and legacy string-style page data
+    const title = typeof pageData === 'object' ? pageData.title : slug.replace(/-/g, ' ');
+    const content = typeof pageData === 'object' ? pageData.content : pageData;
+    const articles = typeof pageData === 'object' ? pageData.articles : null;
+
     return NextResponse.json({
-      id: page.id,
-      title: page.title.rendered,
-      content: page.content.rendered,
-      slug: page.slug,
+      id: slug, // Using slug as ID since we don't have a numeric one in settings map
+      title: title || slug.replace(/-/g, ' '),
+      content: content,
+      articles: articles,
+      slug: slug,
     });
   } catch (error) {
     console.error('Error fetching page:', error);

@@ -10,7 +10,7 @@ export const settingsPublicRoutes: FastifyPluginAsync = async (fastify) => {
         const results = await db.select().from(schema.settings);
 
         const settingsMap: Record<string, any> = {};
-        const publicPrefixes = ['general.', 'payments.paystack_public_key', 'payments.paystack_enabled', 'taxes.', 'shipping.'];
+        const publicPrefixes = ['general.', 'payments.paystack_public_key', 'payments.paystack_enabled', 'taxes.', 'shipping.', 'page_'];
 
         results.forEach((s: any) => {
             // Only include non-sensitive settings

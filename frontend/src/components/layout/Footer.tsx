@@ -22,9 +22,9 @@ export default function Footer() {
         <div>
           <h3 className="text-white font-semibold mb-4">TERMS</h3>
           <ul className="space-y-2 text-sm">
-            <li><a href="/warranty-refunds" className="hover:text-white">Warranty & Refunds</a></li>
+            <li><a href="/returns-refunds-policy" className="hover:text-white">Returns and Refunds Policy</a></li>
             <li><a href="/shipping-policy" className="hover:text-white">Shipping Policy</a></li>
-            <li><a href="/terms-of-service" className="hover:text-white">Terms Of Service</a></li>
+            <li><a href="/terms-of-service" className="hover:text-white">Terms of Service</a></li>
             <li><a href="/privacy-policy" className="hover:text-white">Privacy Policy</a></li>
           </ul>
         </div>
@@ -35,7 +35,7 @@ export default function Footer() {
           <ul className="space-y-2 text-sm">
             <li><Link href="/dashboard" className="hover:text-white">Track My Order</Link></li>
             <li><a href="/help-center" className="hover:text-white">Help Center</a></li>
-            <li><a href="/returns-claims" className="hover:text-white">Returns & Claims</a></li>
+            <li><a href="/returns-claims" className="hover:text-white">Return Policy</a></li>
             <li>
               <Link href="/help-center" className="mt-2 w-36 bg-white text-black text-sm font-medium py-2 px-2 rounded-xs hover:bg-gray-200 transition inline-block text-center">
                 Contact Us

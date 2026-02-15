@@ -66,7 +66,7 @@ const menuItems: MenuItem[] = [
                 icon: FileText,
                 children: [
                     {
-                        label: 'Warranty & Refunds',
+                        label: 'Returns and Refunds Policy',
                         href: '/admin/catalog/pages/warranty-refunds',
                         icon: null,
                     },
@@ -91,7 +91,7 @@ const menuItems: MenuItem[] = [
                         icon: null,
                     },
                     {
-                        label: 'Returns & Claims',
+                        label: 'Return Policy',
                         href: '/admin/catalog/pages/returns-claims',
                         icon: null,
                     },

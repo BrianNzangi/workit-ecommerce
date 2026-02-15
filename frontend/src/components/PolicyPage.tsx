@@ -17,7 +17,7 @@ interface PolicyPageProps {
 }
 
 const policyPages = [
-  { slug: 'warranty-refunds', title: 'Warranty & Refunds' },
+  { slug: 'returns-refunds-policy', title: 'Returns and Refunds Policy' },
   { slug: 'shipping-policy', title: 'Shipping Policy' },
   { slug: 'terms-of-service', title: 'Terms Of Service' },
   { slug: 'privacy-policy', title: 'Privacy Policy' },
@@ -33,7 +33,7 @@ const aboutPages = [
 const helpPages = [
   { slug: 'track-order', title: 'Track My Order' },
   { slug: 'help-center', title: 'Help Center' },
-  { slug: 'returns-claims', title: 'Returns & Claims' },
+  { slug: 'return-policy', title: 'Return Policy' },
   { slug: 'contact-us', title: 'Contact Us' },
   { slug: 'sell-on-workit', title: 'Sell on Workit' },
 ];
@@ -49,7 +49,7 @@ export default function PolicyPage({ slug }: PolicyPageProps) {
   useEffect(() => {
     const fetchPage = async () => {
       try {
-        const response = await fetch(`/api/pages/${slug}`);
+        const response = await fetch(`/fetch-pages/${slug}`);
         if (!response.ok) {
           throw new Error('Failed to fetch page');
         }
@@ -404,8 +404,8 @@ export default function PolicyPage({ slug }: PolicyPageProps) {
           <div className="flex-1 max-w-4xl bg-white p-8 rounded-xs shadow-xs">
             <h1 className="text-3xl font-bold mb-6">{he.decode(pageData.title)}</h1>
             <div
-              className="text-gray-700 leading-relaxed [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mb-4 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mb-3 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:mb-2 [&_h4]:text-base [&_h4]:font-semibold [&_h4]:mb-2 [&_p]:mb-4 [&_ul]:mb-4 [&_ol]:mb-4 [&_li]:mb-1 [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800"
-              dangerouslySetInnerHTML={{ __html: he.decode(pageData.content) }}
+              className="prose prose-sm md:prose-base max-w-none text-gray-700"
+              dangerouslySetInnerHTML={{ __html: pageData.content }}
             />
           </div>
         </div>

@@ -217,3 +217,81 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Ensure prose content renders lists and paragraphs correctly */
+.prose ul {
+  list-style-type: disc !important;
+  padding-left: 1.625em !important;
+  margin-top: 1.25em !important;
+  margin-bottom: 1.25em !important;
+}
+
+.prose ol {
+  list-style-type: decimal !important;
+  padding-left: 1.625em !important;
+  margin-top: 1.25em !important;
+  margin-bottom: 1.25em !important;
+}
+
+.prose li {
+  margin-top: 0.5em !important;
+  margin-bottom: 0.5em !important;
+}
+
+.prose p {
+  margin-top: 1.25em !important;
+  margin-bottom: 1.25em !important;
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+  font-weight: 700 !important;
+  margin-top: 1.5em !important;
+  margin-bottom: 0.5em !important;
+}
+
+.prose h1 {
+  font-size: 2.25em !important;
+}
+
+.prose h2 {
+  font-size: 1.5em !important;
+}
+
+.prose h3 {
+  font-size: 1.25em !important;
+}
+
+/* Global Rich Text Overrides */
+strong,
+b {
+  font-weight: 900 !important;
+  color: #000 !important;
+}
+
+em,
+i {
+  font-style: italic !important;
+}
+
+.prose strong,
+.prose b {
+  font-weight: 900 !important;
+  color: #000 !important;
+}
+
+.prose em,
+.prose i {
+  font-style: italic !important;
+}
+
+.prose a {
+  color: #cc0000 !important;
+  text-decoration: underline !important;
+}
+
+.prose a:hover {
+  color: #181a1c !important;
+}
