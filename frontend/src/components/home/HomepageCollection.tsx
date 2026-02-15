@@ -156,7 +156,7 @@ function CollectionCarousel({ collection }: CollectionCarouselProps) {
               onClick={() => scroll('right')}
               disabled={!canScrollRight}
               className={`hidden sm:block absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 p-2 md:p-3 rounded-full shadow-lg transition-all duration-200 ${canScrollRight
-                ? 'bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 cursor-pointer'
+                ? 'bg-secondary-400/20 hover:bg-secondary-900 text-gray-50 hover:text-primary-900 cursor-pointer'
                 : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                 }`}
               aria-label="Next products"

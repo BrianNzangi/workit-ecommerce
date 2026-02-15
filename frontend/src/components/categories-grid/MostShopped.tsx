@@ -73,7 +73,10 @@ export default function MostShopped() {
     }, []);
 
     const renderSkeleton = () => (
-        <div className="relative w-[120px] h-[120px] bg-gray-100 animate-pulse rounded-lg" />
+        <div className="w-[120px] flex flex-col items-center space-y-2">
+            <div className="relative w-[120px] h-[120px] bg-gray-100 animate-pulse rounded-lg" />
+            <div className="w-16 h-3 bg-gray-100 animate-pulse rounded mx-auto" />
+        </div>
     );
 
     const renderCollection = (collection: CollectionItem) => (

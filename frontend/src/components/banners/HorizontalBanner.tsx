@@ -99,7 +99,6 @@ export default function HorizontalBanner({ position = 'DEALS_HORIZONTAL' }: Hori
                     alt={banner.title}
                     fill
                     className={`object-cover hidden sm:block transition-transform duration-700 ${isHeroType ? 'group-hover:scale-105' : ''}`}
-                    unoptimized
                 />
                 {/* Mobile Image */}
                 <Image
@@ -107,7 +106,6 @@ export default function HorizontalBanner({ position = 'DEALS_HORIZONTAL' }: Hori
                     alt={banner.title}
                     fill
                     className={`object-cover sm:hidden transition-transform duration-700 ${isHeroType ? 'group-hover:scale-105' : ''}`}
-                    unoptimized
                 />
 
                 {/* Overlay with Content (if needed, but usually banners are self-contained images) */}

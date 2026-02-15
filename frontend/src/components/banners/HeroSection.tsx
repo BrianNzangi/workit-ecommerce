@@ -197,7 +197,6 @@ export default function HeroSection() {
                             className="object-cover scale-105 hidden sm:block"
                             priority={currentSlide === 0}
                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
-                            unoptimized
                         />
                         {/* Mobile Image */}
                         <Image

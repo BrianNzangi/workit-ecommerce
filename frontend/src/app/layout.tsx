@@ -6,6 +6,14 @@ import QueryProvider from "../components/providers/QueryProvider";
 import Footer from "../components/layout/Footer";
 import "./globals.css";
 import Script from "next/script";
+import { Barlow } from 'next/font/google';
+
+const barlow = Barlow({
+  subsets: ['latin'],
+  weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
+  variable: '--font-barlow',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: "Shop Phones, Laptops & Gadgets Online for less on Workit",
@@ -50,11 +58,8 @@ export default function RootLayout({
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet" />
       </head>
-      <body className="font-barlow flex flex-col min-h-screen">
+      <body className={`${barlow.variable} font-barlow flex flex-col min-h-screen`}>
         <QueryProvider>
           <CartInitializer />
           <Header />
