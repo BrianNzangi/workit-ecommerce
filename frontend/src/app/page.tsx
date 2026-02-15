@@ -4,11 +4,11 @@ import HomepageCollection from '@/components/home/HomepageCollection';
 import MostShopped from '@/components/categories-grid/MostShopped';
 import HeroSection from '@/components/banners/HeroSection';
 
-const AboutWorkit = dynamic(() => import('@/components/home/AboutWorkit'));
-const FeaturedBlogs = dynamic(() => import('@/components/blog/FeaturedBlogs'));
-const Deals = dynamic(() => import('@/components/home/Deals'));
-const HorizontalBanner = dynamic(() => import('@/components/banners/HorizontalBanner'));
-const AuthModalWrapper = dynamic(() => import('@/components/auth/AuthModalWrapper'));
+const AboutWorkit = dynamic(() => import('@/components/home/AboutWorkit'), { ssr: true });
+const FeaturedBlogs = dynamic(() => import('@/components/blog/FeaturedBlogs'), { ssr: true });
+const Deals = dynamic(() => import('@/components/home/Deals'), { ssr: true });
+const HorizontalBanner = dynamic(() => import('@/components/banners/HorizontalBanner'), { ssr: true });
+const AuthModalWrapper = dynamic(() => import('@/components/auth/AuthModalWrapper'), { ssr: false });
 
 export const metadata: Metadata = {
   title: "Workit - Best Deals on Phones, Laptops, TVs & Accessories",
