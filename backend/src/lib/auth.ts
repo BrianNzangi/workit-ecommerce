@@ -69,6 +69,7 @@ export const auth = betterAuth({
     },
 
     baseURL: process.env.BETTER_AUTH_URL || "http://localhost:4000",
+    errorRedirect: process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/auth/error` : "http://localhost:3000/auth/error",
 
     session: {
         cookieCache: {
@@ -78,11 +79,9 @@ export const auth = betterAuth({
     },
 
     cookies: {
-        cookieOptions: {
-            secure: true,
-            sameSite: "none",
-            httpOnly: true,
-        },
+        secure: true,
+        sameSite: "none",
+        httpOnly: true,
     },
 });
 
