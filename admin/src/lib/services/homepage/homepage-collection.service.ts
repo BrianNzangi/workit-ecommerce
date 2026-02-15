@@ -16,7 +16,8 @@ export class HomepageCollectionService extends BaseService {
      */
     async createHomepageCollection(input: CreateHomepageCollectionInput): Promise<any> {
         try {
-            return await this.adminClient.homepageCollections.create(input);
+            const response: any = await this.adminClient.homepageCollections.create(input);
+            return response.collection || response;
         } catch (error: any) {
             if (error.message?.includes('exists')) throw duplicateError(error.message, 'slug');
             throw validationError(error.message || 'Failed to create homepage collection');
@@ -28,7 +29,8 @@ export class HomepageCollectionService extends BaseService {
      */
     async updateHomepageCollection(id: string, input: UpdateHomepageCollectionInput): Promise<any> {
         try {
-            return await this.adminClient.homepageCollections.update(id, input);
+            const response: any = await this.adminClient.homepageCollections.update(id, input);
+            return response.collection || response;
         } catch (error: any) {
             if (error.message?.includes('404')) throw notFoundError('Homepage collection not found');
             throw validationError(error.message || 'Failed to update homepage collection');
@@ -40,7 +42,8 @@ export class HomepageCollectionService extends BaseService {
      */
     async getHomepageCollection(id: string): Promise<any> {
         try {
-            return await this.adminClient.homepageCollections.get(id);
+            const response: any = await this.adminClient.homepageCollections.get(id);
+            return response.collection || response;
         } catch (error: any) {
             throw notFoundError('Homepage collection not found');
         }

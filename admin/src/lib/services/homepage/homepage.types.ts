@@ -3,6 +3,7 @@ export interface CreateHomepageCollectionInput {
     slug?: string;
     enabled?: boolean;
     sortOrder?: number;
+    productIds?: string[];
 }
 
 export interface UpdateHomepageCollectionInput {
@@ -10,6 +11,7 @@ export interface UpdateHomepageCollectionInput {
     slug?: string;
     enabled?: boolean;
     sortOrder?: number;
+    productIds?: string[];
 }
 
 export interface HomepageCollectionListOptions {

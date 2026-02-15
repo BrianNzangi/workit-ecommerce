@@ -5,8 +5,9 @@ import Link from 'next/link';
 import { ProtectedRoute } from '@/components/login/ProtectedRoute';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { ProductService, CollectionService, BrandService } from '@/lib/services';
+import { getImageUrl } from '@/lib/shared/images/image-utils';
 
-import { Package, Plus, Edit, Trash2, Upload, Download, FileDown, Search, X, Filter, ChevronDown } from 'lucide-react';
+import { Package, Plus, Edit, Trash2, Upload, Download, FileDown, Search, X, Filter, ChevronDown, Image as ImageIcon } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { AlertModal } from '@/components/ui/alert-modal';
 
@@ -30,6 +31,11 @@ interface Product {
         collection: {
             id: string;
             title: string;
+        };
+    }>;
+    assets?: Array<{
+        asset: {
+            source: string;
         };
     }>;
 }
@@ -609,7 +615,10 @@ export default function ProductsPage() {
                         <table className="w-full">
                             <thead className="bg-gray-50 border-b border-gray-200">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th className="pl-6 pr-1 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Image
+                                    </th>
+                                    <th className="pl-1 pr-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Product
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -635,7 +644,20 @@ export default function ProductsPage() {
                             <tbody className="bg-white divide-y divide-gray-200">
                                 {paginatedProducts.map((product) => (
                                     <tr key={product.id} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 whitespace-nowrap">
+                                        <td className="pl-6 pr-1 py-4 whitespace-nowrap">
+                                            {product.assets && product.assets.length > 0 ? (
+                                                <img
+                                                    src={getImageUrl(product.assets[0].asset.source)}
+                                                    alt={product.name}
+                                                    className="w-10 h-10 object-cover rounded shadow-sm border border-gray-100"
+                                                />
+                                            ) : (
+                                                <div className="w-10 h-10 bg-gray-50 border border-gray-100 border-dashed rounded flex items-center justify-center text-gray-300">
+                                                    <ImageIcon className="w-5 h-5" />
+                                                </div>
+                                            )}
+                                        </td>
+                                        <td className="pl-1 pr-6 py-4 whitespace-nowrap">
                                             <div>
                                                 <div className="text-sm font-medium text-gray-900">{product.name}</div>
                                                 <div className="text-sm text-gray-500">{product.slug}</div>
