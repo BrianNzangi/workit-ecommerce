@@ -57,14 +57,14 @@ export default function UserMenu() {
                   My Account
                 </Link>
                 <Link
-                  href="/orders"
+                  href="/dashboard?section=orders"
                   className="block px-4 py-2 text-sm font-sans text-gray-700 hover:bg-gray-100"
                   onClick={() => setIsOpen(false)}
                 >
                   Orders
                 </Link>
                 <Link
-                  href="/help"
+                  href="/help-center"
                   className="block px-4 py-2 text-sm font-sans text-gray-700 hover:bg-gray-100"
                   onClick={() => setIsOpen(false)}
                 >
@@ -98,14 +98,14 @@ export default function UserMenu() {
                   Sign Up
                 </button>
                 <Link
-                  href="/help"
+                  href="/help-center"
                   className="block px-4 py-2 text-sm font-sans text-gray-700 hover:bg-gray-100"
                   onClick={() => setIsOpen(false)}
                 >
                   Help & Support
                 </Link>
                 <Link
-                  href="/about"
+                  href="/about-workit"
                   className="block px-4 py-2 text-sm font-sans text-gray-700 hover:bg-gray-100"
                   onClick={() => setIsOpen(false)}
                 >

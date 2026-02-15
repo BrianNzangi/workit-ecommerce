@@ -40,6 +40,25 @@ const nextConfig: NextConfig = {
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
   },
+  async redirects() {
+    return [
+      {
+        source: '/help',
+        destination: '/help-center',
+        permanent: true,
+      },
+      {
+        source: '/about',
+        destination: '/about-workit',
+        permanent: true,
+      },
+      {
+        source: '/orders',
+        destination: '/dashboard?section=orders',
+        permanent: true,
+      },
+    ];
+  },
   async rewrites() {
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
     return [

@@ -196,20 +196,17 @@ function AccountAccordion() {
               >
                 Sign In
               </button>
-              <button
-                onClick={() => router.push('/?auth=signup')}
-                className="py-1 text-gray-600 font-sans hover:text-primary text-left"
-              >
+              <Link href="/?auth=signup" className="py-1 text-gray-600 font-sans hover:text-primary text-left" onClick={() => setOpen(false)}>
                 Sign Up
-              </button>
-              <Link href="/help" className="py-1 text-gray-600 font-sans hover:text-primary">Help & Support</Link>
-              <Link href="/about" className="py-1 text-gray-600 font-sans hover:text-primary">About</Link>
+              </Link>
+              <Link href="/help-center" className="py-1 text-gray-600 font-sans hover:text-primary" onClick={() => setOpen(false)}>Help & Support</Link>
+              <Link href="/about-workit" className="py-1 text-gray-600 font-sans hover:text-primary" onClick={() => setOpen(false)}>About</Link>
             </>
           ) : (
             <>
-              <Link href="/dashboard" className="py-1 text-gray-600 font-sans hover:text-primary">My Account</Link>
-              <Link href="/orders" className="py-1 text-gray-600 font-sans hover:text-primary">Orders</Link>
-              <Link href="/help" className="py-1 text-gray-600 font-sans hover:text-primary">Help & Support</Link>
+              <Link href="/dashboard" className="py-1 text-gray-600 font-sans hover:text-primary" onClick={() => setOpen(false)}>My Account</Link>
+              <Link href="/dashboard?section=orders" className="py-1 text-gray-600 font-sans hover:text-primary" onClick={() => setOpen(false)}>Orders</Link>
+              <Link href="/help-center" className="py-1 text-gray-600 font-sans hover:text-primary" onClick={() => setOpen(false)}>Help & Support</Link>
             </>
           )}
         </div>
