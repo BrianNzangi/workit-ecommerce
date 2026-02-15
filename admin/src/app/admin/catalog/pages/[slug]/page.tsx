@@ -25,13 +25,19 @@ const PAGE_TITLES: Record<string, string> = {
     'terms-of-service': 'Terms Of Service',
     'privacy-policy': 'Privacy Policy',
     'returns-claims': 'Return Policy',
+    'advertising-policy': 'Advertising Policy',
 };
 
 export default function ContentPage() {
     const params = useParams();
     const slug = params.slug as string;
     const title = PAGE_TITLES[slug] || 'Page Editor';
-    const settingKey = `page_${slug.replace(/-/g, '_')}`;
+
+    // Explicit mapping for renamed policies to keep data in same DB key
+    let dbSlug = slug;
+    if (slug === 'advertising-policy') dbSlug = 'returns-claims';
+
+    const settingKey = `page_${dbSlug.replace(/-/g, '_')}`;
 
     const [content, setContent] = useState('');
     const [metaTitle, setMetaTitle] = useState('');

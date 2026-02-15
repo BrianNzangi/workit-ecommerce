@@ -33,7 +33,7 @@ const aboutPages = [
 const helpPages = [
   { slug: 'track-order', title: 'Track My Order' },
   { slug: 'help-center', title: 'Help Center' },
-  { slug: 'return-policy', title: 'Return Policy' },
+  { slug: 'advertising-policy', title: 'Advertising Policy' },
   { slug: 'contact-us', title: 'Contact Us' },
   { slug: 'sell-on-workit', title: 'Sell on Workit' },
 ];

@@ -30,7 +30,8 @@ export async function GET(
 
         // Explicit mapping for renamed policies
         if (slug === 'returns-refunds-policy') dbKey = 'warranty_refunds';
-        if (slug === 'return-policy') dbKey = 'returns_claims';
+        if (slug === 'advertising-policy') dbKey = 'returns_claims';
+        if (slug === 'return-policy') dbKey = 'returns_claims'; // Keep for safety
 
         const settingKey = `page_${dbKey}`;
         const pageData = settings[settingKey];

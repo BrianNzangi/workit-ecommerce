@@ -91,8 +91,8 @@ const menuItems: MenuItem[] = [
                         icon: null,
                     },
                     {
-                        label: 'Return Policy',
-                        href: '/admin/catalog/pages/returns-claims',
+                        label: 'Advertising Policy',
+                        href: '/admin/catalog/pages/advertising-policy',
                         icon: null,
                     },
                 ],
