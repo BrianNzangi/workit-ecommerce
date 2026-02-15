@@ -47,12 +47,26 @@ export const auth = betterAuth({
         },
     },
 
-    trustedOrigins: [
-        "https://admin.workit.co.ke",
-        "http://localhost:3002",
-        "http://localhost:3000",
-        "http://localhost:4000",
-    ],
+    trustedOrigins: process.env.CORS_ORIGIN
+        ? process.env.CORS_ORIGIN.split(",")
+        : [
+            "https://admin.workit.co.ke",
+            "http://localhost:3002",
+            "http://localhost:3000",
+            "http://localhost:4000",
+        ],
+
+    cors: {
+        allowedOrigins: process.env.CORS_ORIGIN
+            ? process.env.CORS_ORIGIN.split(",")
+            : [
+                "https://workit.co.ke",
+                "https://admin.workit.co.ke",
+                "http://localhost:3000",
+                "http://localhost:3002",
+            ],
+        enabled: true,
+    },
 
     baseURL: process.env.BETTER_AUTH_URL || "http://localhost:4000",
 
