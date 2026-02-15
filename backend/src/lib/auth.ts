@@ -76,6 +76,14 @@ export const auth = betterAuth({
             maxAge: 60 * 60 * 24 * 7, // 7 days
         },
     },
+
+    cookies: {
+        cookieOptions: {
+            secure: true,
+            sameSite: "none",
+            httpOnly: true,
+        },
+    },
 });
 
 export type Session = typeof auth.$Infer.Session;
