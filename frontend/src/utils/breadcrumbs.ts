@@ -28,7 +28,7 @@ export function buildBreadcrumbs(categories: Category[], allCategories: Category
       name: current.name,
       slug: current.slug,
       id: current.id,
-      url: `/category/${current.slug}`,
+      url: `/collections/${current.slug}`,
     });
     if (!current.parent || current.parent === 0) break;
     current = allCategories.find((cat: Category) => cat.id === current!.parent);

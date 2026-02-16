@@ -18,6 +18,20 @@ export default function ProductPage({
   product: Product
   allCategories: Category[]
 }) {
+  // Helper function to flatten nested categories
+  const flattenCategories = (cats: any[]): any[] => {
+    const flattened: any[] = [];
+    cats.forEach(cat => {
+      flattened.push(cat);
+      if (cat.children && cat.children.length > 0) {
+        flattened.push(...flattenCategories(cat.children));
+      }
+    });
+    return flattened;
+  };
+
+  const flattenedCategories = flattenCategories(allCategories);
+
   // Helper function to build a chain from category to root
   const buildChain = (cat: any, all: any[]): any[] => {
     const chain = [];
@@ -25,23 +39,23 @@ export default function ProductPage({
     while (current) {
       chain.unshift(current);
       const parentId = current.parentId || current.parent;
-      if (!parentId || String(parentId) === "0") break;
-      current = all.find(c => c.id === parentId);
+      if (!parentId || String(parentId) === "0" || parentId === 0) break;
+      current = all.find(c => String(c.id) === String(parentId));
     }
     return chain;
   };
 
   // Build breadcrumbs manually to support UUIDs and parentId
   const breadcrumbs: Breadcrumb[] = [];
-  if (product.categories && product.categories.length > 0 && allCategories.length > 0) {
-    const primaryCat = allCategories.find(c => String(c.id) === String(product.categories![0].id)) || product.categories[0];
-    const chain = buildChain(primaryCat, allCategories);
+  if (product.categories && product.categories.length > 0 && flattenedCategories.length > 0) {
+    const primaryCat = flattenedCategories.find(c => String(c.id) === String(product.categories![0].id)) || product.categories[0];
+    const chain = buildChain(primaryCat, flattenedCategories);
     chain.forEach(c => {
       breadcrumbs.push({
         name: c.name,
         slug: c.slug,
         id: c.id,
-        url: `/category/${c.slug}`
+        url: `/collections/${c.slug}`
       });
     });
   }
@@ -68,7 +82,7 @@ export default function ProductPage({
     if (!productCategories || productCategories.length === 0 || !all || all.length === 0) return null;
 
     // Pick the first category of the product
-    const firstCat = all.find(c => c.id === productCategories[0].id) || productCategories[0];
+    const firstCat = all.find(c => String(c.id) === String(productCategories[0].id)) || productCategories[0];
     const chain = buildChain(firstCat, all);
     return chain.length > 0 ? chain[0] : null;
   }
@@ -107,7 +121,7 @@ export default function ProductPage({
         const seenIds = new Set<string>()
 
         // Fetch similar items from the L1 category
-        const l1Category = findL1Category(product.categories || [], allCategories);
+        const l1Category = findL1Category(product.categories || [], flattenedCategories);
 
         if (l1Category) {
           console.log('📦 Fetching similar items from L1 category:', l1Category.name, '(Slug:', l1Category.slug, ')');
