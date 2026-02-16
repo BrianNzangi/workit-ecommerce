@@ -1,29 +1,18 @@
 import type { Metadata } from 'next';
 import BlogPageClient from './BlogPageClient';
 
+import { SITE_CONFIG, DEFAULT_OG, DEFAULT_TWITTER } from '@/lib/meta';
+
 export const metadata: Metadata = {
-  title: "Blog - Workit",
+  title: `Blog | ${SITE_CONFIG.name}`,
   description: "Stay updated with the latest tech news, product reviews, and insights from Workit. Discover tips, trends, and innovations in electronics.",
   openGraph: {
-    title: "Blog - Workit",
+    ...DEFAULT_OG,
+    title: `Blog | ${SITE_CONFIG.name}`,
     description: "Stay updated with the latest tech news, product reviews, and insights from Workit. Discover tips, trends, and innovations in electronics.",
-    url: "https://www.workit.co.ke/blog",
-    siteName: "Workit",
-    type: "website",
-    images: [
-      {
-        url: "/workit-logo.png",
-        width: 1200,
-        height: 630,
-        alt: "Blog - Workit",
-      },
-    ],
+    url: `${SITE_CONFIG.url}/blog`,
   },
-  twitter: {
-    card: "summary_large_image",
-    title: "Blog - Workit",
-    description: "Stay updated with the latest tech news, product reviews, and insights from Workit. Discover tips, trends, and innovations in electronics.",
-  },
+  twitter: DEFAULT_TWITTER,
 };
 
 export default function BlogPage() {

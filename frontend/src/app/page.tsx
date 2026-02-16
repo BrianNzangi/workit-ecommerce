@@ -10,29 +10,18 @@ const Deals = dynamic(() => import('@/components/home/Deals'), { ssr: true });
 const HorizontalBanner = dynamic(() => import('@/components/banners/HorizontalBanner'), { ssr: true });
 const AuthModalWrapper = dynamic(() => import('@/components/auth/AuthModalWrapper'));
 
+import { SITE_CONFIG, DEFAULT_OG, DEFAULT_TWITTER } from '@/lib/meta';
+
 export const metadata: Metadata = {
-  title: "Workit - Best Deals on Phones, Laptops, TVs & Accessories",
-  description: "Find the best deals on phones, laptops, TVs, and accessories at Workit. Trusted electronics store with fast delivery and reliable customer support.",
+  title: SITE_CONFIG.title,
+  description: SITE_CONFIG.description,
   openGraph: {
-    title: "Workit - Best Deals on Phones, Laptops, TVs & Accessories",
-    description: "Find the best deals on phones, laptops, TVs, and accessories at Workit. Trusted electronics store with fast delivery and reliable customer support.",
-    url: "https://www.workit.co.ke/",
-    siteName: "Workit",
-    type: "website",
-    images: [
-      {
-        url: "/workit-logo.png",
-        width: 1200,
-        height: 630,
-        alt: "Workit - Best Deals on Phones, Laptops, TVs & Accessories",
-      },
-    ],
+    ...DEFAULT_OG,
+    title: SITE_CONFIG.title,
+    description: SITE_CONFIG.description,
+    url: SITE_CONFIG.url,
   },
-  twitter: {
-    card: "summary_large_image",
-    title: "Workit - Best Deals on Phones, Laptops, TVs & Accessories",
-    description: "Find the best deals on phones, laptops, TVs, and accessories at Workit. Trusted electronics store with fast delivery and reliable customer support.",
-  },
+  twitter: DEFAULT_TWITTER,
 };
 
 export default async function Home() {

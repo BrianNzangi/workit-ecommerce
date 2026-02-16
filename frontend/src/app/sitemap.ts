@@ -66,6 +66,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ]
 
+  // Fetch products
+  let productPages: MetadataRoute.Sitemap = [];
+  try {
+    const productsRes = await fetch(`${baseUrl}/api/products?per_page=1000`, {
+      next: { revalidate: 3600 }
+    });
+
+    if (productsRes.ok) {
+      const data = await productsRes.json();
+      const products = data.products || [];
+      productPages = products.map((p: any) => ({
+        url: `${baseUrl}/deal-details/${p.slug}`,
+        lastModified: new Date(p.updatedAt || new Date()),
+        changeFrequency: 'daily' as const,
+        priority: 0.7,
+      }));
+    }
+  } catch (error) {
+    console.error('Error fetching products for sitemap:', error);
+  }
+
   try {
     // Fetch categories from the API
     const categoriesRes = await fetch(`${baseUrl}/api/categories`, {
@@ -97,12 +118,32 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.8,
       }))
 
-      return [...staticPages, ...categoryPages]
+      // Fetch blog posts
+      let blogPages: MetadataRoute.Sitemap = [];
+      try {
+        const blogRes = await fetch(`${baseUrl}/api/blog`, {
+          next: { revalidate: 3600 }
+        });
+
+        if (blogRes.ok) {
+          const posts = await blogRes.json();
+          blogPages = posts.map((p: any) => ({
+            url: `${baseUrl}/blog/${p.slug}`,
+            lastModified: new Date(p.updatedAt || new Date()),
+            changeFrequency: 'weekly' as const,
+            priority: 0.7,
+          }));
+        }
+      } catch (error) {
+        console.error('Error fetching blog posts for sitemap:', error);
+      }
+
+      return [...staticPages, ...categoryPages, ...productPages, ...blogPages]
     }
   } catch (error) {
     console.error('Error fetching categories for sitemap:', error)
   }
 
-  // Return static pages if categories fetch fails
-  return staticPages
+  // Return static pages and products (if any) if categories fetch fails
+  return [...staticPages, ...productPages]
 }

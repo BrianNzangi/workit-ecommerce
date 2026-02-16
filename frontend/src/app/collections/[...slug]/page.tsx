@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import CollectionClient from '@/components/collections/CollectionClient'
 import { Product } from '@/types/product'
 import { Collection, Brand } from '@/types/collection'
+import { SITE_CONFIG } from '@/lib/meta';
 
 interface Props {
   params: Promise<{ slug: string[] }>
@@ -35,7 +36,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (collection) {
     // Generate SEO based on actual collection data
     const collectionName = collection.name;
-    const title = `${collectionName} - Workit`;
+    const title = `${collectionName} | ${SITE_CONFIG.name}`;
 
     // Use collection description if available, otherwise generate a generic one
     const description = collection.description
@@ -48,12 +49,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       openGraph: {
         title,
         description,
-        url: `https://www.workit.co.ke/collections/${lastSlug}`,
-        siteName: "Workit",
+        url: `${SITE_CONFIG.url}/collections/${lastSlug}`,
+        siteName: SITE_CONFIG.name,
         type: "website",
         images: [
           {
-            url: "/workit-logo.png",
+            url: `${SITE_CONFIG.url}${SITE_CONFIG.logo}`,
             width: 1200,
             height: 630,
             alt: title,

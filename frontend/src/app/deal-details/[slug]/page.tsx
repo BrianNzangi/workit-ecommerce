@@ -1,10 +1,58 @@
+import type { Metadata } from 'next';
 import ProductPage from '@/components/product/ProductPage';
 import { Category } from '@/types/collection';
 import type { Product } from '@/types/product';
+import { SITE_CONFIG } from '@/lib/meta';
 import { proxyFetch } from '@/lib/proxy-utils';
+import { getImageUrl } from '@/lib/image-utils';
 
 interface Props {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+
+  try {
+    const response = await proxyFetch(`/store/products/${slug}`, {
+      cache: 'force-cache',
+    });
+
+    if (!response.ok) return { title: 'Product Not Found' };
+
+    const product = await response.json();
+    const title = `${product.name} | ${SITE_CONFIG.name}`;
+    const description = product.shortDescription || product.description?.substring(0, 160);
+    const imageUrl = product.assets?.[0]?.asset?.source || product.featuredImage || SITE_CONFIG.logo;
+    const absoluteImageUrl = imageUrl.startsWith('http') ? imageUrl : `${SITE_CONFIG.url}${getImageUrl(imageUrl)}`;
+
+    return {
+      title,
+      description,
+      openGraph: {
+        title,
+        description,
+        url: `${SITE_CONFIG.url}/deal-details/${slug}`,
+        type: 'website',
+        images: [
+          {
+            url: absoluteImageUrl,
+            width: 800,
+            height: 800,
+            alt: product.name,
+          },
+        ],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        images: [absoluteImageUrl],
+      },
+    };
+  } catch (error) {
+    return { title: SITE_CONFIG.name };
+  }
 }
 
 export default async function ProductDetailPage({ params }: Props) {

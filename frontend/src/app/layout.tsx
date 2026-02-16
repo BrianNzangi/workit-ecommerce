@@ -15,10 +15,17 @@ const barlow = Barlow({
   display: 'swap',
 });
 
+import { SITE_CONFIG, DEFAULT_OG, DEFAULT_TWITTER } from "@/lib/meta";
+
 export const metadata: Metadata = {
-  title: "Shop Phones, Laptops & Gadgets Online for less on Workit",
-  description:
-    "Find the best deals on phones, laptops, TVs, and accessories at Workit. Trusted electronics store with fast delivery and reliable customer support.",
+  metadataBase: new URL(SITE_CONFIG.url),
+  title: {
+    default: SITE_CONFIG.title,
+    template: `%s | ${SITE_CONFIG.name}`,
+  },
+  description: SITE_CONFIG.description,
+  openGraph: DEFAULT_OG,
+  twitter: DEFAULT_TWITTER,
 };
 
 export default function RootLayout({
