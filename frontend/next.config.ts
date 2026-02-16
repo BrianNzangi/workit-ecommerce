@@ -17,18 +17,8 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'staging.workit.co.ke',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'cms.workit.co.ke',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
         hostname: 'api.workit.co.ke',
-        pathname: '/**',
+        pathname: '/uploads/**',
       },
       {
         protocol: 'https',
@@ -60,7 +50,7 @@ const nextConfig: NextConfig = {
     ];
   },
   async rewrites() {
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
     return [
       {
         source: '/uploads/:path*',

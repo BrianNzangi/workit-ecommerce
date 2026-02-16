@@ -35,25 +35,6 @@ export function getImageUrl(
         return url;
     }
 
-    // Determine the base backend URL
-    const env = process.env as Record<string, string | undefined>;
-    let backendUrl = env['NEXT_PUBLIC_BACKEND_URL'] ||
-        env['NEXT_PUBLIC_API_URL'] ||
-        env['BACKEND_API_URL'] ||
-        'http://localhost:3001';
-
-    // Proactive fix for production: If we are in the browser on a workit.co.ke domain
-    // and the backend URL is still pointing to localhost, switch to the production API.
-    if (typeof window !== 'undefined') {
-        const host = window.location.hostname;
-        if (host.includes('workit.co.ke') && (backendUrl.includes('localhost') || backendUrl.includes('127.0.0.1'))) {
-            backendUrl = 'https://api.workit.co.ke';
-        }
-    }
-
-    // Remove trailing slash from backendUrl if present
-    const cleanBaseUrl = backendUrl.endsWith('/') ? backendUrl.slice(0, -1) : backendUrl;
-
     // Handle local paths
     let relativePath = url;
 
@@ -74,7 +55,9 @@ export function getImageUrl(
         relativePath = url;
     }
 
-    return `${cleanBaseUrl}${relativePath}`;
+    // Use relative path starting with /uploads/ to leverage Next.js rewrites.
+    // This avoids absolute URL issues with Next.js Image optimization and CORS.
+    return relativePath;
 }
 
 /**

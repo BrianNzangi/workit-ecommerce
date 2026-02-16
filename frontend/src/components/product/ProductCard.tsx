@@ -144,7 +144,6 @@ export default function ProductCard({
               fill
               className="object-contain scale-75"
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
-              unoptimized
             />
           ) : (
             <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-sm">
