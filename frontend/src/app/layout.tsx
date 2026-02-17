@@ -8,6 +8,10 @@ import "./globals.css";
 import Script from "next/script";
 import { Barlow } from 'next/font/google';
 
+import dynamic from "next/dynamic";
+import { Suspense } from "react";
+const AuthModalWrapper = dynamic(() => import("../components/auth/AuthModalWrapper"));
+
 const barlow = Barlow({
   subsets: ['latin'],
   weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
@@ -69,9 +73,14 @@ export default function RootLayout({
       <body className={`${barlow.variable} font-barlow flex flex-col min-h-screen`}>
         <QueryProvider>
           <CartInitializer />
-          <Header />
+          <Suspense fallback={<div className="h-20" />}>
+            <Header />
+          </Suspense>
           <main className="grow">{children}</main>
           <Footer />
+          <Suspense fallback={null}>
+            <AuthModalWrapper />
+          </Suspense>
         </QueryProvider>
         <Toaster
           position="top-right"

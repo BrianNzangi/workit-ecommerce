@@ -1,13 +1,14 @@
 import { useEffect, useState, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { LoginForm, SignUpForm } from './AuthForms';
+import { LoginForm, SignUpForm, VerifyOTPForm } from './AuthForms';
 import Image from 'next/image';
 
 export default function AuthModal() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const [showModal, setShowModal] = useState(false);
-    const [authType, setAuthType] = useState<'login' | 'signup' | null>(null);
+    const [authType, setAuthType] = useState<'login' | 'signup' | 'verify' | null>(null);
+    const [emailForVerification, setEmailForVerification] = useState('');
     const modalRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -24,6 +25,7 @@ export default function AuthModal() {
     const closeModal = () => {
         setShowModal(false);
         setAuthType(null);
+        setEmailForVerification('');
         // Remove 'auth' param from URL
         const params = new URLSearchParams(searchParams.toString());
         params.delete('auth');
@@ -61,17 +63,30 @@ export default function AuthModal() {
                     </div>
 
                     <h3 className="text-[28px] font-bold text-secondary-900 mb-2 leading-tight">
-                        {authType === 'login' ? 'Login Now' : 'Join Workit'}
+                        {authType === 'login' ? 'Login Now' : authType === 'verify' ? 'Verify Email' : 'Join Workit'}
                     </h3>
                     <p className="text-secondary-500 text-base mb-8">
                         {authType === 'login'
                             ? 'Enter your information to sign in.'
-                            : 'Enter your details to create an account.'}
+                            : authType === 'verify'
+                                ? `Enter the code sent to your email.`
+                                : 'Enter your details to create an account.'}
                     </p>
 
                     {/* Form Content */}
                     <div className="text-left">
-                        {authType === 'login' ? <LoginForm /> : <SignUpForm />}
+                        {authType === 'login' ? (
+                            <LoginForm />
+                        ) : authType === 'verify' ? (
+                            <VerifyOTPForm email={emailForVerification} />
+                        ) : (
+                            <SignUpForm
+                                ontoVerify={(email) => {
+                                    setEmailForVerification(email);
+                                    setAuthType('verify');
+                                }}
+                            />
+                        )}
                     </div>
 
                     <div className="mt-8">

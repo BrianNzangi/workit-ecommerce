@@ -8,7 +8,6 @@ const AboutWorkit = dynamic(() => import('@/components/home/AboutWorkit'), { ssr
 const FeaturedBlogs = dynamic(() => import('@/components/blog/FeaturedBlogs'), { ssr: true });
 const Deals = dynamic(() => import('@/components/home/Deals'), { ssr: true });
 const HorizontalBanner = dynamic(() => import('@/components/banners/HorizontalBanner'), { ssr: true });
-const AuthModalWrapper = dynamic(() => import('@/components/auth/AuthModalWrapper'));
 
 import { SITE_CONFIG, DEFAULT_OG, DEFAULT_TWITTER } from '@/lib/meta';
 
@@ -44,10 +43,6 @@ export default async function Home() {
 
       <FeaturedBlogs />
       <AboutWorkit />
-
-      {/* Auth Modal */}
-      <AuthModalWrapper />
     </div>
   );
 }
-

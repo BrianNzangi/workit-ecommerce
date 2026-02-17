@@ -1,10 +1,16 @@
 import { createAuthClient } from "better-auth/react";
+import { emailOTPClient } from "better-auth/client/plugins";
 
 export const authClient = createAuthClient({
-    baseURL: typeof window !== 'undefined' ? '' : process.env.NEXT_PUBLIC_FRONTEND_BASE_URL || "http://localhost:3000",
+    baseURL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
     fetchOptions: {
-        credentials: "include",
+        onError: async (context) => {
+            console.error("Auth Client Error:", context.error);
+        },
     },
+    plugins: [
+        emailOTPClient(),
+    ],
 });
 
 export const {

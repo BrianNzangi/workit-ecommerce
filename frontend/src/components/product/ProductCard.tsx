@@ -20,7 +20,7 @@ export default function ProductCard({
   variantId,
   canBuy,
 }: Product) {
-  // ✅ Use pre-normalized data for Single-Product Mode
+  // Use pre-normalized data for Single-Product Mode
   const displayPrice = price ?? 0;
   const displayRegular = compareAtPrice ?? null;
   const isVariantAvailable = canBuy ?? true;
@@ -52,13 +52,13 @@ export default function ProductCard({
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
 
-    // ✅ Block adding unavailable variants
+    // Block adding unavailable variants
     if (!isVariantAvailable) {
       toast.error('This item is currently out of stock');
       return;
     }
 
-    // ✅ Block adding if no variant ID is available
+    // Block adding if no variant ID is available
     if (!finalVariantId) {
       console.error('❌ Missing variant ID:', {
         productId: id,
@@ -78,8 +78,8 @@ export default function ProductCard({
 
     // Add item to cart
     addItem({
-      id: id, // ✅ Already a string (UUID)
-      variantId: finalVariantId, // ✅ Already a string (UUID)
+      id: id, // Already a string (UUID)
+      variantId: finalVariantId, // Already a string (UUID)
       name: name || 'Product',
       image: imageUrl,
       price: displayPrice,
@@ -129,7 +129,7 @@ export default function ProductCard({
 
   return (
     <Link href={`/deal-details/${slug}`} className="group w-full h-full block">
-      <div className="p-3 border border-gray-200 hover:shadow-md transition-shadow duration-200 bg-white h-full flex flex-col cursor-pointer rounded-lg">
+      <div className="p-3 border border-gray-300 hover:shadow-md transition-shadow duration-200 bg-white h-full flex flex-col cursor-pointer rounded-lg">
         {/* Image Container - Fixed aspect ratio for consistency */}
         <div className="relative w-full aspect-square overflow-hidden rounded-md mb-3">
           {image || images?.[0]?.url ? (

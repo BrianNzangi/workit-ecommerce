@@ -7,7 +7,7 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
     fastify.get("/", {
         preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
     }, async (request) => {
-        const { limit = 100, offset = 0, collectionId, brandId, enabled } = request.query as any;
+        const { limit = 1000, offset = 0, collectionId, brandId, enabled } = request.query as any;
 
         const conditions = [];
 

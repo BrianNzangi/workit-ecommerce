@@ -121,7 +121,7 @@ export function LoginForm() {
     );
 }
 
-export function SignUpForm() {
+export function SignUpForm({ ontoVerify }: { ontoVerify: (email: string) => void }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [firstName, setFirstName] = useState('');
@@ -144,8 +144,13 @@ export function SignUpForm() {
             if (error) {
                 toast.error(error.message || 'Failed to sign up');
             } else {
-                toast.success('Account created successfully');
-                router.refresh();
+                // Send verification OTP after successful sign-up
+                await authClient.emailOtp.sendVerificationOtp({
+                    email,
+                    type: "email-verification",
+                });
+                toast.success('Account created! Please verify your email.');
+                ontoVerify(email);
             }
         } catch (err: any) {
             toast.error(err.message || 'An error occurred');
@@ -201,6 +206,85 @@ export function SignUpForm() {
                 >
                     {loading ? 'Creating...' : 'Create Account'}
                 </button>
+            </form>
+        </div>
+    );
+}
+
+export function VerifyOTPForm({ email }: { email: string }) {
+    const [otp, setOtp] = useState('');
+    const [loading, setLoading] = useState(false);
+    const router = useRouter();
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            const { error } = await authClient.emailOtp.verifyEmail({
+                email,
+                otp,
+            });
+            if (error) {
+                toast.error(error.message || 'Invalid verification code');
+            } else {
+                toast.success('Email verified successfully!');
+                router.push('/');
+                router.refresh();
+            }
+        } catch (err: any) {
+            toast.error(err.message || 'An error occurred');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleResend = async () => {
+        try {
+            const { error } = await authClient.emailOtp.sendVerificationOtp({
+                email,
+                type: 'email-verification',
+            });
+            if (error) {
+                toast.error(error.message || 'Failed to resend code');
+            } else {
+                toast.success('Verification code resent');
+            }
+        } catch (err: any) {
+            toast.error(err.message || 'An error occurred');
+        }
+    };
+
+    return (
+        <div className="w-full">
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <p className="text-secondary-600 text-sm mb-4">
+                    We've sent a 6-digit verification code to <span className="font-bold text-secondary-900">{email}</span>.
+                </p>
+                <input
+                    type="text"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    className="w-full px-5 py-3 rounded-lg border border-secondary-200 focus:outline-none focus:ring-2 focus:ring-primary-900/5 focus:border-primary-900 transition-all text-secondary-900 placeholder:text-secondary-400 text-center text-2xl tracking-[0.5em] font-bold"
+                    placeholder="000000"
+                    maxLength={6}
+                    required
+                />
+                <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-2 bg-secondary-200 text-secondary-400 font-bold rounded-lg hover:bg-secondary-300 hover:text-secondary-500 transition-all disabled:opacity-50 mt-4 active:bg-primary-900 active:text-white"
+                >
+                    {loading ? 'Verifying...' : 'Verify Email'}
+                </button>
+                <div className="text-center mt-4">
+                    <button
+                        type="button"
+                        onClick={handleResend}
+                        className="text-primary-900 text-sm font-bold hover:underline"
+                    >
+                        Resend Code
+                    </button>
+                </div>
             </form>
         </div>
     );

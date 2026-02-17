@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { emailOTP } from "better-auth/plugins";
 import { db, schema } from "@workit/db";
 
 export const auth = betterAuth({
@@ -39,5 +40,13 @@ export const auth = betterAuth({
         "http://127.0.0.1:3001",
         "http://localhost:3001",
         "http://localhost:3002",
+    ],
+    plugins: [
+        emailOTP({
+            async sendVerificationOTP({ email, otp, type }) {
+                console.log(`Verification OTP sent to ${email}: ${otp} (Type: ${type})`);
+                // In production, use an email service
+            },
+        }),
     ],
 });

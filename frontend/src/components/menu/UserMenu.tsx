@@ -4,12 +4,22 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { CircleUser, ChevronDown } from 'lucide-react';
+import { useSearchParams, usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function UserMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const { customer, logout } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
+  const openAuthModal = (type: 'login' | 'signup') => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('auth', type);
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    setIsOpen(false);
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -80,19 +90,13 @@ export default function UserMenu() {
             ) : (
               <>
                 <button
-                  onClick={() => {
-                    router.push('/?auth=login');
-                    setIsOpen(false);
-                  }}
+                  onClick={() => openAuthModal('login')}
                   className="block w-full text-left px-4 py-2 text-sm font-sans text-gray-700 hover:bg-gray-100"
                 >
                   Sign In
                 </button>
                 <button
-                  onClick={() => {
-                    router.push('/?auth=signup');
-                    setIsOpen(false);
-                  }}
+                  onClick={() => openAuthModal('signup')}
                   className="block w-full text-left px-4 py-2 text-sm font-sans text-gray-700 hover:bg-gray-100"
                 >
                   Sign Up
