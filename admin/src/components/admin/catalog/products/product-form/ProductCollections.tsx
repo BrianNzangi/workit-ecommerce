@@ -130,7 +130,7 @@ export function ProductCollections({
                     {collections.length === 0 ? (
                         <p className="text-sm text-muted-foreground p-4 italic">No collections available</p>
                     ) : (
-                        <div className="p-2 space-y-1 max-h-[500px] overflow-y-auto">
+                        <div className="p-2 space-y-1 max-h-125 overflow-y-auto">
                             {collections
                                 .filter((c) => !c.parentId)
                                 .map((collection) => renderCollectionItem(collection))}
