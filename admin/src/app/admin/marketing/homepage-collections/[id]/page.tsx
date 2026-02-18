@@ -4,7 +4,7 @@ import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ProtectedRoute } from '@/components/login/ProtectedRoute';
-import { AdminLayout } from '@/components/admin/AdminLayout';
+import { AdminLayout } from '@/components/admin/layout/AdminLayout';
 import { ArrowLeft, Save, Trash2, Plus, Search, GripVertical } from 'lucide-react';
 import { getImageUrl } from '@/lib/shared/images';
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { AdminLayout } from '@/components/admin/AdminLayout';
+import { AdminLayout } from '@/components/admin/layout/AdminLayout';
 import {
     Plus,
     Search,
@@ -22,7 +22,7 @@ import Link from 'next/link';
 import { toast } from '@/hooks/use-toast';
 import { v4 as uuidv4 } from 'uuid';
 import { httpClient } from '@/lib/clients/http-client';
-import { RichTextEditor } from '@/components/admin/RichTextEditor';
+import { RichTextEditor } from '@/components/admin/shared/RichTextEditor';
 
 interface Article {
     id: string;

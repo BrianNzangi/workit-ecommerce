@@ -56,7 +56,7 @@ export function BlogSidebar({
                         </button>
                     </div>
                 ) : (
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                    <div className="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center">
                         <input
                             type="file"
                             accept="image/*"
@@ -87,7 +87,7 @@ export function BlogSidebar({
                     value={author}
                     onChange={onAuthorChange}
                     placeholder="Author name"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-transparent"
                 />
             </div>
 

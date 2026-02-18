@@ -73,7 +73,7 @@ export function CustomerForm() {
                     <ArrowLeft className="w-4 h-4" />
                     Back to Customers
                 </Link>
-                <h1 className="text-2xl font-bold text-gray-900">Create Customer</h1>
+                <h1 className="text-xl lg:text-2xl font-bold text-gray-900">Create Customer</h1>
             </div>
 
             <form onSubmit={handleSubmit} className="max-w-2xl">
@@ -96,7 +96,7 @@ export function CustomerForm() {
                     </div>
 
                     <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
                                     First Name *
@@ -108,7 +108,7 @@ export function CustomerForm() {
                                     value={formData.firstName}
                                     onChange={handleChange}
                                     required
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-xs focus:ring-2 focus:ring-[#FF5023] focus:border-transparent"
+                                    className="w-full px-4 py-2 border border-gray-200 rounded-xs focus:ring-2 focus:ring-[#FF5023] focus:border-transparent"
                                     placeholder="John"
                                 />
                             </div>
@@ -124,7 +124,7 @@ export function CustomerForm() {
                                     value={formData.lastName}
                                     onChange={handleChange}
                                     required
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-xs focus:ring-2 focus:ring-[#FF5023] focus:border-transparent"
+                                    className="w-full px-4 py-2 border border-gray-200 rounded-xs focus:ring-2 focus:ring-[#FF5023] focus:border-transparent"
                                     placeholder="Doe"
                                 />
                             </div>
@@ -141,7 +141,7 @@ export function CustomerForm() {
                                 value={formData.email}
                                 onChange={handleChange}
                                 required
-                                className="w-full px-4 py-2 border border-gray-300 rounded-xs focus:ring-2 focus:ring-[#FF5023] focus:border-transparent"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xs focus:ring-2 focus:ring-[#FF5023] focus:border-transparent"
                                 placeholder="john.doe@example.com"
                             />
                         </div>
@@ -156,7 +156,7 @@ export function CustomerForm() {
                                 name="phoneNumber"
                                 value={formData.phoneNumber}
                                 onChange={handleChange}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-xs focus:ring-2 focus:ring-[#FF5023] focus:border-transparent"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xs focus:ring-2 focus:ring-[#FF5023] focus:border-transparent"
                                 placeholder="+254 700 000 000"
                             />
                         </div>
@@ -180,7 +180,7 @@ export function CustomerForm() {
                                 onChange={handleChange}
                                 required
                                 minLength={8}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-xs focus:ring-2 focus:ring-[#FF5023] focus:border-transparent"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xs focus:ring-2 focus:ring-[#FF5023] focus:border-transparent"
                                 placeholder="Enter password (min. 8 characters)"
                             />
                         </div>
@@ -197,7 +197,7 @@ export function CustomerForm() {
                                 onChange={handleChange}
                                 required
                                 minLength={8}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-xs focus:ring-2 focus:ring-[#FF5023] focus:border-transparent"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xs focus:ring-2 focus:ring-[#FF5023] focus:border-transparent"
                                 placeholder="Confirm password"
                             />
                         </div>
@@ -211,17 +211,17 @@ export function CustomerForm() {
                 </div>
 
                 {/* Actions */}
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                     <Link
                         href="/admin/customers"
-                        className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-xs hover:bg-gray-50 transition-colors text-center"
+                        className="flex-1 px-4 py-2 border border-gray-200 text-gray-700 rounded-xs hover:bg-gray-50 transition-colors text-center order-2 sm:order-1"
                     >
                         Cancel
                     </Link>
                     <button
                         type="submit"
                         disabled={loading}
-                        className="flex-1 px-4 py-2 bg-[#FF5023] hover:bg-[#E04520] text-white rounded-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-xs font-medium"
+                        className="flex-1 px-4 py-2 bg-[#FF5023] hover:bg-[#E04520] text-white rounded-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-xs font-medium order-1 sm:order-2"
                     >
                         {loading ? 'Creating...' : 'Create Customer'}
                     </button>

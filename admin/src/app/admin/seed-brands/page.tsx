@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { AdminLayout } from '@/components/admin/AdminLayout';
+import { AdminLayout } from '@/components/admin/layout/AdminLayout';
 import { ProtectedRoute } from '@/components/login/ProtectedRoute';
 
 export default function SeedBrandsPage() {

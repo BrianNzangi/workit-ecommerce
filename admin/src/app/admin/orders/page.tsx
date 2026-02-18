@@ -1,7 +1,7 @@
 'use client';
 
 import { ProtectedRoute } from '@/components/login/ProtectedRoute';
-import { AdminLayout } from '@/components/admin/AdminLayout';
+import { AdminLayout } from '@/components/admin/layout/AdminLayout';
 import { OrdersList } from '@/components/admin/orders/OrdersList';
 
 export default function OrdersPage() {

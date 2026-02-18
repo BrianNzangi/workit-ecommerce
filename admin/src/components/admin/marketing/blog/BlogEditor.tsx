@@ -28,7 +28,7 @@ export function BlogEditor({ editor, error }: BlogEditorProps) {
             </label>
 
             {/* Editor Toolbar */}
-            <div className="border border-gray-300 rounded-t-lg bg-gray-50 p-2 flex items-center gap-2 flex-wrap">
+            <div className="border border-gray-200 rounded-t-lg bg-gray-50 p-2 flex items-center gap-2 flex-wrap">
                 <button
                     type="button"
                     onClick={() => editor?.chain().focus().toggleBold().run()}
@@ -47,7 +47,7 @@ export function BlogEditor({ editor, error }: BlogEditorProps) {
                 >
                     <Italic className="w-4 h-4" />
                 </button>
-                <div className="w-px h-6 bg-gray-300"></div>
+                <div className="w-px h-6 bg-gray-200"></div>
                 <button
                     type="button"
                     onClick={() => editor?.chain().focus().toggleBulletList().run()}
@@ -66,7 +66,7 @@ export function BlogEditor({ editor, error }: BlogEditorProps) {
                 >
                     <ListOrdered className="w-4 h-4" />
                 </button>
-                <div className="w-px h-6 bg-gray-300"></div>
+                <div className="w-px h-6 bg-gray-200"></div>
                 <button
                     type="button"
                     onClick={addLink}
@@ -87,7 +87,7 @@ export function BlogEditor({ editor, error }: BlogEditorProps) {
 
             {/* Editor Content */}
             <div
-                className={`border border-t-0 border-gray-300 rounded-b-lg bg-white ${error ? 'border-red-500' : ''
+                className={`border border-t-0 border-gray-200 rounded-b-lg bg-white ${error ? 'border-red-500' : ''
                     }`}
             >
                 <EditorContent editor={editor} />

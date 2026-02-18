@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ProtectedRoute } from '@/components/login/ProtectedRoute';
-import { AdminLayout } from '@/components/admin/AdminLayout';
+import { AdminLayout } from '@/components/admin/layout/AdminLayout';
 import { LayoutGrid, Plus, Edit, Trash2 } from 'lucide-react';
 
 interface HomepageCollection {

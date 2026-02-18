@@ -165,7 +165,7 @@ export function BrandForm({ brandId, mode }: BrandFormProps) {
                     <ArrowLeft className="w-4 h-4" />
                     Back to Brands
                 </Link>
-                <h1 className="text-2xl font-bold text-gray-900">
+                <h1 className="text-xl lg:text-2xl font-bold text-gray-900">
                     {mode === 'edit' ? 'Edit Brand' : 'Add New Brand'}
                 </h1>
             </div>
@@ -194,7 +194,7 @@ export function BrandForm({ brandId, mode }: BrandFormProps) {
                                 value={formData.name}
                                 onChange={handleChange}
                                 required
-                                className="w-full px-4 py-2 border border-gray-300 rounded-xs focus:ring-2 focus:ring-primary-900 focus:border-transparent"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xs focus:ring-2 focus:ring-primary-900 focus:border-transparent"
                                 placeholder="e.g., Apple"
                             />
                         </div>
@@ -210,7 +210,7 @@ export function BrandForm({ brandId, mode }: BrandFormProps) {
                                 value={formData.slug}
                                 onChange={handleChange}
                                 required
-                                className="w-full px-4 py-2 border border-gray-300 rounded-xs focus:ring-2 focus:ring-primary-900 focus:border-transparent"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xs focus:ring-2 focus:ring-primary-900 focus:border-transparent"
                                 placeholder="apple"
                             />
                             <p className="mt-1 text-xs text-gray-500">Auto-generated from brand name</p>
@@ -226,7 +226,7 @@ export function BrandForm({ brandId, mode }: BrandFormProps) {
                                 value={formData.description}
                                 onChange={handleChange}
                                 rows={3}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-xs focus:ring-2 focus:ring-primary-900 focus:border-transparent"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xs focus:ring-2 focus:ring-primary-900 focus:border-transparent"
                                 placeholder="Brief description of the brand"
                             />
                         </div>
@@ -241,7 +241,7 @@ export function BrandForm({ brandId, mode }: BrandFormProps) {
                                     <img
                                         src={logoPreview}
                                         alt="Logo preview"
-                                        className="w-32 h-32 object-contain border border-gray-300 rounded-xs"
+                                        className="w-32 h-32 object-contain border border-gray-200 rounded-xs"
                                     />
                                     <button
                                         type="button"
@@ -252,7 +252,7 @@ export function BrandForm({ brandId, mode }: BrandFormProps) {
                                     </button>
                                 </div>
                             ) : (
-                                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-xs cursor-pointer hover:bg-gray-50 transition-colors">
+                                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-200 border-dashed rounded-xs cursor-pointer hover:bg-gray-50 transition-colors">
                                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
                                         <Upload className="w-8 h-8 text-gray-400 mb-2" />
                                         <p className="text-sm text-gray-600">
@@ -277,7 +277,7 @@ export function BrandForm({ brandId, mode }: BrandFormProps) {
                                 name="enabled"
                                 checked={formData.enabled}
                                 onChange={handleChange}
-                                className="w-4 h-4 text-primary-900 border-gray-300 rounded focus:ring-primary-900"
+                                className="w-4 h-4 text-primary-900 border-gray-200 rounded focus:ring-primary-900"
                             />
                             <label htmlFor="enabled" className="ml-2 text-sm text-gray-700">
                                 Enabled
@@ -285,17 +285,17 @@ export function BrandForm({ brandId, mode }: BrandFormProps) {
                         </div>
                     </div>
 
-                    <div className="mt-6 flex gap-3">
+                    <div className="mt-6 flex flex-col sm:flex-row gap-3">
                         <Link
                             href="/admin/brands"
-                            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-xs hover:bg-gray-50 transition-colors text-center"
+                            className="flex-1 px-4 py-2 border border-gray-200 text-gray-700 rounded-xs hover:bg-gray-50 transition-colors text-center order-2 sm:order-1"
                         >
                             Cancel
                         </Link>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="flex-1 px-4 py-2 bg-primary-900 hover:bg-primary-800 text-white rounded-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-xs"
+                            className="flex-1 px-4 py-2 bg-primary-900 hover:bg-primary-800 text-white rounded-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-xs order-1 sm:order-2"
                         >
                             {loading ? (mode === 'edit' ? 'Updating...' : 'Creating...') : (mode === 'edit' ? 'Update Brand' : 'Create Brand')}
                         </button>

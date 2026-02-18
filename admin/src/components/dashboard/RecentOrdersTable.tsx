@@ -33,7 +33,7 @@ export function RecentOrdersTable() {
             case 'SHIPPED':
                 return 'info';
             case 'PAYMENT_SETTLED':
-                return 'primary';
+                return 'default';
             case 'CANCELLED':
                 return 'error';
             default:

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Clock, Play, CheckCircle, XCircle, Loader2, RefreshCw, History } from 'lucide-react';
 import { ProtectedRoute } from '@/components/login/ProtectedRoute';
-import { AdminLayout } from '@/components/admin/AdminLayout';
+import { AdminLayout } from '@/components/admin/layout/AdminLayout';
 
 interface CronJob {
     id: string;

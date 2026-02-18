@@ -44,9 +44,9 @@ export function RichTextEditor({ value, onChange, placeholder = 'Start typing...
     }
 
     return (
-        <div className="border border-gray-300 rounded-xs overflow-hidden">
+        <div className="border border-gray-200 rounded-xs overflow-hidden">
             {/* Toolbar */}
-            <div className="bg-gray-50 border-b border-gray-300 p-2 flex flex-wrap gap-1">
+            <div className="bg-gray-50 border-b border-gray-200 p-2 flex flex-wrap gap-1">
                 <button
                     type="button"
                     onClick={() => editor.chain().focus().toggleBold().run()}
@@ -65,7 +65,7 @@ export function RichTextEditor({ value, onChange, placeholder = 'Start typing...
                 >
                     <Italic className="w-4 h-4" />
                 </button>
-                <div className="w-px bg-gray-300 mx-1" />
+                <div className="w-px bg-gray-200 mx-1" />
                 <button
                     type="button"
                     onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}

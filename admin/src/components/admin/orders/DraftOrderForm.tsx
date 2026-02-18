@@ -119,7 +119,7 @@ export function DraftOrderForm() {
                     <ArrowLeft className="w-4 h-4" />
                     Back to Draft Orders
                 </Link>
-                <h1 className="text-2xl font-bold text-gray-900">Create Draft Order</h1>
+                <h1 className="text-xl lg:text-2xl font-bold text-gray-900">Create Draft Order</h1>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -166,7 +166,7 @@ export function DraftOrderForm() {
                                             value={customerSearch}
                                             onChange={(e) => setCustomerSearch(e.target.value)}
                                             placeholder="Search customers by email or name..."
-                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xs focus:ring-2 focus:ring-[#FF5023] focus:border-transparent"
+                                            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xs focus:ring-2 focus:ring-[#FF5023] focus:border-transparent"
                                         />
                                     </div>
                                     <p className="text-sm text-gray-500">
@@ -202,7 +202,7 @@ export function DraftOrderForm() {
                                             className="p-4 border border-gray-200 rounded-xs bg-gray-50"
                                         >
                                             <div className="flex items-start gap-4">
-                                                <div className="flex-1 grid grid-cols-2 gap-3">
+                                                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                     <div>
                                                         <label className="block text-sm font-medium text-gray-700 mb-2">
                                                             Product Name
@@ -213,7 +213,7 @@ export function DraftOrderForm() {
                                                             onChange={(e) =>
                                                                 updateOrderLine(line.id, 'productName', e.target.value)
                                                             }
-                                                            className="w-full px-3 py-2 border border-gray-300 rounded-xs focus:ring-2 focus:ring-[#FF5023] focus:border-transparent text-sm"
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-xs focus:ring-2 focus:ring-[#FF5023] focus:border-transparent text-sm"
                                                             placeholder="Enter product name"
                                                         />
                                                     </div>
@@ -227,7 +227,7 @@ export function DraftOrderForm() {
                                                             onChange={(e) =>
                                                                 updateOrderLine(line.id, 'variantName', e.target.value)
                                                             }
-                                                            className="w-full px-3 py-2 border border-gray-300 rounded-xs focus:ring-2 focus:ring-[#FF5023] focus:border-transparent text-sm"
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-xs focus:ring-2 focus:ring-[#FF5023] focus:border-transparent text-sm"
                                                             placeholder="e.g., Size M, Red"
                                                         />
                                                     </div>
@@ -246,7 +246,7 @@ export function DraftOrderForm() {
                                                                 )
                                                             }
                                                             min="1"
-                                                            className="w-full px-3 py-2 border border-gray-300 rounded-xs focus:ring-2 focus:ring-[#FF5023] focus:border-transparent text-sm"
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-xs focus:ring-2 focus:ring-[#FF5023] focus:border-transparent text-sm"
                                                         />
                                                     </div>
                                                     <div>
@@ -265,7 +265,7 @@ export function DraftOrderForm() {
                                                             }
                                                             min="0"
                                                             step="0.01"
-                                                            className="w-full px-3 py-2 border border-gray-300 rounded-xs focus:ring-2 focus:ring-[#FF5023] focus:border-transparent text-sm"
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-xs focus:ring-2 focus:ring-[#FF5023] focus:border-transparent text-sm"
                                                         />
                                                     </div>
                                                 </div>
@@ -306,7 +306,7 @@ export function DraftOrderForm() {
                                         onChange={(e) => setShippingCost(e.target.value)}
                                         min="0"
                                         step="0.01"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-xs focus:ring-2 focus:ring-[#FF5023] focus:border-transparent text-sm"
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-xs focus:ring-2 focus:ring-[#FF5023] focus:border-transparent text-sm"
                                     />
                                 </div>
 
@@ -320,7 +320,7 @@ export function DraftOrderForm() {
                                         onChange={(e) => setTaxRate(e.target.value)}
                                         min="0"
                                         step="0.01"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-xs focus:ring-2 focus:ring-[#FF5023] focus:border-transparent text-sm"
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-xs focus:ring-2 focus:ring-[#FF5023] focus:border-transparent text-sm"
                                     />
                                 </div>
 
@@ -347,13 +347,13 @@ export function DraftOrderForm() {
                                 value={notes}
                                 onChange={(e) => setNotes(e.target.value)}
                                 rows={4}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-xs focus:ring-2 focus:ring-[#FF5023] focus:border-transparent text-sm"
+                                className="w-full px-3 py-2 border border-gray-200 rounded-xs focus:ring-2 focus:ring-[#FF5023] focus:border-transparent text-sm"
                                 placeholder="Add notes about this order..."
                             />
                         </div>
 
                         {/* Actions */}
-                        <div className="space-y-3">
+                        <div className="flex flex-col gap-3">
                             <button
                                 type="submit"
                                 disabled={loading}
@@ -363,7 +363,7 @@ export function DraftOrderForm() {
                             </button>
                             <Link
                                 href="/admin/orders/drafts"
-                                className="block w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-xs hover:bg-gray-50 transition-colors text-center"
+                                className="block w-full px-4 py-2 border border-gray-200 text-gray-700 rounded-xs hover:bg-gray-50 transition-colors text-center"
                             >
                                 Cancel
                             </Link>

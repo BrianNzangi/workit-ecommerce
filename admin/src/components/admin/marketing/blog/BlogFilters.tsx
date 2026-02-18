@@ -23,7 +23,7 @@ export function BlogFilters({
                         placeholder="Search blog posts..."
                         value={searchQuery}
                         onChange={(e) => onSearchChange(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-transparent"
+                        className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-transparent"
                     />
                 </div>
                 <div className="flex items-center gap-2">
@@ -31,7 +31,7 @@ export function BlogFilters({
                     <select
                         value={filterStatus}
                         onChange={(e) => onFilterChange(e.target.value)}
-                        className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-transparent"
+                        className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-transparent"
                     >
                         <option value="all">All Status</option>
                         <option value="published">Published</option>

@@ -130,7 +130,7 @@ export function BannerImages({
                             </div>
                         </div>
                     ) : (
-                        <label className="relative aspect-video rounded-lg border-2 border-dashed border-gray-300 cursor-pointer hover:border-primary-600 hover:bg-gray-50 transition-colors flex flex-col items-center justify-center">
+                        <label className="relative aspect-video rounded-lg border-2 border-dashed border-gray-200 cursor-pointer hover:border-primary-600 hover:bg-gray-50 transition-colors flex flex-col items-center justify-center">
                             {loadingAssets ? (
                                 <>
                                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-800 mb-2"></div>
@@ -189,7 +189,7 @@ export function BannerImages({
                             </div>
                         </div>
                     ) : (
-                        <label className="relative aspect-video rounded-lg border-2 border-dashed border-gray-300 cursor-pointer hover:border-primary-600 hover:bg-gray-50 transition-colors flex flex-col items-center justify-center">
+                        <label className="relative aspect-video rounded-lg border-2 border-dashed border-gray-200 cursor-pointer hover:border-primary-600 hover:bg-gray-50 transition-colors flex flex-col items-center justify-center">
                             {loadingAssets ? (
                                 <>
                                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-800 mb-2"></div>

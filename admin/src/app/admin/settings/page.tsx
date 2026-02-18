@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { ProtectedRoute } from '@/components/login/ProtectedRoute';
-import { AdminLayout } from '@/components/admin/AdminLayout';
+import { AdminLayout } from '@/components/admin/layout/AdminLayout';
 import { Save, CheckCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useSession } from '@/lib/auth/auth-client';

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { ProtectedRoute } from '@/components/login/ProtectedRoute';
-import { AdminLayout } from '@/components/admin/AdminLayout';
+import { AdminLayout } from '@/components/admin/layout/AdminLayout';
 import { Upload, Image as ImageIcon, Trash2, X } from 'lucide-react';
 import { Toaster } from '@/components/ui/toast-container';
 import { toast } from '@/hooks/use-toast';

@@ -1,7 +1,7 @@
 'use client';
 
 import { ProtectedRoute } from '@/components/login/ProtectedRoute';
-import { AdminLayout } from '@/components/admin/AdminLayout';
+import { AdminLayout } from '@/components/admin/layout/AdminLayout';
 import { ShoppingCart } from 'lucide-react';
 
 export default function AbandonedCheckoutsPage() {

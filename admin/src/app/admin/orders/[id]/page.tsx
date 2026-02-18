@@ -3,7 +3,7 @@
 import { useEffect, useState, use } from 'react';
 import { Loader2, AlertCircle, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
-import { AdminLayout } from '@/components/admin/AdminLayout';
+import { AdminLayout } from '@/components/admin/layout/AdminLayout';
 import { ProtectedRoute } from '@/components/login/ProtectedRoute';
 import { toast } from '@/hooks/use-toast';
 import { InvoiceDisplay } from '@/components/admin/orders/InvoiceDisplay';

@@ -1,7 +1,7 @@
 'use client';
 
 import { ProtectedRoute } from '@/components/login/ProtectedRoute';
-import { AdminLayout } from '@/components/admin/AdminLayout';
+import { AdminLayout } from '@/components/admin/layout/AdminLayout';
 import { Search, Filter, MoreVertical, Play, Copy, Download, Edit, Trash2, Type } from 'lucide-react';
 import { useState } from 'react';
 

@@ -37,7 +37,7 @@ export function BlogSEOSection({
                         value={metaTitle}
                         onChange={onChange}
                         placeholder={previewTitle || 'Blog post title'}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-transparent"
                         maxLength={60}
                     />
                     <p className="text-xs text-gray-500 mt-1">
@@ -54,7 +54,7 @@ export function BlogSEOSection({
                         onChange={onChange}
                         placeholder={previewDescription || 'Brief description of your blog post'}
                         rows={3}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-transparent"
                         maxLength={160}
                     />
                     <p className="text-xs text-gray-500 mt-1">

@@ -17,6 +17,7 @@ import {
     ChevronRight,
     Megaphone,
     Clock,
+    X,
 } from 'lucide-react';
 
 interface MenuItem {
@@ -175,7 +176,12 @@ const menuItems: MenuItem[] = [
     },
 ];
 
-export function AdminSidebar() {
+interface AdminSidebarProps {
+    isOpen?: boolean;
+    onClose?: () => void;
+}
+
+export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
     const pathname = usePathname();
     const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
@@ -305,9 +311,15 @@ export function AdminSidebar() {
     };
 
     return (
-        <aside className="w-64 bg-secondary-900 border-r border-secondary-800 flex flex-col h-full shrink-0 z-30">
+        <aside
+            className={`
+        fixed inset-y-0 left-0 w-64 bg-secondary-900 border-r border-secondary-800 flex flex-col h-full z-40
+        transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0
+        ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+      `}
+        >
             {/* Logo Section */}
-            <div className="h-[72px] flex items-center px-6 border-b border-secondary-800 bg-secondary-900 shrink-0">
+            <div className="h-[72px] flex items-center justify-between px-6 border-b border-secondary-800 bg-secondary-900 shrink-0">
                 <Link href="/admin/dashboard" className="relative h-8 w-32 block">
                     <NextImage
                         src="/workit-logo-white.png"
@@ -317,6 +329,12 @@ export function AdminSidebar() {
                         priority
                     />
                 </Link>
+                <button
+                    onClick={onClose}
+                    className="lg:hidden p-2 text-secondary-400 hover:text-white transition-colors"
+                >
+                    <X className="w-6 h-6" />
+                </button>
             </div>
 
             {/* Navigation */}

@@ -22,7 +22,7 @@ export function BlogFormFields({ formData, onChange, errors }: BlogFormFieldsPro
                     value={formData.title}
                     onChange={onChange}
                     placeholder="e.g., Blog about your latest products or deals"
-                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-transparent ${errors.title ? 'border-red-500' : 'border-gray-300'
+                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-transparent ${errors.title ? 'border-red-500' : 'border-gray-200'
                         }`}
                 />
                 {errors.title && (
@@ -43,7 +43,7 @@ export function BlogFormFields({ formData, onChange, errors }: BlogFormFieldsPro
                     value={formData.excerpt}
                     onChange={onChange}
                     rows={3}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-transparent"
                 />
             </div>
         </>

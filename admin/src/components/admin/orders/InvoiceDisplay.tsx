@@ -163,7 +163,7 @@ export function InvoiceDisplay({
             </div>
 
             {/* Invoice Body */}
-            <div className="invoice-container bg-white shadow-xl border border-gray-100 min-h-[1100px] flex flex-col max-w-4xl mx-auto font-sans">
+            <div className="invoice-container bg-white shadow-xl border border-gray-200 min-h-[1100px] flex flex-col max-w-4xl mx-auto font-sans">
 
                 {/* Header Section */}
                 <div className="p-8 md:p-10">
@@ -197,7 +197,7 @@ export function InvoiceDisplay({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-12">
                         {/* Billed By */}
                         <div>
-                            <h4 className="text-[10px] font-black tracking-[0.2em] text-gray-400 uppercase mb-4 border-b border-gray-100 pb-2">Billed By</h4>
+                            <h4 className="text-[10px] font-black tracking-[0.2em] text-gray-400 uppercase mb-4 border-b border-gray-200 pb-2">Billed By</h4>
                             <div className="text-sm space-y-1.5">
                                 <p className="font-black text-gray-900 text-base">Workit Enterprises</p>
                                 <p className="text-gray-600 font-medium">Nairobi, Kenya</p>
@@ -206,7 +206,7 @@ export function InvoiceDisplay({
 
                         {/* Bill To */}
                         <div>
-                            <h4 className="text-[10px] font-black tracking-[0.2em] text-gray-400 uppercase mb-4 border-b border-gray-100 pb-2">Bill To</h4>
+                            <h4 className="text-[10px] font-black tracking-[0.2em] text-gray-400 uppercase mb-4 border-b border-gray-200 pb-2">Bill To</h4>
                             <div className="text-sm space-y-1.5">
                                 <p className="font-black text-gray-900 text-base">{order.customer.firstName} {order.customer.lastName}</p>
                                 <p className="text-gray-600 font-medium">{order.customer.email}</p>
@@ -224,7 +224,7 @@ export function InvoiceDisplay({
                     {/* Items Table */}
                     <div className="mb-10">
                         <table className="w-full text-left border-collapse">
-                            <thead className="border-b-2 border-slate-900">
+                            <thead className="border-b border-gray-200">
                                 <tr className="text-[11px] font-black text-gray-950 uppercase tracking-[0.2em]">
                                     <th className="py-5">Item</th>
                                     <th className="py-5 text-right pr-8">Qty</th>
@@ -248,7 +248,7 @@ export function InvoiceDisplay({
                     </div>
 
                     {/* Summary Section */}
-                    <div className="flex justify-end pt-10 border-t-2 border-gray-950">
+                    <div className="flex justify-end pt-10 border-t border-gray-200">
                         <div className="w-full md:w-72 space-y-6">
                             <div className="flex justify-between text-sm font-bold text-gray-500 uppercase tracking-widest">
                                 <span>Subtotal</span>
@@ -258,7 +258,7 @@ export function InvoiceDisplay({
                                 <span>Delivery</span>
                                 <span className="text-gray-950">{formatCurrency(order.shipping)}</span>
                             </div>
-                            <div className="flex justify-between text-sm font-bold text-gray-500 uppercase tracking-widest border-b border-gray-100 pb-2">
+                            <div className="flex justify-between text-sm font-bold text-gray-500 uppercase tracking-widest border-b border-gray-200 pb-2">
                                 <span>VAT 16.0%</span>
                                 <span className="text-gray-950">{formatCurrency(order.tax)}</span>
                             </div>
@@ -272,7 +272,7 @@ export function InvoiceDisplay({
 
                 {/* Footer Section */}
                 <div className="mt-auto p-12 md:p-16 pt-0">
-                    <div className="border-t border-gray-100 pt-16 flex flex-col md:flex-row justify-between items-end gap-10">
+                    <div className="border-t border-gray-200 pt-16 flex flex-col md:flex-row justify-between items-end gap-10">
                         <div className="max-w-sm">
                             <h5 className="text-[11px] font-black text-gray-950 uppercase tracking-widest mb-3">Questions about your order?</h5>
                             <p className="text-[10px] text-gray-500 leading-relaxed font-medium">

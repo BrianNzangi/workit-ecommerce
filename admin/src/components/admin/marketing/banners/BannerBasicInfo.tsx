@@ -56,7 +56,7 @@ export function BannerBasicInfo({
                         type="text"
                         value={formData.name}
                         onChange={(e) => onChange({ name: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-xs focus:ring-2 focus:ring-primary-600 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-200 rounded-xs focus:ring-2 focus:ring-primary-600 focus:border-transparent"
                         placeholder="e.g., Summer Sale Hero"
                         required
                     />
@@ -68,7 +68,7 @@ export function BannerBasicInfo({
                     <textarea
                         value={formData.description}
                         onChange={(e) => onChange({ description: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-xs focus:ring-2 focus:ring-primary-600 focus:border-transparent min-h-[100px]"
+                        className="w-full px-4 py-2 border border-gray-200 rounded-xs focus:ring-2 focus:ring-primary-600 focus:border-transparent min-h-[100px]"
                         placeholder="Add a short description for this banner"
                     />
                 </div>
@@ -80,7 +80,7 @@ export function BannerBasicInfo({
                         type="text"
                         value={formData.slug}
                         onChange={(e) => onChange({ slug: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-xs focus:ring-2 focus:ring-primary-600 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-200 rounded-xs focus:ring-2 focus:ring-primary-600 focus:border-transparent"
                         placeholder="Leave empty to auto-generate"
                     />
                 </div>
@@ -93,7 +93,7 @@ export function BannerBasicInfo({
                         <select
                             value={formData.collectionId}
                             onChange={(e) => onChange({ collectionId: e.target.value })}
-                            className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-xs focus:ring-2 focus:ring-primary-600 focus:border-transparent appearance-none"
+                            className="w-full px-4 py-2 pr-10 border border-gray-200 rounded-xs focus:ring-2 focus:ring-primary-600 focus:border-transparent appearance-none"
                             disabled={loadingCollections}
                         >
                             <option value="">Select a collection (optional)</option>

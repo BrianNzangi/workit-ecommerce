@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { AdminLayout } from '@/components/admin/AdminLayout';
+import { AdminLayout } from '@/components/admin/layout/AdminLayout';
 import {
     Save,
     Eye,
@@ -17,7 +17,7 @@ import {
 import Link from 'next/link';
 import { toast } from '@/hooks/use-toast';
 import { httpClient } from '@/lib/clients/http-client';
-import { RichTextEditor } from '@/components/admin/RichTextEditor';
+import { RichTextEditor } from '@/components/admin/shared/RichTextEditor';
 
 const PAGE_TITLES: Record<string, string> = {
     'warranty-refunds': 'Returns and Refunds Policy',

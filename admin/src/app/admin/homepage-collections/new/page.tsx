@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ProtectedRoute } from '@/components/login/ProtectedRoute';
-import { AdminLayout } from '@/components/admin/AdminLayout';
+import { AdminLayout } from '@/components/admin/layout/AdminLayout';
 import { ArrowLeft, Search, Trash2, Plus, Image as ImageIcon, X } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { HomepageCollectionService } from '@/lib/services';

@@ -1,7 +1,7 @@
 'use client';
 
 import { ProtectedRoute } from '@/components/login/ProtectedRoute';
-import { AdminLayout } from '@/components/admin/AdminLayout';
+import { AdminLayout } from '@/components/admin/layout/AdminLayout';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
 import { CustomersList } from '@/components/admin/customers/CustomersList';
