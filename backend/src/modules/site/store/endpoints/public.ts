@@ -1,6 +1,7 @@
 import { FastifyPluginAsync } from "fastify";
 import { db, schema, and, eq, or, ilike, desc, count, isNull, inArray, asc, isNotNull, gt } from "../../../../lib/db.js";
 import { z } from "zod";
+import { productSearchService } from "../../../../services/search/product-search.service.js";
 
 const productsQuerySchema = z.object({
     limit: z.coerce.number().default(50),
@@ -98,7 +99,8 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
     });
 
     const searchQuerySchema = z.object({
-        q: z.string()
+        q: z.string(),
+        limit: z.coerce.number().optional().default(20),
     });
 
     // Search
@@ -108,14 +110,8 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
             querystring: searchQuerySchema
         }
     }, async (request) => {
-        const { q } = request.query as z.infer<typeof searchQuerySchema>;
-        const results = await db.query.products.findMany({
-            where: and(
-                eq(schema.products.enabled, true),
-                or(ilike(schema.products.name, `%${q}%`), ilike(schema.products.description, `%${q}%`))
-            ),
-            with: { assets: { with: { asset: true } } }
-        });
+        const { q, limit } = request.query as z.infer<typeof searchQuerySchema>;
+        const results = await productSearchService.searchStoreProducts(q, limit);
         return { products: results };
     });
 

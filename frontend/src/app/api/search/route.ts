@@ -12,9 +12,9 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // We use the store products endpoint for searching
+    // Use the dedicated store search endpoint.
     const response = await proxyFetch(
-      `/store/products?search=${encodeURIComponent(query)}&limit=20`,
+      `/store/products/search?q=${encodeURIComponent(query)}&limit=20`,
       {
         method: 'GET',
         // Cache search results briefly (1 minute)
@@ -31,14 +31,13 @@ export async function GET(req: NextRequest) {
 
     const json = await response.json();
 
-    // The backend returns { data: { products: [], pagination: {} } }
-    let products: Product[] = [];
-    if (json.data && Array.isArray(json.data.products)) {
-      // Use our normalization logic for consistent pricing and fields
-      products = normalizeProducts(json.data.products);
-    } else if (Array.isArray(json)) {
-      products = normalizeProducts(json);
-    }
+    const rawProducts =
+      Array.isArray(json?.products) ? json.products :
+        (Array.isArray(json?.data?.products) ? json.data.products :
+          (Array.isArray(json) ? json : []));
+
+    // Use normalization logic for consistent pricing and fields.
+    const products: Product[] = normalizeProducts(rawProducts);
 
     // Return the normalized products directly for the client search component
     return NextResponse.json(products);

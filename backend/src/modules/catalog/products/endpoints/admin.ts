@@ -1,8 +1,17 @@
 import { FastifyPluginAsync } from "fastify";
-import { db, schema, eq, desc, ilike, or, inArray, and } from "../../../../lib/db.js";
+import { db, schema, eq, desc, inArray, and } from "../../../../lib/db.js";
 import { v4 as uuidv4 } from "uuid";
+import { productSearchService } from "../../../../services/search/product-search.service.js";
 
 export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
+    const runSearchSyncSafely = async (operation: () => Promise<void>, context: string) => {
+        try {
+            await operation();
+        } catch (error) {
+            fastify.log.error({ error, context }, "Product search index sync failed");
+        }
+    };
+
     // List Products (Admin view might include more details)
     fastify.get("/", {
         preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
@@ -89,6 +98,11 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
             );
         }
 
+        await runSearchSyncSafely(
+            () => productSearchService.syncProductById(product.id),
+            `create:${product.id}`
+        );
+
         return { product, success: true };
     });
 
@@ -96,20 +110,16 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
     fastify.get("/search", {
         preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
     }, async (request) => {
-        const { q } = request.query as any;
-        const results = await (db as any).query.products.findMany({
-            where: or(
-                ilike(schema.products.name as any, `%${q}%`),
-                ilike(schema.products.sku as any, `%${q}%`)
-            ),
-            with: {
-                assets: { with: { asset: true } },
-                collections: { with: { collection: true } },
-                homepageCollections: { with: { collection: true } },
-                brand: true
-            },
-        });
+        const { q, limit = 50 } = request.query as any;
+        const results = await productSearchService.searchAdminProducts(String(q || ""), Number(limit) || 50);
         return { products: results, success: true };
+    });
+
+    fastify.post("/search/reindex", {
+        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+    }, async () => {
+        const { indexed } = await productSearchService.reindexAllProducts();
+        return { success: true, indexed };
     });
 
     // Show Product (Admin)
@@ -175,6 +185,11 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
             }
         }
 
+        await runSearchSyncSafely(
+            () => productSearchService.syncProductById(id),
+            `update:${id}`
+        );
+
         return { product, success: true };
     };
 
@@ -194,6 +209,10 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
     }, async (request) => {
         const { id } = request.params as any;
         await db.delete(schema.products as any).where(eq(schema.products.id as any, id));
+        await runSearchSyncSafely(
+            () => productSearchService.deleteProductById(id),
+            `delete:${id}`
+        );
         return { success: true };
     });
 
@@ -206,6 +225,10 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
             return { success: false, message: "No IDs provided" };
         }
         await db.delete(schema.products as any).where(inArray(schema.products.id as any, ids));
+        await runSearchSyncSafely(
+            () => productSearchService.deleteProductsByIds(ids),
+            `bulk-delete:${ids.length}`
+        );
         return { success: true, count: ids.length };
     });
 
@@ -300,6 +323,7 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
         let updated = 0;
         let skipped = 0;
         const errors: string[] = [];
+        const touchedProductIds = new Set<string>();
 
         for (let i = 0; i < csvData.length; i++) {
             const row = csvData[i];
@@ -349,6 +373,7 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
                     await db.insert(schema.products as any).values({ ...productData, id: productId });
                     created++;
                 }
+                touchedProductIds.add(productId);
 
                 // Handle collections (pipe-separated slugs)
                 if (row.collections) {
@@ -377,6 +402,11 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
                 skipped++;
             }
         }
+
+        await runSearchSyncSafely(
+            () => productSearchService.syncProductsByIds(Array.from(touchedProductIds)),
+            `import:${touchedProductIds.size}`
+        );
 
         return {
             success: true,

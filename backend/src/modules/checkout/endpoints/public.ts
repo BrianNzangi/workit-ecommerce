@@ -2,6 +2,7 @@ import { FastifyPluginAsync } from "fastify";
 import { db, schema, eq, and } from "../../../lib/db.js";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
+import { productSearchService } from "../../../services/search/product-search.service.js";
 
 // Address schema for creation on the fly
 const addressSchema = z.object({
@@ -93,8 +94,10 @@ export const checkoutPublicRoutes: FastifyPluginAsync = async (fastify) => {
             return reply.status(400).send({ message: "Cart is empty" });
         }
 
+        const stockAdjustedProductIds = new Set<string>();
+
         // Use transaction for atomic order creation
-        return await (db as any).transaction(async (tx: any) => {
+        const checkoutResult = await (db as any).transaction(async (tx: any) => {
 
             // 1. Process Addresses (Create if passed as object)
             if (!shippingAddressId && body.shippingAddress) {
@@ -172,6 +175,7 @@ export const checkoutPublicRoutes: FastifyPluginAsync = async (fastify) => {
                 await tx.update(schema.products)
                     .set({ stockOnHand: product.stockOnHand - line.quantity })
                     .where(eq(schema.products.id, product.id));
+                stockAdjustedProductIds.add(product.id);
             }
 
             // 3. Validate Shipping
@@ -236,6 +240,16 @@ export const checkoutPublicRoutes: FastifyPluginAsync = async (fastify) => {
             // 6. Return result (Transaction commits automatically)
             return { orderId, code, total };
         });
+
+        if (stockAdjustedProductIds.size > 0) {
+            try {
+                await productSearchService.syncProductsByIds(Array.from(stockAdjustedProductIds));
+            } catch (error) {
+                fastify.log.error({ error }, "Failed to sync product stock to search index after checkout");
+            }
+        }
+
+        return checkoutResult;
     });
 
     fastify.post("/verify", {
