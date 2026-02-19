@@ -30,3 +30,4 @@ export * from './taxes/tax.service';
 export * from './search/search.service';
 export * from './marketing/campaign.service';
 export * from './marketing/campaign.types';
+export * from './settings/admin-settings.service';

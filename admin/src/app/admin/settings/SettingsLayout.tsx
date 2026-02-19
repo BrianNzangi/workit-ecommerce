@@ -1,15 +1,10 @@
 'use client';
 
 import { ReactNode } from 'react';
-import {
-    Store,
-    CreditCard,
-    Shield,
-    Truck,
-    Receipt,
-    Users,
-} from 'lucide-react';
+import { Store, CreditCard, Shield, Truck, Receipt, Users } from 'lucide-react';
 import { TabType } from './tabs';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface Tab {
     id: TabType;
@@ -39,37 +34,37 @@ export default function SettingsLayout({
     children,
     canViewTab = () => true,
 }: SettingsLayoutProps) {
-    const visibleTabs = tabs.filter(tab => canViewTab(tab.id));
+    const visibleTabs = tabs.filter((tab) => canViewTab(tab.id));
 
     return (
-        <div className="flex gap-6">
-            {/* Vertical Tabs */}
-            <div className="w-64 shrink-0">
-                <div className="bg-white rounded-xs shadow-xs border border-gray-200 p-2">
-                    {visibleTabs.map((tab) => {
-                        const Icon = tab.icon;
-                        return (
-                            <button
-                                key={tab.id}
-                                onClick={() => onTabChange(tab.id)}
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xs text-left transition-colors ${activeTab === tab.id
-                                    ? 'bg-primary-800 text-white shadow-xs'
-                                    : 'text-gray-700 hover:bg-gray-50'
-                                    }`}
-                            >
-                                <Icon className="w-5 h-5" />
-                                <span className="font-medium">{tab.label}</span>
-                            </button>
-                        );
-                    })}
-                </div>
+        <div className="flex flex-col lg:flex-row gap-6">
+            <div className="w-full lg:w-64 shrink-0">
+                <Card>
+                    <CardContent className="p-2 space-y-1">
+                        {visibleTabs.map((tab) => {
+                            const Icon = tab.icon;
+                            const active = activeTab === tab.id;
+
+                            return (
+                                <Button
+                                    key={tab.id}
+                                    onClick={() => onTabChange(tab.id)}
+                                    variant={active ? 'default' : 'ghost'}
+                                    className={`w-full justify-start gap-3 ${active ? 'bg-primary-800 text-white hover:bg-primary-900' : ''}`}
+                                >
+                                    <Icon className="w-5 h-5" />
+                                    <span className="font-medium">{tab.label}</span>
+                                </Button>
+                            );
+                        })}
+                    </CardContent>
+                </Card>
             </div>
 
-            {/* Content Area */}
             <div className="flex-1">
-                <div className="bg-white rounded-xs shadow-xs border border-gray-200 p-6">
-                    {children}
-                </div>
+                <Card>
+                    <CardContent className="p-6">{children}</CardContent>
+                </Card>
             </div>
         </div>
     );

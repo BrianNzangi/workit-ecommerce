@@ -97,7 +97,7 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
 
-  --font-sans: var(--font-public-sans);
+  --font-sans: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
 
   /* Primary Colors */
   --color-primary-900: var(--color-primary-900);
@@ -127,7 +127,16 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-public-sans), system-ui, -apple-system, sans-serif;
+  font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  font-optical-sizing: auto;
+  font-variation-settings: "wdth" 100;
+}
+
+.ibm-plex-sans-admin {
+  font-family: "IBM Plex Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+  font-variation-settings: "wdth" 100;
 }
 
 /* Ensure form inputs are visible */

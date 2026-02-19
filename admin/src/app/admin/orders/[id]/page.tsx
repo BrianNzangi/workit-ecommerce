@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState, use, useRef } from 'react';
 import { Loader2, AlertCircle, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { AdminLayout } from '@/components/admin/layout/AdminLayout';
 import { ProtectedRoute } from '@/components/login/ProtectedRoute';
 import { toast } from '@/hooks/use-toast';
@@ -12,11 +13,11 @@ interface OrderLine {
     id: string;
     quantity: number;
     linePrice: number;
-    variant: {
-        name: string;
-        sku: string;
-        product: {
-            name: string;
+    variant?: {
+        name?: string;
+        sku?: string;
+        product?: {
+            name?: string;
         };
     };
 }
@@ -57,6 +58,9 @@ const ORDER_STATES = [
 
 export default function OrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
+    const searchParams = useSearchParams();
+    const action = searchParams.get('action');
+    const actionHandledRef = useRef<string | null>(null);
     const [order, setOrder] = useState<Order | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -92,7 +96,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
         setUpdatingStatus(true);
         try {
             const response = await fetch(`/api/admin/orders/${id}/status`, {
-                method: 'PUT',
+                method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ state: newState })
             });
@@ -123,6 +127,23 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
     const handlePrint = () => {
         window.print();
     };
+
+    useEffect(() => {
+        if (!order || !action) return;
+        if (action !== 'print') return;
+
+        const actionKey = `${order.id}:${action}`;
+        if (actionHandledRef.current === actionKey) return;
+        actionHandledRef.current = actionKey;
+
+        const timer = setTimeout(() => {
+            if (action === 'print') {
+                handlePrint();
+            }
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [order, action]);
 
     const getStatusColor = (state: string) => {
         const colors: Record<string, string> = {

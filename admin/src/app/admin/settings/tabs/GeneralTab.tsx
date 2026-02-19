@@ -1,7 +1,16 @@
 'use client';
 
-import { ChevronDown } from 'lucide-react';
 import { Settings } from './index';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 
 interface GeneralTabProps {
     settings: Settings;
@@ -13,15 +22,12 @@ export default function GeneralTab({ settings, setSettings, readOnly = false }: 
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-xl font-bold text-gray-900 mb-4">
-                    Store Details
-                </h2>
+                <h2 className="text-xl font-bold text-gray-900 mb-4">Store Details</h2>
                 <div className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Store Name *
-                        </label>
-                        <input
+                    <div className="space-y-2">
+                        <Label htmlFor="site_name">Store Name *</Label>
+                        <Input
+                            id="site_name"
                             type="text"
                             value={settings.general.site_name}
                             onChange={(e) =>
@@ -34,15 +40,14 @@ export default function GeneralTab({ settings, setSettings, readOnly = false }: 
                                 })
                             }
                             disabled={readOnly}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-xs focus:ring-2 focus:ring-primary-600 focus:border-transparent disabled:bg-gray-50 disabled:cursor-not-allowed"
                             placeholder="My Store"
                         />
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Store Email *
-                        </label>
-                        <input
+
+                    <div className="space-y-2">
+                        <Label htmlFor="site_email">Store Email *</Label>
+                        <Input
+                            id="site_email"
                             type="email"
                             value={settings.general.site_email}
                             onChange={(e) =>
@@ -55,15 +60,14 @@ export default function GeneralTab({ settings, setSettings, readOnly = false }: 
                                 })
                             }
                             disabled={readOnly}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-xs focus:ring-2 focus:ring-primary-600 focus:border-transparent disabled:bg-gray-50 disabled:cursor-not-allowed"
                             placeholder="store@example.com"
                         />
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Store Phone
-                        </label>
-                        <input
+
+                    <div className="space-y-2">
+                        <Label htmlFor="site_phone">Store Phone</Label>
+                        <Input
+                            id="site_phone"
                             type="tel"
                             value={settings.general.site_phone}
                             onChange={(e) =>
@@ -76,15 +80,14 @@ export default function GeneralTab({ settings, setSettings, readOnly = false }: 
                                 })
                             }
                             disabled={readOnly}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-xs focus:ring-2 focus:ring-primary-600 focus:border-transparent disabled:bg-gray-50 disabled:cursor-not-allowed"
                             placeholder="+1 234 567 8900"
                         />
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Store Address
-                        </label>
-                        <textarea
+
+                    <div className="space-y-2">
+                        <Label htmlFor="site_address">Store Address</Label>
+                        <Textarea
+                            id="site_address"
                             value={settings.general.site_address}
                             onChange={(e) =>
                                 setSettings({
@@ -97,64 +100,63 @@ export default function GeneralTab({ settings, setSettings, readOnly = false }: 
                             }
                             rows={3}
                             disabled={readOnly}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-xs focus:ring-2 focus:ring-primary-600 focus:border-transparent disabled:bg-gray-50 disabled:cursor-not-allowed"
                             placeholder="123 Main St, City, Country"
                         />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Currency
-                            </label>
-                            <div className="relative">
-                                <select
-                                    value={settings.general.default_currency}
-                                    onChange={(e) =>
-                                        setSettings({
-                                            ...settings,
-                                            general: {
-                                                ...settings.general,
-                                                default_currency: e.target.value,
-                                            },
-                                        })
-                                    }
-                                    disabled={readOnly}
-                                    className="w-full appearance-none px-4 py-2 pr-10 border border-gray-300 rounded-xs bg-white focus:ring-2 focus:ring-primary-600 focus:border-transparent cursor-pointer disabled:bg-gray-50 disabled:cursor-not-allowed"
-                                >
-                                    <option value="USD">USD - US Dollar</option>
-                                    <option value="EUR">EUR - Euro</option>
-                                    <option value="GBP">GBP - British Pound</option>
-                                    <option value="KES">KES - Kenyan Shilling</option>
-                                </select>
-                                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
-                            </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label>Currency</Label>
+                            <Select
+                                value={settings.general.default_currency}
+                                onValueChange={(value) =>
+                                    setSettings({
+                                        ...settings,
+                                        general: {
+                                            ...settings.general,
+                                            default_currency: value,
+                                        },
+                                    })
+                                }
+                                disabled={readOnly}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select currency" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="USD">USD - US Dollar</SelectItem>
+                                    <SelectItem value="EUR">EUR - Euro</SelectItem>
+                                    <SelectItem value="GBP">GBP - British Pound</SelectItem>
+                                    <SelectItem value="KES">KES - Kenyan Shilling</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Timezone
-                            </label>
-                            <div className="relative">
-                                <select
-                                    value={settings.general.timezone}
-                                    onChange={(e) =>
-                                        setSettings({
-                                            ...settings,
-                                            general: {
-                                                ...settings.general,
-                                                timezone: e.target.value,
-                                            },
-                                        })
-                                    }
-                                    disabled={readOnly}
-                                    className="w-full appearance-none px-4 py-2 pr-10 border border-gray-300 rounded-xs bg-white focus:ring-2 focus:ring-primary-600 focus:border-transparent cursor-pointer disabled:bg-gray-50 disabled:cursor-not-allowed"
-                                >
-                                    <option value="UTC">UTC</option>
-                                    <option value="America/New_York">Eastern Time</option>
-                                    <option value="America/Los_Angeles">Pacific Time</option>
-                                    <option value="Africa/Nairobi">East Africa Time</option>
-                                </select>
-                                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
-                            </div>
+
+                        <div className="space-y-2">
+                            <Label>Timezone</Label>
+                            <Select
+                                value={settings.general.timezone}
+                                onValueChange={(value) =>
+                                    setSettings({
+                                        ...settings,
+                                        general: {
+                                            ...settings.general,
+                                            timezone: value,
+                                        },
+                                    })
+                                }
+                                disabled={readOnly}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select timezone" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="UTC">UTC</SelectItem>
+                                    <SelectItem value="America/New_York">Eastern Time</SelectItem>
+                                    <SelectItem value="America/Los_Angeles">Pacific Time</SelectItem>
+                                    <SelectItem value="Africa/Nairobi">East Africa Time</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
                 </div>

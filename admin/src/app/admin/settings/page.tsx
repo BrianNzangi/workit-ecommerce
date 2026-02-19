@@ -6,6 +6,9 @@ import { AdminLayout } from '@/components/admin/layout/AdminLayout';
 import { Save, CheckCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useSession } from '@/lib/auth/auth-client';
+import { AdminSettingsService } from '@/lib/services';
+import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/button';
 import SettingsLayout from './SettingsLayout';
 import {
     GeneralTab,
@@ -20,6 +23,8 @@ import {
 } from './tabs';
 
 export default function SettingsPage() {
+    const settingsServiceRef = useRef<AdminSettingsService>(new AdminSettingsService());
+    const settingsService = settingsServiceRef.current;
     const [activeTab, setActiveTab] = useState<TabType>('general');
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -74,15 +79,13 @@ export default function SettingsPage() {
     // Admin Users State
     const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
     const [loadingUsers, setLoadingUsers] = useState(false);
+    const getErrorMessage = (error: any, fallback: string) => error?.message || error?.error || fallback;
 
     const fetchAdminUsers = async () => {
         setLoadingUsers(true);
         try {
-            const response = await fetch('/api/admin/users');
-            if (response.ok) {
-                const data = await response.json();
-                setAdminUsers(Array.isArray(data) ? data : data.users || []);
-            }
+            const users = await settingsService.getAdminUsers();
+            setAdminUsers(users as AdminUser[]);
         } catch (error) {
             console.error('Error fetching admin users:', error);
         } finally {
@@ -92,18 +95,15 @@ export default function SettingsPage() {
 
     const fetchSettings = async () => {
         try {
-            const response = await fetch('/api/admin/settings');
-            if (response.ok) {
-                const data = await response.json();
-                setSettings(prev => ({
-                    ...prev,
-                    ...data,
-                    general: { ...prev.general, ...data.general },
-                    payments: { ...prev.payments, ...data.payments },
-                    shipping: { ...prev.shipping, ...data.shipping },
-                    taxes: { ...prev.taxes, ...data.taxes },
-                }));
-            }
+            const data = await settingsService.getSettings();
+            setSettings(prev => ({
+                ...prev,
+                ...data,
+                general: { ...prev.general, ...data.general },
+                payments: { ...prev.payments, ...data.payments },
+                shipping: { ...prev.shipping, ...data.shipping },
+                taxes: { ...prev.taxes, ...data.taxes },
+            }));
         } catch (error) {
             console.error('Error fetching settings:', error);
         } finally {
@@ -146,11 +146,7 @@ export default function SettingsPage() {
 
     const handleAutoSave = async () => {
         try {
-            await fetch('/api/admin/settings', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(settings),
-            });
+            await settingsService.updateSettings(settings);
             setAutoSaved(true);
             setTimeout(() => setAutoSaved(false), 2000);
         } catch (error) {
@@ -161,21 +157,11 @@ export default function SettingsPage() {
     const handleSave = async () => {
         setSaving(true);
         try {
-            const response = await fetch('/api/admin/settings', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(settings),
-            });
-
-            if (response.ok) {
-                toast({ title: 'Success', description: 'Settings saved successfully', variant: 'success' });
-            } else {
-                const errorData = await response.json();
-                toast({ title: 'Save failed', description: errorData.message || 'Failed to save settings', variant: 'error' });
-            }
-        } catch (error) {
+            await settingsService.updateSettings(settings);
+            toast({ title: 'Success', description: 'Settings saved successfully', variant: 'success' });
+        } catch (error: any) {
             console.error('Error saving settings:', error);
-            toast({ title: 'Save failed', description: 'An error occurred while saving', variant: 'error' });
+            toast({ title: 'Save failed', description: getErrorMessage(error, 'An error occurred while saving'), variant: 'error' });
         } finally {
             setSaving(false);
         }
@@ -183,81 +169,46 @@ export default function SettingsPage() {
 
     const handleUpdateUserRole = async (userId: string, newRole: 'SUPER_ADMIN' | 'ADMIN' | 'EDITOR') => {
         try {
-            const response = await fetch(`/api/admin/users/${userId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ role: newRole }),
-            });
-
-            if (response.ok) {
-                toast({ title: 'Success', description: 'User role updated', variant: 'success' });
-                fetchAdminUsers();
-            } else {
-                const errorData = await response.json();
-                toast({ title: 'Update failed', description: errorData.error || 'Failed to update user role', variant: 'error' });
-            }
-        } catch (error) {
+            await settingsService.updateAdminUser(userId, { role: newRole });
+            toast({ title: 'Success', description: 'User role updated', variant: 'success' });
+            fetchAdminUsers();
+        } catch (error: any) {
             console.error('Error updating role:', error);
-            toast({ title: 'Error', description: 'Failed to update role', variant: 'error' });
+            toast({ title: 'Error', description: getErrorMessage(error, 'Failed to update role'), variant: 'error' });
         }
     };
 
     const handleToggleUserStatus = async (userId: string, enabled: boolean) => {
         try {
-            const response = await fetch(`/api/admin/users/${userId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ enabled }),
-            });
-
-            if (response.ok) {
-                toast({ title: 'Success', description: `User ${enabled ? 'enabled' : 'disabled'} successfully`, variant: 'success' });
-                fetchAdminUsers();
-            } else {
-                const errorData = await response.json();
-                toast({ title: 'Update failed', description: errorData.error || 'Failed to update status', variant: 'error' });
-            }
-        } catch (error) {
+            await settingsService.updateAdminUser(userId, { enabled });
+            toast({ title: 'Success', description: `User ${enabled ? 'enabled' : 'disabled'} successfully`, variant: 'success' });
+            fetchAdminUsers();
+        } catch (error: any) {
             console.error('Error toggling status:', error);
-            toast({ title: 'Error', description: 'Failed to update status', variant: 'error' });
+            toast({ title: 'Error', description: getErrorMessage(error, 'Failed to update status'), variant: 'error' });
         }
     };
 
     const handleDeleteUser = async (userId: string) => {
         if (!confirm('Are you sure you want to delete this user?')) return;
         try {
-            const response = await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' });
-            if (response.ok) {
-                toast({ title: 'Success', description: 'User deleted successfully', variant: 'success' });
-                fetchAdminUsers();
-            } else {
-                const errorData = await response.json();
-                toast({ title: 'Delete failed', description: errorData.error || 'Failed to delete user', variant: 'error' });
-            }
-        } catch (error) {
+            await settingsService.deleteAdminUser(userId);
+            toast({ title: 'Success', description: 'User deleted successfully', variant: 'success' });
+            fetchAdminUsers();
+        } catch (error: any) {
             console.error('Error deleting user:', error);
-            toast({ title: 'Error', description: 'Failed to delete user', variant: 'error' });
+            toast({ title: 'Error', description: getErrorMessage(error, 'Failed to delete user'), variant: 'error' });
         }
     };
 
     const handleCreateUser = async (user: any) => {
         try {
-            const response = await fetch('/api/admin/users', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(user),
-            });
-            if (response.ok) {
-                toast({ title: 'Success', description: 'User created successfully', variant: 'success' });
-                fetchAdminUsers();
-            } else {
-                const errorData = await response.json();
-                toast({ title: 'Error', description: errorData.message || 'Failed to create user', variant: 'error' });
-                throw new Error(errorData.message || 'Failed to create user');
-            }
-        } catch (error) {
+            await settingsService.createAdminUser(user);
+            toast({ title: 'Success', description: 'User created successfully', variant: 'success' });
+            fetchAdminUsers();
+        } catch (error: any) {
             console.error('Error creating user:', error);
-            toast({ title: 'Error', description: 'An error occurred', variant: 'error' });
+            toast({ title: 'Error', description: getErrorMessage(error, 'An error occurred'), variant: 'error' });
             throw error;
         }
     };
@@ -313,19 +264,19 @@ export default function SettingsPage() {
                                 </div>
                             )}
                             {autoSaved && (
-                                <div className="flex items-center gap-2 text-green-600 text-sm">
+                                <Badge variant="success" className="gap-1.5 py-1.5 px-2.5">
                                     <CheckCircle className="w-4 h-4" />
-                                    <span>Auto-saved</span>
-                                </div>
+                                    Auto-saved
+                                </Badge>
                             )}
-                            <button
+                            <Button
                                 onClick={handleSave}
                                 disabled={saving || !isSuperAdmin}
-                                className="flex items-center gap-2 bg-primary-800 text-white px-6 py-2.5 rounded-xs hover:bg-primary-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-xs"
+                                className="bg-primary-800 hover:bg-primary-900 text-white"
                             >
                                 <Save className="w-4 h-4" />
                                 {saving ? 'Saving...' : 'Save Changes'}
-                            </button>
+                            </Button>
                         </div>
                     </div>
                     <SettingsLayout activeTab={activeTab} onTabChange={setActiveTab} canViewTab={canViewTab}>

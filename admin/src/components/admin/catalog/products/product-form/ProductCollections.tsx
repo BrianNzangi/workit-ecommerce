@@ -28,6 +28,7 @@ export function ProductCollections({
         const isExpanded = expandedCollections.has(collection.id);
         const hasChildren = collection.children && collection.children.length > 0;
         const isSelected = selectedCollections.includes(collection.id);
+        const canSelect = level === 2 || (level === 0 && !hasChildren);
 
         const hasAnySelectedDescendant = (col: Collection): boolean => {
             if (!col.children) return false;
@@ -42,7 +43,7 @@ export function ProductCollections({
             <div key={collection.id}>
                 <div className={cn("flex items-center group/item", level > 0 && "ml-4")}>
                     <div className="flex-1 flex items-center gap-2 py-1 px-1 hover:bg-accent/50 rounded transition-colors cursor-pointer">
-                        {level === 2 ? (
+                        {canSelect ? (
                             <Checkbox
                                 id={`collection-${collection.id}`}
                                 checked={isSelected}
@@ -59,7 +60,7 @@ export function ProductCollections({
                         <div
                             className="flex-1 flex items-center justify-between gap-2"
                             onClick={() => {
-                                if (level === 2) {
+                                if (canSelect) {
                                     toggleCollection(collection.id);
                                 } else if (hasChildren) {
                                     toggleExpanded(collection.id);
@@ -68,7 +69,7 @@ export function ProductCollections({
                         >
                             <div className="flex items-center gap-2">
                                 <Label
-                                    htmlFor={level === 2 ? `collection-${collection.id}` : undefined}
+                                    htmlFor={canSelect ? `collection-${collection.id}` : undefined}
                                     className={cn(
                                         "text-sm cursor-pointer",
                                         level === 0 ? "font-bold" : level === 1 ? "font-medium" : "text-muted-foreground"
