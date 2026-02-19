@@ -3,14 +3,21 @@
 import { useState, useRef, useEffect } from 'react';
 import { Search } from 'lucide-react';
 import Image from 'next/image';
+import { getImageUrl } from '@/lib/image-utils';
 
 interface Product {
-  id: number;
+  id: string;
   name: string;
   slug: string;
-  price: string;
-  images: Array<{ src: string }>;
-  permalink: string;
+  price: number;
+  image?: string;
+  featuredImage?: string;
+  images?: Array<{
+    src?: string;
+    url?: string;
+    source?: string;
+    preview?: string;
+  }>;
 }
 
 export default function SearchBar() {
@@ -70,6 +77,17 @@ export default function SearchBar() {
     window.location.href = `/deal-details/${product.slug}`;
   };
 
+  const getProductImageSrc = (product: Product): string | null => {
+    const firstImage = product.images?.[0];
+    return product.image
+      || product.featuredImage
+      || firstImage?.url
+      || firstImage?.source
+      || firstImage?.preview
+      || firstImage?.src
+      || null;
+  };
+
   return (
     <div ref={searchRef} className="w-full relative">
       <form onSubmit={handleSubmit} className="w-full">
@@ -107,9 +125,9 @@ export default function SearchBar() {
                 onClick={() => handleResultClick(product)}
                 className="flex items-center p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
               >
-                {product.images && product.images[0] && (
+                {getProductImageSrc(product) && (
                   <Image
-                    src={product.images[0].src}
+                    src={getImageUrl(getProductImageSrc(product))}
                     alt={product.name}
                     width={48}
                     height={48}
@@ -119,7 +137,7 @@ export default function SearchBar() {
                 )}
                 <div className="flex-1">
                   <p className="font-semibold text-sm text-gray-900 truncate">{product.name}</p>
-                  <p className="text-sm text-gray-600">KES {product.price}</p>
+                  <p className="text-sm text-gray-600">KES {Number(product.price || 0).toLocaleString()}</p>
                 </div>
               </div>
             ))
