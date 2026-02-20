@@ -33,7 +33,7 @@ export default function BlogPostClient({ slug }: BlogPostClientProps) {
 
   if (loading) {
     return (
-      <div className="bg-[#E8EAED] min-h-screen">
+      <div className="bg-white min-h-screen">
         <div className="container mx-auto px-4 py-8">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-300 rounded-xs w-3/4 mb-4"></div>
@@ -48,7 +48,7 @@ export default function BlogPostClient({ slug }: BlogPostClientProps) {
 
   if (error || !blog) {
     return (
-      <div className="bg-[#E8EAED] min-h-screen">
+      <div className="bg-white min-h-screen">
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">Error</h1>
@@ -60,7 +60,7 @@ export default function BlogPostClient({ slug }: BlogPostClientProps) {
   }
 
   return (
-    <div className="bg-[#E8EAED] min-h-screen">
+    <div className="bg-white min-h-screen">
       <div className="container mx-auto max-w-7xl px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-12 py-6 font-sans">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Main Content Column */}

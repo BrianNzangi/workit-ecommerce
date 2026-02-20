@@ -33,7 +33,7 @@ interface ProductFiltersProps {
     setShowFilters: (val: boolean) => void;
     activeFiltersCount: number;
     clearFilters: () => void;
-    collections: Array<{ id: string; name: string }>;
+    collections: Array<{ id: string; name: string; level: number }>;
     brands: Array<{ id: string; name: string }>;
     filteredProductsCount: number;
     totalProductsCount: number;
@@ -113,7 +113,7 @@ export function ProductFilters({
                                     <SelectItem value="none">All Collections</SelectItem>
                                     {collections.map((col) => (
                                         <SelectItem key={col.id} value={col.id}>
-                                            {col.name}
+                                            {`${col.level > 0 ? `${'-- '.repeat(col.level)}` : ''}${col.name}`}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>

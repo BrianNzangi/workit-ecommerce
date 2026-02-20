@@ -3,6 +3,8 @@ import {
     PutObjectCommand,
     GetObjectCommand,
     DeleteObjectCommand,
+    HeadBucketCommand,
+    CreateBucketCommand,
 } from "@aws-sdk/client-s3";
 import { Readable } from "node:stream";
 
@@ -29,6 +31,70 @@ export class StorageService {
             },
             forcePathStyle: true, // Required for MinIO
         });
+    }
+
+    /**
+     * Ensure the target bucket exists.
+     * This is idempotent: it only creates the bucket if missing.
+     */
+    async ensureBucketExists(): Promise<void> {
+        const maxAttempts = 15;
+        const retryDelayMs = 1500;
+
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+                await this.client.send(
+                    new HeadBucketCommand({
+                        Bucket: this.bucket,
+                    })
+                );
+                return;
+            } catch (error: any) {
+                const statusCode = error?.$metadata?.httpStatusCode;
+                const errorName = error?.name || error?.Code;
+                const message = String(error?.message || "");
+                const isMissingBucket =
+                    statusCode === 404 ||
+                    errorName === "NotFound" ||
+                    errorName === "NoSuchBucket";
+                const isRetriableConnectionError =
+                    message.includes("ECONNREFUSED") ||
+                    message.includes("EAI_AGAIN") ||
+                    message.includes("ENOTFOUND") ||
+                    errorName === "TimeoutError";
+
+                if (isMissingBucket) {
+                    try {
+                        await this.client.send(
+                            new CreateBucketCommand({
+                                Bucket: this.bucket,
+                            })
+                        );
+                        return;
+                    } catch (createError: any) {
+                        const createErrorName = createError?.name || createError?.Code;
+                        if (createErrorName === "BucketAlreadyOwnedByYou" || createErrorName === "BucketAlreadyExists") {
+                            return;
+                        }
+
+                        const createMessage = String(createError?.message || "");
+                        const createRetriable =
+                            createMessage.includes("ECONNREFUSED") ||
+                            createMessage.includes("EAI_AGAIN") ||
+                            createMessage.includes("ENOTFOUND") ||
+                            createErrorName === "TimeoutError";
+
+                        if (!createRetriable || attempt === maxAttempts) {
+                            throw createError;
+                        }
+                    }
+                } else if (!isRetriableConnectionError || attempt === maxAttempts) {
+                    throw error;
+                }
+            }
+
+            await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
+        }
     }
 
     /**

@@ -19,22 +19,18 @@ export default function FeaturedBlogs() {
     fetch('/api/blogs')
       .then(res => res.json())
       .then((data: Blog[]) => {
-        console.log('Fetched blogs:', data);
+        const sorted = [...(Array.isArray(data) ? data : [])]
+          .sort((a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime());
 
-        // Filter featured blogs using the categories array
-        const featured = data
-          .filter(b => {
-            if (!b.categories || !b.categories.length) return false;
-            return b.categories.some(cat =>
-              cat.replace(/[\s-_]/g, '').toLowerCase().includes('featured')
-            );
-          })
-          .sort((a, b) => new Date(b.date!).getTime() - new Date(a.date!).getTime()); // newest first
+        const featured = sorted.filter((b) =>
+          (b.categories || []).some((cat) =>
+            cat.replace(/[\s-_]/g, '').toLowerCase().includes('featured')
+          )
+        );
 
-        console.log('Featured blogs (newest first):', featured);
-        setBlogs(featured);
+        setBlogs((featured.length > 0 ? featured : sorted).slice(0, 15));
       })
-      .catch(err => console.error('Failed to fetch blogs:', err))
+      .catch(() => setBlogs([]))
       .finally(() => setLoading(false));
   }, []);
 
@@ -54,8 +50,8 @@ export default function FeaturedBlogs() {
 
   const renderSkeleton = () =>
     Array.from({ length: VISIBLE_CARDS }).map((_, i) => (
-      <div key={i} className="min-w-[300px] flex flex-col gap-2">
-        <div className="w-full h-[180px] bg-gray-200 animate-pulse rounded-md" />
+      <div key={i} className="min-w-75 flex flex-col gap-2">
+        <div className="w-full h-45 bg-gray-200 animate-pulse rounded-md" />
         <div className="h-4 bg-gray-300 animate-pulse rounded w-3/4" />
         <div className="h-4 bg-gray-300 animate-pulse rounded w-1/2" />
       </div>
@@ -89,7 +85,7 @@ export default function FeaturedBlogs() {
             ? renderSkeleton()
             : blogs.length > 0
               ? blogs.map(blog => (
-                <div key={blog.id} className="min-w-[300px]">
+                <div key={blog.id} className="min-w-75">
                   <BlogCard
                     id={blog.id}
                     title={blog.title}

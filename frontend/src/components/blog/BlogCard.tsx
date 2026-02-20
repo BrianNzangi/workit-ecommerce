@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 interface BlogCardProps {
-  id: number;
+  id: string | number;
   title: string;
   slug: string;
   link: string;

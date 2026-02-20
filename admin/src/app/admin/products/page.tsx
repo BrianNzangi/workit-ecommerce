@@ -49,6 +49,100 @@ interface Product {
     }>;
 }
 
+interface CollectionNode {
+    id: string;
+    name: string;
+    parentId?: string | null;
+    children?: CollectionNode[];
+}
+
+interface CollectionFilterOption {
+    id: string;
+    name: string;
+    level: number;
+}
+
+function buildCollectionFilterOptions(input: CollectionNode[]): CollectionFilterOption[] {
+    if (!Array.isArray(input) || input.length === 0) return [];
+
+    const nodeMap = new Map<string, CollectionNode>();
+    const childMap = new Map<string, Set<string>>();
+
+    const ensureNode = (node: CollectionNode) => {
+        if (!nodeMap.has(node.id)) {
+            nodeMap.set(node.id, {
+                id: node.id,
+                name: node.name,
+                parentId: node.parentId ?? null,
+                children: [],
+            });
+        } else {
+            const current = nodeMap.get(node.id)!;
+            current.name = node.name || current.name;
+            if (node.parentId !== undefined) {
+                current.parentId = node.parentId;
+            }
+        }
+    };
+
+    const walk = (node: CollectionNode) => {
+        ensureNode(node);
+        const children = Array.isArray(node.children) ? node.children : [];
+        for (const child of children) {
+            ensureNode(child);
+            if (!childMap.has(node.id)) childMap.set(node.id, new Set());
+            childMap.get(node.id)!.add(child.id);
+            walk(child);
+        }
+    };
+
+    for (const node of input) {
+        walk(node);
+    }
+
+    for (const node of nodeMap.values()) {
+        if (node.parentId && nodeMap.has(node.parentId)) {
+            if (!childMap.has(node.parentId)) childMap.set(node.parentId, new Set());
+            childMap.get(node.parentId)!.add(node.id);
+        }
+    }
+
+    const roots = Array.from(nodeMap.values())
+        .filter((node) => !node.parentId || !nodeMap.has(node.parentId))
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+    const options: CollectionFilterOption[] = [];
+    const visited = new Set<string>();
+
+    const visit = (node: CollectionNode, level: number) => {
+        if (visited.has(node.id)) return;
+        visited.add(node.id);
+        options.push({ id: node.id, name: node.name, level });
+
+        const childIds = Array.from(childMap.get(node.id) || []);
+        const sortedChildren = childIds
+            .map((childId) => nodeMap.get(childId))
+            .filter(Boolean)
+            .sort((a, b) => a!.name.localeCompare(b!.name)) as CollectionNode[];
+
+        for (const child of sortedChildren) {
+            visit(child, level + 1);
+        }
+    };
+
+    for (const root of roots) {
+        visit(root, 0);
+    }
+
+    for (const remaining of nodeMap.values()) {
+        if (!visited.has(remaining.id)) {
+            visit(remaining, 0);
+        }
+    }
+
+    return options;
+}
+
 export default function ProductsPage() {
 
     const [products, setProducts] = useState<Product[]>([]);
@@ -77,7 +171,7 @@ export default function ProductsPage() {
     const [itemsPerPage, setItemsPerPage] = useState(50);
 
     // Collections and Brands for filters
-    const [collections, setCollections] = useState<Array<{ id: string; name: string }>>([]);
+    const [collections, setCollections] = useState<CollectionFilterOption[]>([]);
     const [brands, setBrands] = useState<Array<{ id: string; name: string }>>([]);
 
     const fetchProducts = async () => {
@@ -105,8 +199,9 @@ export default function ProductsPage() {
     const fetchCollections = async () => {
         try {
             const collectionService = new CollectionService();
-            const data = await collectionService.getCollections();
-            setCollections(data);
+            const data = await collectionService.getCollections({ includeChildren: true } as any);
+            const collectionOptions = buildCollectionFilterOptions(data as CollectionNode[]);
+            setCollections(collectionOptions);
         } catch (error: any) {
             console.error('Error fetching collections:', error);
         }

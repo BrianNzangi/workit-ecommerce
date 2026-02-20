@@ -41,7 +41,7 @@ export function CollectionDisplaySettingsCard({
                         min={0}
                         value={formData.sortOrder}
                         onChange={(event) => onFieldChange('sortOrder', Number(event.target.value || 0))}
-                        className="max-w-[220px]"
+                        className="max-w-55"
                     />
                     <p className="text-[10px] text-gray-500">Controls order in the main collections directory.</p>
                 </div>
@@ -73,7 +73,7 @@ export function CollectionDisplaySettingsCard({
                                 min={0}
                                 value={formData.mostShoppedSortOrder}
                                 onChange={(event) => onFieldChange('mostShoppedSortOrder', Number(event.target.value || 0))}
-                                className="max-w-[220px]"
+                                className="max-w-55"
                             />
                             <p className="text-[10px] text-gray-500">Controls position in homepage carousel.</p>
                         </div>

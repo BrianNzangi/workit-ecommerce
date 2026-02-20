@@ -11,6 +11,7 @@ export const blogsPublicRoutes: FastifyPluginAsync = async (fastify) => {
     }, async (request) => {
         const { limit = 10, offset = 0 } = request.query as any;
         const results = await db.query.blogs.findMany({
+            where: eq(schema.blogs.published, true),
             limit: Number(limit),
             offset: Number(offset),
             orderBy: [desc(schema.blogs.createdAt)],
@@ -32,6 +33,7 @@ export const blogsPublicRoutes: FastifyPluginAsync = async (fastify) => {
             with: { asset: true },
         });
         if (!blog) return reply.status(404).send({ message: "Blog not found" });
+        if (!blog.published) return reply.status(404).send({ message: "Blog not found" });
         return blog;
     });
 

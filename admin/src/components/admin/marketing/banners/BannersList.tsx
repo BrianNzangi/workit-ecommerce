@@ -51,7 +51,7 @@ interface GroupedBanners {
 function BannersLoadingState() {
     return (
         <Card className="border-gray-200 shadow-xs">
-            <CardContent className="flex min-h-[280px] items-center justify-center">
+            <CardContent className="flex min-h-70 items-center justify-center">
                 <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary-200 border-b-primary-900" />
             </CardContent>
         </Card>
@@ -74,7 +74,7 @@ function BannersErrorState({ message, onRetry }: { message: string; onRetry: () 
 function BannersEmptyState({ searchTerm }: { searchTerm: string }) {
     return (
         <Card className="border-gray-200 shadow-xs">
-            <CardContent className="flex min-h-[280px] flex-col items-center justify-center text-center">
+            <CardContent className="flex min-h-70 flex-col items-center justify-center text-center">
                 <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-primary-50 text-primary-900">
                     <ImageIcon className="h-6 w-6" />
                 </div>

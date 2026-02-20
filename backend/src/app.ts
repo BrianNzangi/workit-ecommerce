@@ -67,6 +67,9 @@ export const buildApp = async () => {
         },
     });
 
+    // Ensure storage bucket exists once on startup (idempotent).
+    await storageService.ensureBucketExists();
+
     // Register Swagger
     await app.register(fastifySwagger, {
         openapi: {
