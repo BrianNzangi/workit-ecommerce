@@ -28,6 +28,7 @@ if (!configuredOrigins.length && process.env.NODE_ENV !== "production") {
 const authBaseUrl = process.env.BETTER_AUTH_URL || process.env.BACKEND_URL;
 const frontendUrl = process.env.FRONTEND_URL?.replace(/\/$/, "");
 const isProduction = process.env.NODE_ENV === "production";
+const cookieDomain = process.env.BETTER_AUTH_COOKIE_DOMAIN?.trim();
 
 export const auth = betterAuth({
     secret: process.env.BETTER_AUTH_SECRET!,
@@ -84,10 +85,22 @@ export const auth = betterAuth({
         },
     },
 
-    cookies: {
-        secure: isProduction,
-        sameSite: isProduction ? "none" : "lax",
-        httpOnly: true,
+    advanced: {
+        useSecureCookies: isProduction,
+        defaultCookieAttributes: {
+            secure: isProduction,
+            sameSite: isProduction ? "none" : "lax",
+            httpOnly: true,
+            path: "/",
+        },
+        ...(cookieDomain
+            ? {
+                crossSubDomainCookies: {
+                    enabled: true,
+                    domain: cookieDomain,
+                },
+            }
+            : {}),
     },
 });
 

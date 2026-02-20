@@ -42,11 +42,11 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
             const isAllowedOrigin = origin && allowedOrigins.includes(origin);
 
             if (isAllowedOrigin) {
-                reply.header("Access-Control-Allow-Origin", origin);
-                reply.header("Vary", "Origin");
-                reply.header("Access-Control-Allow-Credentials", "true");
-                reply.header("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
-                reply.header(
+                reply.raw.setHeader("Access-Control-Allow-Origin", origin);
+                reply.raw.setHeader("Vary", "Origin");
+                reply.raw.setHeader("Access-Control-Allow-Credentials", "true");
+                reply.raw.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+                reply.raw.setHeader(
                     "Access-Control-Allow-Headers",
                     typeof request.headers["access-control-request-headers"] === "string"
                         ? request.headers["access-control-request-headers"]
