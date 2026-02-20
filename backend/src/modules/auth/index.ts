@@ -2,6 +2,27 @@ import { FastifyPluginAsync } from "fastify";
 import { auth } from "../../lib/auth.js";
 import { toNodeHandler } from "better-auth/node";
 
+const normalizeOrigin = (origin: string) => origin.trim().replace(/\/$/, "");
+
+const splitOrigins = (value?: string): string[] =>
+    (value ?? "")
+        .split(",")
+        .map((origin) => origin.trim())
+        .filter(Boolean);
+
+const allowedOrigins = Array.from(
+    new Set([
+        ...splitOrigins(process.env.BETTER_AUTH_TRUSTED_ORIGINS),
+        ...splitOrigins(process.env.CORS_ORIGIN),
+        ...splitOrigins(process.env.FRONTEND_URL),
+        ...splitOrigins(process.env.ADMIN_URL),
+    ].map(normalizeOrigin)),
+);
+
+if (!allowedOrigins.length && process.env.NODE_ENV !== "production") {
+    allowedOrigins.push("http://localhost:3000", "http://localhost:3002");
+}
+
 export const authRoutes: FastifyPluginAsync = async (fastify) => {
     // Better Auth standard routes (e.g., /auth/sign-in/email)
     await fastify.register(async (subFastify) => {
@@ -15,6 +36,28 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
                 tags: ["Auth"]
             }
         }, async (request, reply) => {
+            const origin = typeof request.headers.origin === "string"
+                ? normalizeOrigin(request.headers.origin)
+                : "";
+            const isAllowedOrigin = origin && allowedOrigins.includes(origin);
+
+            if (isAllowedOrigin) {
+                reply.header("Access-Control-Allow-Origin", origin);
+                reply.header("Vary", "Origin");
+                reply.header("Access-Control-Allow-Credentials", "true");
+                reply.header("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+                reply.header(
+                    "Access-Control-Allow-Headers",
+                    typeof request.headers["access-control-request-headers"] === "string"
+                        ? request.headers["access-control-request-headers"]
+                        : "Content-Type, Authorization",
+                );
+            }
+
+            if (request.method === "OPTIONS") {
+                return reply.code(204).send();
+            }
+
             const originalUrl = request.raw.url;
 
             // Compatibility for deployments still proxying /api/auth/* to backend.
