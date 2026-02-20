@@ -27,6 +27,7 @@ export const appModules: FastifyPluginAsync = async (fastify) => {
 
     // Auth (Admin)
     await fastify.register(authRoutes, { prefix: "/auth" });
+    await fastify.register(authRoutes, { prefix: "/api/auth" });
 
     // Catalog
     await fastify.register(productsRoutes, { prefix: "/catalog/products" });

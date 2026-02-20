@@ -108,5 +108,9 @@ export const buildApp = async () => {
 
     await app.ready();
 
+    if (process.env.PRINT_ROUTES === "true") {
+        app.log.info(`\n${app.printRoutes()}`);
+    }
+
     return app;
 };

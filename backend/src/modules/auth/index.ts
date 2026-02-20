@@ -15,7 +15,20 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
                 tags: ["Auth"]
             }
         }, async (request, reply) => {
-            return toNodeHandler(auth)(request.raw, reply.raw);
+            const originalUrl = request.raw.url;
+
+            // Compatibility for deployments still proxying /api/auth/* to backend.
+            if (originalUrl?.startsWith("/api/auth")) {
+                request.raw.url = originalUrl.replace(/^\/api\/auth/, "/auth");
+            }
+
+            try {
+                return toNodeHandler(auth)(request.raw, reply.raw);
+            } finally {
+                if (originalUrl) {
+                    request.raw.url = originalUrl;
+                }
+            }
         });
     });
 
