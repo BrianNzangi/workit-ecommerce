@@ -1,14 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+function getBackendUrl() {
+    const env = process.env as Record<string, string | undefined>;
+    return (
+        env.BACKEND_API_URL ||
+        env.BACKEND_URL ||
+        env.NEXT_PUBLIC_BACKEND_URL ||
+        env.NEXT_PUBLIC_API_URL ||
+        'http://localhost:3001'
+    ).replace(/\/$/, '');
+}
 
 /**
  * Proxy all auth requests to the Fastify backend
  * This is optimized for production and handles cookie/header forwarding correctly.
  */
 async function handler(req: NextRequest) {
+    const backendUrl = getBackendUrl();
     const path = req.nextUrl.pathname.replace('/api/auth', '/auth');
-    const url = `${BACKEND_URL}${path}${req.nextUrl.search}`;
+    const url = `${backendUrl}${path}${req.nextUrl.search}`;
 
     try {
         const headers = new Headers(req.headers);

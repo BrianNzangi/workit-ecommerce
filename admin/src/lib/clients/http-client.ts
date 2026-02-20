@@ -1,9 +1,20 @@
 
 // For client-side requests, use the admin's own API proxy routes
 // This ensures cookies are sent correctly (same-origin)
+const getServerBackendUrl = () => {
+    const env = process.env as Record<string, string | undefined>;
+    return (
+        env.BACKEND_API_URL ||
+        env.BACKEND_URL ||
+        env.NEXT_PUBLIC_BACKEND_URL ||
+        env.NEXT_PUBLIC_API_URL ||
+        "http://localhost:3001"
+    ).replace(/\/$/, "");
+};
+
 const API_URL = typeof window !== "undefined"
     ? "/api/admin"  // Client-side: use admin's API proxy
-    : process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"; // Server-side: direct backend
+    : getServerBackendUrl(); // Server-side: direct backend
 
 interface RequestOptions extends RequestInit {
     params?: Record<string, string | number | boolean>;
@@ -16,6 +27,17 @@ class HttpClient {
         this.baseUrl = baseUrl;
     }
 
+    private isServerRequest() {
+        return typeof window === "undefined";
+    }
+
+    private catalogAdminPath(resource: "products" | "collections" | "brands", suffix = "") {
+        if (this.isServerRequest()) {
+            return `/catalog/${resource}/admin${suffix}`;
+        }
+        return `/${resource}${suffix}`;
+    }
+
     private async request<T>(path: string, options: RequestOptions = {}): Promise<T> {
         const { params, ...init } = options;
 
@@ -24,7 +46,7 @@ class HttpClient {
 
         // For server-side rendering, use direct backend URL
         if (isServer && baseUrl.startsWith("/")) {
-            baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001";
+            baseUrl = getServerBackendUrl();
         }
 
         let url = `${baseUrl}${path}`;
@@ -103,34 +125,34 @@ class HttpClient {
     // Resource namespaces
     public get products() {
         return {
-            list: (options?: any) => this.get<any>("/catalog/products/admin", { params: options }),
-            get: (id: string) => this.get<any>(`/catalog/products/admin/${id}`),
-            create: (data: any) => this.post<any>("/catalog/products/admin", data),
-            update: (id: string, data: any) => this.put<any>(`/catalog/products/admin/${id}`, data),
-            remove: (id: string) => this.delete<any>(`/catalog/products/admin/${id}`),
-            search: (params: { q: string }) => this.get<any>("/catalog/products/admin/search", { params })
+            list: (options?: any) => this.get<any>(this.catalogAdminPath("products"), { params: options }),
+            get: (id: string) => this.get<any>(this.catalogAdminPath("products", `/${id}`)),
+            create: (data: any) => this.post<any>(this.catalogAdminPath("products"), data),
+            update: (id: string, data: any) => this.put<any>(this.catalogAdminPath("products", `/${id}`), data),
+            remove: (id: string) => this.delete<any>(this.catalogAdminPath("products", `/${id}`)),
+            search: (params: { q: string }) => this.get<any>(this.catalogAdminPath("products", "/search"), { params })
         };
     }
 
     public get collections() {
         return {
-            list: (options?: any) => this.get<any>("/catalog/collections/admin", { params: options }),
-            get: (id: string) => this.get<any>(`/catalog/collections/admin/${id}`),
-            create: (data: any) => this.post<any>("/catalog/collections/admin", data),
-            update: (id: string, data: any) => this.put<any>(`/catalog/collections/admin/${id}`, data),
-            remove: (id: string) => this.delete<any>(`/catalog/collections/admin/${id}`),
-            search: (params: { q: string }) => this.get<any>("/catalog/collections/admin/search", { params })
+            list: (options?: any) => this.get<any>(this.catalogAdminPath("collections"), { params: options }),
+            get: (id: string) => this.get<any>(this.catalogAdminPath("collections", `/${id}`)),
+            create: (data: any) => this.post<any>(this.catalogAdminPath("collections"), data),
+            update: (id: string, data: any) => this.put<any>(this.catalogAdminPath("collections", `/${id}`), data),
+            remove: (id: string) => this.delete<any>(this.catalogAdminPath("collections", `/${id}`)),
+            search: (params: { q: string }) => this.get<any>(this.catalogAdminPath("collections", "/search"), { params })
         };
     }
 
     public get brands() {
         return {
-            list: (options?: any) => this.get<any>("/catalog/brands/admin", { params: options }),
-            get: (id: string) => this.get<any>(`/catalog/brands/admin/${id}`),
-            create: (data: any) => this.post<any>("/catalog/brands/admin", data),
-            update: (id: string, data: any) => this.put<any>(`/catalog/brands/admin/${id}`, data),
-            remove: (id: string) => this.delete<any>(`/catalog/brands/admin/${id}`),
-            search: (params: { q: string }) => this.get<any>("/catalog/brands/admin/search", { params })
+            list: (options?: any) => this.get<any>(this.catalogAdminPath("brands"), { params: options }),
+            get: (id: string) => this.get<any>(this.catalogAdminPath("brands", `/${id}`)),
+            create: (data: any) => this.post<any>(this.catalogAdminPath("brands"), data),
+            update: (id: string, data: any) => this.put<any>(this.catalogAdminPath("brands", `/${id}`), data),
+            remove: (id: string) => this.delete<any>(this.catalogAdminPath("brands", `/${id}`)),
+            search: (params: { q: string }) => this.get<any>(this.catalogAdminPath("brands", "/search"), { params })
         };
     }
 

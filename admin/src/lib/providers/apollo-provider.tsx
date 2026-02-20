@@ -7,10 +7,25 @@ import {
     InMemoryCache,
 } from "@apollo/experimental-nextjs-app-support";
 
+function getGraphqlUri() {
+    const env = process.env as Record<string, string | undefined>;
+    const explicit = env.NEXT_PUBLIC_GRAPHQL_URL?.trim();
+    if (explicit) return explicit;
+
+    const backend =
+        env.BACKEND_API_URL ||
+        env.BACKEND_URL ||
+        env.NEXT_PUBLIC_BACKEND_URL ||
+        env.NEXT_PUBLIC_API_URL ||
+        "http://localhost:3001";
+
+    return `${backend.replace(/\/$/, "")}/api/graphql`;
+}
+
 function makeClient() {
     const httpLink = new HttpLink({
-        // this needs to be an absolute url, as relative urls cannot be used in SSR
-        uri: "http://localhost:3001/api/graphql",
+        // Keep URI env-driven to avoid local/prod drift.
+        uri: getGraphqlUri(),
         // simple fetch options if needed
         fetchOptions: { cache: "no-store" },
     });

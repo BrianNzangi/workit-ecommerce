@@ -7,19 +7,17 @@ import { createAuthClient } from "better-auth/react";
  * Use this for client-side authentication operations
  */
 const browserOrigin = typeof window !== "undefined" ? window.location.origin : "";
-const isLocalBrowser = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(browserOrigin);
-const explicitAuthBaseUrl = process.env.NEXT_PUBLIC_AUTH_BASE_URL;
+const explicitAuthBaseUrl = process.env.NEXT_PUBLIC_AUTH_BASE_URL?.trim();
+const explicitAuthBasePath = process.env.NEXT_PUBLIC_AUTH_BASE_PATH?.trim();
 
+// Use same-origin auth route by default so session cookies are scoped to the admin domain.
 const authBaseURL =
     explicitAuthBaseUrl ||
-    (isLocalBrowser
-        ? browserOrigin
-        : process.env.NEXT_PUBLIC_BACKEND_URL ||
-        (typeof window !== "undefined" ? window.location.origin : process.env.NEXT_PUBLIC_ADMIN_BASE_URL || ""));
+    browserOrigin ||
+    process.env.NEXT_PUBLIC_ADMIN_BASE_URL ||
+    "";
 
-const authBasePath =
-    process.env.NEXT_PUBLIC_AUTH_BASE_PATH ||
-    (isLocalBrowser && !explicitAuthBaseUrl ? "/api/auth" : "/auth");
+const authBasePath = explicitAuthBasePath || "/api/auth";
 
 export const authClient = createAuthClient({
     baseURL: authBaseURL,
