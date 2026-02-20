@@ -4,6 +4,9 @@ import { Monitor, Smartphone, Upload, X } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { getImageUrl } from '@/lib/shared/images';
 import { AssetService, Asset } from '@/lib/services';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { getDimensionsText, getRecommendationText } from './banner.constants';
 
 interface BannerImagesProps {
     position: string;
@@ -13,6 +16,91 @@ interface BannerImagesProps {
     onMobileAssetChange: (asset: Asset | null) => void;
     loadingAssets: boolean;
     setLoadingAssets: (loading: boolean) => void;
+    disabled?: boolean;
+}
+
+interface UploadCardProps {
+    label: string;
+    dimensionsText: string;
+    selectedAsset: Asset | null;
+    loadingAssets: boolean;
+    disabled?: boolean;
+    onUpload: (file: File) => Promise<void>;
+    onClear: () => void;
+}
+
+function UploadCard({
+    label,
+    dimensionsText,
+    selectedAsset,
+    loadingAssets,
+    disabled,
+    onUpload,
+    onClear,
+}: UploadCardProps) {
+    return (
+        <div className="space-y-2.5">
+            <div className="flex items-center gap-2 text-sm font-semibold text-secondary-700">
+                {label}
+                {dimensionsText ? (
+                    <span className="text-xs font-medium text-secondary-400">{dimensionsText}</span>
+                ) : null}
+            </div>
+
+            {selectedAsset ? (
+                <div className="relative aspect-video overflow-hidden rounded-xs border border-primary-200 bg-primary-50">
+                    <img
+                        src={getImageUrl(selectedAsset.preview || selectedAsset.source)}
+                        alt={selectedAsset.name || label}
+                        className="h-full w-full object-cover"
+                    />
+                    <div className="absolute right-2 top-2 flex gap-2">
+                        <Button
+                            type="button"
+                            size="icon"
+                            variant="outline"
+                            disabled={disabled || loadingAssets}
+                            onClick={onClear}
+                            className="h-8 w-8 border-gray-200 bg-white/90 text-secondary-700 hover:bg-white"
+                        >
+                            <X className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
+            ) : (
+                <label className={`flex aspect-video cursor-pointer flex-col items-center justify-center rounded-xs border-2 border-dashed border-gray-200 bg-gray-50 text-center transition-colors ${disabled ? 'cursor-not-allowed opacity-60' : 'hover:border-primary-200 hover:bg-primary-50/40'}`}>
+                    {loadingAssets ? (
+                        <>
+                            <div className="mb-2 h-7 w-7 animate-spin rounded-full border-2 border-primary-200 border-b-primary-900" />
+                            <span className="text-sm font-medium text-secondary-500">Uploading...</span>
+                        </>
+                    ) : (
+                        <>
+                            <Upload className="mb-2 h-7 w-7 text-secondary-400" />
+                            <span className="text-sm font-semibold text-secondary-700">
+                                Click to upload
+                            </span>
+                            <span className="mt-1 text-xs font-medium text-secondary-400">
+                                PNG, JPG, WEBP up to 10MB
+                            </span>
+                        </>
+                    )}
+                    <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={loadingAssets || disabled}
+                        onChange={async (event) => {
+                            const file = event.target.files?.[0];
+                            if (!file) return;
+                            await onUpload(file);
+                            event.target.value = '';
+                        }}
+                    />
+                </label>
+            )}
+        </div>
+    );
 }
 
 export function BannerImages({
@@ -22,21 +110,23 @@ export function BannerImages({
     onDesktopAssetChange,
     onMobileAssetChange,
     loadingAssets,
-    setLoadingAssets
+    setLoadingAssets,
+    disabled,
 }: BannerImagesProps) {
+    const recommendationText = getRecommendationText(position);
+
     const handleImageUpload = async (file: File, type: 'desktop' | 'mobile') => {
         try {
             setLoadingAssets(true);
             const assetService = new AssetService();
-            const data = await assetService.uploadAsset({
-                file: file,
+            const response = await assetService.uploadAsset({
+                file,
                 fileName: file.name,
                 mimeType: file.type,
-                folder: 'banners'
+                folder: 'banners',
             });
 
-            const asset = (data as any).asset || data;
-
+            const asset = (response as any).asset || response;
             if (type === 'desktop') {
                 onDesktopAssetChange(asset);
             } else {
@@ -44,15 +134,15 @@ export function BannerImages({
             }
 
             toast({
-                title: 'Success',
-                description: `${type === 'desktop' ? 'Desktop' : 'Mobile'} image uploaded successfully`,
+                title: 'Image uploaded',
+                description: `${type === 'desktop' ? 'Desktop' : 'Mobile'} image uploaded successfully.`,
                 variant: 'success',
             });
         } catch (error) {
             console.error('Upload error:', error);
             toast({
-                title: 'Error',
-                description: 'Failed to upload image',
+                title: 'Upload failed',
+                description: 'Failed to upload image.',
                 variant: 'error',
             });
         } finally {
@@ -60,165 +150,59 @@ export function BannerImages({
         }
     };
 
-    const getDimensionsText = (imageType: 'desktop' | 'mobile') => {
-        if (position === 'HERO') {
-            return imageType === 'desktop' ? '(1200 × 630px)' : '(1080 × 608px)';
-        }
-        if (position === 'DEALS') {
-            return imageType === 'desktop' ? '(310 × 215px)' : '(310 × 165px)';
-        }
-        if (['DEALS_HORIZONTAL', 'MIDDLE', 'BOTTOM'].includes(position)) {
-            return imageType === 'desktop' ? '(1200 × 210px)' : '(1080 × 210px)';
-        }
-        return '';
-    };
-
-    const getRecommendationText = () => {
-        if (position === 'HERO') {
-            return 'Desktop - 1200 × 630 pixels, Mobile - 1080 × 608 pixels';
-        }
-        if (position === 'DEALS') {
-            return 'Desktop: 310 × 215px (16:11), Mobile: 310 × 165px (16:8.5)';
-        }
-        if (['DEALS_HORIZONTAL', 'MIDDLE', 'BOTTOM'].includes(position)) {
-            return 'Desktop: 1200 × 210px, Mobile: 1080 × 210px';
-        }
-        return '';
-    };
-
-    const recommendationText = getRecommendationText();
-
     return (
-        <div className="bg-white rounded-xs shadow-xs border border-gray-200 p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Banner Images</h3>
+        <Card className="border-gray-200 shadow-xs">
+            <CardHeader>
+                <CardTitle className="text-lg font-black tracking-tight text-secondary-900">
+                    Banner Images
+                </CardTitle>
+                <CardDescription className="font-medium text-secondary-500">
+                    Upload desktop and mobile variants for this banner.
+                </CardDescription>
+            </CardHeader>
 
-            {recommendationText && (
-                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-sm text-blue-700">
-                        <strong>Recommended dimensions:</strong> {recommendationText}
-                    </p>
-                </div>
-            )}
+            <CardContent className="space-y-5">
+                {recommendationText ? (
+                    <div className="rounded-xs border border-primary-100 bg-primary-50 px-3 py-2.5">
+                        <p className="text-xs font-semibold text-primary-900">
+                            Recommended dimensions: {recommendationText}
+                        </p>
+                    </div>
+                ) : null}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Desktop Image */}
-                <div>
-                    <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                        <Monitor className="w-4 h-4" />
-                        Desktop Image
-                        {getDimensionsText('desktop') && (
-                            <span className="text-xs text-gray-500 font-normal">
-                                {getDimensionsText('desktop')}
-                            </span>
-                        )}
-                    </label>
-                    {selectedDesktopAsset ? (
-                        <div className="relative aspect-video rounded-lg border-2 border-primary-800 bg-gray-50">
-                            <img
-                                src={getImageUrl(selectedDesktopAsset.preview || selectedDesktopAsset.source)}
-                                alt="Desktop Banner"
-                                className="absolute inset-0 w-full h-full object-cover rounded-lg"
-                            />
-                            <div className="absolute top-2 right-2 flex gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => onDesktopAssetChange(null)}
-                                    className="bg-primary-800 text-white p-2 rounded-xs hover:bg-primary-900 transition-colors shadow-xs"
-                                >
-                                    <X className="w-4 h-4" />
-                                </button>
-                            </div>
-                        </div>
-                    ) : (
-                        <label className="relative aspect-video rounded-lg border-2 border-dashed border-gray-200 cursor-pointer hover:border-primary-600 hover:bg-gray-50 transition-colors flex flex-col items-center justify-center">
-                            {loadingAssets ? (
-                                <>
-                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-800 mb-2"></div>
-                                    <span className="text-sm text-gray-500 font-medium">Uploading...</span>
-                                </>
-                            ) : (
-                                <>
-                                    <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                                    <span className="text-sm text-gray-500 font-medium">Click to upload or drag and drop</span>
-                                    <span className="text-xs text-gray-400 mt-1">PNG, JPG, WEBP up to 10MB</span>
-                                </>
-                            )}
-                            <input
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                disabled={loadingAssets}
-                                onChange={async (e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) {
-                                        await handleImageUpload(file, 'desktop');
-                                        e.target.value = '';
-                                    }
-                                }}
-                            />
-                        </label>
-                    )}
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                    <UploadCard
+                        label="Desktop Image"
+                        dimensionsText={getDimensionsText(position, 'desktop')}
+                        selectedAsset={selectedDesktopAsset}
+                        loadingAssets={loadingAssets}
+                        disabled={disabled}
+                        onUpload={(file) => handleImageUpload(file, 'desktop')}
+                        onClear={() => onDesktopAssetChange(null)}
+                    />
+
+                    <UploadCard
+                        label="Mobile Image"
+                        dimensionsText={getDimensionsText(position, 'mobile')}
+                        selectedAsset={selectedMobileAsset}
+                        loadingAssets={loadingAssets}
+                        disabled={disabled}
+                        onUpload={(file) => handleImageUpload(file, 'mobile')}
+                        onClear={() => onMobileAssetChange(null)}
+                    />
                 </div>
 
-                {/* Mobile Image */}
-                <div>
-                    <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                        <Smartphone className="w-4 h-4" />
-                        Mobile Image
-                        {getDimensionsText('mobile') && (
-                            <span className="text-xs text-gray-500 font-normal">
-                                {getDimensionsText('mobile')}
-                            </span>
-                        )}
-                    </label>
-                    {selectedMobileAsset ? (
-                        <div className="relative aspect-video rounded-lg border-2 border-primary-800 bg-gray-50">
-                            <img
-                                src={getImageUrl(selectedMobileAsset.preview || selectedMobileAsset.source)}
-                                alt="Mobile Banner"
-                                className="absolute inset-0 w-full h-full object-cover rounded-lg"
-                            />
-                            <div className="absolute top-2 right-2 flex gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => onMobileAssetChange(null)}
-                                    className="bg-primary-800 text-white p-2 rounded-xs hover:bg-primary-900 transition-colors shadow-xs"
-                                >
-                                    <X className="w-4 h-4" />
-                                </button>
-                            </div>
-                        </div>
-                    ) : (
-                        <label className="relative aspect-video rounded-lg border-2 border-dashed border-gray-200 cursor-pointer hover:border-primary-600 hover:bg-gray-50 transition-colors flex flex-col items-center justify-center">
-                            {loadingAssets ? (
-                                <>
-                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-800 mb-2"></div>
-                                    <span className="text-sm text-gray-500 font-medium">Uploading...</span>
-                                </>
-                            ) : (
-                                <>
-                                    <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                                    <span className="text-sm text-gray-500 font-medium">Click to upload or drag and drop</span>
-                                    <span className="text-xs text-gray-400 mt-1">PNG, JPG, WEBP up to 10MB</span>
-                                </>
-                            )}
-                            <input
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                disabled={loadingAssets}
-                                onChange={async (e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) {
-                                        await handleImageUpload(file, 'mobile');
-                                        e.target.value = '';
-                                    }
-                                }}
-                            />
-                        </label>
-                    )}
+                <div className="grid grid-cols-1 gap-3 text-xs font-semibold text-secondary-500 sm:grid-cols-2">
+                    <div className="inline-flex items-center gap-2">
+                        <Monitor className="h-4 w-4 text-secondary-400" />
+                        Desktop image is used for wider screens.
+                    </div>
+                    <div className="inline-flex items-center gap-2">
+                        <Smartphone className="h-4 w-4 text-secondary-400" />
+                        Mobile image is used for smaller screens.
+                    </div>
                 </div>
-            </div>
-        </div>
+            </CardContent>
+        </Card>
     );
 }

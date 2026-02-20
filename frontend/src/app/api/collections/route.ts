@@ -3,13 +3,12 @@ import { proxyFetch } from '@/lib/proxy-utils';
 
 /**
  * Collections API Route
- * 
+ *
  * Proxies requests to the backend store collections API.
  * Uses proxyFetch for secure API key injection and Redis caching.
  */
 export async function GET(request: NextRequest) {
     const { searchParams } = request.nextUrl;
-    console.log(`[Collections API] Received params: ${searchParams.toString()}`);
 
     try {
         // Build the proxy path with correctly formatted query parameters
@@ -28,7 +27,7 @@ export async function GET(request: NextRequest) {
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error(`❌ Backend API error: ${response.status} ${response.statusText}`, errorText);
+            console.error(`Backend API error: ${response.status} ${response.statusText}`, errorText);
             return NextResponse.json(
                 { error: 'Backend API error', status: response.status },
                 { status: response.status }
@@ -42,7 +41,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(collections, { status: 200 });
     } catch (error) {
-        console.error('❌ Collections API proxy error:', error);
+        console.error('Collections API proxy error:', error);
         return NextResponse.json(
             { error: 'Failed to fetch collections' },
             { status: 500 }

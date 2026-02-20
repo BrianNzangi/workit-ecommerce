@@ -8,7 +8,7 @@ export default function NewCustomerPage() {
     return (
         <ProtectedRoute>
             <AdminLayout>
-                <CustomerForm />
+                <CustomerForm mode="create" />
             </AdminLayout>
         </ProtectedRoute>
     );

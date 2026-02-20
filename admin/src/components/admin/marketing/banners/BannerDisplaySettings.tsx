@@ -1,6 +1,17 @@
 'use client';
 
-import { ChevronDown } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { POSITION_OPTIONS } from './banner.constants';
 
 interface BannerDisplaySettings {
     position: string;
@@ -11,63 +22,72 @@ interface BannerDisplaySettings {
 interface BannerDisplaySettingsProps {
     settings: BannerDisplaySettings;
     onChange: (settings: Partial<BannerDisplaySettings>) => void;
+    disabled?: boolean;
 }
 
 export function BannerDisplaySettings({
     settings,
-    onChange
+    onChange,
+    disabled,
 }: BannerDisplaySettingsProps) {
     return (
-        <div className="bg-white rounded-xs shadow-xs border border-gray-200 p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Display Settings</h3>
-            <div className="space-y-4">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Position *
-                    </label>
-                    <div className="relative">
-                        <select
-                            value={settings.position}
-                            onChange={(e) => onChange({ position: e.target.value })}
-                            className="w-full px-4 py-2 pr-10 border border-gray-200 rounded-xs focus:ring-2 focus:ring-primary-600 focus:border-transparent appearance-none"
-                        >
-                            <option value="HERO">Hero (Top Slider)</option>
-                            <option value="DEALS">Deals</option>
-                            <option value="DEALS_HORIZONTAL">Deals Horizontal</option>
-                            <option value="MIDDLE">Middle Section</option>
-                            <option value="BOTTOM">Bottom Section</option>
-                            <option value="COLLECTION_TOP">Collection Header</option>
-                        </select>
-                        <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-                    </div>
+        <Card className="border-gray-200 shadow-xs">
+            <CardHeader>
+                <CardTitle className="text-lg font-black tracking-tight text-secondary-900">
+                    Display Settings
+                </CardTitle>
+                <CardDescription className="font-medium text-secondary-500">
+                    Control where and how this banner appears.
+                </CardDescription>
+            </CardHeader>
+
+            <CardContent className="space-y-5">
+                <div className="space-y-2">
+                    <Label htmlFor="banner-position">Position *</Label>
+                    <Select
+                        value={settings.position}
+                        onValueChange={(value) => onChange({ position: value })}
+                        disabled={disabled}
+                    >
+                        <SelectTrigger id="banner-position" className="border-gray-200 focus-visible:ring-primary-200">
+                            <SelectValue placeholder="Select position" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {POSITION_OPTIONS.map((option) => (
+                                <SelectItem key={option.value} value={option.value}>
+                                    {option.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                 </div>
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Sort Order
-                    </label>
-                    <input
+                <div className="space-y-2">
+                    <Label htmlFor="banner-sort-order">Sort Order</Label>
+                    <Input
+                        id="banner-sort-order"
                         type="number"
                         value={settings.sortOrder}
-                        onChange={(e) => onChange({ sortOrder: parseInt(e.target.value) || 0 })}
-                        className="w-full px-4 py-2 border border-gray-200 rounded-xs focus:ring-2 focus:ring-primary-600 focus:border-transparent"
+                        onChange={(e) => onChange({ sortOrder: parseInt(e.target.value, 10) || 0 })}
+                        className="border-gray-200 focus-visible:ring-primary-200"
+                        disabled={disabled}
                     />
-                    <p className="text-xs text-gray-500 mt-1">Lower numbers appear first</p>
+                    <p className="text-xs font-medium text-secondary-500">Lower numbers appear first.</p>
                 </div>
 
-                <div className="flex items-center gap-2 pt-2">
-                    <input
-                        type="checkbox"
-                        id="enabled"
+                <div className="flex items-center gap-2 rounded-xs border border-gray-200 bg-gray-50 px-3 py-2.5">
+                    <Checkbox
+                        id="banner-enabled"
                         checked={settings.enabled}
-                        onChange={(e) => onChange({ enabled: e.target.checked })}
-                        className="w-4 h-4 text-primary-800 focus:ring-primary-600 border-gray-200 rounded"
+                        onCheckedChange={(checked) => onChange({ enabled: checked === true })}
+                        disabled={disabled}
+                        className="data-[state=checked]:bg-primary-900 data-[state=checked]:border-primary-900"
                     />
-                    <label htmlFor="enabled" className="text-sm font-medium text-gray-900">
+                    <Label htmlFor="banner-enabled" className="cursor-pointer text-sm font-semibold text-secondary-800">
                         Enable Banner
-                    </label>
+                    </Label>
                 </div>
-            </div>
-        </div>
+            </CardContent>
+        </Card>
     );
 }

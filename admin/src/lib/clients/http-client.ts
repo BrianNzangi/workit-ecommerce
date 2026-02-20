@@ -149,6 +149,7 @@ class HttpClient {
             get: (id: string) => this.get<any>(`/catalog/assets/admin/${id}`),
             create: (data: any) => this.post<any>("/catalog/assets/admin", data),
             delete: (id: string) => this.delete<any>(`/catalog/assets/admin/${id}`),
+            bulkDelete: (data: { ids: string[] }) => this.post<any>("/catalog/assets/admin/bulk-delete", data),
         };
     }
 

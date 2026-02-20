@@ -1,45 +1,46 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { ProtectedRoute } from '@/components/login/ProtectedRoute';
 import { AdminLayout } from '@/components/admin/layout/AdminLayout';
-import { ArrowLeft, Save } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { CollectionBasicInfoFields } from '@/components/collections/CollectionBasicInfoFields';
-import { CollectionHierarchyFields } from '@/components/collections/CollectionHierarchyFields';
-import { CollectionDisplaySettings } from '@/components/collections/CollectionDisplaySettings';
+import {
+    CollectionBasicInfoCard,
+    CollectionDisplaySettingsCard,
+    CollectionFormData,
+    CollectionFormError,
+    CollectionFormHeader,
+    CollectionHierarchyCard,
+    CollectionLevel,
+    CollectionSaveCard,
+    CollectionTreeNode,
+} from '@/components/admin/catalog/collections/form';
 
-interface Collection {
-    id: string;
-    name: string;
-    slug: string;
-    children?: Collection[];
-}
+const initialFormData: CollectionFormData = {
+    name: '',
+    slug: '',
+    description: '',
+    parentId: '',
+    enabled: true,
+    showInMostShopped: false,
+    sortOrder: 0,
+    mostShoppedSortOrder: 0,
+    assetId: '',
+};
 
 export default function NewCollectionPage() {
     const router = useRouter();
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [collections, setCollections] = useState<Collection[]>([]);
-    const [level, setLevel] = useState<'1' | '2' | '3'>('1');
-    const [selectedL1, setSelectedL1] = useState<string>('');
 
-    const [formData, setFormData] = useState({
-        name: '',
-        slug: '',
-        description: '',
-        parentId: '',
-        enabled: true,
-        showInMostShopped: false,
-        sortOrder: 0,
-        mostShoppedSortOrder: 0,
-        assetId: '',
-    });
+    const [loading, setLoading] = useState(false);
+    const [uploading, setUploading] = useState(false);
+    const [error, setError] = useState('');
+    const [collections, setCollections] = useState<CollectionTreeNode[]>([]);
+    const [level, setLevel] = useState<CollectionLevel>('1');
+    const [selectedL1, setSelectedL1] = useState<string>('');
+    const [formData, setFormData] = useState<CollectionFormData>(initialFormData);
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string>('');
-    const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
         fetchCollections();
@@ -48,45 +49,70 @@ export default function NewCollectionPage() {
     const fetchCollections = async () => {
         try {
             const response = await fetch('/api/admin/collections?includeChildren=true');
-            if (response.ok) {
-                const result = await response.json();
-                const data = result.collections || result;
-                const l1Only = (Array.isArray(data) ? data : []).filter((c: any) => !c.parentId);
-                setCollections(l1Only);
-            }
-        } catch (error) {
-            console.error('Error fetching collections:', error);
+            if (!response.ok) return;
+
+            const result = await response.json();
+            const data = result.collections || result;
+            const levelOneCollections = (Array.isArray(data) ? data : []).filter((collection: any) => !collection.parentId);
+            setCollections(levelOneCollections);
+        } catch (fetchError) {
+            console.error('Error fetching collections:', fetchError);
         }
     };
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        const { name, value, type } = e.target;
-        const checked = (e.target as HTMLInputElement).checked;
-
-        setFormData((prev) => ({
-            ...prev,
-            [name]: type === 'checkbox' ? checked : value,
+    const handleFieldChange = (field: keyof CollectionFormData, value: string | number | boolean) => {
+        setFormData((previous) => ({
+            ...previous,
+            [field]: value,
         }));
 
-        if (name === 'name') {
-            const slug = value
+        if (field === 'name' && typeof value === 'string') {
+            const generatedSlug = value
                 .toLowerCase()
                 .replace(/[^a-z0-9]+/g, '-')
                 .replace(/(^-|-$)/g, '');
-            setFormData((prev) => ({ ...prev, slug }));
+
+            setFormData((previous) => ({
+                ...previous,
+                slug: generatedSlug,
+            }));
         }
     };
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setImageFile(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImagePreview(reader.result as string);
-            };
-            reader.readAsDataURL(file);
+    const handleLevelChange = (nextLevel: CollectionLevel) => {
+        setLevel(nextLevel);
+        setSelectedL1('');
+        handleFieldChange('parentId', '');
+    };
+
+    const handleSelectedL1Change = (value: string) => {
+        setSelectedL1(value);
+        if (level === '2') {
+            handleFieldChange('parentId', value);
+            return;
         }
+        handleFieldChange('parentId', '');
+    };
+
+    const handleParentIdChange = (value: string) => {
+        handleFieldChange('parentId', value);
+    };
+
+    const handleImageChange = (file: File | null) => {
+        setImageFile(file);
+        if (!file) {
+            setImagePreview('');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onloadend = () => setImagePreview(reader.result as string);
+        reader.readAsDataURL(file);
+    };
+
+    const clearImage = () => {
+        setImageFile(null);
+        setImagePreview('');
     };
 
     const uploadImage = async (): Promise<string | null> => {
@@ -109,24 +135,48 @@ export default function NewCollectionPage() {
 
             const asset = await response.json();
             return asset.id;
-        } catch (error) {
-            console.error('Error uploading image:', error);
-            throw error;
+        } catch (uploadError) {
+            console.error('Error uploading image:', uploadError);
+            throw uploadError;
         } finally {
             setUploading(false);
         }
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const resolveParentId = (): string | null => {
+        if (level === '1') return null;
+        if (level === '2') return selectedL1 || null;
+        return formData.parentId || null;
+    };
+
+    const validateHierarchy = (): string | null => {
+        if (level === '2' && !selectedL1) {
+            return 'Please select a Level 1 parent category.';
+        }
+        if (level === '3') {
+            if (!selectedL1) return 'Please select a Level 1 category first.';
+            if (!formData.parentId) return 'Please select a Level 2 parent group.';
+        }
+        return null;
+    };
+
+    const handleSubmit = async (event: React.FormEvent) => {
+        event.preventDefault();
         setLoading(true);
         setError('');
 
         try {
+            const hierarchyError = validateHierarchy();
+            if (hierarchyError) {
+                throw new Error(hierarchyError);
+            }
+
             let assetId = formData.assetId;
             if (imageFile) {
-                assetId = await uploadImage() || '';
+                assetId = (await uploadImage()) || '';
             }
+
+            const parentId = resolveParentId();
 
             const response = await fetch('/api/admin/collections', {
                 method: 'POST',
@@ -136,9 +186,9 @@ export default function NewCollectionPage() {
                 body: JSON.stringify({
                     ...formData,
                     assetId: assetId || null,
-                    parentId: formData.parentId || null,
-                    sortOrder: parseInt(formData.sortOrder.toString()),
-                    mostShoppedSortOrder: parseInt(formData.mostShoppedSortOrder.toString()),
+                    parentId,
+                    sortOrder: Number(formData.sortOrder),
+                    mostShoppedSortOrder: Number(formData.mostShoppedSortOrder),
                 }),
             });
 
@@ -154,13 +204,13 @@ export default function NewCollectionPage() {
             });
 
             router.push('/admin/collections');
-        } catch (err: any) {
+        } catch (submitError: any) {
             toast({
                 title: 'Creation failed',
-                description: err.message || 'An unexpected error occurred.',
+                description: submitError.message || 'An unexpected error occurred.',
                 variant: 'error',
             });
-            setError(err.message);
+            setError(submitError.message);
         } finally {
             setLoading(false);
         }
@@ -169,72 +219,46 @@ export default function NewCollectionPage() {
     return (
         <ProtectedRoute>
             <AdminLayout>
-                <div className="mb-6">
-                    <Link
-                        href="/admin/collections"
-                        className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
-                    >
-                        <ArrowLeft className="w-4 h-4" />
-                        Back to Collections
-                    </Link>
-                    <h1 className="text-2xl font-bold text-gray-900">Add New Collection</h1>
-                </div>
+                <CollectionFormHeader
+                    title="Add New Collection"
+                    description="Create and configure a collection in one place."
+                />
 
-                <form onSubmit={handleSubmit} className="max-w-6xl">
-                    {error && (
-                        <div className="p-4 bg-red-50 border border-red-200 rounded-xs text-red-700 text-sm shadow-xs mb-6">
-                            {error}
-                        </div>
-                    )}
-                    <div className="flex flex-col lg:flex-row gap-6 items-start">
-                        {/* Left Column: Basic Info */}
-                        <div className="flex-1 space-y-6 w-full lg:w-[58%]">
-                            <CollectionBasicInfoFields
+                <form onSubmit={handleSubmit} className="w-full">
+                    <CollectionFormError message={error} />
+
+                    <div className="grid w-full grid-cols-1 items-start gap-6 xl:grid-cols-12">
+                        <div className="min-w-0 space-y-6 xl:col-span-8">
+                            <CollectionBasicInfoCard
                                 formData={formData}
-                                handleChange={handleChange}
                                 imagePreview={imagePreview}
-                                setImageFile={setImageFile}
-                                setImagePreview={setImagePreview}
-                                handleImageChange={handleImageChange}
+                                onFieldChange={handleFieldChange}
+                                onImageChange={handleImageChange}
+                                onClearImage={clearImage}
                             />
                         </div>
 
-                        {/* Right Column: Hierarchy & Settings */}
-                        <div className="w-full lg:w-[42%] space-y-6 lg:sticky lg:top-6">
-                            <CollectionHierarchyFields
+                        <div className="space-y-6 xl:col-span-4 xl:sticky xl:top-6">
+                            <CollectionHierarchyCard
                                 level={level}
-                                setLevel={setLevel}
                                 collections={collections}
                                 selectedL1={selectedL1}
-                                setSelectedL1={setSelectedL1}
                                 parentId={formData.parentId}
-                                setParentId={(id) => setFormData(prev => ({ ...prev, parentId: id }))}
+                                onLevelChange={handleLevelChange}
+                                onSelectedL1Change={handleSelectedL1Change}
+                                onParentIdChange={handleParentIdChange}
                             />
 
-                            <CollectionDisplaySettings
-                                enabled={formData.enabled}
-                                showInMostShopped={formData.showInMostShopped}
-                                sortOrder={formData.sortOrder}
-                                mostShoppedSortOrder={formData.mostShoppedSortOrder}
-                                handleChange={handleChange}
+                            <CollectionDisplaySettingsCard
+                                formData={formData}
+                                onFieldChange={handleFieldChange}
                             />
 
-                            <div className="bg-white rounded-xs shadow-xs border border-gray-200 p-6">
-                                <button
-                                    type="submit"
-                                    disabled={loading || uploading}
-                                    className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary-900 hover:bg-primary-800 text-white rounded-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm font-bold text-lg"
-                                >
-                                    <Save className="w-5 h-5" />
-                                    {uploading ? 'Uploading...' : loading ? 'Saving...' : 'Save Collection'}
-                                </button>
-                                <Link
-                                    href="/admin/collections"
-                                    className="mt-3 block w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-xs hover:bg-gray-50 transition-colors text-center font-medium"
-                                >
-                                    Cancel
-                                </Link>
-                            </div>
+                            <CollectionSaveCard
+                                loading={loading}
+                                uploading={uploading}
+                                submitLabel="Save Collection"
+                            />
                         </div>
                     </div>
                 </form>

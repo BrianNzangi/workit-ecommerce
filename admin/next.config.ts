@@ -53,6 +53,10 @@ const nextConfig: NextConfig = {
         source: '/api/admin/brands/:path*',
         destination: `${backendUrl}/catalog/brands/admin/:path*`,
       },
+      {
+        source: '/api/admin/assets/:path*',
+        destination: `${backendUrl}/catalog/assets/admin/:path*`,
+      },
 
 
       // Marketing

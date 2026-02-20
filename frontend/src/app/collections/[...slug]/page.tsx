@@ -92,9 +92,8 @@ export default async function CollectionPage({ params }: Props) {
 
     if (collectionsRes.ok) {
       collections = await collectionsRes.json()
-      console.log('📦 Raw collections from API:', JSON.stringify(collections, null, 2));
     } else {
-      console.error('❌ Failed to fetch collections, status:', collectionsRes.status);
+      console.error('Failed to fetch collections, status:', collectionsRes.status);
     }
   } catch (error) {
     console.error('Failed to fetch collections:', error)
@@ -115,13 +114,9 @@ export default async function CollectionPage({ params }: Props) {
   const lastSlug = resolvedParams.slug.at(-1) || '';
   const allCollections = flattenCollections(collections);
 
-  console.log('🔍 Looking for collection with slug:', lastSlug);
-  console.log('📦 Total collections (including nested):', allCollections.length);
-  console.log('📋 All collection slugs:', allCollections.map(c => c.slug));
 
   const collection = allCollections.find((c) => c.slug === lastSlug) || null;
 
-  console.log('✅ Found collection:', collection ? collection.name : 'NOT FOUND');
 
   // Fetch products for this collection using API route
   let products: Product[] = []
@@ -136,9 +131,8 @@ export default async function CollectionPage({ params }: Props) {
       if (productsRes.ok) {
         const data = await productsRes.json()
         products = data.products || []
-        console.log('📦 Products fetched for collection:', collection.slug, '- Count:', products.length);
       } else {
-        console.error('❌ Failed to fetch products, status:', productsRes.status);
+        console.error('Failed to fetch products, status:', productsRes.status);
       }
     } catch (error) {
       console.error('Failed to fetch products:', error)
@@ -160,3 +154,4 @@ export default async function CollectionPage({ params }: Props) {
     </div>
   )
 }
+

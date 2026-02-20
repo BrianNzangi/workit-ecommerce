@@ -6,7 +6,7 @@ import Image from 'next/image';
 import ColProductGrid from '@/components/product/ColProductGrid';
 import ProductFilters from '@/components/filters/ProductFilters';
 import ProductPagination from '@/components/ui/ProductPagination';
-import PageBanner from '@/components/collections/PageBanner';
+import CollectionHeaderBanner from '@/components/banners/CollectionHeaderBanner';
 import Breadcrumbs from '@/components/ui/Breadcrumbs';
 import ProductSorter from './ProductSorter';
 import Head from 'next/head';
@@ -29,6 +29,7 @@ export default function CollectionClient({
   brands,
 }: CollectionClientProps) {
   const perPage = 20;
+  const currentCollectionSlug = category?.slug || fullSlug.split('/').pop() || fullSlug;
 
   // We can still have local state for pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -98,7 +99,10 @@ export default function CollectionClient({
           ]}
         />
 
-        <PageBanner title={category?.name || fullSlug} />
+        <CollectionHeaderBanner
+          title={category?.name || fullSlug}
+          collectionSlug={currentCollectionSlug}
+        />
 
         {/* Unified Filter & Sort Toolbar */}
         <div className="space-y-4">
@@ -107,9 +111,7 @@ export default function CollectionClient({
             collectionSlug={category?.slug}
             sortBy={sortBy}
             onSortChange={setSortBy}
-            onFilterChange={(filters) => {
-              console.log('Filters updated:', filters);
-            }}
+            onFilterChange={() => {}}
           />
 
           {/* Brands Quick-Access (Optional) */}

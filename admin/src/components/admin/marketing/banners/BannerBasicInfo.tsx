@@ -1,7 +1,19 @@
 'use client';
 
-import { Link2, ChevronDown } from 'lucide-react';
+import { Link2 } from 'lucide-react';
 import { Collection } from '@/lib/services';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { buildCollectionOptions, getRootCollections } from './banner.utils';
 
 interface BannerFormData {
     name: string;
@@ -15,103 +27,94 @@ interface BannerBasicInfoProps {
     onChange: (data: Partial<BannerFormData>) => void;
     collections: Collection[];
     loadingCollections: boolean;
+    disabled?: boolean;
 }
 
 export function BannerBasicInfo({
     formData,
     onChange,
     collections,
-    loadingCollections
+    loadingCollections,
+    disabled,
 }: BannerBasicInfoProps) {
-    const buildCollectionOptions = (collections: Collection[], level = 0): { id: string; name: string; level: number }[] => {
-        let options: { id: string; name: string; level: number }[] = [];
-
-        collections.forEach(collection => {
-            options.push({
-                id: collection.id,
-                name: collection.name,
-                level
-            });
-
-            if (collection.children && collection.children.length > 0) {
-                options = options.concat(buildCollectionOptions(collection.children, level + 1));
-            }
-        });
-
-        return options;
-    };
-
-    const rootCollections = collections.filter(c => c.parentId === null);
-    const collectionOptions = buildCollectionOptions(rootCollections);
+    const collectionOptions = buildCollectionOptions(getRootCollections(collections));
 
     return (
-        <div className="bg-white rounded-xs shadow-xs border border-gray-200 p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Basic Information</h3>
-            <div className="space-y-4">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Name *
-                    </label>
-                    <input
-                        type="text"
+        <Card className="border-gray-200 shadow-xs">
+            <CardHeader>
+                <CardTitle className="text-lg font-black tracking-tight text-secondary-900">
+                    Basic Information
+                </CardTitle>
+                <CardDescription className="font-medium text-secondary-500">
+                    Name, slug, and optional collection association.
+                </CardDescription>
+            </CardHeader>
+
+            <CardContent className="space-y-5">
+                <div className="space-y-2">
+                    <Label htmlFor="banner-name">Name *</Label>
+                    <Input
+                        id="banner-name"
                         value={formData.name}
                         onChange={(e) => onChange({ name: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-200 rounded-xs focus:ring-2 focus:ring-primary-600 focus:border-transparent"
                         placeholder="e.g., Summer Sale Hero"
+                        className="border-gray-200 focus-visible:ring-primary-200"
+                        disabled={disabled}
                         required
                     />
                 </div>
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Description (Optional)
-                    </label>
-                    <textarea
+
+                <div className="space-y-2">
+                    <Label htmlFor="banner-description">Description</Label>
+                    <Textarea
+                        id="banner-description"
                         value={formData.description}
                         onChange={(e) => onChange({ description: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-200 rounded-xs focus:ring-2 focus:ring-primary-600 focus:border-transparent min-h-[100px]"
+                        className="min-h-[110px] border-gray-200 focus-visible:ring-primary-200"
+                        disabled={disabled}
                         placeholder="Add a short description for this banner"
                     />
                 </div>
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Slug (Optional)
-                    </label>
-                    <input
-                        type="text"
+
+                <div className="space-y-2">
+                    <Label htmlFor="banner-slug">Slug</Label>
+                    <Input
+                        id="banner-slug"
                         value={formData.slug}
                         onChange={(e) => onChange({ slug: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-200 rounded-xs focus:ring-2 focus:ring-primary-600 focus:border-transparent"
                         placeholder="Leave empty to auto-generate"
+                        className="border-gray-200 focus-visible:ring-primary-200"
+                        disabled={disabled}
                     />
                 </div>
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2 items-center gap-2">
-                        <Link2 className="w-4 h-4 inline" />
-                        {' '}Collection
-                    </label>
-                    <div className="relative">
-                        <select
-                            value={formData.collectionId}
-                            onChange={(e) => onChange({ collectionId: e.target.value })}
-                            className="w-full px-4 py-2 pr-10 border border-gray-200 rounded-xs focus:ring-2 focus:ring-primary-600 focus:border-transparent appearance-none"
-                            disabled={loadingCollections}
-                        >
-                            <option value="">Select a collection (optional)</option>
+
+                <div className="space-y-2">
+                    <Label htmlFor="banner-collection" className="inline-flex items-center gap-2">
+                        <Link2 className="h-4 w-4 text-secondary-400" />
+                        Collection
+                    </Label>
+                    <Select
+                        value={formData.collectionId || 'none'}
+                        onValueChange={(value) => onChange({ collectionId: value === 'none' ? '' : value })}
+                        disabled={disabled || loadingCollections}
+                    >
+                        <SelectTrigger id="banner-collection" className="border-gray-200 focus-visible:ring-primary-200">
+                            <SelectValue placeholder="Select a collection (optional)" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="none">No Collection</SelectItem>
                             {collectionOptions.map((option) => (
-                                <option key={option.id} value={option.id} className="py-1">
-                                    {option.level === 0 ? '' : option.level === 1 ? '  └ ' : '    └ '}
-                                    {option.name}
-                                    {option.level === 0 ? ' (Category)' : option.level === 1 ? ' (Group)' : ' (Sub)'}
-                                </option>
+                                <SelectItem key={option.id} value={option.id}>
+                                    {`${option.level ? `${'- '.repeat(option.level)}` : ''}${option.name}`}
+                                </SelectItem>
                             ))}
-                        </select>
-                        <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-                    </div>
-                    {loadingCollections && (
-                        <p className="text-xs text-gray-500 mt-1">Loading collections...</p>
-                    )}
+                        </SelectContent>
+                    </Select>
+                    {loadingCollections ? (
+                        <p className="text-xs font-medium text-secondary-500">Loading collections...</p>
+                    ) : null}
                 </div>
-            </div>
-        </div>
+            </CardContent>
+        </Card>
     );
 }

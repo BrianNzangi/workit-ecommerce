@@ -1,18 +1,29 @@
 import { BaseService } from '../base/base.service';
 import { Banner, CreateBannerInput, BannerListOptions } from './banner.types';
 
+function normalizeBannerResponse(payload: any): Banner {
+    return (payload?.banner || payload) as Banner;
+}
+
+function normalizeBannerListResponse(payload: any): Banner[] {
+    return Array.isArray(payload) ? payload : (payload?.banners || []);
+}
+
 export class BannerService extends BaseService {
     async createBanner(input: CreateBannerInput): Promise<Banner> {
-        return this.adminClient.banners.create(input);
+        const response = await this.adminClient.banners.create(input);
+        return normalizeBannerResponse(response);
     }
 
     async updateBanner(id: string, input: Partial<CreateBannerInput>): Promise<Banner> {
-        return this.adminClient.banners.update(id, input);
+        const response = await this.adminClient.banners.update(id, input);
+        return normalizeBannerResponse(response);
     }
 
     async getBanner(id: string): Promise<Banner | null> {
         try {
-            return await this.adminClient.banners.get(id);
+            const response = await this.adminClient.banners.get(id);
+            return normalizeBannerResponse(response);
         } catch (error: any) {
             if (error.statusCode === 404) return null;
             throw error;
@@ -22,14 +33,14 @@ export class BannerService extends BaseService {
     async getBannerBySlug(slug: string): Promise<Banner | null> {
         // Fallback to list since there's no getBySlug endpoint in HttpClient
         const response = await this.adminClient.banners.list();
-        const banners = Array.isArray(response) ? response : (response.banners || []);
+        const banners = normalizeBannerListResponse(response);
         return banners.find((b: any) => b.slug === slug) || null;
     }
 
     async getBanners(options: BannerListOptions = {}): Promise<Banner[]> {
         // Check if we should use position specific get if it existed, but HttpClient only has list
         const response = await this.adminClient.banners.list(options);
-        let results = Array.isArray(response) ? response : (response.banners || []);
+        let results = normalizeBannerListResponse(response);
 
         if (options.position) {
             results = results.filter((b: any) => b.position === options.position);

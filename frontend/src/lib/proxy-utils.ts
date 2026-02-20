@@ -40,10 +40,11 @@ export async function proxyFetch(path: string, options: RequestInit = {}) {
     }
 
     const isGet = !options.method || options.method.toUpperCase() === 'GET';
+    const bypassCache = options.cache === 'no-store';
     const cacheKey = `proxy:${path}`;
 
     // 2. Try to get from Redis cache if it's a GET request
-    if (isGet) {
+    if (isGet && !bypassCache) {
         const cached = await getCachedData(cacheKey);
         if (cached) {
             return new Response(JSON.stringify(cached), {
@@ -54,12 +55,6 @@ export async function proxyFetch(path: string, options: RequestInit = {}) {
 
     const backendUrl = getBackendUrl();
     const url = path.startsWith('http') ? path : `${backendUrl}${path}`;
-
-    if (backendUrl.includes('localhost') && process.env.NODE_ENV === 'production') {
-        console.warn(`⚠️ [Proxy Warning] Frontend is defaulting to localhost in production! URL: ${url}`);
-    } else {
-        console.log(`[Proxy] Fetching: ${url}`);
-    }
 
     const env = process.env as Record<string, string | undefined>;
     const defaultHeaders: Record<string, string> = {
@@ -87,7 +82,7 @@ export async function proxyFetch(path: string, options: RequestInit = {}) {
     });
 
     // 3. If it's a successful GET response, cache it in Redis
-    if (isGet && response.ok) {
+    if (isGet && response.ok && !bypassCache) {
         const clonedResponse = response.clone();
         try {
             const data = await clonedResponse.json();

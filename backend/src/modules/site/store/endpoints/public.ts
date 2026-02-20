@@ -14,6 +14,13 @@ const productsQuerySchema = z.object({
     inStock: z.coerce.boolean().optional(),
 });
 
+const bannersQuerySchema = z.object({
+    position: z.string().optional(),
+    enabled: z.coerce.boolean().optional(),
+    collectionId: z.string().optional(),
+    collection: z.string().optional(),
+});
+
 export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
     // Helper to get all sub-collection IDs recursively
     const getRecursiveCollectionIds = async (parentId: string): Promise<string[]> => {
@@ -207,12 +214,52 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
     fastify.get("/banners", {
         schema: {
             tags: ["Marketing"],
-            querystring: z.object({})
+            querystring: bannersQuerySchema
         }
-    }, async () => {
+    }, async (request) => {
+        const { position, enabled, collectionId, collection } = request.query as z.infer<typeof bannersQuerySchema>;
+        const whereClauses: any[] = [
+            eq(schema.banners.enabled, enabled ?? true),
+        ];
+
+        if (position) {
+            whereClauses.push(eq(schema.banners.position, position as any));
+        }
+
+        let resolvedCollectionId = collectionId;
+        if (!resolvedCollectionId && collection) {
+            const matchedCollection = await db.query.collections.findFirst({
+                where: eq(schema.collections.slug, collection),
+                columns: { id: true }
+            });
+
+            if (!matchedCollection) {
+                return { banners: [] };
+            }
+
+            resolvedCollectionId = matchedCollection.id;
+        }
+
+        if (resolvedCollectionId) {
+            const collectionIds = collection
+                ? await getRecursiveCollectionIds(resolvedCollectionId)
+                : [resolvedCollectionId];
+
+            whereClauses.push(inArray(schema.banners.collectionId, collectionIds));
+        }
+
+        const bannerWhereClause = whereClauses.length === 1
+            ? whereClauses[0]
+            : and(...whereClauses);
+
         const results = await db.query.banners.findMany({
-            where: eq(schema.banners.enabled, true),
-            with: { desktopImage: true, mobileImage: true }
+            where: bannerWhereClause,
+            orderBy: [asc(schema.banners.sortOrder)],
+            with: {
+                desktopImage: true,
+                mobileImage: true,
+                collection: true,
+            }
         });
         return { banners: results };
     });
