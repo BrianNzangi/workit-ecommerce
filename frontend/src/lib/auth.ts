@@ -3,9 +3,30 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { emailOTP } from "better-auth/plugins";
 import { db, schema } from "@workit/db";
 
+const splitOrigins = (value?: string): string[] =>
+    (value ?? "")
+        .split(",")
+        .map((origin) => origin.trim())
+        .filter(Boolean);
+
+const configuredOrigins = Array.from(
+    new Set([
+        ...splitOrigins(process.env.BETTER_AUTH_TRUSTED_ORIGINS),
+        ...splitOrigins(process.env.CORS_ORIGIN),
+        ...splitOrigins(process.env.NEXT_PUBLIC_APP_URL),
+        ...splitOrigins(process.env.ADMIN_URL),
+    ]),
+);
+
+if (!configuredOrigins.length && process.env.NODE_ENV !== "production") {
+    configuredOrigins.push("http://localhost:3000", "http://localhost:3002");
+}
+
+const authBaseUrl = process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL;
+
 export const auth = betterAuth({
     secret: process.env.BETTER_AUTH_SECRET || "pvhf6y7u8i9o0p1q2r3s4t5u6v7w8x9y",
-    baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+    ...(authBaseUrl ? { baseURL: authBaseUrl } : {}),
     database: drizzleAdapter(db, {
         provider: "pg",
         schema: schema,
@@ -31,21 +52,13 @@ export const auth = betterAuth({
             lastName: {
                 type: "string",
             },
-        }
+        },
     },
-    trustedOrigins: [
-        "https://admin.workit.co.ke",
-        "http://127.0.0.1:3000",
-        "http://localhost:3000",
-        "http://127.0.0.1:3001",
-        "http://localhost:3001",
-        "http://localhost:3002",
-    ],
+    ...(configuredOrigins.length ? { trustedOrigins: configuredOrigins } : {}),
     plugins: [
         emailOTP({
             async sendVerificationOTP({ email, otp, type }) {
                 console.log(`Verification OTP sent to ${email}: ${otp} (Type: ${type})`);
-                // In production, use an email service
             },
         }),
     ],

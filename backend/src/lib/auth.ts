@@ -1,24 +1,44 @@
 // auth.ts
 import dotenv from "dotenv";
-dotenv.config(); // load env before anything else
+dotenv.config();
 
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db, schema } from "./db.js";
 
+const splitOrigins = (value?: string): string[] =>
+    (value ?? "")
+        .split(",")
+        .map((origin) => origin.trim())
+        .filter(Boolean);
+
+const configuredOrigins = Array.from(
+    new Set([
+        ...splitOrigins(process.env.BETTER_AUTH_TRUSTED_ORIGINS),
+        ...splitOrigins(process.env.CORS_ORIGIN),
+        ...splitOrigins(process.env.FRONTEND_URL),
+        ...splitOrigins(process.env.ADMIN_URL),
+    ]),
+);
+
+if (!configuredOrigins.length && process.env.NODE_ENV !== "production") {
+    configuredOrigins.push("http://localhost:3000", "http://localhost:3002");
+}
+
+const authBaseUrl = process.env.BETTER_AUTH_URL || process.env.BACKEND_URL;
+const frontendUrl = process.env.FRONTEND_URL?.replace(/\/$/, "");
+const isProduction = process.env.NODE_ENV === "production";
+
 export const auth = betterAuth({
-    // Global secret for signing cookies & sessions
     secret: process.env.BETTER_AUTH_SECRET!,
     basePath: "/auth",
-    baseURL: process.env.BETTER_AUTH_URL || "https://api.workit.co.ke",
+    ...(authBaseUrl ? { baseURL: authBaseUrl } : {}),
 
-    // Database setup
     database: drizzleAdapter(db, {
         provider: "pg",
         schema: schema,
     }),
 
-    // Email/password login
     emailAndPassword: {
         enabled: true,
         password: {
@@ -33,7 +53,6 @@ export const auth = betterAuth({
         },
     },
 
-    // Social login providers
     socialProviders: {
         google: {
             clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -41,7 +60,6 @@ export const auth = betterAuth({
         },
     },
 
-    // User additional fields
     user: {
         additionalFields: {
             role: { type: "string", defaultValue: "ADMIN" },
@@ -50,47 +68,26 @@ export const auth = betterAuth({
         },
     },
 
-    // Trusted frontend origins (for Better Auth)
-    trustedOrigins: process.env.CORS_ORIGIN
-        ? process.env.CORS_ORIGIN.split(",")
-        : [
-            "https://workit.co.ke",
-            "https://admin.workit.co.ke",
-            "http://localhost:3000",
-            "http://localhost:3002",
-        ],
+    ...(configuredOrigins.length ? { trustedOrigins: configuredOrigins } : {}),
 
-    // CORS settings
     cors: {
         enabled: true,
-        allowedOrigins: process.env.CORS_ORIGIN
-            ? process.env.CORS_ORIGIN.split(",")
-            : [
-                "https://workit.co.ke",
-                "https://admin.workit.co.ke",
-                "http://localhost:3000",
-                "http://localhost:3002",
-            ],
+        ...(configuredOrigins.length ? { allowedOrigins: configuredOrigins } : {}),
     },
 
-    // Redirect users on error
-    errorRedirect: process.env.FRONTEND_URL
-        ? `${process.env.FRONTEND_URL}/auth/error`
-        : "https://workit.co.ke/auth/error",
+    ...(frontendUrl ? { errorRedirect: `${frontendUrl}/auth/error` } : {}),
 
-    // Session settings
     session: {
         cookieCache: {
             enabled: true,
-            maxAge: 60 * 60 * 24 * 7, // 7 days
+            maxAge: 60 * 60 * 24 * 7,
         },
     },
 
-    // Cookie settings for cross-domain login
     cookies: {
-        secure: true,        // required for HTTPS
-        sameSite: "none",    // allow cross-domain (frontend → backend)
-        httpOnly: true,      // prevent JS access
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
+        httpOnly: true,
     },
 });
 

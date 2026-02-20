@@ -1,77 +1,50 @@
-import { GraphQLError } from 'graphql';
-import { AuthService } from '@/lib/services';
-import { unauthorizedError } from '@/lib/graphql/errors';
+import { GraphQLError } from "graphql";
+import { unauthorizedError } from "@/lib/graphql/errors";
+import { auth } from "@/lib/auth/auth-server";
 
 export interface AuthContext {
-  user: any | null;
-  isAuthenticated: boolean;
+    user: any | null;
+    session: any | null;
+    isAuthenticated: boolean;
 }
 
-/**
- * Extract token from Authorization header
- */
-export function extractToken(authHeader?: string): string | null {
-  if (!authHeader) {
-    return null;
-  }
-
-  // Support both "Bearer <token>" and just "<token>"
-  const parts = authHeader.split(' ');
-  if (parts.length === 2 && parts[0] === 'Bearer') {
-    return parts[1];
-  }
-
-  // If no "Bearer" prefix, assume the entire header is the token
-  return authHeader;
-}
-
-/**
- * Create authentication context from request headers
- */
-export async function createAuthContext(
-  authHeader: string | undefined
-): Promise<AuthContext> {
-  const token = extractToken(authHeader);
-
-  if (!token) {
-    return {
-      user: null,
-      isAuthenticated: false,
-    };
-  }
-
-  const authService = new AuthService();
-  const user = await authService.getUserFromToken(token);
-
-  return {
-    user,
-    isAuthenticated: !!user,
-  };
-}
-
-/**
- * Require authentication - throws error if not authenticated
- */
-export function requireAuth(context: AuthContext): void {
-  if (!context.isAuthenticated || !context.user) {
-    throw unauthorizedError('Authentication required');
-  }
-}
-
-/**
- * Require specific role - throws error if user doesn't have required role
- */
-export function requireRole(
-  context: AuthContext,
-  allowedRoles: ('SUPER_ADMIN' | 'ADMIN' | 'EDITOR')[]
-): void {
-  requireAuth(context);
-
-  if (!context.user || !allowedRoles.includes(context.user.role as any)) {
-    throw new GraphQLError('Insufficient permissions', {
-      extensions: {
-        code: 'FORBIDDEN',
-      },
+export async function createAuthContext(request?: Request): Promise<AuthContext> {
+    const sessionResult = await auth.api.getSession({
+        headers: request?.headers ?? new Headers(),
     });
-  }
+
+    if (!sessionResult) {
+        return {
+            user: null,
+            session: null,
+            isAuthenticated: false,
+        };
+    }
+
+    return {
+        user: sessionResult.user,
+        session: sessionResult.session,
+        isAuthenticated: true,
+    };
+}
+
+export function requireAuth(context: AuthContext): void {
+    if (!context.isAuthenticated || !context.user) {
+        throw unauthorizedError("Authentication required");
+    }
+}
+
+export function requireRole(
+    context: AuthContext,
+    allowedRoles: ("SUPER_ADMIN" | "ADMIN" | "EDITOR")[],
+): void {
+    requireAuth(context);
+
+    if (!context.user || !allowedRoles.includes(context.user.role as any)) {
+        throw new GraphQLError("Insufficient permissions", {
+            extensions: {
+                code: "FORBIDDEN",
+            },
+        });
+    }
 }

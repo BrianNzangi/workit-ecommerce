@@ -26,22 +26,6 @@ export default function ProductCard({
   const isVariantAvailable = canBuy ?? true;
   const finalVariantId = variantId || variants?.[0]?.id || id || '';
 
-  // Debug logging
-  if (process.env.NODE_ENV === 'development') {
-    console.log('🛒 Product Card Debug:', {
-      productId: id,
-      name,
-      providedVariantId: variantId,
-      variantsArray: variants,
-      variantsLength: variants?.length,
-      firstVariantId: variants?.[0]?.id,
-      finalVariantId: finalVariantId,
-      canBuy: isVariantAvailable
-    });
-  }
-
-
-
   const discount =
     displayRegular && displayRegular > displayPrice
       ? Math.round(((displayRegular - displayPrice) / displayRegular) * 100)
@@ -240,3 +224,4 @@ export default function ProductCard({
     </Link>
   )
 }
+

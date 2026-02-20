@@ -5,11 +5,7 @@ export interface GraphQLContext {
 }
 
 export async function createContext(req?: Request): Promise<GraphQLContext> {
-  // Extract authorization header from request
-  const authHeader = req?.headers.get('authorization') || undefined;
-
-  // Create auth context
-  const auth = await createAuthContext(authHeader);
+  const auth = await createAuthContext(req);
 
   return {
     auth,

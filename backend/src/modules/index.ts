@@ -5,7 +5,6 @@ import { assetsRoutes } from "./catalog/assets/index.js";
 import { brandsRoutes } from "./catalog/brands/index.js";
 import { collectionsRoutes } from "./catalog/collections/index.js";
 import { productsRoutes } from "./catalog/products/index.js";
-import { customerAuthRoutes } from "./customer-auth/index.js";
 import { ordersRoutes } from "./fulfillment/orders/index.js";
 import { shippingRoutes } from "./fulfillment/shipping/index.js";
 import { customersRoutes } from "./identity/customers/index.js";
@@ -28,9 +27,6 @@ export const appModules: FastifyPluginAsync = async (fastify) => {
 
     // Auth (Admin)
     await fastify.register(authRoutes, { prefix: "/auth" });
-
-    // Auth (Customer)
-    await fastify.register(customerAuthRoutes, { prefix: "/auth/customer" });
 
     // Catalog
     await fastify.register(productsRoutes, { prefix: "/catalog/products" });

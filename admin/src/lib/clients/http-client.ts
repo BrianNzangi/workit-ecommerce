@@ -101,15 +101,6 @@ class HttpClient {
     }
 
     // Resource namespaces
-    public get auth() {
-        return {
-            login: (data: any) => this.post<any>("/auth/login", data),
-            register: (data: any) => this.post<any>("/auth/register", data),
-            getSession: () => this.get<any>("/auth/get-session"),
-            logout: () => this.post<any>("/auth/logout", {}),
-        };
-    }
-
     public get products() {
         return {
             list: (options?: any) => this.get<any>("/catalog/products/admin", { params: options }),

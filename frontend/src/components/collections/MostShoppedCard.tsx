@@ -27,6 +27,7 @@ export default function MostShoppedCard({ name, slug, image }: MostShoppedCardPr
                                 alt={name}
                                 fill
                                 className="object-cover"
+                                sizes="120px"
                             />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center p-2">

@@ -8,12 +8,7 @@
         "strict": true,
         "esModuleInterop": true,
         "skipLibCheck": true,
-        "forceConsistentCasingInFileNames": true,
-        "ignoreDeprecations": "6.0",
-        "baseUrl": "./src",
-        "paths": {
-            "@/*": ["./*"]
-        }
+        "forceConsistentCasingInFileNames": true
     },
     "include": [
         "src/**/*"

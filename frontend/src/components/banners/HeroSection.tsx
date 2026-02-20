@@ -56,7 +56,6 @@ export default function HeroSection() {
                 }
 
                 const data = await response.json();
-                console.log('📸 Raw banner data:', data);
 
                 if (data && Array.isArray(data)) {
                     // Filter enabled banners with HERO position and sort by sortOrder
@@ -64,7 +63,6 @@ export default function HeroSection() {
                         .filter((banner: Banner) => banner.position === 'HERO' && banner.enabled)
                         .sort((a: Banner, b: Banner) => a.sortOrder - b.sortOrder);
 
-                    console.log('✅ Filtered HERO banners:', enabledBanners);
                     setBanners(enabledBanners);
                 } else {
                     console.warn('⚠️ No banner data received or data is not an array:', data);
