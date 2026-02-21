@@ -191,7 +191,11 @@ const authCookiePrefix =
     process.env.NEXT_PUBLIC_AUTH_COOKIE_PREFIX?.trim() ||
     process.env.AUTH_COOKIE_PREFIX?.trim() ||
     "store-auth";
-const betterAuthSecret = process.env.BETTER_AUTH_SECRET?.trim();
+const betterAuthSecret =
+    process.env.BETTER_AUTH_SECRET?.trim() ||
+    (process.env.NEXT_PHASE === "phase-production-build"
+        ? "build-placeholder-secret"
+        : undefined);
 
 if (!betterAuthSecret) {
     throw new Error("BETTER_AUTH_SECRET is required for storefront auth.");
