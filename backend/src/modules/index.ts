@@ -55,6 +55,8 @@ export const appModules: FastifyPluginAsync = async (fastify) => {
 
     // Storefront Public API
     await fastify.register(storeRoutes, { prefix: "/store" });
+    // Backward-compatible public API aliases
+    await fastify.register(storeRoutes, { prefix: "/api" });
 
     // Cart
     await fastify.register(cartRoutes, { prefix: "/cart" });

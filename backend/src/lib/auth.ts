@@ -29,6 +29,7 @@ const authBaseUrl = process.env.BETTER_AUTH_URL || process.env.BACKEND_URL;
 const frontendUrl = process.env.FRONTEND_URL?.replace(/\/$/, "");
 const isProduction = process.env.NODE_ENV === "production";
 const cookieDomain = process.env.BETTER_AUTH_COOKIE_DOMAIN?.trim();
+const authCookiePrefix = process.env.BETTER_AUTH_COOKIE_PREFIX?.trim() || "admin-auth";
 
 export const auth = betterAuth({
     secret: process.env.BETTER_AUTH_SECRET!,
@@ -86,6 +87,7 @@ export const auth = betterAuth({
     },
 
     advanced: {
+        cookiePrefix: authCookiePrefix,
         useSecureCookies: isProduction,
         defaultCookieAttributes: {
             secure: isProduction,

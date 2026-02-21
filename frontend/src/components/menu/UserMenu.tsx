@@ -101,7 +101,7 @@ export default function UserMenu() {
               if (supportsHover) closeMenuWithDelay();
             }}
           >
-            <div className="w-48 bg-gray-50 rounded-xl shadow-lg py-1">
+            <div className="w-48 bg-gray-100 border border-primary-100 rounded-lg shadow-xl py-1">
               {customer ? (
                 <>
                   <div className="px-4 py-2 border-b border-gray-100">
@@ -144,15 +144,9 @@ export default function UserMenu() {
                 <>
                   <button
                     onClick={() => openAuthModal('login')}
-                    className="block w-full text-left px-4 py-2 text-sm font-sans text-gray-700 hover:bg-gray-100"
+                    className="mx-3 my-2 w-[calc(100%-24px)] rounded-md bg-primary-900 px-4 py-2 text-sm font-sans font-medium text-white hover:bg-primary-800"
                   >
                     Sign In
-                  </button>
-                  <button
-                    onClick={() => openAuthModal('signup')}
-                    className="block w-full text-left px-4 py-2 text-sm font-sans text-gray-700 hover:bg-gray-100"
-                  >
-                    Sign Up
                   </button>
                   <Link
                     href="/help-center"

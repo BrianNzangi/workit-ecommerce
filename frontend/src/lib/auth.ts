@@ -26,10 +26,13 @@ if (!configuredOrigins.length && process.env.NODE_ENV !== "production") {
 }
 
 const authBaseUrl =
-    process.env.BETTER_AUTH_URL ||
     process.env.NEXT_PUBLIC_AUTH_BASE_URL ||
     process.env.NEXT_PUBLIC_APP_URL ||
     process.env.NEXT_PUBLIC_FRONTEND_BASE_URL;
+const authCookiePrefix =
+    process.env.NEXT_PUBLIC_AUTH_COOKIE_PREFIX?.trim() ||
+    process.env.AUTH_COOKIE_PREFIX?.trim() ||
+    "store-auth";
 
 export const auth = betterAuth({
     secret: process.env.BETTER_AUTH_SECRET || "pvhf6y7u8i9o0p1q2r3s4t5u6v7w8x9y",
@@ -62,6 +65,9 @@ export const auth = betterAuth({
         },
     },
     ...(configuredOrigins.length ? { trustedOrigins: configuredOrigins } : {}),
+    advanced: {
+        cookiePrefix: authCookiePrefix,
+    },
     plugins: [
         emailOTP({
             async sendVerificationOTP({ email, otp, type }) {

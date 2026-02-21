@@ -41,6 +41,15 @@ export const buildApp = async () => {
 
     // Manual test route to verify the code is fresh
     app.get("/test-deploy", async () => ({ status: "v3-minio", timestamp: new Date() }));
+    app.get("/api", async () => ({
+        status: "ok",
+        service: "workit-backend",
+        routes: {
+            auth: "/api/auth",
+            products: "/api/products",
+            store: "/store",
+        },
+    }));
 
     // Set Zod compilers
     app.setValidatorCompiler(validatorCompiler);

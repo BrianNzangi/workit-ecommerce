@@ -21,7 +21,15 @@ if (!configuredOrigins.length && process.env.NODE_ENV !== "production") {
     configuredOrigins.push("http://localhost:3002", "http://127.0.0.1:3002");
 }
 
-const authBaseUrl = process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_ADMIN_BASE_URL;
+const authBaseUrl =
+    process.env.NEXT_PUBLIC_AUTH_BASE_URL ||
+    process.env.NEXT_PUBLIC_ADMIN_BASE_URL ||
+    process.env.ADMIN_URL ||
+    process.env.BETTER_AUTH_URL;
+const authCookiePrefix =
+    process.env.BETTER_AUTH_COOKIE_PREFIX?.trim() ||
+    process.env.NEXT_PUBLIC_AUTH_COOKIE_PREFIX?.trim() ||
+    "admin-auth";
 
 export const auth = betterAuth({
     secret: process.env.BETTER_AUTH_SECRET || "pvhf6y7u8i9o0p1q2r3s4t5u6v7w8x9y",
@@ -62,6 +70,9 @@ export const auth = betterAuth({
     },
 
     ...(configuredOrigins.length ? { trustedOrigins: configuredOrigins } : {}),
+    advanced: {
+        cookiePrefix: authCookiePrefix,
+    },
 });
 
 export type Session = typeof auth.$Infer.Session;

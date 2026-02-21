@@ -56,10 +56,6 @@ const nextConfig: NextConfig = {
         source: '/uploads/:path*',
         destination: `${backendUrl}/uploads/:path*`,
       },
-      {
-        source: '/api/:path*',
-        destination: `${backendUrl}/:path*`, // Proxy all /api requests to backend
-      },
     ];
   },
 };
