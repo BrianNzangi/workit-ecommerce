@@ -3,6 +3,146 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { emailOTP } from "better-auth/plugins";
 import { db, schema } from "@workit/db";
 
+type OtpType = "sign-in" | "email-verification" | "forget-password";
+
+const OTP_EXPIRES_MINUTES = 5;
+
+const otpMessageByType: Record<OtpType, { subject: string; title: string; description: string }> = {
+    "sign-in": {
+        subject: "Your Workit sign-in code",
+        title: "Sign in to Workit",
+        description: "Use this one-time code to complete your sign in.",
+    },
+    "email-verification": {
+        subject: "Verify your Workit email",
+        title: "Verify your email",
+        description: "Use this one-time code to verify your Workit account email address.",
+    },
+    "forget-password": {
+        subject: "Your Workit password reset code",
+        title: "Reset your password",
+        description: "Use this one-time code to reset your password.",
+    },
+};
+
+const getOtpType = (type: string): OtpType =>
+    type === "email-verification" || type === "forget-password" || type === "sign-in"
+        ? type
+        : "sign-in";
+
+const buildOtpEmail = ({
+    otp,
+    type,
+}: {
+    otp: string;
+    type: OtpType;
+}) => {
+    const message = otpMessageByType[type];
+    const html = `
+        <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#111827;">
+            <h2 style="margin:0 0 12px;font-size:22px;">${message.title}</h2>
+            <p style="margin:0 0 20px;color:#4b5563;">${message.description}</p>
+            <div style="margin:0 0 20px;padding:14px 18px;border:1px solid #e5e7eb;border-radius:8px;background:#f9fafb;">
+                <p style="margin:0 0 8px;color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:.08em;">One-time code</p>
+                <p style="margin:0;font-size:30px;font-weight:700;letter-spacing:.25em;">${otp}</p>
+            </div>
+            <p style="margin:0 0 8px;color:#4b5563;">This code expires in ${OTP_EXPIRES_MINUTES} minutes.</p>
+            <p style="margin:0;color:#6b7280;font-size:13px;">If you didn’t request this, you can safely ignore this email.</p>
+        </div>
+    `;
+
+    const text =
+        `${message.title}\n\n` +
+        `${message.description}\n\n` +
+        `Code: ${otp}\n` +
+        `Expires in ${OTP_EXPIRES_MINUTES} minutes.\n\n` +
+        `If you didn’t request this, you can ignore this email.`;
+
+    return {
+        subject: message.subject,
+        html,
+        text,
+    };
+};
+
+const sendOtpViaResend = async ({
+    to,
+    subject,
+    html,
+    text,
+}: {
+    to: string;
+    subject: string;
+    html: string;
+    text: string;
+}) => {
+    const apiKey = process.env.RESEND_API_KEY?.trim();
+    const fromEmail = process.env.RESEND_FROM_EMAIL?.trim() || process.env.OTP_FROM_EMAIL?.trim();
+    if (!apiKey || !fromEmail) return false;
+
+    const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+            from: fromEmail,
+            to: [to],
+            subject,
+            html,
+            text,
+        }),
+    });
+
+    if (!response.ok) {
+        const body = await response.text();
+        throw new Error(`Resend send failed (${response.status}): ${body}`);
+    }
+
+    return true;
+};
+
+const sendOtpViaUnosend = async ({
+    to,
+    subject,
+    html,
+    text,
+}: {
+    to: string;
+    subject: string;
+    html: string;
+    text: string;
+}) => {
+    const apiKey = process.env.UNOSEND_API_KEY?.trim();
+    const fromEmail = process.env.UNOSEND_FROM_EMAIL?.trim() || process.env.OTP_FROM_EMAIL?.trim();
+    const fromName = process.env.UNOSEND_FROM_NAME?.trim() || "Workit";
+    if (!apiKey || !fromEmail) return false;
+    const from = `${fromName} <${fromEmail}>`;
+
+    const response = await fetch("https://www.unosend.co/api/v1/emails", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+            from,
+            to: [to],
+            subject,
+            html,
+            text,
+        }),
+    });
+
+    if (!response.ok) {
+        const body = await response.text();
+        throw new Error(`Unosend send failed (${response.status}): ${body}`);
+    }
+
+    return true;
+};
+
 const splitOrigins = (value?: string): string[] =>
     (value ?? "")
         .split(",")
@@ -70,8 +210,36 @@ export const auth = betterAuth({
     },
     plugins: [
         emailOTP({
+            disableSignUp: true,
+            allowedAttempts: 5,
             async sendVerificationOTP({ email, otp, type }) {
-                console.log(`Verification OTP sent to ${email}: ${otp} (Type: ${type})`);
+                const normalizedType = getOtpType(type);
+                const { subject, html, text } = buildOtpEmail({
+                    otp,
+                    type: normalizedType,
+                });
+
+                const sentWithResend = await sendOtpViaResend({
+                    to: email,
+                    subject,
+                    html,
+                    text,
+                });
+
+                if (sentWithResend) return;
+
+                const sentWithUnosend = await sendOtpViaUnosend({
+                    to: email,
+                    subject,
+                    html,
+                    text,
+                });
+
+                if (sentWithUnosend) return;
+
+                throw new Error(
+                    "OTP email provider is not configured. Set UNOSEND_API_KEY and UNOSEND_FROM_EMAIL (or OTP_FROM_EMAIL).",
+                );
             },
         }),
     ],

@@ -67,7 +67,7 @@ export default function AuthModal() {
                     </h3>
                     <p className="text-secondary-500 text-base mb-8">
                         {authType === 'login'
-                            ? 'Enter your information to sign in.'
+                            ? 'Enter your email to receive a one-time login code.'
                             : authType === 'verify'
                                 ? `Enter the code sent to your email.`
                                 : 'Enter your details to create an account.'}
