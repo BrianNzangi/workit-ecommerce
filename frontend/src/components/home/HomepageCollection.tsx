@@ -1,18 +1,13 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import ProductCard from '../product/ProductCard';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, useAnimation } from 'framer-motion';
 import { useHomepageCollections, type HomepageCollectionData } from '@/hooks/useHomepageCollections';
-import { getProductImageUrl } from '@/lib/image-utils';
 import HorizontalBanner from '../banners/HorizontalBanner';
 import React from 'react';
 
-/**
- * Single Collection Carousel Component
- * Renders a single collection with its products in a carousel layout
- */
 interface CollectionCarouselProps {
   collection: HomepageCollectionData;
 }
@@ -21,32 +16,26 @@ function CollectionCarousel({ collection }: CollectionCarouselProps) {
   const [scrollIndex, setScrollIndex] = useState(0);
   const [containerWidth, setContainerWidth] = useState(0);
   const [visibleCards, setVisibleCards] = useState(2);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const controls = useAnimation();
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const GAP = 16; // gap-4
-
-  // Use products directly from collection (backend structure is simpler)
+  const GAP = 16;
+  const MIN_SWIPE_DISTANCE = 40;
   const products = collection.products || [];
-  const maxProductsToShow = 12; // Default limit
+  const displayedProducts = products.slice(0, 12);
 
   useEffect(() => {
     const updateDimensions = () => {
-      if (containerRef.current) {
-        const width = containerRef.current.offsetWidth;
-        setContainerWidth(width);
+      if (!containerRef.current) return;
+      const width = containerRef.current.offsetWidth;
+      setContainerWidth(width);
 
-        // Responsive visible cards based on screen width
-        if (width < 640) {
-          setVisibleCards(2); // Mobile: 2 cards
-        } else if (width < 1024) {
-          setVisibleCards(3); // Tablet: 3 cards
-        } else if (width < 1280) {
-          setVisibleCards(4); // Desktop: 4 cards
-        } else {
-          setVisibleCards(5); // Large desktop: 5 cards
-        }
-      }
+      if (width < 640) setVisibleCards(2);
+      else if (width < 1024) setVisibleCards(3);
+      else if (width < 1280) setVisibleCards(4);
+      else setVisibleCards(5);
     };
 
     updateDimensions();
@@ -54,36 +43,65 @@ function CollectionCarousel({ collection }: CollectionCarouselProps) {
     return () => window.removeEventListener('resize', updateDimensions);
   }, []);
 
-  // Calculate card width based on container and visible cards
   const getCardWidth = () => {
     if (containerWidth <= 0) return 250;
-
-    if (containerWidth < 640) {
-      // Mobile: Make cards slightly wider, accounting for container padding
-      return (containerWidth - GAP) / 2;
-    }
-
+    if (containerWidth < 640) return (containerWidth - GAP) / 2;
     return (containerWidth - (GAP * (visibleCards - 1))) / visibleCards;
   };
 
   const cardWidth = getCardWidth();
-  const maxScrollIndex = Math.max(0, products.length - visibleCards);
+  const maxScrollIndex = Math.max(0, displayedProducts.length - visibleCards);
 
-  const scroll = async (direction: 'left' | 'right') => {
-    const newIndex =
-      direction === 'left'
-        ? Math.max(scrollIndex - 1, 0)
-        : Math.min(scrollIndex + 1, maxScrollIndex);
-
-    setScrollIndex(newIndex);
-
-    // Calculate the exact scroll position
-    const scrollAmount = newIndex * (cardWidth + GAP);
+  const scrollToIndex = useCallback(async (index: number) => {
+    const boundedIndex = Math.min(Math.max(index, 0), maxScrollIndex);
+    setScrollIndex(boundedIndex);
 
     await controls.start({
-      x: -scrollAmount,
+      x: -(boundedIndex * (cardWidth + GAP)),
       transition: { duration: 0.5, ease: 'easeInOut' },
     });
+  }, [cardWidth, controls, maxScrollIndex]);
+
+  const scroll = useCallback(async (direction: 'left' | 'right', loop = false) => {
+    const nextIndex = direction === 'left'
+      ? (scrollIndex <= 0 ? (loop ? maxScrollIndex : 0) : scrollIndex - 1)
+      : (scrollIndex >= maxScrollIndex ? (loop ? 0 : maxScrollIndex) : scrollIndex + 1);
+
+    await scrollToIndex(nextIndex);
+  }, [maxScrollIndex, scrollIndex, scrollToIndex]);
+
+  useEffect(() => {
+    if (displayedProducts.length <= visibleCards) return;
+
+    const timer = setInterval(() => {
+      void scroll('right', true);
+    }, 2800);
+
+    return () => clearInterval(timer);
+  }, [displayedProducts.length, visibleCards, scroll]);
+
+  useEffect(() => {
+    controls.set({ x: -(scrollIndex * (cardWidth + GAP)) });
+  }, [controls, scrollIndex, cardWidth]);
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (touchStart === null || touchEnd === null) return;
+    const distance = touchStart - touchEnd;
+
+    if (distance > MIN_SWIPE_DISTANCE) {
+      void scroll('right', true);
+    } else if (distance < -MIN_SWIPE_DISTANCE) {
+      void scroll('left', true);
+    }
   };
 
   const canScrollLeft = scrollIndex > 0;
@@ -103,8 +121,7 @@ function CollectionCarousel({ collection }: CollectionCarouselProps) {
       </div>
     ));
 
-  // Don't render if no products
-  if (products.length === 0) {
+  if (displayedProducts.length === 0) {
     return null;
   }
 
@@ -115,14 +132,12 @@ function CollectionCarousel({ collection }: CollectionCarouselProps) {
           <h2 className="font-sans text-lg md:text-2xl capitalize font-bold text-gray-900">
             {collection.title}
           </h2>
-          {products.length > 0 && (
-            <a
-              href={`/deal-details/${collection.slug}`}
-              className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors whitespace-nowrap"
-            >
-              View All →
-            </a>
-          )}
+          <a
+            href={`/deal-details/${collection.slug}`}
+            className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors whitespace-nowrap"
+          >
+            View All {'->'}
+          </a>
         </div>
         {collection.subtitle && (
           <h3 className="text-lg md:text-xl text-gray-600 mt-1">
@@ -137,11 +152,10 @@ function CollectionCarousel({ collection }: CollectionCarouselProps) {
       </div>
 
       <div className="relative">
-        {/* Carousel arrows - hidden on mobile, show on tablet and up when needed */}
-        {products.length > visibleCards && (
+        {displayedProducts.length > visibleCards && (
           <>
             <button
-              onClick={() => scroll('left')}
+              onClick={() => void scroll('left', true)}
               disabled={!canScrollLeft}
               className={`hidden sm:block absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 p-2 md:p-3 rounded-full shadow-lg transition-all duration-200 ${canScrollLeft
                 ? 'bg-gray-100 hover:bg-gray-50 text-gray-700 hover:text-gray-900 cursor-pointer'
@@ -153,7 +167,7 @@ function CollectionCarousel({ collection }: CollectionCarouselProps) {
             </button>
 
             <button
-              onClick={() => scroll('right')}
+              onClick={() => void scroll('right', true)}
               disabled={!canScrollRight}
               className={`hidden sm:block absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 p-2 md:p-3 rounded-full shadow-lg transition-all duration-200 ${canScrollRight
                 ? 'bg-secondary-400/20 hover:bg-secondary-900 text-gray-50 hover:text-primary-900 cursor-pointer'
@@ -167,25 +181,30 @@ function CollectionCarousel({ collection }: CollectionCarouselProps) {
         )}
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div ref={containerRef} className="overflow-hidden">
+          <div
+            ref={containerRef}
+            className="overflow-hidden"
+            style={{ touchAction: 'pan-y' }}
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+          >
             <motion.div
               animate={controls}
               className="flex gap-4"
               initial={{ x: 0 }}
             >
-              {products.length === 0
+              {displayedProducts.length === 0
                 ? renderSkeleton()
-                : products.slice(0, maxProductsToShow).map((product) => {
-                  return (
-                    <div
-                      key={product.id}
-                      className="shrink-0"
-                      style={{ width: `${cardWidth}px` }}
-                    >
-                      <ProductCard {...product} />
-                    </div>
-                  );
-                })}
+                : displayedProducts.map((product) => (
+                  <div
+                    key={product.id}
+                    className="shrink-0"
+                    style={{ width: `${cardWidth}px` }}
+                  >
+                    <ProductCard {...product} />
+                  </div>
+                ))}
             </motion.div>
           </div>
         </div>
@@ -194,18 +213,14 @@ function CollectionCarousel({ collection }: CollectionCarouselProps) {
   );
 }
 
-/**
- * Homepage Collections Component
- * Fetches and displays all active homepage collections
- */
 export default function HomepageCollection() {
   const { collections, loading, error } = useHomepageCollections({ status: 'active' });
 
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
         <div className="flex justify-center items-center min-h-100">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
         </div>
       </div>
     );

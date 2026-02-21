@@ -132,32 +132,17 @@ export default function ColProductCard({
               No Image
             </div>
           )}
-
-          {/* Quick Add Button - Bottom Left */}
-          <button
-            onClick={handleAddToCart}
-            disabled={!isVariantAvailable}
-            className={`absolute bottom-2 left-2 z-10 p-2 rounded-full transition-all duration-200 shadow-md flex items-center justify-center ${isVariantAvailable
-              ? 'bg-primary-900 text-white hover:bg-[#e04500] active:scale-95 cursor-pointer'
-              : 'bg-gray-400 text-gray-200 cursor-not-allowed'
-              }`}
-            aria-label={isVariantAvailable ? 'Add to cart' : 'Out of stock'}
-          >
-            <ShoppingCart size={16} />
-          </button>
-
-
         </div>
 
         {/* Product Info - Reduced spacing on mobile */}
-        <div className="grow flex flex-col space-y-1.5 sm:space-y-2">
+        <div className="grow flex flex-col space-y-1 sm:space-y-1.5">
           {/* Product Name */}
           <h3 className="font-sans text-[15px] md:text-base font-medium text-gray-800 break-words whitespace-normal leading-snug">
             {name || 'Product'}
           </h3>
 
           {/* Price Section */}
-          <div className="mt-auto pt-1.5 flex flex-col gap-1.5">
+          <div className="pt-0.5 flex flex-col gap-1">
             <div>
               <span className="font-sans text-lg md:text-xl font-bold text-[#1F2323]">
                 KES {displayPrice.toLocaleString('en-US', { maximumFractionDigits: 0 })}
@@ -215,6 +200,19 @@ export default function ColProductCard({
               </div>
             )}
           </div>
+
+          <button
+            onClick={handleAddToCart}
+            disabled={!isVariantAvailable}
+            className={`mt-auto w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm md:text-base font-semibold transition-all duration-200 ${isVariantAvailable
+              ? 'bg-primary-900 text-white hover:bg-[#e04500] active:scale-[0.99] cursor-pointer'
+              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+            aria-label={isVariantAvailable ? 'Add to cart' : 'Out of stock'}
+          >
+            <ShoppingCart size={16} />
+            <span>{isVariantAvailable ? 'Add to Cart' : 'Out of Stock'}</span>
+          </button>
         </div>
       </div>
     </Link>
