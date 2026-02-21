@@ -6,6 +6,10 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 
 type ModalBusyReporter = (busy: boolean, message?: string) => void;
+const requestTimeoutFromEnv = Number(process.env.NEXT_PUBLIC_AUTH_REQUEST_TIMEOUT_MS ?? "30000");
+const AUTH_REQUEST_TIMEOUT_MS = Number.isFinite(requestTimeoutFromEnv) && requestTimeoutFromEnv > 0
+    ? requestTimeoutFromEnv
+    : 30000;
 
 const generateHiddenPassword = () => {
     if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -14,7 +18,7 @@ const generateHiddenPassword = () => {
     return `workit-${Math.random().toString(36).slice(2)}-${Date.now()}-A1!`;
 };
 
-async function withRequestTimeout<T>(promise: Promise<T>, timeoutMs = 15000) {
+async function withRequestTimeout<T>(promise: Promise<T>, timeoutMs = AUTH_REQUEST_TIMEOUT_MS) {
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
     const timeoutPromise = new Promise<T>((_, reject) => {
         timeoutId = setTimeout(() => reject(new Error('Request timed out. Please try again.')), timeoutMs);
