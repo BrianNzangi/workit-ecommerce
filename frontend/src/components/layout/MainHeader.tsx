@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -25,26 +25,11 @@ export default function MainHeader({
   onCloseMobileMenu,
   onOpenCart,
 }: MainHeaderProps) {
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const mediaQuery = window.matchMedia('(min-width: 768px)');
-    const handleDesktop = () => {
-      if (mediaQuery.matches && mobileMenuOpen) {
-        onCloseMobileMenu();
-      }
-    };
-
-    handleDesktop();
-    mediaQuery.addEventListener('change', handleDesktop);
-    return () => mediaQuery.removeEventListener('change', handleDesktop);
-  }, [mobileMenuOpen, onCloseMobileMenu]);
-
   return (
     <header id="site-header" className="bg-white">
       <div className="bg-white font-sans text-secondary-900 border-b border-gray-300">
         <div className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-8 py-4 flex items-center justify-between gap-4 flex-wrap md:flex-nowrap">
-          <Link href="/" className="inline-block relative w-[150px] sm:w-[180px] md:w-[200px] lg:w-[120px] xl:w-[150px] h-auto">
+          <Link href="/" className="inline-block relative w-37.5 sm:w-45 md:w-50 lg:w-30 xl:w-37.5 h-auto">
             <Image
               src="/workit-logo.png"
               alt="Workit Logo"
@@ -107,17 +92,17 @@ export default function MainHeader({
         </div>
 
         <div
-          className={`md:hidden fixed inset-0 z-50 transition-colors duration-300 ${mobileMenuOpen ? 'bg-black/50 pointer-events-auto' : 'bg-transparent pointer-events-none'
+          className={`fixed inset-0 z-50 transition-colors duration-300 ${mobileMenuOpen ? 'bg-black/50 pointer-events-auto' : 'bg-transparent pointer-events-none'
             }`}
           onClick={onCloseMobileMenu}
         >
           <div
-            className={`absolute top-0 left-0 h-full w-[85%] max-w-[400px] bg-white shadow-2xl transform transition-transform duration-300 ease-in-out flex flex-col overflow-hidden ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+            className={`absolute top-0 left-0 h-full w-[85%] max-w-100 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out flex flex-col overflow-hidden ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
               }`}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center p-4 border-b">
-              <Link href="/" onClick={onCloseMobileMenu} className="inline-block relative w-[100px] h-auto">
+              <Link href="/" onClick={onCloseMobileMenu} className="inline-block relative w-25 h-auto">
                 <Image
                   src="/workit-logo.png"
                   alt="Workit Logo"
