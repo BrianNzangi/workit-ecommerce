@@ -47,7 +47,7 @@ export default function AuthModal() {
         >
             <div
                 ref={modalRef}
-                className="relative w-full max-w-[440px] mx-4 bg-white rounded-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300"
+                className="relative w-full max-w-110 mx-4 bg-white rounded-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300"
             >
                 <div className="p-10 pt-12 text-center">
                     {/* Logo */}

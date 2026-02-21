@@ -6,6 +6,10 @@ import { db, schema } from "@workit/db";
 type OtpType = "sign-in" | "email-verification" | "forget-password";
 
 const OTP_EXPIRES_MINUTES = 5;
+const timeoutFromEnv = Number(process.env.OTP_EMAIL_TIMEOUT_MS ?? "10000");
+const EMAIL_REQUEST_TIMEOUT_MS = Number.isFinite(timeoutFromEnv) && timeoutFromEnv > 0
+    ? timeoutFromEnv
+    : 10000;
 
 const otpMessageByType: Record<OtpType, { subject: string; title: string; description: string }> = {
     "sign-in": {
@@ -47,7 +51,7 @@ const buildOtpEmail = ({
                 <p style="margin:0;font-size:30px;font-weight:700;letter-spacing:.25em;">${otp}</p>
             </div>
             <p style="margin:0 0 8px;color:#4b5563;">This code expires in ${OTP_EXPIRES_MINUTES} minutes.</p>
-            <p style="margin:0;color:#6b7280;font-size:13px;">If you didn’t request this, you can safely ignore this email.</p>
+            <p style="margin:0;color:#6b7280;font-size:13px;">If you didn't request this, you can safely ignore this email.</p>
         </div>
     `;
 
@@ -56,13 +60,31 @@ const buildOtpEmail = ({
         `${message.description}\n\n` +
         `Code: ${otp}\n` +
         `Expires in ${OTP_EXPIRES_MINUTES} minutes.\n\n` +
-        `If you didn’t request this, you can ignore this email.`;
+        `If you didn't request this, you can ignore this email.`;
 
     return {
         subject: message.subject,
         html,
         text,
     };
+};
+
+const fetchWithTimeout = async (
+    url: string,
+    init: RequestInit,
+    timeoutMs: number = EMAIL_REQUEST_TIMEOUT_MS,
+) => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+        return await fetch(url, {
+            ...init,
+            signal: controller.signal,
+        });
+    } finally {
+        clearTimeout(timer);
+    }
 };
 
 const sendOtpViaResend = async ({
@@ -80,7 +102,7 @@ const sendOtpViaResend = async ({
     const fromEmail = process.env.RESEND_FROM_EMAIL?.trim() || process.env.OTP_FROM_EMAIL?.trim();
     if (!apiKey || !fromEmail) return false;
 
-    const response = await fetch("https://api.resend.com/emails", {
+    const response = await fetchWithTimeout("https://api.resend.com/emails", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -120,7 +142,7 @@ const sendOtpViaUnosend = async ({
     if (!apiKey || !fromEmail) return false;
     const from = `${fromName} <${fromEmail}>`;
 
-    const response = await fetch("https://www.unosend.co/api/v1/emails", {
+    const response = await fetchWithTimeout("https://www.unosend.co/api/v1/emails", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -161,10 +183,6 @@ const configuredOrigins = Array.from(
     ]),
 );
 
-if (!configuredOrigins.length && process.env.NODE_ENV !== "production") {
-    configuredOrigins.push("http://localhost:3000", "http://localhost:3002");
-}
-
 const authBaseUrl =
     process.env.NEXT_PUBLIC_AUTH_BASE_URL ||
     process.env.NEXT_PUBLIC_APP_URL ||
@@ -173,9 +191,14 @@ const authCookiePrefix =
     process.env.NEXT_PUBLIC_AUTH_COOKIE_PREFIX?.trim() ||
     process.env.AUTH_COOKIE_PREFIX?.trim() ||
     "store-auth";
+const betterAuthSecret = process.env.BETTER_AUTH_SECRET?.trim();
+
+if (!betterAuthSecret) {
+    throw new Error("BETTER_AUTH_SECRET is required for storefront auth.");
+}
 
 export const auth = betterAuth({
-    secret: process.env.BETTER_AUTH_SECRET || "pvhf6y7u8i9o0p1q2r3s4t5u6v7w8x9y",
+    secret: betterAuthSecret,
     ...(authBaseUrl ? { baseURL: authBaseUrl } : {}),
     database: drizzleAdapter(db, {
         provider: "pg",
@@ -219,27 +242,33 @@ export const auth = betterAuth({
                     type: normalizedType,
                 });
 
-                const sentWithResend = await sendOtpViaResend({
-                    to: email,
-                    subject,
-                    html,
-                    text,
-                });
+                try {
+                    const sentWithResend = await sendOtpViaResend({
+                        to: email,
+                        subject,
+                        html,
+                        text,
+                    });
 
-                if (sentWithResend) return;
+                    if (sentWithResend) return;
 
-                const sentWithUnosend = await sendOtpViaUnosend({
-                    to: email,
-                    subject,
-                    html,
-                    text,
-                });
+                    const sentWithUnosend = await sendOtpViaUnosend({
+                        to: email,
+                        subject,
+                        html,
+                        text,
+                    });
 
-                if (sentWithUnosend) return;
+                    if (sentWithUnosend) return;
 
-                throw new Error(
-                    "OTP email provider is not configured. Set UNOSEND_API_KEY and UNOSEND_FROM_EMAIL (or OTP_FROM_EMAIL).",
-                );
+                    throw new Error(
+                        "OTP email provider is not configured. Set UNOSEND_API_KEY and UNOSEND_FROM_EMAIL (or OTP_FROM_EMAIL).",
+                    );
+                } catch (error) {
+                    const message = error instanceof Error ? error.message : "Unknown OTP provider error";
+                    console.error(`[Auth OTP] Failed to send OTP (${normalizedType}) to ${email}: ${message}`);
+                    throw error;
+                }
             },
         }),
     ],
