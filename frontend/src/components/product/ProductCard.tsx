@@ -156,27 +156,27 @@ export default function ProductCard({
         {/* Product Info - Reduced spacing on mobile */}
         <div className="grow flex flex-col space-y-1.5 sm:space-y-2">
           {/* Product Name */}
-          <h3 className="font-sans text-sm font-medium text-gray-800 line-clamp-2 wrap-break-word leading-tight">
+          <h3 className="font-sans text-[15px] md:text-base font-medium text-gray-800 break-words whitespace-normal leading-snug">
             {name || 'Product'}
           </h3>
 
           {/* Price Section */}
-          <div className="mt-auto pt-1 flex flex-col gap-1.5">
-            <div className="flex items-baseline gap-2 flex-wrap">
-              <span className="font-sans text-base font-bold text-[#1F2323]">
+          <div className="mt-auto pt-1.5 flex flex-col gap-1.5">
+            <div>
+              <span className="font-sans text-lg md:text-xl font-bold text-[#1F2323]">
                 KES {displayPrice.toLocaleString('en-US', { maximumFractionDigits: 0 })}
               </span>
-              {displayRegular && displayRegular > 0 && (
-                <>
-                  <span className="font-sans text-gray-500 text-xs line-through">
-                    KES {displayRegular.toLocaleString('en-US', { maximumFractionDigits: 0 })}
-                  </span>
-                  <span className="text-green-700 text-xs font-bold">
-                    {discount}% OFF
-                  </span>
-                </>
-              )}
             </div>
+            {displayRegular && displayRegular > displayPrice && discount !== null && (
+              <div className="flex items-center gap-2">
+                <span className="font-sans text-gray-500 text-sm md:text-base line-through">
+                  KES {displayRegular.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                </span>
+                <span className="text-green-700 text-sm md:text-base font-bold">
+                  {discount}% OFF
+                </span>
+              </div>
+            )}
 
             {/* Express Banner */}
             {shippingMethod?.isExpress && (
