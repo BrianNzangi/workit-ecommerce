@@ -4,40 +4,6 @@ import { useState } from 'react';
 import { signIn, signUp, authClient } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
-import { FcGoogle } from 'react-icons/fc';
-
-export function SocialLogin() {
-    const handleGoogleSignIn = async () => {
-        try {
-            await signIn.social({
-                provider: 'google',
-                callbackURL: '/',
-            });
-        } catch (err: any) {
-            toast.error(err.message || 'Failed to sign in with Google');
-        }
-    };
-
-    return (
-        <button
-            onClick={handleGoogleSignIn}
-            className="w-full flex items-center justify-center gap-3 py-2 border border-secondary-200 rounded-lg hover:bg-secondary-50 transition-all duration-200 font-medium text-secondary-700"
-        >
-            <FcGoogle className="text-2xl" />
-            <span>Google</span>
-        </button>
-    );
-}
-
-export function Separator() {
-    return (
-        <div className="relative flex items-center justify-center my-8">
-            <div className="grow border-t border-secondary-100"></div>
-            <span className="shrink mx-4 text-secondary-400 text-sm font-medium">Or</span>
-            <div className="grow border-t border-secondary-100"></div>
-        </div>
-    );
-}
 
 export function LoginForm() {
     const [email, setEmail] = useState('');
@@ -94,15 +60,12 @@ export function LoginForm() {
         <div className="w-full">
             {step === 'request' ? (
                 <>
-                    <SocialLogin />
-                    <Separator />
-
                     <form
                         onSubmit={(e) => {
                             e.preventDefault();
                             void handleRequestOtp();
                         }}
-                        className="space-y-5"
+                        className="space-y-0"
                     >
                         <div>
                             <input
@@ -118,7 +81,7 @@ export function LoginForm() {
                         <button
                             type="submit"
                             disabled={sendingOtp}
-                            className="w-full py-2 bg-secondary-200 text-secondary-400 font-bold rounded-lg hover:bg-secondary-300 hover:text-secondary-500 transition-all disabled:opacity-50 mt-4 active:bg-primary-900 active:text-white"
+                            className="w-full py-2 bg-primary-900 text-white font-bold rounded-lg hover:bg-primary-800 transition-all disabled:opacity-50 mt-4"
                         >
                             {sendingOtp ? 'Sending code...' : 'Send Login Code'}
                         </button>
@@ -210,9 +173,6 @@ export function SignUpForm({ ontoVerify }: { ontoVerify: (email: string) => void
 
     return (
         <div className="w-full">
-            <SocialLogin />
-            <Separator />
-
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                     <input
