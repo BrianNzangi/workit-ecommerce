@@ -1,3 +1,5 @@
+import type { UserRole } from '@/lib/auth/rbac';
+
 // Central tab resolver - exports all tab components
 import GeneralTab from './GeneralTab';
 import PaymentsTab from './PaymentsTab';
@@ -52,7 +54,7 @@ export interface AdminUser {
     email: string;
     firstName: string;
     lastName: string;
-    role: 'SUPER_ADMIN' | 'ADMIN' | 'EDITOR';
+    role: UserRole;
     enabled: boolean;
     createdAt: string;
     updatedAt: string;

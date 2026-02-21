@@ -1,5 +1,6 @@
 import { FastifyPluginAsync } from "fastify";
 import { db, schema, eq } from "../../../../lib/db.js";
+import { getPermissionsForRoleAsync, normalizeAdminRole } from "../../../../lib/rbac.js";
 
 export const usersPublicRoutes: FastifyPluginAsync = async (fastify) => {
     // Show Me (Authenticated User Profile)
@@ -15,8 +16,13 @@ export const usersPublicRoutes: FastifyPluginAsync = async (fastify) => {
         const profile = await db.query.users.findFirst({
             where: eq(schema.users.id, user.id),
         });
+        const permissions = await getPermissionsForRoleAsync(user.role);
 
-        return profile;
+        return {
+            ...profile,
+            role: normalizeAdminRole(user.role) ?? user.role,
+            permissions,
+        };
     });
 };
 

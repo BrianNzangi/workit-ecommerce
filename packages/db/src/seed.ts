@@ -46,10 +46,20 @@ async function seed() {
                 createdAt: new Date(),
                 updatedAt: new Date(),
             });
-            console.log("✅ Admin user created.");
+            console.log("Admin user created.");
         } else {
             adminId = existingAdmin.id;
-            console.log("ℹ️ Admin user already exists.");
+            if (existingAdmin.role !== "SUPER_ADMIN") {
+                await db
+                    .update(schema.users)
+                    .set({
+                        role: "SUPER_ADMIN",
+                        updatedAt: new Date(),
+                    })
+                    .where(eq(schema.users.id, adminId));
+                console.log("Promoted existing admin user to SUPER_ADMIN.");
+            }
+            console.log("Admin user already exists.");
         }
 
         // 2. Ensure Admin Account (for Better Auth)
@@ -116,3 +126,4 @@ async function seed() {
 }
 
 seed().then(() => process.exit(0)).catch(() => process.exit(1));
+

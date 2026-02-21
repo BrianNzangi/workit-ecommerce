@@ -13,7 +13,7 @@ const mapBanner = (banner: any) => {
 export const bannersAdminRoutes: FastifyPluginAsync = async (fastify) => {
     // List Banners
     fastify.get("/", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('marketing.content.manage')]
     }, async () => {
         const results = await db.query.banners.findMany({
             orderBy: [desc(schema.banners.sortOrder)],
@@ -28,7 +28,7 @@ export const bannersAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // New Banner
     fastify.post("/", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('marketing.content.manage')]
     }, async (request) => {
         const data = request.body as any;
         const id = uuidv4();
@@ -52,7 +52,7 @@ export const bannersAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Search Banners
     fastify.get("/search", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('marketing.content.manage')]
     }, async (request) => {
         const { q } = request.query as any;
         const results = await db.query.banners.findMany({
@@ -68,7 +68,7 @@ export const bannersAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Show Banner
     fastify.get("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('marketing.content.manage')]
     }, async (request, reply) => {
         const { id } = request.params as any;
         const banner = await db.query.banners.findFirst({
@@ -106,17 +106,17 @@ export const bannersAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Edit Banner
     fastify.put("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('marketing.content.manage')]
     }, updateBannerHandler);
 
     // Edit Banner (PATCH Alias)
     fastify.patch("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('marketing.content.manage')]
     }, updateBannerHandler);
 
     // Delete Banner
     fastify.delete("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('marketing.content.manage')]
     }, async (request) => {
         const { id } = request.params as any;
         await db.delete(schema.banners).where(eq(schema.banners.id, id));
@@ -125,7 +125,7 @@ export const bannersAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Bulk Delete
     fastify.post("/bulk-delete", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('marketing.content.manage')]
     }, async (request) => {
         const { ids } = request.body as any;
         if (!Array.isArray(ids) || ids.length === 0) {
@@ -137,4 +137,5 @@ export const bannersAdminRoutes: FastifyPluginAsync = async (fastify) => {
 };
 
 export default bannersAdminRoutes;
+
 

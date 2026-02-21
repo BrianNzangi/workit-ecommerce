@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 export const shippingAdminRoutes: FastifyPluginAsync = async (fastify) => {
     // List Shipping Methods
     fastify.get("/", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('shipping.manage')]
     }, async () => {
         const methods = await db.query.shippingMethods.findMany({
             with: {
@@ -21,7 +21,7 @@ export const shippingAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // List Shipping Zones (Flat for zones management)
     fastify.get("/zones", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('shipping.manage')]
     }, async () => {
         const zones = await db.query.shippingZones.findMany({
             with: {
@@ -33,7 +33,7 @@ export const shippingAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Create Shipping Zone
     fastify.post("/zones", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('shipping.manage')]
     }, async (request) => {
         const { shippingMethodId, county, cities } = request.body as any;
         const zoneId = uuidv4();
@@ -61,7 +61,7 @@ export const shippingAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Update Shipping Zone (PATCH)
     fastify.patch("/zones/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('shipping.manage')]
     }, async (request, reply) => {
         const { id } = request.params as any;
         const { county, cities } = request.body as any;
@@ -93,7 +93,7 @@ export const shippingAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Delete Shipping Zone
     fastify.delete("/zones/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('shipping.manage')]
     }, async (request) => {
         const { id } = request.params as any;
         await db.delete(schema.shippingZones).where(eq(schema.shippingZones.id, id));
@@ -102,7 +102,7 @@ export const shippingAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // New Shipping Method
     fastify.post("/", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('shipping.manage')]
     }, async (request) => {
         const data = request.body as any;
         const id = uuidv4();
@@ -112,7 +112,7 @@ export const shippingAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Edit Shipping Method
     fastify.put("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('shipping.manage')]
     }, async (request, reply) => {
         const { id } = request.params as any;
         const data = request.body as any;
@@ -123,7 +123,7 @@ export const shippingAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Delete Shipping Method
     fastify.delete("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('shipping.manage')]
     }, async (request) => {
         const { id } = request.params as any;
         await db.delete(schema.shippingMethods).where(eq(schema.shippingMethods.id, id));
@@ -132,4 +132,5 @@ export const shippingAdminRoutes: FastifyPluginAsync = async (fastify) => {
 };
 
 export default shippingAdminRoutes;
+
 

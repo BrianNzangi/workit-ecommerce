@@ -71,7 +71,7 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // List Products (Admin view might include more details)
     fastify.get("/", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
     }, async (request) => {
         const { limit = 1000, offset = 0, collectionId, brandId, enabled } = request.query as any;
 
@@ -112,7 +112,7 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // New Product
     fastify.post("/", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
     }, async (request, reply) => {
         const { collections: collectionIds, assetIds, homepageCollections: homepageCollectionIds, ...productData } = request.body as any;
         const id = uuidv4();
@@ -166,7 +166,7 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Search Products (Admin)
     fastify.get("/search", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
     }, async (request) => {
         const { q, limit = 50 } = request.query as any;
         const results = await productSearchService.searchAdminProducts(String(q || ""), Number(limit) || 50);
@@ -174,7 +174,7 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
     });
 
     fastify.post("/search/reindex", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
     }, async () => {
         const { indexed } = await productSearchService.reindexAllProducts();
         return { success: true, indexed };
@@ -182,7 +182,7 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Show Product (Admin)
     fastify.get("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
     }, async (request, reply) => {
         const { id } = request.params as any;
         const product = await (db as any).query.products.findFirst({
@@ -254,17 +254,17 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Edit Product
     fastify.put("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
     }, updateProductHandler);
 
     // Edit Product (PATCH Alias)
     fastify.patch("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
     }, updateProductHandler);
 
     // Delete Product
     fastify.delete("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
     }, async (request) => {
         const { id } = request.params as any;
         await db.delete(schema.products as any).where(eq(schema.products.id as any, id));
@@ -277,7 +277,7 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Bulk Delete
     fastify.post("/bulk-delete", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
     }, async (request) => {
         const { ids } = request.body as any;
         if (!Array.isArray(ids) || ids.length === 0) {
@@ -293,7 +293,7 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // ─── Download CSV Template ────────────────────────────────────
     fastify.get("/template", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
     }, async (_request, reply) => {
         const headers = [
             'name', 'slug', 'sku', 'description', 'salePrice', 'originalPrice',
@@ -315,7 +315,7 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // ─── Export Products as CSV ───────────────────────────────────
     fastify.get("/export", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
     }, async (_request, reply) => {
         const allProducts = await (db as any).query.products.findMany({
             orderBy: [desc(schema.products.createdAt as any)],
@@ -363,7 +363,7 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // ─── Import Products from CSV data ───────────────────────────
     fastify.post("/import", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
     }, async (request, reply) => {
         const { csvData } = request.body as { csvData: any[] };
 
@@ -479,3 +479,4 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 };
 
 export default productsAdminRoutes;
+

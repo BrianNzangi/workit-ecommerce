@@ -205,7 +205,7 @@ class HttpClient {
             list: (options?: any) => this.get<any>("/identity/users/admin", { params: options }),
             create: (data: any) => this.post<any>("/identity/users/admin", data),
             get: (id: string) => this.get<any>(`/identity/users/admin/${id}`),
-            update: (id: string, data: any) => this.patch<any>(`/identity/users/admin/${id}`, data),
+            update: (id: string, data: any) => this.put<any>(`/identity/users/admin/${id}`, data),
             remove: (id: string) => this.delete<any>(`/identity/users/admin/${id}`),
         };
     }

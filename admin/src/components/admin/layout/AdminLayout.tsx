@@ -1,6 +1,7 @@
 'use client';
 
 import { useSession, signOut } from '@/lib/auth/auth-client';
+import { normalizeAdminRole } from '@/lib/auth/rbac';
 import NextImage from 'next/image';
 import { LogOut, User, ChevronDown, Menu as MenuIcon } from 'lucide-react';
 import { AdminSidebar } from './AdminSidebar';
@@ -26,6 +27,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     const { data: session } = useSession();
     const pathname = usePathname();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const rawRole = String((session?.user as any)?.role || '').toUpperCase();
+    const userRole = normalizeAdminRole(rawRole) || rawRole || 'CUSTOMER';
 
     const handleLogout = async () => {
         await signOut();
@@ -83,7 +86,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                                                         {session?.user?.name || 'Admin User'}
                                                     </p>
                                                     <p className="text-[10px] lg:text-xs text-gray-500 uppercase tracking-wider">
-                                                        {session?.user?.email === 'admin@workit.co.ke' ? 'SUPER_ADMIN' : ((session?.user as any)?.role || 'ADMIN')}
+                                                        {userRole}
                                                     </p>
                                                 </div>
                                                 <ChevronDown className="w-4 h-4 text-gray-400" />

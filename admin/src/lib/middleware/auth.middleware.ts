@@ -1,6 +1,7 @@
 import { GraphQLError } from "graphql";
 import { unauthorizedError } from "@/lib/graphql/errors";
 import { auth } from "@/lib/auth/auth-server";
+import { AdminRole, Permission, hasAnyPermission, hasRoleAccess } from "@/lib/auth/rbac";
 
 export interface AuthContext {
     user: any | null;
@@ -36,11 +37,30 @@ export function requireAuth(context: AuthContext): void {
 
 export function requireRole(
     context: AuthContext,
-    allowedRoles: ("SUPER_ADMIN" | "ADMIN" | "EDITOR")[],
+    allowedRoles: AdminRole[],
 ): void {
     requireAuth(context);
 
-    if (!context.user || !allowedRoles.includes(context.user.role as any)) {
+    if (!context.user || !hasRoleAccess(context.user.role, allowedRoles)) {
+        throw new GraphQLError("Insufficient permissions", {
+            extensions: {
+                code: "FORBIDDEN",
+            },
+        });
+    }
+}
+
+export function requirePermission(
+    context: AuthContext,
+    requiredPermissions: Permission | Permission[],
+): void {
+    requireAuth(context);
+
+    const permissionList = Array.isArray(requiredPermissions)
+        ? requiredPermissions
+        : [requiredPermissions];
+
+    if (!context.user || !hasAnyPermission(context.user.role, permissionList)) {
         throw new GraphQLError("Insufficient permissions", {
             extensions: {
                 code: "FORBIDDEN",

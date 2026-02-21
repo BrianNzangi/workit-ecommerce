@@ -1,11 +1,18 @@
 import { BaseService } from '../base/base.service';
+import {
+    ROLE_PERMISSIONS_SETTING_KEY,
+    defaultRolePermissions,
+    normalizeAdminRole,
+    sanitizeRolePermissionsConfig,
+} from '@/lib/auth/rbac';
+import type { AdminRole, Permission, RolePermissionsMap, UserRole } from '@/lib/auth/rbac';
 
 export interface AdminUserInput {
     email?: string;
     firstName?: string;
     lastName?: string;
     password?: string;
-    role?: 'SUPER_ADMIN' | 'ADMIN' | 'EDITOR';
+    role?: UserRole;
     enabled?: boolean;
 }
 
@@ -29,9 +36,20 @@ export class AdminSettingsService extends BaseService {
         return this.adminClient.settings.updateAll(settings);
     }
 
+    async getRolePermissions(): Promise<RolePermissionsMap> {
+        const settings = await this.getSettings();
+        return sanitizeRolePermissionsConfig(settings?.[ROLE_PERMISSIONS_SETTING_KEY] ?? defaultRolePermissions);
+    }
+
+    async updateRolePermissions(rolePermissions: Record<AdminRole, Permission[]>): Promise<any> {
+        const sanitized = sanitizeRolePermissionsConfig(rolePermissions);
+        return this.updateSettings({ [ROLE_PERMISSIONS_SETTING_KEY]: sanitized });
+    }
+
     async getAdminUsers(options?: any): Promise<any[]> {
         const response = await this.adminClient.users.list(options);
-        return Array.isArray(response) ? response : (response?.users || []);
+        const users = Array.isArray(response) ? response : (response?.users || []);
+        return users.filter((user: any) => normalizeAdminRole(user?.role) !== null);
     }
 
     async createAdminUser(user: AdminUserInput): Promise<any> {

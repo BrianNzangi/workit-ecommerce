@@ -4,7 +4,7 @@ import { db, schema, desc, sql } from "../../../lib/db.js";
 export const analyticsAdminRoutes: FastifyPluginAsync = async (fastify) => {
     // Apply admin protection to all routes in this plugin
     fastify.addHook("preHandler", fastify.authenticate);
-    fastify.addHook("preHandler", fastify.authorize(['SUPER_ADMIN', 'ADMIN']));
+    fastify.addHook("preHandler", fastify.authorizePermission('analytics.view'));
 
     fastify.get("/weekly-stats", async () => {
         // Mocking stats for now based on available data
@@ -39,3 +39,4 @@ export const analyticsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 };
 
 export default analyticsAdminRoutes;
+

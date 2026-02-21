@@ -65,7 +65,7 @@ export const assetsAdminRoutes: FastifyPluginAsync = async (fastify) => {
     };
 
     fastify.get("/", {
-        preHandler: [fastify.authenticate, fastify.authorize(["SUPER_ADMIN", "ADMIN"])],
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')],
     }, async (request) => {
         const { take = 32, skip = 0 } = request.query as { take?: number; skip?: number };
 
@@ -120,15 +120,15 @@ export const assetsAdminRoutes: FastifyPluginAsync = async (fastify) => {
     };
 
     fastify.post("/upload", {
-        preHandler: [fastify.authenticate, fastify.authorize(["SUPER_ADMIN", "ADMIN"])],
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')],
     }, handleFileUpload);
 
     fastify.post("/", {
-        preHandler: [fastify.authenticate, fastify.authorize(["SUPER_ADMIN", "ADMIN"])],
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')],
     }, handleFileUpload);
 
     fastify.put("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(["SUPER_ADMIN", "ADMIN"])],
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')],
     }, async (request) => {
         const { id } = request.params as { id: string };
         const { name } = request.body as any;
@@ -140,7 +140,7 @@ export const assetsAdminRoutes: FastifyPluginAsync = async (fastify) => {
     });
 
     fastify.delete("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(["SUPER_ADMIN", "ADMIN"])],
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')],
     }, async (request, reply) => {
         const { id } = request.params as { id: string };
 
@@ -163,7 +163,7 @@ export const assetsAdminRoutes: FastifyPluginAsync = async (fastify) => {
     });
 
     fastify.post("/bulk-delete", {
-        preHandler: [fastify.authenticate, fastify.authorize(["SUPER_ADMIN", "ADMIN"])],
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')],
     }, async (request, reply) => {
         const { ids } = request.body as { ids?: string[] };
 
@@ -196,3 +196,4 @@ export const assetsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 };
 
 export default assetsAdminRoutes;
+

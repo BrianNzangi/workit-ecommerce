@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { signIn } from '@/lib/auth/auth-client';
+import { signIn, signOut } from '@/lib/auth/auth-client';
+import { normalizeAdminRole } from '@/lib/auth/rbac';
 import { useRouter } from 'next/navigation';
 import { Lock, Mail } from 'lucide-react';
 import { FormInput } from './FormInput';
@@ -21,15 +22,37 @@ export function LoginForm() {
         setIsLoading(true);
 
         try {
-            const { error } = await signIn.email({
+            const result = await signIn.email({
                 email,
                 password,
                 callbackURL: '/admin/dashboard',
             });
 
-            if (error) {
-                setError(error.message || 'Invalid email or password');
+            if (result.error) {
+                setError(result.error.message || 'Invalid email or password');
             } else {
+                let role = (result as any)?.data?.user?.role;
+
+                if (!role) {
+                    const profileResponse = await fetch('/api/admin/identity/users/me', {
+                        credentials: 'include',
+                    });
+                    if (profileResponse.ok) {
+                        const profile = await profileResponse.json();
+                        role = profile?.role;
+                    }
+                }
+
+                if (role && !normalizeAdminRole(role)) {
+                    try {
+                        await signOut();
+                    } catch {
+                        // no-op
+                    }
+                    setError('Customer accounts can only access the storefront.');
+                    return;
+                }
+
                 router.push('/admin/dashboard');
                 router.refresh();
             }

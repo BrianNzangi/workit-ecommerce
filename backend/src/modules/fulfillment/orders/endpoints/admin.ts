@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 export const ordersAdminRoutes: FastifyPluginAsync = async (fastify) => {
     // List All Orders
     fastify.get("/", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('orders.manage')]
     }, async (request) => {
         const { limit = 50, offset = 0 } = request.query as any;
         const results = await db.query.orders.findMany({
@@ -22,7 +22,7 @@ export const ordersAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Search Orders
     fastify.get("/search", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('orders.manage')]
     }, async (request) => {
         const { q } = request.query as any;
         const results = await db.query.orders.findMany({
@@ -34,7 +34,7 @@ export const ordersAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Show Order
     fastify.get("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('orders.manage')]
     }, async (request, reply) => {
         const { id } = request.params as any;
         const order = await db.query.orders.findFirst({
@@ -50,7 +50,7 @@ export const ordersAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Update Order Status
     fastify.patch("/:id/status", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('orders.manage')]
     }, async (request, reply) => {
         const { id } = request.params as any;
         const { state } = request.body as any;
@@ -61,7 +61,7 @@ export const ordersAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Update Order (General)
     fastify.put("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('orders.manage')]
     }, async (request, reply) => {
         const { id } = request.params as any;
         const data = request.body as any;
@@ -72,7 +72,7 @@ export const ordersAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Delete Order
     fastify.delete("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('orders.manage')]
     }, async (request) => {
         const { id } = request.params as any;
         await db.delete(schema.orders).where(eq(schema.orders.id, id));
@@ -81,7 +81,7 @@ export const ordersAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Bulk Delete
     fastify.post("/bulk-delete", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('orders.manage')]
     }, async (request) => {
         const { ids } = request.body as any;
         if (!Array.isArray(ids) || ids.length === 0) return { success: false };
@@ -91,4 +91,5 @@ export const ordersAdminRoutes: FastifyPluginAsync = async (fastify) => {
 };
 
 export default ordersAdminRoutes;
+
 

@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 export const homepageAdminRoutes: FastifyPluginAsync = async (fastify) => {
     // List Collections (Admin)
     fastify.get("/", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('marketing.content.manage')]
     }, async () => {
         const results = await db.query.homepageCollections.findMany({
             orderBy: [desc(schema.homepageCollections.sortOrder)],
@@ -19,7 +19,7 @@ export const homepageAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Create Collection
     fastify.post("/", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('marketing.content.manage')]
     }, async (request, reply) => {
         const { title, enabled, sortOrder, productIds } = request.body as any;
         const id = uuidv4();
@@ -51,7 +51,7 @@ export const homepageAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Get Collection
     fastify.get("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('marketing.content.manage')]
     }, async (request, reply) => {
         const { id } = request.params as any;
         const collection = await db.query.homepageCollections.findFirst({
@@ -108,17 +108,17 @@ export const homepageAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Update Collection
     fastify.put("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('marketing.content.manage')]
     }, updateHomepageCollectionHandler);
 
     // Update Collection (PATCH Alias)
     fastify.patch("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('marketing.content.manage')]
     }, updateHomepageCollectionHandler);
 
     // Delete Collection
     fastify.delete("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('marketing.content.manage')]
     }, async (request) => {
         const { id } = request.params as any;
         await db.delete(schema.homepageCollections).where(eq(schema.homepageCollections.id, id));
@@ -127,3 +127,4 @@ export const homepageAdminRoutes: FastifyPluginAsync = async (fastify) => {
 };
 
 export default homepageAdminRoutes;
+

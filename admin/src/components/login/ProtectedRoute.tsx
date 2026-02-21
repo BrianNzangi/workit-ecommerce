@@ -1,18 +1,27 @@
 'use client';
 
 import { useSession } from '@/lib/auth/auth-client';
+import { AdminRole, Permission, hasAnyPermission, hasRoleAccess, normalizeAdminRole } from '@/lib/auth/rbac';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: 'SUPER_ADMIN' | 'ADMIN' | 'EDITOR';
+  requiredRole?: AdminRole;
+  requiredPermission?: Permission | Permission[];
 }
 
-export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
+export function ProtectedRoute({ children, requiredRole, requiredPermission }: ProtectedRouteProps) {
   const { data: session, isPending: loading } = useSession();
   const router = useRouter();
+  const userRole = normalizeAdminRole((session?.user as any)?.role);
+  const isAdminUser = userRole !== null;
+  const permissionRequirements = useMemo(() => (
+    requiredPermission
+      ? (Array.isArray(requiredPermission) ? requiredPermission : [requiredPermission])
+      : []
+  ), [requiredPermission]);
 
   useEffect(() => {
     if (loading) return;
@@ -22,17 +31,22 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
       return;
     }
 
-    const userRole = (session.user as any)?.role;
-    const hasAccess = !requiredRole ||
-      userRole === 'SUPER_ADMIN' ||
-      session.user.email === 'admin@workit.co.ke' ||
-      userRole === requiredRole;
+    if (!isAdminUser) {
+      router.replace('/admin/login?error=storefront-only');
+      return;
+    }
+
+    const hasRoleGate = requiredRole ? hasRoleAccess(userRole, [requiredRole]) : true;
+    const hasPermissionGate = permissionRequirements.length > 0
+      ? hasAnyPermission(userRole, permissionRequirements)
+      : true;
+    const hasAccess = hasRoleGate && hasPermissionGate;
 
     if (!hasAccess) {
       // If user doesn't have required role, redirect to dashboard
       router.push('/admin/dashboard');
     }
-  }, [session, loading, router, requiredRole]);
+  }, [session, loading, router, requiredRole, userRole, permissionRequirements, isAdminUser]);
 
   if (loading) {
     return (
@@ -49,11 +63,15 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
     return null;
   }
 
-  const userRole = (session.user as any)?.role;
-  const hasAccess = !requiredRole ||
-    userRole === 'SUPER_ADMIN' ||
-    session.user.email === 'admin@workit.co.ke' ||
-    userRole === requiredRole;
+  if (!isAdminUser) {
+    return null;
+  }
+
+  const hasRoleGate = requiredRole ? hasRoleAccess(userRole, [requiredRole]) : true;
+  const hasPermissionGate = permissionRequirements.length > 0
+    ? hasAnyPermission(userRole, permissionRequirements)
+    : true;
+  const hasAccess = hasRoleGate && hasPermissionGate;
 
   if (!hasAccess) {
     return null;

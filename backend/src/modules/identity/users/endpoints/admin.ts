@@ -1,14 +1,22 @@
 import { FastifyPluginAsync } from "fastify";
 import { db, schema, eq, desc, ilike, inArray } from "../../../../lib/db.js";
 import { v4 as uuidv4 } from "uuid";
+import { adminRoles, normalizeUserRole } from "../../../../lib/rbac.js";
 // import bcrypt from "bcrypt"; // Uncomment if creating users/passwords directly
 
 export const usersAdminRoutes: FastifyPluginAsync = async (fastify) => {
+    const resolveRole = (role: unknown, fallback: "ADMIN" | "CUSTOMER" | null = "ADMIN") => {
+        if (role === undefined || role === null || role === "") return fallback;
+        const normalized = normalizeUserRole(role);
+        return normalized;
+    };
+
     // List Users
     fastify.get("/", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('users.manage')]
     }, async () => {
         const results = await db.query.users.findMany({
+            where: inArray(schema.users.role, [...adminRoles]),
             orderBy: [desc(schema.users.createdAt)],
         });
         return results; // Return flat array as expected by front
@@ -16,10 +24,14 @@ export const usersAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // New User (Internal)
     fastify.post("/", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('users.manage')]
     }, async (request) => {
         const data = request.body as any;
         const id = uuidv4();
+        const role = resolveRole(data.role, "ADMIN");
+        if (!role) {
+            return fastify.httpErrors.badRequest("Invalid role. Allowed values: SUPER_ADMIN, ADMIN, EDITOR, CUSTOMER.");
+        }
 
         // Hash password if provided
         let password = data.password;
@@ -41,7 +53,7 @@ export const usersAdminRoutes: FastifyPluginAsync = async (fastify) => {
             name,
             email: data.email,
             emailVerified: true,
-            role: data.role || 'ADMIN',
+            role,
             firstName: firstName || null,
             lastName: lastName || null,
             password,
@@ -54,14 +66,21 @@ export const usersAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Edit User
     fastify.put("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('users.manage')]
     }, async (request, reply) => {
         const { id } = request.params as any;
         const data = request.body as any;
+        const role = resolveRole(data.role, null);
+        if (data.role !== undefined && !role) {
+            return reply.status(400).send({ message: "Invalid role. Allowed values: SUPER_ADMIN, ADMIN, EDITOR, CUSTOMER." });
+        }
 
         // Don't allow updating password via this endpoint for now to keep it simple
         // If password is sent, hash it or ignore it. Let's ignore it to avoid accidental changes.
-        const { password, ...updateData } = data;
+        const { password, role: _incomingRole, ...updateData } = data;
+        if (role) {
+            updateData.role = role;
+        }
 
         // Keep `name` in sync when firstName/lastName change
         if (updateData.firstName || updateData.lastName) {
@@ -79,7 +98,7 @@ export const usersAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Delete User
     fastify.delete("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('users.manage')]
     }, async (request) => {
         const { id } = request.params as any;
         await db.delete(schema.users).where(eq(schema.users.id, id));
@@ -88,4 +107,5 @@ export const usersAdminRoutes: FastifyPluginAsync = async (fastify) => {
 };
 
 export default usersAdminRoutes;
+
 

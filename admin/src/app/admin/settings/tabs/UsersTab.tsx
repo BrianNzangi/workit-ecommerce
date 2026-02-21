@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Trash2, Plus, X } from 'lucide-react';
 import { AdminUser } from './index';
+import type { UserRole } from '@/lib/auth/rbac';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,7 +20,7 @@ import {
 interface UsersTabProps {
     adminUsers: AdminUser[];
     loadingUsers: boolean;
-    onUpdateUserRole: (userId: string, newRole: 'SUPER_ADMIN' | 'ADMIN' | 'EDITOR') => Promise<void>;
+    onUpdateUserRole: (userId: string, newRole: UserRole) => Promise<void>;
     onToggleUserStatus: (userId: string, enabled: boolean) => Promise<void>;
     onDeleteUser: (userId: string) => Promise<void>;
     onCreateUser: (user: {
@@ -27,7 +28,7 @@ interface UsersTabProps {
         firstName?: string;
         lastName?: string;
         password: string;
-        role: 'SUPER_ADMIN' | 'ADMIN' | 'EDITOR';
+        role: UserRole;
     }) => Promise<void>;
     readOnly?: boolean;
 }
@@ -47,7 +48,7 @@ export default function UsersTab({
         firstName: '',
         lastName: '',
         password: '',
-        role: 'ADMIN' as 'SUPER_ADMIN' | 'ADMIN' | 'EDITOR',
+        role: 'ADMIN' as UserRole,
     });
     const [creatingUser, setCreatingUser] = useState(false);
     const [formError, setFormError] = useState('');
@@ -85,8 +86,8 @@ export default function UsersTab({
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-xl font-bold text-gray-900 mb-2">Admin Users</h2>
-                    <p className="text-sm text-gray-600">Manage admin users and their access levels.</p>
+                    <h2 className="text-xl font-bold text-gray-900 mb-2">Users</h2>
+                    <p className="text-sm text-gray-600">Manage users and assign their roles.</p>
                 </div>
                 <Button
                     onClick={() => !readOnly && setShowNewUserForm((prev) => !prev)}
@@ -168,7 +169,7 @@ export default function UsersTab({
                                 onValueChange={(value) =>
                                     setNewUser({
                                         ...newUser,
-                                        role: value as 'SUPER_ADMIN' | 'ADMIN' | 'EDITOR',
+                                        role: value as UserRole,
                                     })
                                 }
                             >
@@ -179,6 +180,7 @@ export default function UsersTab({
                                     <SelectItem value="SUPER_ADMIN">Super Admin</SelectItem>
                                     <SelectItem value="ADMIN">Admin</SelectItem>
                                     <SelectItem value="EDITOR">Editor</SelectItem>
+                                    <SelectItem value="CUSTOMER">Customer</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -222,7 +224,7 @@ export default function UsersTab({
                                                 <Select
                                                     value={user.role}
                                                     onValueChange={(value) =>
-                                                        onUpdateUserRole(user.id, value as 'SUPER_ADMIN' | 'ADMIN' | 'EDITOR')
+                                                        onUpdateUserRole(user.id, value as UserRole)
                                                     }
                                                     disabled={readOnly}
                                                 >
@@ -233,6 +235,7 @@ export default function UsersTab({
                                                         <SelectItem value="SUPER_ADMIN">Super Admin</SelectItem>
                                                         <SelectItem value="ADMIN">Admin</SelectItem>
                                                         <SelectItem value="EDITOR">Editor</SelectItem>
+                                                        <SelectItem value="CUSTOMER">Customer</SelectItem>
                                                     </SelectContent>
                                                 </Select>
                                             </div>

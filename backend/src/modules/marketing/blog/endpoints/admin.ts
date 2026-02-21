@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 export const blogsAdminRoutes: FastifyPluginAsync = async (fastify) => {
     // List Blogs
     fastify.get("/", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('marketing.content.manage')]
     }, async (request) => {
         const { limit = 100, offset = 0 } = request.query as any;
         const results = await db.query.blogs.findMany({
@@ -19,7 +19,7 @@ export const blogsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // New Blog
     fastify.post("/", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('marketing.content.manage')]
     }, async (request, reply) => {
         try {
             const data = request.body as any;
@@ -67,7 +67,7 @@ export const blogsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Search Blogs
     fastify.get("/search", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('marketing.content.manage')]
     }, async (request) => {
         const { q } = request.query as any;
         const results = await db.query.blogs.findMany({
@@ -79,7 +79,7 @@ export const blogsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Show Blog
     fastify.get("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('marketing.content.manage')]
     }, async (request, reply) => {
         const { id } = request.params as any;
         const blog = await db.query.blogs.findFirst({
@@ -92,7 +92,7 @@ export const blogsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Edit Blog
     fastify.put("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('marketing.content.manage')]
     }, async (request, reply) => {
         const { id } = request.params as any;
         const data = request.body as any;
@@ -103,7 +103,7 @@ export const blogsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Toggle Publish
     fastify.patch("/:id/toggle-publish", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('marketing.content.manage')]
     }, async (request, reply) => {
         const { id } = request.params as any;
         const blog = await db.query.blogs.findFirst({
@@ -122,7 +122,7 @@ export const blogsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Delete Blog
     fastify.delete("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('marketing.content.manage')]
     }, async (request) => {
         const { id } = request.params as any;
         await db.delete(schema.blogs).where(eq(schema.blogs.id, id));
@@ -131,7 +131,7 @@ export const blogsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Bulk Delete
     fastify.post("/bulk-delete", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('marketing.content.manage')]
     }, async (request) => {
         const { ids } = request.body as any;
         if (!Array.isArray(ids) || ids.length === 0) {
@@ -143,4 +143,5 @@ export const blogsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 };
 
 export default blogsAdminRoutes;
+
 

@@ -6,7 +6,7 @@ import { createCustomerSchema } from "@workit/validation";
 export const customersAdminRoutes: FastifyPluginAsync = async (fastify) => {
     // List Customers
     fastify.get("/", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('customers.manage')]
     }, async (request) => {
         const { limit = 50, offset = 0 } = request.query as any;
         const results = await db.query.users.findMany({
@@ -20,7 +20,7 @@ export const customersAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Create Customer
     fastify.post("/", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('customers.manage')]
     }, async (request, reply) => {
         const body = request.body as any;
 
@@ -63,7 +63,7 @@ export const customersAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Search Customers
     fastify.get("/search", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('customers.manage')]
     }, async (request) => {
         const { q } = request.query as any;
         const results = await db.query.users.findMany({
@@ -77,7 +77,7 @@ export const customersAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Show Customer
     fastify.get("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('customers.manage')]
     }, async (request, reply) => {
         const { id } = request.params as any;
         const customer = await db.query.users.findFirst({
@@ -89,7 +89,7 @@ export const customersAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Edit Customer
     fastify.put("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('customers.manage')]
     }, async (request, reply) => {
         const { id } = request.params as any;
         const data = request.body as any;
@@ -100,7 +100,7 @@ export const customersAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Delete Customer
     fastify.delete("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('customers.manage')]
     }, async (request) => {
         const { id } = request.params as any;
         await db.delete(schema.users).where(eq(schema.users.id, id));
@@ -109,7 +109,7 @@ export const customersAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Bulk Delete
     fastify.post("/bulk-delete", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('customers.manage')]
     }, async (request) => {
         const { ids } = request.body as any;
         if (!Array.isArray(ids) || ids.length === 0) return { success: false };
@@ -119,3 +119,4 @@ export const customersAdminRoutes: FastifyPluginAsync = async (fastify) => {
 };
 
 export default customersAdminRoutes;
+

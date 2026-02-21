@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 export const brandsAdminRoutes: FastifyPluginAsync = async (fastify) => {
     // List Brands
     fastify.get("/", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
     }, async () => {
         const results = await (db as any).query.brands.findMany({
             orderBy: [desc(schema.brands.name as any)],
@@ -15,7 +15,7 @@ export const brandsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // New Brand
     fastify.post("/", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
     }, async (request) => {
         const brandData = request.body as any;
         const id = uuidv4();
@@ -25,7 +25,7 @@ export const brandsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Search Brands
     fastify.get("/search", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
     }, async (request) => {
         const { q } = request.query as any;
         const results = await (db as any).query.brands.findMany({
@@ -36,7 +36,7 @@ export const brandsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Show Brand
     fastify.get("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
     }, async (request, reply) => {
         const { id } = request.params as any;
         const brand = await db.query.brands.findFirst({
@@ -57,17 +57,17 @@ export const brandsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Edit Brand
     fastify.put("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
     }, updateBrandHandler);
 
     // Edit Brand (PATCH Alias)
     fastify.patch("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
     }, updateBrandHandler);
 
     // Delete Brand
     fastify.delete("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
     }, async (request) => {
         const { id } = request.params as any;
         await db.delete(schema.brands).where(eq(schema.brands.id, id));
@@ -76,7 +76,7 @@ export const brandsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Bulk Delete
     fastify.post("/bulk-delete", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
     }, async (request) => {
         const { ids } = request.body as any;
         if (!Array.isArray(ids) || ids.length === 0) {
@@ -88,3 +88,4 @@ export const brandsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 };
 
 export default brandsAdminRoutes;
+

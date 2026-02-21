@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "./auth-server";
+import { normalizeAdminRole } from "./rbac";
 
 /**
  * Server-side auth guard
@@ -23,7 +24,7 @@ export async function requireAuth(request?: NextRequest) {
 export async function requireAdmin(request?: NextRequest) {
     const session = await requireAuth(request);
 
-    if (session.user.role !== "ADMIN") {
+    if (!normalizeAdminRole(session.user.role)) {
         throw new Error("Forbidden: Admin role required");
     }
 

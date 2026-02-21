@@ -1,6 +1,7 @@
 "use client";
 
 import { createAuthClient } from "better-auth/react";
+import { normalizeAdminRole } from "./rbac";
 
 /**
  * Better Auth Client Instance
@@ -47,7 +48,7 @@ export const useUser = () => {
  */
 export function useIsAdmin() {
     const { data: session } = useSession();
-    return (session?.user as any)?.role === "ADMIN";
+    return normalizeAdminRole((session?.user as any)?.role) !== null;
 }
 
 /**

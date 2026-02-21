@@ -1,9 +1,11 @@
+import type { UserRole } from "@/lib/auth/rbac";
+
 export interface RegisterAdminInput {
     email: string;
     password: string;
     firstName: string;
     lastName: string;
-    role?: 'SUPER_ADMIN' | 'ADMIN' | 'EDITOR';
+    role?: UserRole;
 }
 
 export interface LoginInput {

@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 export const collectionsAdminRoutes: FastifyPluginAsync = async (fastify) => {
     // List Collections
     fastify.get("/", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
     }, async (request) => {
         const { includeChildren } = request.query as any;
 
@@ -66,7 +66,7 @@ export const collectionsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // New Collection
     fastify.post("/", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
     }, async (request, reply) => {
         try {
             const collectionData = request.body as any;
@@ -86,7 +86,7 @@ export const collectionsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Search Collections
     fastify.get("/search", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
     }, async (request) => {
         const { q } = request.query as any;
         const results = await (db as any).query.collections.findMany({
@@ -98,7 +98,7 @@ export const collectionsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Show Collection
     fastify.get("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
     }, async (request, reply) => {
         const { id } = request.params as any;
         const collection = await db.query.collections.findFirst({
@@ -130,17 +130,17 @@ export const collectionsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Edit Collection
     fastify.put("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
     }, updateCollectionHandler);
 
     // Edit Collection (PATCH Alias)
     fastify.patch("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
     }, updateCollectionHandler);
 
     // Delete Collection
     fastify.delete("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
     }, async (request) => {
         const { id } = request.params as any;
         await db.delete(schema.collections).where(eq(schema.collections.id, id));
@@ -149,7 +149,7 @@ export const collectionsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Bulk Delete
     fastify.post("/bulk-delete", {
-        preHandler: [fastify.authenticate, fastify.authorize(['SUPER_ADMIN', 'ADMIN'])]
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
     }, async (request) => {
         const { ids } = request.body as any;
         if (!Array.isArray(ids) || ids.length === 0) {
@@ -161,3 +161,4 @@ export const collectionsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 };
 
 export default collectionsAdminRoutes;
+

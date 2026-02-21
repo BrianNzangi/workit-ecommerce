@@ -6,6 +6,17 @@ import { AdminLayout } from '@/components/admin/layout/AdminLayout';
 import { Save, CheckCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useSession } from '@/lib/auth/auth-client';
+import {
+    AdminRole,
+    Permission,
+    RolePermissionsMap,
+    UserRole,
+    ROLE_PERMISSIONS_SETTING_KEY,
+    defaultRolePermissions,
+    hasPermission,
+    normalizeAdminRole,
+    sanitizeRolePermissionsConfig,
+} from '@/lib/auth/rbac';
 import { AdminSettingsService } from '@/lib/services';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/button';
@@ -33,19 +44,22 @@ export default function SettingsPage() {
     const isInitialMount = useRef(true);
     const { data: session } = useSession();
 
-    // Get user role
-    const userRole = (session?.user as any)?.role as 'SUPER_ADMIN' | 'ADMIN' | 'EDITOR' | undefined;
-    const isSuperAdmin = userRole === 'SUPER_ADMIN' || session?.user?.email === 'admin@workit.co.ke';
+    // Resolve permissions from role
+    const userRole = normalizeAdminRole((session?.user as any)?.role);
+    const canManageSettings = hasPermission(userRole, 'settings.manage');
+    const canManageUsers = hasPermission(userRole, 'users.manage');
 
-    // Define which tabs are viewable by non-super-admin users
+    // Define visibility/editability based on explicit permissions
     const viewOnlyTabs: TabType[] = ['general', 'shipping'];
     const canViewTab = (tab: TabType) => {
-        if (isSuperAdmin) return true;
+        if (tab === 'users' || tab === 'roles') return canManageUsers;
+        if (tab === 'payments' || tab === 'taxes') return canManageSettings;
         return viewOnlyTabs.includes(tab);
     };
     const canEditTab = (tab: TabType) => {
-        if (isSuperAdmin) return true;
-        return false; // Only super admin can edit
+        if (tab === 'users' || tab === 'roles') return canManageUsers;
+        if (tab === 'payments' || tab === 'taxes' || tab === 'general' || tab === 'shipping') return canManageSettings;
+        return false;
     };
 
     const [settings, setSettings] = useState<Settings>({
@@ -79,6 +93,10 @@ export default function SettingsPage() {
     // Admin Users State
     const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
     const [loadingUsers, setLoadingUsers] = useState(false);
+    const [rolePermissions, setRolePermissions] = useState<RolePermissionsMap>(() =>
+        sanitizeRolePermissionsConfig(defaultRolePermissions),
+    );
+    const [savingRolePermissions, setSavingRolePermissions] = useState(false);
     const getErrorMessage = (error: any, fallback: string) => error?.message || error?.error || fallback;
 
     const fetchAdminUsers = async () => {
@@ -97,13 +115,14 @@ export default function SettingsPage() {
         try {
             const data = await settingsService.getSettings();
             setSettings(prev => ({
-                ...prev,
-                ...data,
                 general: { ...prev.general, ...data.general },
                 payments: { ...prev.payments, ...data.payments },
                 shipping: { ...prev.shipping, ...data.shipping },
                 taxes: { ...prev.taxes, ...data.taxes },
             }));
+            setRolePermissions(
+                sanitizeRolePermissionsConfig(data?.[ROLE_PERMISSIONS_SETTING_KEY] ?? defaultRolePermissions),
+            );
         } catch (error) {
             console.error('Error fetching settings:', error);
         } finally {
@@ -167,7 +186,8 @@ export default function SettingsPage() {
         }
     };
 
-    const handleUpdateUserRole = async (userId: string, newRole: 'SUPER_ADMIN' | 'ADMIN' | 'EDITOR') => {
+    const handleUpdateUserRole = async (userId: string, newRole: UserRole) => {
+        if (!canManageUsers) return;
         try {
             await settingsService.updateAdminUser(userId, { role: newRole });
             toast({ title: 'Success', description: 'User role updated', variant: 'success' });
@@ -179,6 +199,7 @@ export default function SettingsPage() {
     };
 
     const handleToggleUserStatus = async (userId: string, enabled: boolean) => {
+        if (!canManageUsers) return;
         try {
             await settingsService.updateAdminUser(userId, { enabled });
             toast({ title: 'Success', description: `User ${enabled ? 'enabled' : 'disabled'} successfully`, variant: 'success' });
@@ -190,6 +211,7 @@ export default function SettingsPage() {
     };
 
     const handleDeleteUser = async (userId: string) => {
+        if (!canManageUsers) return;
         if (!confirm('Are you sure you want to delete this user?')) return;
         try {
             await settingsService.deleteAdminUser(userId);
@@ -202,6 +224,7 @@ export default function SettingsPage() {
     };
 
     const handleCreateUser = async (user: any) => {
+        if (!canManageUsers) return;
         try {
             await settingsService.createAdminUser(user);
             toast({ title: 'Success', description: 'User created successfully', variant: 'success' });
@@ -210,6 +233,39 @@ export default function SettingsPage() {
             console.error('Error creating user:', error);
             toast({ title: 'Error', description: getErrorMessage(error, 'An error occurred'), variant: 'error' });
             throw error;
+        }
+    };
+
+    const handleToggleRolePermission = async (
+        role: AdminRole,
+        permission: Permission,
+        allowed: boolean,
+    ) => {
+        if (!canManageUsers || savingRolePermissions || role === 'SUPER_ADMIN') return;
+
+        const previous = rolePermissions;
+        const nextRolePermissions = new Set(previous[role] ?? []);
+        if (allowed) {
+            nextRolePermissions.add(permission);
+        } else {
+            nextRolePermissions.delete(permission);
+        }
+
+        const next = {
+            ...previous,
+            [role]: Array.from(nextRolePermissions),
+        } as RolePermissionsMap;
+
+        setRolePermissions(next);
+        setSavingRolePermissions(true);
+        try {
+            await settingsService.updateRolePermissions(next);
+        } catch (error: any) {
+            setRolePermissions(previous);
+            console.error('Error updating role permissions:', error);
+            toast({ title: 'Error', description: getErrorMessage(error, 'Failed to update role permissions'), variant: 'error' });
+        } finally {
+            setSavingRolePermissions(false);
         }
     };
 
@@ -229,7 +285,14 @@ export default function SettingsPage() {
                     readOnly={isReadOnly}
                 />
             );
-            case 'roles': return <RolesTab readOnly={isReadOnly} />;
+            case 'roles': return (
+                <RolesTab
+                    rolePermissions={rolePermissions}
+                    onTogglePermission={handleToggleRolePermission}
+                    saving={savingRolePermissions}
+                    readOnly={isReadOnly}
+                />
+            );
             case 'shipping': return <ShippingTab readOnly={isReadOnly} />;
             case 'taxes': return <TaxesTab settings={settings} setSettings={setSettings} readOnly={isReadOnly} />;
             default: return null;
@@ -258,9 +321,9 @@ export default function SettingsPage() {
                             <p className="text-gray-600">Manage your store configuration and preferences</p>
                         </div>
                         <div className="flex items-center gap-3">
-                            {!isSuperAdmin && (
+                            {!canManageSettings && (
                                 <div className="text-sm text-gray-600 bg-yellow-50 border border-yellow-200 px-3 py-1.5 rounded-xs">
-                                    View Only - Contact Super Admin to make changes
+                                    View Only - Your role does not have settings management access
                                 </div>
                             )}
                             {autoSaved && (
@@ -271,7 +334,7 @@ export default function SettingsPage() {
                             )}
                             <Button
                                 onClick={handleSave}
-                                disabled={saving || !isSuperAdmin}
+                                disabled={saving || !canManageSettings}
                                 className="bg-primary-800 hover:bg-primary-900 text-white"
                             >
                                 <Save className="w-4 h-4" />

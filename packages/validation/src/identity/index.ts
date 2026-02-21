@@ -39,7 +39,7 @@ export const updateCustomerSchema = createCustomerSchema.partial().extend({
 export const createUserSchema = z.object({
     email: z.string().email("Invalid email address"),
     name: z.string().min(1, "Full name is required"),
-    role: z.enum(["SUPER_ADMIN", "ADMIN", "STAFF"]).default("ADMIN"),
+    role: z.enum(["SUPER_ADMIN", "ADMIN", "EDITOR", "CUSTOMER"]).default("ADMIN"),
     password: z.string().min(8).optional(),
 });
 
