@@ -19,7 +19,7 @@ interface BackendBlog {
 }
 
 function mapBackendBlogToFrontend(blog: BackendBlog): Blog {
-  const imagePath = blog.asset?.preview || blog.asset?.source || '/placeholder-blog.jpg';
+  const imagePath = blog.asset?.preview || blog.asset?.source || '/placeholder-blog.svg';
   const date = blog.publishedAt || blog.createdAt || new Date().toISOString();
   return {
     id: blog.id,
