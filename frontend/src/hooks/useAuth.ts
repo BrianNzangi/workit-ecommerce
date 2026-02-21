@@ -39,20 +39,43 @@ export function useAuth() {
     };
 
     const logout = async () => {
+        let signedOut = false;
+
         try {
             const result = await authClient.signOut();
             if (result?.error) {
                 console.error(result.error);
-                return { success: false };
+            } else {
+                signedOut = true;
             }
-
-            router.replace('/');
-            router.refresh();
-            return { success: true };
         } catch (e) {
             console.error(e);
-            return { success: false };
         }
+
+        if (!signedOut) {
+            try {
+                const fallbackResponse = await fetch('/api/auth/sign-out', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'content-type': 'application/json',
+                    },
+                    body: '{}',
+                });
+                signedOut = fallbackResponse.ok;
+            } catch (fallbackError) {
+                console.error(fallbackError);
+            }
+        }
+
+        if (typeof window !== 'undefined') {
+            window.location.assign('/');
+            return { success: signedOut };
+        }
+
+        router.replace('/');
+        router.refresh();
+        return { success: signedOut };
     };
 
     return {

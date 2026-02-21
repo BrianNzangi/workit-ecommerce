@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -25,6 +25,21 @@ export default function MainHeader({
   onCloseMobileMenu,
   onOpenCart,
 }: MainHeaderProps) {
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const mediaQuery = window.matchMedia('(min-width: 768px)');
+    const handleDesktop = () => {
+      if (mediaQuery.matches && mobileMenuOpen) {
+        onCloseMobileMenu();
+      }
+    };
+
+    handleDesktop();
+    mediaQuery.addEventListener('change', handleDesktop);
+    return () => mediaQuery.removeEventListener('change', handleDesktop);
+  }, [mobileMenuOpen, onCloseMobileMenu]);
+
   return (
     <header id="site-header" className="bg-white">
       <div className="bg-white font-sans text-secondary-900 border-b border-gray-300">
@@ -92,7 +107,7 @@ export default function MainHeader({
         </div>
 
         <div
-          className={`fixed inset-0 z-50 transition-colors duration-300 ${mobileMenuOpen ? 'bg-black/50 pointer-events-auto' : 'bg-transparent pointer-events-none'
+          className={`md:hidden fixed inset-0 z-50 transition-colors duration-300 ${mobileMenuOpen ? 'bg-black/50 pointer-events-auto' : 'bg-transparent pointer-events-none'
             }`}
           onClick={onCloseMobileMenu}
         >

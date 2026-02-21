@@ -14,6 +14,9 @@ const configuredOrigins = Array.from(
         ...splitOrigins(process.env.BETTER_AUTH_TRUSTED_ORIGINS),
         ...splitOrigins(process.env.CORS_ORIGIN),
         ...splitOrigins(process.env.NEXT_PUBLIC_APP_URL),
+        ...splitOrigins(process.env.NEXT_PUBLIC_FRONTEND_BASE_URL),
+        ...splitOrigins(process.env.FRONTEND_URL),
+        ...splitOrigins(process.env.NEXT_PUBLIC_AUTH_BASE_URL),
         ...splitOrigins(process.env.ADMIN_URL),
     ]),
 );
@@ -22,7 +25,11 @@ if (!configuredOrigins.length && process.env.NODE_ENV !== "production") {
     configuredOrigins.push("http://localhost:3000", "http://localhost:3002");
 }
 
-const authBaseUrl = process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL;
+const authBaseUrl =
+    process.env.BETTER_AUTH_URL ||
+    process.env.NEXT_PUBLIC_AUTH_BASE_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.NEXT_PUBLIC_FRONTEND_BASE_URL;
 
 export const auth = betterAuth({
     secret: process.env.BETTER_AUTH_SECRET || "pvhf6y7u8i9o0p1q2r3s4t5u6v7w8x9y",

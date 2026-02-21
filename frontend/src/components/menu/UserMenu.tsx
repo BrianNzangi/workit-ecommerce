@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { CircleUser, ChevronDown } from 'lucide-react';
@@ -10,10 +10,30 @@ import { useAuth } from '@/hooks/useAuth';
 export default function UserMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const [supportsHover, setSupportsHover] = useState(false);
+  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { customer, logout } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
+
+  const clearCloseTimeout = () => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+  };
+
+  const openMenu = () => {
+    clearCloseTimeout();
+    setIsOpen(true);
+  };
+
+  const closeMenuWithDelay = () => {
+    clearCloseTimeout();
+    closeTimeoutRef.current = setTimeout(() => {
+      setIsOpen(false);
+    }, 120);
+  };
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -23,6 +43,10 @@ export default function UserMenu() {
     updateSupportsHover();
     mediaQuery.addEventListener('change', updateSupportsHover);
     return () => mediaQuery.removeEventListener('change', updateSupportsHover);
+  }, []);
+
+  useEffect(() => {
+    return () => clearCloseTimeout();
   }, []);
 
   const openAuthModal = (type: 'login' | 'signup') => {
@@ -41,15 +65,15 @@ export default function UserMenu() {
     <div
       className="relative"
       onMouseEnter={() => {
-        if (supportsHover) setIsOpen(true);
+        if (supportsHover) openMenu();
       }}
       onMouseLeave={() => {
-        if (supportsHover) setIsOpen(false);
+        if (supportsHover) closeMenuWithDelay();
       }}
     >
       <button
-        onClick={() => setIsOpen((prev) => (supportsHover ? true : !prev))}
-        onFocus={() => supportsHover && setIsOpen(true)}
+        onClick={() => setIsOpen((prev) => !prev)}
+        onFocus={() => supportsHover && openMenu()}
         className="flex items-center gap-2 text-secondary-900 hover:text-primary-900 transition-colors"
       >
         <CircleUser className="h-6 w-6" />
@@ -68,75 +92,85 @@ export default function UserMenu() {
             />
           )}
 
-          <div className="absolute right-0 mt-2 w-48 bg-gray-50 rounded-xl shadow-lg py-1 z-20">
-            {customer ? (
-              <>
-                <div className="px-4 py-2 border-b border-gray-100">
-                  <p className="text-sm font-medium text-gray-900">
-                    {customer.firstName} {customer.lastName}
-                  </p>
-                  <p className="text-xs text-gray-500 truncate">
-                    {customer.emailAddress}
-                  </p>
-                </div>
-                <Link
-                  href="/dashboard"
-                  className="block px-4 py-2 text-sm font-sans text-gray-700 hover:bg-gray-100"
-                  onClick={() => setIsOpen(false)}
-                >
-                  My Account
-                </Link>
-                <Link
-                  href="/dashboard?section=orders"
-                  className="block px-4 py-2 text-sm font-sans text-gray-700 hover:bg-gray-100"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Orders
-                </Link>
-                <Link
-                  href="/help-center"
-                  className="block px-4 py-2 text-sm font-sans text-gray-700 hover:bg-gray-100"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Help & Support
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="block w-full text-left px-4 py-2 text-sm font-sans text-red-600 hover:bg-gray-100"
-                >
-                  Sign Out
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  onClick={() => openAuthModal('login')}
-                  className="block w-full text-left px-4 py-2 text-sm font-sans text-gray-700 hover:bg-gray-100"
-                >
-                  Sign In
-                </button>
-                <button
-                  onClick={() => openAuthModal('signup')}
-                  className="block w-full text-left px-4 py-2 text-sm font-sans text-gray-700 hover:bg-gray-100"
-                >
-                  Sign Up
-                </button>
-                <Link
-                  href="/help-center"
-                  className="block px-4 py-2 text-sm font-sans text-gray-700 hover:bg-gray-100"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Help & Support
-                </Link>
-                <Link
-                  href="/about-workit"
-                  className="block px-4 py-2 text-sm font-sans text-gray-700 hover:bg-gray-100"
-                  onClick={() => setIsOpen(false)}
-                >
-                  About
-                </Link>
-              </>
-            )}
+          <div
+            className="absolute right-0 top-full pt-2 z-20"
+            onMouseEnter={() => {
+              if (supportsHover) openMenu();
+            }}
+            onMouseLeave={() => {
+              if (supportsHover) closeMenuWithDelay();
+            }}
+          >
+            <div className="w-48 bg-gray-50 rounded-xl shadow-lg py-1">
+              {customer ? (
+                <>
+                  <div className="px-4 py-2 border-b border-gray-100">
+                    <p className="text-sm font-medium text-gray-900">
+                      {customer.firstName} {customer.lastName}
+                    </p>
+                    <p className="text-xs text-gray-500 truncate">
+                      {customer.emailAddress}
+                    </p>
+                  </div>
+                  <Link
+                    href="/dashboard"
+                    className="block px-4 py-2 text-sm font-sans text-gray-700 hover:bg-gray-100"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    My Account
+                  </Link>
+                  <Link
+                    href="/dashboard?section=orders"
+                    className="block px-4 py-2 text-sm font-sans text-gray-700 hover:bg-gray-100"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Orders
+                  </Link>
+                  <Link
+                    href="/help-center"
+                    className="block px-4 py-2 text-sm font-sans text-gray-700 hover:bg-gray-100"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Help & Support
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="block w-full text-left px-4 py-2 text-sm font-sans text-red-600 hover:bg-gray-100"
+                  >
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => openAuthModal('login')}
+                    className="block w-full text-left px-4 py-2 text-sm font-sans text-gray-700 hover:bg-gray-100"
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    onClick={() => openAuthModal('signup')}
+                    className="block w-full text-left px-4 py-2 text-sm font-sans text-gray-700 hover:bg-gray-100"
+                  >
+                    Sign Up
+                  </button>
+                  <Link
+                    href="/help-center"
+                    className="block px-4 py-2 text-sm font-sans text-gray-700 hover:bg-gray-100"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Help & Support
+                  </Link>
+                  <Link
+                    href="/about-workit"
+                    className="block px-4 py-2 text-sm font-sans text-gray-700 hover:bg-gray-100"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    About
+                  </Link>
+                </>
+              )}
+            </div>
           </div>
         </>
       )}
