@@ -258,6 +258,9 @@ class HttpClient {
             update: (id: string, data: any) => this.put<any>(`/marketing/campaigns/admin/${id}`, data),
             delete: (id: string) => this.delete<any>(`/marketing/campaigns/admin/${id}`),
             search: (params: { q: string }) => this.get<any>("/marketing/campaigns/admin/search", { params }),
+            products: (params?: any) => this.get<any>("/marketing/campaigns/admin/products", { params }),
+            getSendPayload: (id: string) => this.get<any>(`/marketing/campaigns/admin/${id}/send-payload`),
+            send: (id: string, data?: any) => this.post<any>(`/marketing/campaigns/admin/${id}/send`, data),
             bulkDelete: (data: { ids: string[] }) => this.post<any>("/marketing/campaigns/admin/bulk-delete", data),
         };
     }

@@ -41,12 +41,34 @@ interface Product {
             source: string;
         };
     }>;
+    campaignType?: string | null;
+    campaignTypes?: string[];
+    discountType?: string | null;
+    discountTypes?: string[];
 }
 
 interface ProductTableProps {
     products: Product[];
     onDelete: (id: string, name: string) => void;
 }
+
+const CAMPAIGN_TYPE_LABELS: Record<string, string> = {
+    SEASONAL: 'Seasonal',
+    PROMOTIONAL: 'Promotional',
+    PRODUCT_LAUNCH: 'Product Launch',
+    HOLIDAY: 'Holiday',
+    LOYALTY: 'Loyalty',
+    RE_ENGAGEMENT: 'Re-engagement',
+    OTHER: 'Other',
+};
+
+const DISCOUNT_TYPE_LABELS: Record<string, string> = {
+    NONE: 'No Discount',
+    PERCENTAGE: 'Percentage Off',
+    FIXED_AMOUNT: 'Fixed Amount Off',
+    FREE_SHIPPING: 'Free Shipping',
+    BUY_X_GET_Y: 'Buy X Get Y',
+};
 
 export function ProductTable({ products, onDelete }: ProductTableProps) {
     const formatPrice = (price: number) => {
@@ -58,6 +80,16 @@ export function ProductTable({ products, onDelete }: ProductTableProps) {
             return `KES ${formatPrice(product.salePrice)}`;
         }
         return 'N/A';
+    };
+
+    const renderCampaignTypes = (types?: string[]) => {
+        if (!types || types.length === 0) return <span className="text-gray-400">None</span>;
+        return types.map((type) => CAMPAIGN_TYPE_LABELS[type] || type).join(', ');
+    };
+
+    const renderDiscountTypes = (types?: string[]) => {
+        if (!types || types.length === 0) return <span className="text-gray-400">None</span>;
+        return types.map((type) => DISCOUNT_TYPE_LABELS[type] || type).join(', ');
     };
 
     return (
@@ -73,6 +105,7 @@ export function ProductTable({ products, onDelete }: ProductTableProps) {
                             <TableHead className="w-[140px] text-gray-600 font-semibold">Price</TableHead>
                             <TableHead className="w-[100px] text-gray-600 font-semibold">Stock</TableHead>
                             <TableHead className="w-[120px] text-gray-600 font-semibold">Status</TableHead>
+                            <TableHead className="w-[220px] text-gray-600 font-semibold">Campaign</TableHead>
                             <TableHead className="text-right pr-6 w-[100px] text-gray-600 font-semibold">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -134,6 +167,18 @@ export function ProductTable({ products, onDelete }: ProductTableProps) {
                                     >
                                         {product.enabled ? 'Active' : 'Draft'}
                                     </Badge>
+                                </TableCell>
+                                <TableCell className="text-sm text-gray-700">
+                                    <div className="space-y-1">
+                                        <div>
+                                            <span className="text-gray-500">Campaign Type:</span>{' '}
+                                            {renderCampaignTypes(product.campaignTypes)}
+                                        </div>
+                                        <div>
+                                            <span className="text-gray-500">Discount Type:</span>{' '}
+                                            {renderDiscountTypes(product.discountTypes)}
+                                        </div>
+                                    </div>
                                 </TableCell>
                                 <TableCell className="text-right pr-6">
                                     <div className="flex justify-end gap-1">

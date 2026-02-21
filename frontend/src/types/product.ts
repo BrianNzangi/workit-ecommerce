@@ -71,6 +71,22 @@ export interface Product {
     slug: string;
   }[];
 
+  campaigns?: {
+    id: string;
+    name: string;
+    slug: string;
+    type: string;
+    discountType?: string | null;
+    status: string;
+    startDate?: string;
+    endDate?: string | null;
+  }[];
+
+  campaignType?: string | null;
+  campaignTypes?: string[];
+  discountType?: string | null;
+  discountTypes?: string[];
+
   // Custom fields
   condition?: 'NEW' | 'REFURBISHED';
 

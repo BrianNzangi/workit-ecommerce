@@ -1,10 +1,51 @@
 import { BaseService } from '../base/base.service';
-import { Campaign, CreateCampaignInput, CampaignListOptions } from './campaign.types';
 import {
-    validationError,
-    notFoundError,
-    duplicateError,
-} from '@/lib/graphql/errors';
+    Campaign,
+    CreateCampaignInput,
+    CampaignListOptions,
+    CampaignProductOptionsInput,
+    CampaignFeaturedProduct,
+    CampaignSendPayload,
+    SendCampaignInput,
+} from './campaign.types';
+import { validationError } from '@/lib/graphql/errors';
+
+const parseIdArray = (value: string[] | string | null | undefined): string[] => {
+    if (!value) return [];
+    if (Array.isArray(value)) return value.map((item) => String(item).trim()).filter(Boolean);
+
+    const raw = String(value).trim();
+    if (!raw) return [];
+
+    try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+            return parsed.map((item) => String(item).trim()).filter(Boolean);
+        }
+    } catch {
+        // Ignore and fallback to comma-separated format.
+    }
+
+    return raw.split(',').map((item) => item.trim()).filter(Boolean);
+};
+
+const normalizeCampaign = (payload: any): Campaign => {
+    const campaign = (payload?.campaign || payload) as any;
+
+    return {
+        ...campaign,
+        bannerIds: parseIdArray(campaign?.bannerIds),
+        collectionIds: parseIdArray(campaign?.collectionIds),
+        productIds: parseIdArray(campaign?.productIds),
+        featuredProducts: (campaign?.featuredProducts || []) as CampaignFeaturedProduct[],
+        featuredProductsCount: Number(campaign?.featuredProductsCount ?? parseIdArray(campaign?.productIds).length),
+        emailsSent: Number(campaign?.emailsSent || 0),
+        emailsOpened: Number(campaign?.emailsOpened || 0),
+        emailsClicked: Number(campaign?.emailsClicked || 0),
+        conversions: Number(campaign?.conversions || 0),
+        revenue: Number(campaign?.revenue || 0),
+    };
+};
 
 export class CampaignService extends BaseService {
     /**
@@ -12,14 +53,13 @@ export class CampaignService extends BaseService {
      */
     async getCampaigns(options: CampaignListOptions = {}): Promise<Campaign[]> {
         try {
-            // Check if search query is provided
             if (options.q) {
-                const response = await this.adminClient.campaigns.search(options as any);
-                return response.campaigns || [];
+                const response = await this.adminClient.campaigns.search({ q: options.q });
+                return (response?.campaigns || []).map(normalizeCampaign);
             }
 
             const response = await this.adminClient.campaigns.list(options);
-            return response.campaigns || [];
+            return (response?.campaigns || []).map(normalizeCampaign);
         } catch (error: any) {
             console.error('Error in getCampaigns:', error);
             return [];
@@ -31,10 +71,54 @@ export class CampaignService extends BaseService {
      */
     async getCampaign(id: string): Promise<Campaign | null> {
         try {
-            return await this.adminClient.campaigns.get(id);
+            const response = await this.adminClient.campaigns.get(id);
+            return normalizeCampaign(response);
         } catch (error: any) {
             if (error.statusCode === 404) return null;
             throw validationError(error.message || 'Failed to fetch campaign');
+        }
+    }
+
+    /**
+     * Search/fetch products for campaign featured products
+     */
+    async getCampaignProductOptions(options: CampaignProductOptionsInput = {}): Promise<CampaignFeaturedProduct[]> {
+        try {
+            const response = await this.adminClient.campaigns.products(options);
+            return response?.products || [];
+        } catch (error: any) {
+            console.error('Error in getCampaignProductOptions:', error);
+            return [];
+        }
+    }
+
+    /**
+     * Fetch campaign send payload for external delivery integrations
+     */
+    async getCampaignSendPayload(id: string): Promise<{ campaign: Campaign; payload: CampaignSendPayload }> {
+        try {
+            const response = await this.adminClient.campaigns.getSendPayload(id);
+            return {
+                campaign: normalizeCampaign(response?.campaign),
+                payload: response?.payload as CampaignSendPayload,
+            };
+        } catch (error: any) {
+            throw validationError(error.message || 'Failed to fetch campaign send payload');
+        }
+    }
+
+    /**
+     * Mark/send campaign through backend send endpoint
+     */
+    async sendCampaign(id: string, input: SendCampaignInput = {}): Promise<{ campaign: Campaign; dispatch: any }> {
+        try {
+            const response = await this.adminClient.campaigns.send(id, input);
+            return {
+                campaign: normalizeCampaign(response?.campaign),
+                dispatch: response?.dispatch,
+            };
+        } catch (error: any) {
+            throw validationError(error.message || 'Failed to send campaign');
         }
     }
 
@@ -43,7 +127,8 @@ export class CampaignService extends BaseService {
      */
     async createCampaign(data: CreateCampaignInput): Promise<Campaign> {
         try {
-            return await this.adminClient.campaigns.create(data);
+            const response = await this.adminClient.campaigns.create(data);
+            return normalizeCampaign(response);
         } catch (error: any) {
             throw validationError(error.message || 'Failed to create campaign');
         }
@@ -54,7 +139,8 @@ export class CampaignService extends BaseService {
      */
     async updateCampaign(id: string, data: Partial<CreateCampaignInput>): Promise<Campaign> {
         try {
-            return await this.adminClient.campaigns.update(id, data);
+            const response = await this.adminClient.campaigns.update(id, data);
+            return normalizeCampaign(response);
         } catch (error: any) {
             throw validationError(error.message || 'Failed to update campaign');
         }

@@ -10,6 +10,7 @@ export const productsRelations = relations(catalog.products, ({ many, one }) => 
     assets: many(catalog.productAssets),
     collections: many(catalog.productCollections),
     homepageCollections: many(marketing.homepageCollectionProducts),
+    campaignProducts: many(marketing.campaignProducts),
     brand: one(catalog.brands, {
         fields: [catalog.products.brandId],
         references: [catalog.brands.id],
@@ -91,6 +92,21 @@ export const blogsRelations = relations(marketing.blogs, ({ one }) => ({
 
 export const homepageCollectionsRelations = relations(marketing.homepageCollections, ({ many }) => ({
     products: many(marketing.homepageCollectionProducts),
+}));
+
+export const campaignsRelations = relations(marketing.campaigns, ({ many }) => ({
+    campaignProducts: many(marketing.campaignProducts),
+}));
+
+export const campaignProductsRelations = relations(marketing.campaignProducts, ({ one }) => ({
+    campaign: one(marketing.campaigns, {
+        fields: [marketing.campaignProducts.campaignId],
+        references: [marketing.campaigns.id],
+    }),
+    product: one(catalog.products, {
+        fields: [marketing.campaignProducts.productId],
+        references: [catalog.products.id],
+    }),
 }));
 
 export const homepageCollectionProductsRelations = relations(marketing.homepageCollectionProducts, ({ one }) => ({

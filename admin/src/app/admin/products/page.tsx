@@ -47,6 +47,10 @@ interface Product {
             source: string;
         };
     }>;
+    campaignType?: string | null;
+    campaignTypes?: string[];
+    discountType?: string | null;
+    discountTypes?: string[];
 }
 
 interface CollectionNode {

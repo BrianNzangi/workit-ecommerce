@@ -21,6 +21,60 @@ const bannersQuerySchema = z.object({
     collection: z.string().optional(),
 });
 
+const normalizeCampaignDate = (value: unknown): Date | null => {
+    if (!value) return null;
+    const parsed = new Date(String(value));
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
+const enrichStoreProductCampaigns = (product: any) => {
+    const now = new Date();
+    const campaignRows = Array.isArray(product?.campaignProducts) ? product.campaignProducts : [];
+    const campaigns = campaignRows
+        .map((row: any) => row?.campaign)
+        .filter(Boolean)
+        .filter((campaign: any) => {
+            if (campaign.status !== "ACTIVE") return false;
+            const startsAt = normalizeCampaignDate(campaign.startDate);
+            const endsAt = normalizeCampaignDate(campaign.endDate);
+            if (startsAt && startsAt > now) return false;
+            if (endsAt && endsAt < now) return false;
+            return true;
+        });
+
+    const dedupedCampaigns = Array.from(
+        new Map(campaigns.map((campaign: any) => [campaign.id, campaign])).values()
+    );
+    const campaignTypes = Array.from(
+        new Set(dedupedCampaigns.map((campaign: any) => campaign.type).filter(Boolean))
+    );
+    const discountTypes = Array.from(
+        new Set(dedupedCampaigns.map((campaign: any) => campaign.discountType).filter(Boolean))
+    );
+
+    return {
+        ...product,
+        campaigns: dedupedCampaigns.map((campaign: any) => ({
+            id: campaign.id,
+            name: campaign.name,
+            slug: campaign.slug,
+            type: campaign.type,
+            discountType: campaign.discountType,
+            status: campaign.status,
+            startDate: campaign.startDate,
+            endDate: campaign.endDate,
+        })),
+        campaignTypes,
+        campaignType: campaignTypes[0] || null,
+        discountTypes,
+        discountType: discountTypes[0] || null,
+        campaignProducts: undefined,
+    };
+};
+
+const enrichStoreProductsCampaigns = (products: any[]) =>
+    products.map((product: any) => enrichStoreProductCampaigns(product));
+
 export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
     // Helper to get all sub-collection IDs recursively
     const getRecursiveCollectionIds = async (parentId: string): Promise<string[]> => {
@@ -99,10 +153,11 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
             with: {
                 assets: { with: { asset: true } },
                 collections: { with: { collection: true } },
-                brand: true
+                brand: true,
+                campaignProducts: { with: { campaign: true } },
             }
         });
-        return { products: results };
+        return { products: enrichStoreProductsCampaigns(results) };
     });
 
     const searchQuerySchema = z.object({
@@ -139,11 +194,12 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
             with: {
                 assets: { with: { asset: true } },
                 collections: { with: { collection: true } },
-                brand: true
+                brand: true,
+                campaignProducts: { with: { campaign: true } },
             }
         });
         if (!product) return reply.status(404).send({ message: "Product not found" });
-        return product;
+        return enrichStoreProductCampaigns(product);
     });
 
     // Brands

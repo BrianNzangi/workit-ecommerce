@@ -8,6 +8,20 @@
       "when": 1770030724866,
       "tag": "0000_flaky_weapon_omega",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1771600000000,
+      "tag": "0001_campaign_product_normalization",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1771600500000,
+      "tag": "0002_collection_most_shopped_sort_order",
+      "breakpoints": true
     }
   ]
 }

@@ -63,6 +63,15 @@ export const campaigns = pgTable("Campaign", {
     createdBy: text("createdBy"),
 });
 
+export const campaignProducts = pgTable("CampaignProduct", {
+    id: text("id").primaryKey().notNull(),
+    campaignId: text("campaignId").notNull().references(() => campaigns.id, { onDelete: 'cascade' }),
+    productId: text("productId").notNull().references(() => products.id, { onDelete: 'cascade' }),
+    sortOrder: integer("sortOrder").default(0).notNull(),
+}, (t) => ({
+    unq: unique().on(t.campaignId, t.productId),
+}));
+
 export const homepageCollections = pgTable("HomepageCollection", {
     id: text("id").primaryKey().notNull(),
     title: varchar("title", { length: 255 }).notNull(),
