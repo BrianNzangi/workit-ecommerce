@@ -5,6 +5,13 @@ import { signIn, signUp, authClient } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 
+const generateHiddenPassword = () => {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+        return `workit-${crypto.randomUUID()}-A1!`;
+    }
+    return `workit-${Math.random().toString(36).slice(2)}-${Date.now()}-A1!`;
+};
+
 export function LoginForm() {
     const [email, setEmail] = useState('');
     const [otp, setOtp] = useState('');
@@ -135,19 +142,18 @@ export function LoginForm() {
 
 export function SignUpForm({ ontoVerify }: { ontoVerify: (email: string) => void }) {
     const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [loading, setLoading] = useState(false);
-    const router = useRouter();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         try {
+            const generatedPassword = generateHiddenPassword();
             const { error } = await signUp.email({
                 email,
-                password,
+                password: generatedPassword,
                 name: `${firstName} ${lastName}`,
                 firstName,
                 lastName,
@@ -157,11 +163,15 @@ export function SignUpForm({ ontoVerify }: { ontoVerify: (email: string) => void
                 toast.error(error.message || 'Failed to sign up');
             } else {
                 // Send verification OTP after successful sign-up
-                await authClient.emailOtp.sendVerificationOtp({
+                const { error: otpError } = await authClient.emailOtp.sendVerificationOtp({
                     email,
                     type: "email-verification",
                 });
-                toast.success('Account created! Please verify your email.');
+                if (otpError) {
+                    toast.error(otpError.message || 'Account created, but failed to send verification code.');
+                } else {
+                    toast.success('Account created! Please verify your email.');
+                }
                 ontoVerify(email);
             }
         } catch (err: any) {
@@ -200,20 +210,15 @@ export function SignUpForm({ ontoVerify }: { ontoVerify: (email: string) => void
                     placeholder="Email address"
                     required
                 />
-                <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-5 py-2 rounded-lg border border-secondary-200 focus:outline-none focus:ring-2 focus:ring-primary-900/5 focus:border-primary-900 transition-all text-secondary-900 placeholder:text-secondary-400"
-                    placeholder="Create password"
-                    required
-                />
+                <p className="text-secondary-500 text-sm">
+                    We&apos;ll send a one-time verification code to complete sign up.
+                </p>
                 <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-2 bg-secondary-200 text-secondary-400 font-bold rounded-lg hover:bg-secondary-300 hover:text-secondary-500 transition-all disabled:opacity-50 mt-4 active:bg-primary-900 active:text-white"
+                    className="w-full py-2 bg-primary-900 text-white font-bold rounded-lg hover:bg-primary-800 transition-all disabled:opacity-50 mt-4"
                 >
-                    {loading ? 'Creating...' : 'Create Account'}
+                    {loading ? 'Sending code...' : 'Send Sign Up Code'}
                 </button>
             </form>
         </div>

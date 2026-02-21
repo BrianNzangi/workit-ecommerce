@@ -70,7 +70,7 @@ export default function AuthModal() {
                             ? 'Enter your email to receive a one-time login code.'
                             : authType === 'verify'
                                 ? `Enter the code sent to your email.`
-                                : 'Enter your details to create an account.'}
+                                : 'Enter your details to receive a sign-up verification code.'}
                     </p>
 
                     {/* Form Content */}
