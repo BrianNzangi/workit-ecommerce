@@ -236,7 +236,7 @@ export function CampaignsList() {
                                 <TableHead>Discount</TableHead>
                                 <TableHead>Products</TableHead>
                                 <TableHead>Revenue</TableHead>
-                                <TableHead className="w-[80px]" />
+                                <TableHead className="w-20" />
                             </TableRow>
                         </TableHeader>
                         <TableBody>

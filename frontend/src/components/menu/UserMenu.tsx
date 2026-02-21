@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { CircleUser, ChevronDown } from 'lucide-react';
@@ -9,10 +9,21 @@ import { useAuth } from '@/hooks/useAuth';
 
 export default function UserMenu() {
   const [isOpen, setIsOpen] = useState(false);
+  const [supportsHover, setSupportsHover] = useState(false);
   const { customer, logout } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mediaQuery = window.matchMedia('(hover: hover) and (pointer: fine)');
+    const updateSupportsHover = () => setSupportsHover(mediaQuery.matches);
+
+    updateSupportsHover();
+    mediaQuery.addEventListener('change', updateSupportsHover);
+    return () => mediaQuery.removeEventListener('change', updateSupportsHover);
+  }, []);
 
   const openAuthModal = (type: 'login' | 'signup') => {
     const params = new URLSearchParams(searchParams.toString());
@@ -27,9 +38,18 @@ export default function UserMenu() {
   };
 
   return (
-    <div className="relative">
+    <div
+      className="relative"
+      onMouseEnter={() => {
+        if (supportsHover) setIsOpen(true);
+      }}
+      onMouseLeave={() => {
+        if (supportsHover) setIsOpen(false);
+      }}
+    >
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => setIsOpen((prev) => (supportsHover ? true : !prev))}
+        onFocus={() => supportsHover && setIsOpen(true)}
         className="flex items-center gap-2 text-secondary-900 hover:text-primary-900 transition-colors"
       >
         <CircleUser className="h-6 w-6" />
@@ -41,13 +61,13 @@ export default function UserMenu() {
 
       {isOpen && (
         <>
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 z-10"
-            onClick={() => setIsOpen(false)}
-          />
+          {!supportsHover && (
+            <div
+              className="fixed inset-0 z-10"
+              onClick={() => setIsOpen(false)}
+            />
+          )}
 
-          {/* Dropdown Menu */}
           <div className="absolute right-0 mt-2 w-48 bg-gray-50 rounded-xl shadow-lg py-1 z-20">
             {customer ? (
               <>

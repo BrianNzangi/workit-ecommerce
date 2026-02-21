@@ -70,8 +70,8 @@ export default function HorizontalBanner({ position = 'DEALS_HORIZONTAL' }: Hori
 
     if (loading) {
         return (
-            <section className="container mx-auto px-3 sm:px-6 md:px-2 lg:px-8 xl:px-8 2xl:px-8 mb-12">
-                <div className="w-full h-[210px] bg-gray-200 animate-pulse rounded-xl" />
+            <section className="container mx-auto px-3 sm:px-6 md:px-2 lg:px-8 xl:px-8 2xl:px-8 mb-6 md:mb-8">
+                <div className="w-full h-30 bg-gray-200 animate-pulse rounded-lg" />
             </section>
         );
     }
@@ -88,10 +88,10 @@ export default function HorizontalBanner({ position = 'DEALS_HORIZONTAL' }: Hori
     const isHeroType = position === 'DEALS_HORIZONTAL';
 
     return (
-        <section className="container mx-auto px-3 sm:px-6 md:px-2 lg:px-8 xl:px-8 2xl:px-8 mb-12">
+        <section className="container mx-auto px-3 sm:px-6 md:px-2 lg:px-8 xl:px-8 2xl:px-8 mb-6 md:mb-8">
             <Link
                 href={`/collections/${banner.collection?.slug || ''}`}
-                className={`block relative w-full h-[210px] rounded-xl overflow-hidden group shadow-sm transition-shadow ${isHeroType ? 'hover:shadow-md' : ''}`}
+                className={`block relative w-full h-52.5 rounded-lg overflow-hidden group transition-shadow ${isHeroType ? 'hover:shadow-md' : ''}`}
             >
                 {/* Desktop Image */}
                 <Image

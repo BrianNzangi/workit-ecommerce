@@ -282,7 +282,7 @@ export function CampaignForm({ mode = 'create', campaignId }: CampaignFormProps)
 
     if (pageLoading) {
         return (
-            <div className="flex min-h-[400px] items-center justify-center">
+            <div className="flex min-h-100 items-center justify-center">
                 <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-primary" />
             </div>
         );
@@ -599,7 +599,7 @@ export function CampaignForm({ mode = 'create', campaignId }: CampaignFormProps)
                                             <TableRow>
                                                 <TableHead>Product</TableHead>
                                                 <TableHead>Price</TableHead>
-                                                <TableHead className="w-[120px]">Action</TableHead>
+                                                <TableHead className="w-30">Action</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -646,7 +646,7 @@ export function CampaignForm({ mode = 'create', campaignId }: CampaignFormProps)
                                                 <TableRow>
                                                     <TableHead>Product</TableHead>
                                                     <TableHead>Price</TableHead>
-                                                    <TableHead className="w-[120px]">Remove</TableHead>
+                                                    <TableHead className="w-30">Remove</TableHead>
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>

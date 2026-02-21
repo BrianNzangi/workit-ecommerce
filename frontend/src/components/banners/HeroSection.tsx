@@ -146,7 +146,7 @@ export default function HeroSection() {
     // Don't render if loading or no banners
     if (loading) {
         return (
-            <section className="container mx-auto px-3 sm:px-6 md:px-2 lg:px-8 xl:px-8 2xl:px-8 pt-4 mb-6">
+            <section className="container mx-auto px-3 sm:px-6 md:px-2 lg:px-8 xl:px-8 2xl:px-8 pt-4 mb-4 md:mb-5">
                 <div className="relative w-full overflow-hidden aspect-16/11 sm:aspect-20/11 md:aspect-[3/1.2] lg:aspect-[4/1.2] xl:aspect-[5/1.2] bg-gray-200 animate-pulse" />
             </section>
         );
@@ -164,7 +164,7 @@ export default function HeroSection() {
         : '#';
 
     return (
-        <section className="container mx-auto px-3 sm:px-6 md:px-2 lg:px-8 xl:px-8 2xl:px-8 pt-4 mb-6">
+        <section className="container mx-auto px-3 sm:px-6 md:px-2 lg:px-8 xl:px-8 2xl:px-8 pt-4 mb-4 md:mb-5">
             <div
                 className="relative w-full rounded-xl overflow-hidden group aspect-16/11 sm:aspect-20/11 md:aspect-[3/1.2] lg:aspect-[4/1.2] xl:aspect-[5/1.2] bg-black"
                 onTouchStart={onTouchStart}

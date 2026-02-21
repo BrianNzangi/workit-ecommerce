@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 
 export default async function Home() {
   return (
-    <div className="space-y-12 bg-white">
+    <div className="bg-white">
       {/* Home Banner */}
       <HeroSection />
 

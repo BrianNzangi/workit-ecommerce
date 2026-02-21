@@ -5,7 +5,7 @@ import { fetchCollectionsClient } from '@/lib/collections-client';
 
 // Import Swiper components and styles
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination } from 'swiper/modules';
+import { Autoplay, Navigation, Pagination } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
@@ -23,6 +23,7 @@ interface CollectionItem {
 export default function MostShopped() {
     const [collections, setCollections] = useState<CollectionItem[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
         const fetchCollections = async () => {
@@ -72,9 +73,20 @@ export default function MostShopped() {
         fetchCollections();
     }, []);
 
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        const mediaQuery = window.matchMedia('(max-width: 768px)');
+        const updateMobileState = () => setIsMobile(mediaQuery.matches);
+
+        updateMobileState();
+        mediaQuery.addEventListener('change', updateMobileState);
+        return () => mediaQuery.removeEventListener('change', updateMobileState);
+    }, []);
+
     const renderSkeleton = () => (
-        <div className="w-[120px] flex flex-col items-center space-y-2">
-            <div className="relative w-[120px] h-[120px] bg-gray-100 animate-pulse rounded-lg" />
+        <div className="w-30 flex flex-col items-center space-y-2">
+            <div className="relative w-30 h-30 bg-gray-100 animate-pulse rounded-lg" />
             <div className="w-16 h-3 bg-gray-100 animate-pulse rounded mx-auto" />
         </div>
     );
@@ -90,10 +102,10 @@ export default function MostShopped() {
     );
 
     return (
-        <section className="py-12 bg-white">
+        <section className="bg-white">
             <div className="container mx-auto px-4 md:px-6 lg:px-8">
                 {/* Section Header */}
-                <div className="flex items-end justify-between mb-8">
+                <div className="flex items-end justify-between mb-5 md:mb-6">
                     <div className="space-y-2">
                         <h2 className="text-xl md:text-2xl font-bold text-secondary-900 tracking-tight">
                             Most Shopped
@@ -113,13 +125,24 @@ export default function MostShopped() {
                         </div>
                     ) : (
                         <Swiper
-                            modules={[Navigation, Pagination]}
+                            modules={[Autoplay, Navigation, Pagination]}
                             spaceBetween={24}
                             slidesPerView="auto"
-                            navigation
+                            navigation={!isMobile}
                             pagination={{ clickable: true, dynamicBullets: true }}
-                            allowTouchMove={false} // Disable touch/swipe
-                            className="most-shopped-swiper pb-12!"
+                            autoplay={
+                                isMobile && collections.length > 1
+                                    ? {
+                                        delay: 2400,
+                                        disableOnInteraction: false,
+                                        pauseOnMouseEnter: false,
+                                    }
+                                    : false
+                            }
+                            loop={isMobile && collections.length > 2}
+                            speed={650}
+                            allowTouchMove={isMobile}
+                            className="most-shopped-swiper pb-8! md:pb-10!"
                         >
                             {collections.map(renderCollection)}
                         </Swiper>

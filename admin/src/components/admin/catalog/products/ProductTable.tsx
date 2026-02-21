@@ -95,18 +95,18 @@ export function ProductTable({ products, onDelete }: ProductTableProps) {
     return (
         <div className="rounded-md border border-gray-200 bg-white overflow-hidden">
             <div className="overflow-x-auto">
-                <Table className="min-w-[1000px]">
+                <Table className="min-w-250">
                     <TableHeader>
                         <TableRow className="border-gray-200">
-                            <TableHead className="w-[100px] pl-6 text-gray-600 font-semibold">Image</TableHead>
+                            <TableHead className="w-25 pl-6 text-gray-600 font-semibold">Image</TableHead>
                             <TableHead className="text-gray-600 font-semibold">Product</TableHead>
                             <TableHead className="text-gray-600 font-semibold">Collections</TableHead>
-                            <TableHead className="w-[120px] text-gray-600 font-semibold">Homepage</TableHead>
-                            <TableHead className="w-[140px] text-gray-600 font-semibold">Price</TableHead>
-                            <TableHead className="w-[100px] text-gray-600 font-semibold">Stock</TableHead>
-                            <TableHead className="w-[120px] text-gray-600 font-semibold">Status</TableHead>
-                            <TableHead className="w-[220px] text-gray-600 font-semibold">Campaign</TableHead>
-                            <TableHead className="text-right pr-6 w-[100px] text-gray-600 font-semibold">Actions</TableHead>
+                            <TableHead className="w-30 text-gray-600 font-semibold">Homepage</TableHead>
+                            <TableHead className="w-30 text-gray-600 font-semibold">Price</TableHead>
+                            <TableHead className="w-30 text-gray-600 font-semibold">Stock</TableHead>
+                            <TableHead className="w-30 text-gray-600 font-semibold">Status</TableHead>
+                            <TableHead className="w-30 text-gray-600 font-semibold">Campaign</TableHead>
+                            <TableHead className="text-right pr-6 w-25 text-gray-600 font-semibold">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useSession, signOut, authClient } from "@/lib/auth-client";
+import { useSession, authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 
 export interface Customer {
@@ -40,7 +40,13 @@ export function useAuth() {
 
     const logout = async () => {
         try {
-            await signOut();
+            const result = await authClient.signOut();
+            if (result?.error) {
+                console.error(result.error);
+                return { success: false };
+            }
+
+            router.replace('/');
             router.refresh();
             return { success: true };
         } catch (e) {
