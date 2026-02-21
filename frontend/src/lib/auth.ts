@@ -87,6 +87,23 @@ const fetchWithTimeout = async (
     }
 };
 
+const runWithTimeout = async <T>(
+    action: Promise<T>,
+    timeoutMs: number,
+    timeoutMessage: string,
+) => {
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    const timeoutPromise = new Promise<T>((_, reject) => {
+        timeoutId = setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs);
+    });
+
+    try {
+        return await Promise.race([action, timeoutPromise]);
+    } finally {
+        if (timeoutId) clearTimeout(timeoutId);
+    }
+};
+
 const sendOtpViaResend = async ({
     to,
     subject,
@@ -241,26 +258,28 @@ export const auth = betterAuth({
                 });
 
                 try {
-                    const sentWithResend = await sendOtpViaResend({
-                        to: email,
-                        subject,
-                        html,
-                        text,
-                    });
+                    const providerOrder = (
+                        process.env.OTP_EMAIL_PROVIDER?.trim().toLowerCase() === "resend"
+                            ? [sendOtpViaResend, sendOtpViaUnosend]
+                            : [sendOtpViaUnosend, sendOtpViaResend]
+                    );
 
-                    if (sentWithResend) return;
-
-                    const sentWithUnosend = await sendOtpViaUnosend({
-                        to: email,
-                        subject,
-                        html,
-                        text,
-                    });
-
-                    if (sentWithUnosend) return;
+                    for (const provider of providerOrder) {
+                        const sent = await runWithTimeout(
+                            provider({
+                                to: email,
+                                subject,
+                                html,
+                                text,
+                            }),
+                            EMAIL_REQUEST_TIMEOUT_MS,
+                            "OTP email provider timeout",
+                        );
+                        if (sent) return;
+                    }
 
                     throw new Error(
-                        "OTP email provider is not configured. Set UNOSEND_API_KEY and UNOSEND_FROM_EMAIL (or OTP_FROM_EMAIL).",
+                        "OTP email provider is not configured. Set UNOSEND_API_KEY and UNOSEND_FROM_EMAIL (or OTP_FROM_EMAIL). You can force provider with OTP_EMAIL_PROVIDER=unosend.",
                     );
                 } catch (error) {
                     const message = error instanceof Error ? error.message : "Unknown OTP provider error";

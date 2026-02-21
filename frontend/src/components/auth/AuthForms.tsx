@@ -5,6 +5,8 @@ import { signIn, signUp, authClient } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 
+type ModalBusyReporter = (busy: boolean, message?: string) => void;
+
 const generateHiddenPassword = () => {
     if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
         return `workit-${crypto.randomUUID()}-A1!`;
@@ -12,7 +14,20 @@ const generateHiddenPassword = () => {
     return `workit-${Math.random().toString(36).slice(2)}-${Date.now()}-A1!`;
 };
 
-export function LoginForm() {
+async function withRequestTimeout<T>(promise: Promise<T>, timeoutMs = 15000) {
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    const timeoutPromise = new Promise<T>((_, reject) => {
+        timeoutId = setTimeout(() => reject(new Error('Request timed out. Please try again.')), timeoutMs);
+    });
+
+    try {
+        return await Promise.race([promise, timeoutPromise]);
+    } finally {
+        if (timeoutId) clearTimeout(timeoutId);
+    }
+}
+
+export function LoginForm({ onBusyChange }: { onBusyChange?: ModalBusyReporter }) {
     const [email, setEmail] = useState('');
     const [otp, setOtp] = useState('');
     const [step, setStep] = useState<'request' | 'verify'>('request');
@@ -22,11 +37,12 @@ export function LoginForm() {
 
     const handleRequestOtp = async () => {
         setSendingOtp(true);
+        onBusyChange?.(true, 'Sending login code...');
         try {
-            const { error } = await authClient.emailOtp.sendVerificationOtp({
+            const { error } = await withRequestTimeout(authClient.emailOtp.sendVerificationOtp({
                 email,
                 type: 'sign-in',
-            });
+            }));
             if (error) {
                 toast.error(error.message || 'Failed to send code');
             } else {
@@ -37,17 +53,19 @@ export function LoginForm() {
             toast.error(err.message || 'An error occurred');
         } finally {
             setSendingOtp(false);
+            onBusyChange?.(false);
         }
     };
 
     const handleVerifyOtp = async (e: React.FormEvent) => {
         e.preventDefault();
         setVerifyingOtp(true);
+        onBusyChange?.(true, 'Verifying code...');
         try {
-            const { error } = await signIn.emailOtp({
+            const { error } = await withRequestTimeout(signIn.emailOtp({
                 email,
                 otp,
-            } as any);
+            } as any));
 
             if (error) {
                 toast.error(error.message || 'Invalid verification code');
@@ -60,6 +78,7 @@ export function LoginForm() {
             toast.error(err.message || 'An error occurred');
         } finally {
             setVerifyingOtp(false);
+            onBusyChange?.(false);
         }
     };
 
@@ -140,7 +159,13 @@ export function LoginForm() {
     );
 }
 
-export function SignUpForm({ ontoVerify }: { ontoVerify: (email: string) => void }) {
+export function SignUpForm({
+    ontoVerify,
+    onBusyChange,
+}: {
+    ontoVerify: (email: string) => void;
+    onBusyChange?: ModalBusyReporter;
+}) {
     const [email, setEmail] = useState('');
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -149,24 +174,25 @@ export function SignUpForm({ ontoVerify }: { ontoVerify: (email: string) => void
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
+        onBusyChange?.(true, 'Sending sign up code...');
         try {
             const generatedPassword = generateHiddenPassword();
-            const { error } = await signUp.email({
+            const { error } = await withRequestTimeout(signUp.email({
                 email,
                 password: generatedPassword,
                 name: `${firstName} ${lastName}`,
                 firstName,
                 lastName,
                 callbackURL: '/',
-            } as any);
+            } as any));
             if (error) {
                 toast.error(error.message || 'Failed to sign up');
             } else {
                 // Send verification OTP after successful sign-up
-                const { error: otpError } = await authClient.emailOtp.sendVerificationOtp({
+                const { error: otpError } = await withRequestTimeout(authClient.emailOtp.sendVerificationOtp({
                     email,
                     type: "email-verification",
-                });
+                }));
                 if (otpError) {
                     toast.error(otpError.message || 'Account created, but failed to send verification code.');
                 } else {
@@ -178,12 +204,13 @@ export function SignUpForm({ ontoVerify }: { ontoVerify: (email: string) => void
             toast.error(err.message || 'An error occurred');
         } finally {
             setLoading(false);
+            onBusyChange?.(false);
         }
     };
 
     return (
         <div className="w-full">
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-2">
                 <div className="grid grid-cols-2 gap-4">
                     <input
                         type="text"
@@ -210,9 +237,7 @@ export function SignUpForm({ ontoVerify }: { ontoVerify: (email: string) => void
                     placeholder="Email address"
                     required
                 />
-                <p className="text-secondary-500 text-sm">
-                    We&apos;ll send a one-time verification code to complete sign up.
-                </p>
+                
                 <button
                     type="submit"
                     disabled={loading}
@@ -225,7 +250,7 @@ export function SignUpForm({ ontoVerify }: { ontoVerify: (email: string) => void
     );
 }
 
-export function VerifyOTPForm({ email }: { email: string }) {
+export function VerifyOTPForm({ email, onBusyChange }: { email: string; onBusyChange?: ModalBusyReporter }) {
     const [otp, setOtp] = useState('');
     const [loading, setLoading] = useState(false);
     const router = useRouter();
@@ -233,11 +258,12 @@ export function VerifyOTPForm({ email }: { email: string }) {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
+        onBusyChange?.(true, 'Verifying your email...');
         try {
-            const { error } = await authClient.emailOtp.verifyEmail({
+            const { error } = await withRequestTimeout(authClient.emailOtp.verifyEmail({
                 email,
                 otp,
-            });
+            }));
             if (error) {
                 toast.error(error.message || 'Invalid verification code');
             } else {
@@ -249,15 +275,17 @@ export function VerifyOTPForm({ email }: { email: string }) {
             toast.error(err.message || 'An error occurred');
         } finally {
             setLoading(false);
+            onBusyChange?.(false);
         }
     };
 
     const handleResend = async () => {
+        onBusyChange?.(true, 'Resending verification code...');
         try {
-            const { error } = await authClient.emailOtp.sendVerificationOtp({
+            const { error } = await withRequestTimeout(authClient.emailOtp.sendVerificationOtp({
                 email,
                 type: 'email-verification',
-            });
+            }));
             if (error) {
                 toast.error(error.message || 'Failed to resend code');
             } else {
@@ -265,6 +293,8 @@ export function VerifyOTPForm({ email }: { email: string }) {
             }
         } catch (err: any) {
             toast.error(err.message || 'An error occurred');
+        } finally {
+            onBusyChange?.(false);
         }
     };
 

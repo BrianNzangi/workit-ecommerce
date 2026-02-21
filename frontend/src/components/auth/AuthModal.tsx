@@ -9,6 +9,8 @@ export default function AuthModal() {
     const [showModal, setShowModal] = useState(false);
     const [authType, setAuthType] = useState<'login' | 'signup' | 'verify' | null>(null);
     const [emailForVerification, setEmailForVerification] = useState('');
+    const [isBusy, setIsBusy] = useState(false);
+    const [busyMessage, setBusyMessage] = useState('Sending information...');
     const modalRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -26,6 +28,8 @@ export default function AuthModal() {
         setShowModal(false);
         setAuthType(null);
         setEmailForVerification('');
+        setIsBusy(false);
+        setBusyMessage('Sending information...');
         // Remove 'auth' param from URL
         const params = new URLSearchParams(searchParams.toString());
         params.delete('auth');
@@ -33,8 +37,18 @@ export default function AuthModal() {
     };
 
     const handleBackdropClick = (e: React.MouseEvent) => {
+        if (isBusy) return;
         if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
             closeModal();
+        }
+    };
+
+    const handleBusyChange = (busy: boolean, message?: string) => {
+        setIsBusy(busy);
+        if (busy) {
+            setBusyMessage(message || 'Sending information...');
+        } else {
+            setBusyMessage('Sending information...');
         }
     };
 
@@ -49,6 +63,15 @@ export default function AuthModal() {
                 ref={modalRef}
                 className="relative w-full max-w-110 mx-4 bg-white rounded-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300"
             >
+                {isBusy && (
+                    <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/75 backdrop-blur-[1px]">
+                        <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white shadow-md border border-secondary-100">
+                            <span className="h-5 w-5 rounded-full border-2 border-primary-900 border-t-transparent animate-spin" />
+                            <span className="text-sm font-medium text-secondary-700">{busyMessage}</span>
+                        </div>
+                    </div>
+                )}
+
                 <div className="p-10 pt-12 text-center">
                     {/* Logo */}
                     <div className="flex justify-center mb-6">
@@ -76,15 +99,16 @@ export default function AuthModal() {
                     {/* Form Content */}
                     <div className="text-left">
                         {authType === 'login' ? (
-                            <LoginForm />
+                            <LoginForm onBusyChange={handleBusyChange} />
                         ) : authType === 'verify' ? (
-                            <VerifyOTPForm email={emailForVerification} />
+                            <VerifyOTPForm email={emailForVerification} onBusyChange={handleBusyChange} />
                         ) : (
                             <SignUpForm
                                 ontoVerify={(email) => {
                                     setEmailForVerification(email);
                                     setAuthType('verify');
                                 }}
+                                onBusyChange={handleBusyChange}
                             />
                         )}
                     </div>
@@ -94,6 +118,7 @@ export default function AuthModal() {
                             {authType === 'login' ? "Don't have an account?" : "Already have an account?"}{' '}
                             <button
                                 onClick={() => {
+                                    if (isBusy) return;
                                     const type = authType === 'login' ? 'signup' : 'login';
                                     router.push(`?auth=${type}`, { scroll: false });
                                 }}
