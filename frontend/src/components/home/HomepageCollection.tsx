@@ -16,6 +16,7 @@ function CollectionCarousel({ collection }: CollectionCarouselProps) {
   const [scrollIndex, setScrollIndex] = useState(0);
   const [containerWidth, setContainerWidth] = useState(0);
   const [visibleCards, setVisibleCards] = useState(2);
+  const [isMobile, setIsMobile] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const controls = useAnimation();
@@ -25,6 +26,16 @@ function CollectionCarousel({ collection }: CollectionCarouselProps) {
   const MIN_SWIPE_DISTANCE = 40;
   const products = collection.products || [];
   const displayedProducts = products.slice(0, 12);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mediaQuery = window.matchMedia('(max-width: 768px)');
+    const updateMobileState = () => setIsMobile(mediaQuery.matches);
+
+    updateMobileState();
+    mediaQuery.addEventListener('change', updateMobileState);
+    return () => mediaQuery.removeEventListener('change', updateMobileState);
+  }, []);
 
   useEffect(() => {
     const updateDimensions = () => {
@@ -71,29 +82,32 @@ function CollectionCarousel({ collection }: CollectionCarouselProps) {
   }, [maxScrollIndex, scrollIndex, scrollToIndex]);
 
   useEffect(() => {
-    if (displayedProducts.length <= visibleCards) return;
+    if (!isMobile || displayedProducts.length <= visibleCards) return;
 
     const timer = setInterval(() => {
       void scroll('right', true);
     }, 2800);
 
     return () => clearInterval(timer);
-  }, [displayedProducts.length, visibleCards, scroll]);
+  }, [displayedProducts.length, isMobile, visibleCards, scroll]);
 
   useEffect(() => {
     controls.set({ x: -(scrollIndex * (cardWidth + GAP)) });
   }, [controls, scrollIndex, cardWidth]);
 
   const onTouchStart = (e: React.TouchEvent) => {
+    if (!isMobile) return;
     setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);
   };
 
   const onTouchMove = (e: React.TouchEvent) => {
+    if (!isMobile) return;
     setTouchEnd(e.targetTouches[0].clientX);
   };
 
   const onTouchEnd = () => {
+    if (!isMobile) return;
     if (touchStart === null || touchEnd === null) return;
     const distance = touchStart - touchEnd;
 
@@ -185,9 +199,9 @@ function CollectionCarousel({ collection }: CollectionCarouselProps) {
             ref={containerRef}
             className="overflow-hidden"
             style={{ touchAction: 'pan-y' }}
-            onTouchStart={onTouchStart}
-            onTouchMove={onTouchMove}
-            onTouchEnd={onTouchEnd}
+            onTouchStart={isMobile ? onTouchStart : undefined}
+            onTouchMove={isMobile ? onTouchMove : undefined}
+            onTouchEnd={isMobile ? onTouchEnd : undefined}
           >
             <motion.div
               animate={controls}

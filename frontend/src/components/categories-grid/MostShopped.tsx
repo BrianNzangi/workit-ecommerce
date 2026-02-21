@@ -103,7 +103,7 @@ export default function MostShopped() {
 
     return (
         <section className="bg-white">
-            <div className="container mx-auto px-4 md:px-6 lg:px-8">
+            <div className="container mx-auto pt-2 px-4 md:px-6 lg:px-8">
                 {/* Section Header */}
                 <div className="flex items-end justify-between mb-5 md:mb-6">
                     <div className="space-y-2">
@@ -129,7 +129,7 @@ export default function MostShopped() {
                             spaceBetween={24}
                             slidesPerView="auto"
                             navigation={!isMobile}
-                            pagination={{ clickable: true, dynamicBullets: true }}
+                            pagination={isMobile ? { clickable: true, dynamicBullets: true } : false}
                             autoplay={
                                 isMobile && collections.length > 1
                                     ? {
