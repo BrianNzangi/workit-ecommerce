@@ -41,7 +41,7 @@ export default function FeaturedBlogs() {
     ));
 
   return (
-    <section className="container mx-auto py-2 px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-8 py-0 font-sans">
+    <section className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-8 py-0 font-sans">
       <div className="flex justify-between items-center mb-2">
         <h2 className="font-sans text-xl font-semibold">Tech that helps the world</h2>
       </div>
@@ -74,7 +74,7 @@ export default function FeaturedBlogs() {
             className="featured-blogs-swiper"
           >
             {blogs.map((blog) => (
-              <SwiperSlide key={blog.id} className="!w-auto h-auto">
+              <SwiperSlide key={blog.id} className="w-auto! h-auto">
                 <BlogCard
                   id={blog.id}
                   title={blog.title}

@@ -137,7 +137,7 @@ export default function ColProductCard({
         {/* Product Info - Reduced spacing on mobile */}
         <div className="grow flex flex-col space-y-1 sm:space-y-1.5">
           {/* Product Name */}
-          <h3 className="font-sans text-[15px] md:text-base font-medium text-gray-800 break-words whitespace-normal leading-snug">
+          <h3 className="font-sans text-[15px] md:text-base font-medium text-gray-800 wrap-break-word whitespace-normal leading-snug">
             {name || 'Product'}
           </h3>
 
