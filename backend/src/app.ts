@@ -1,13 +1,8 @@
 import Fastify from "fastify";
-import cors from "@fastify/cors";
-import sensible from "@fastify/sensible";
-import authPlugin from "@fastify/auth";
 import autoload from "@fastify/autoload";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
-import { serializerCompiler, validatorCompiler, ZodTypeProvider, jsonSchemaTransform } from "fastify-type-provider-zod";
-import fastifySwagger from "@fastify/swagger";
-import fastifySwaggerUi from "@fastify/swagger-ui";
+import { serializerCompiler, validatorCompiler, ZodTypeProvider } from "fastify-type-provider-zod";
 
 import { storageService } from "./lib/storage.js";
 
@@ -57,55 +52,12 @@ export const buildApp = async () => {
     app.setValidatorCompiler(validatorCompiler);
     app.setSerializerCompiler(serializerCompiler);
 
-    // Register core plugins
-    await app.register(sensible);
-
     app.addHook('onRequest', async (request, reply) => {
         console.log(`[DEBUG] Incoming Request: ${request.method} ${request.url}`);
     });
 
-    await app.register(cors, {
-        origin: true, // Configure as needed
-        credentials: true,
-    });
-    await app.register(authPlugin);
-
-    // Register Multipart with file upload limits
-    await app.register(import("@fastify/multipart"), {
-        limits: {
-            fileSize: 10 * 1024 * 1024, // 10MB max file size
-            files: 1,                    // 1 file at a time
-        },
-    });
-
     // Ensure storage bucket exists once on startup (idempotent).
     await storageService.ensureBucketExists();
-
-    // Register Swagger
-    await app.register(fastifySwagger, {
-        openapi: {
-            info: {
-                title: "Workit API",
-                description: "Workit Ecommerce API Documentation",
-                version: "2.0.0",
-            },
-            components: {
-                securitySchemes: {
-                    bearerAuth: {
-                        type: "http",
-                        scheme: "bearer",
-                        bearerFormat: "JWT",
-                    },
-                },
-            },
-        },
-        transform: jsonSchemaTransform,
-    });
-
-    await app.register(fastifySwaggerUi, {
-        routePrefix: "/documentation",
-    });
-
 
     // Register database and other global plugins
     await app.register(autoload, {

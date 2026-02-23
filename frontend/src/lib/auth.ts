@@ -318,18 +318,35 @@ export const auth = betterAuth({
                         });
                     }
 
+                    const failures: string[] = [];
+                    let attempted = false;
+
                     for (const provider of providerOrder) {
-                        const sent = await runWithTimeout(
-                            provider({
-                                to: email,
-                                subject,
-                                html,
-                                text,
-                            }),
-                            EMAIL_REQUEST_TIMEOUT_MS,
-                            "OTP email provider timeout",
-                        );
-                        if (sent) return;
+                        try {
+                            const sent = await runWithTimeout(
+                                provider({
+                                    to: email,
+                                    subject,
+                                    html,
+                                    text,
+                                }),
+                                EMAIL_REQUEST_TIMEOUT_MS,
+                                "OTP email provider timeout",
+                            );
+                            if (sent) return;
+                        } catch (err) {
+                            attempted = true;
+                            const message = err instanceof Error ? err.message : String(err);
+                            failures.push(`${provider.name}: ${message}`);
+                            console.error("[Auth OTP] Provider failed", {
+                                provider: provider.name,
+                                message,
+                            });
+                        }
+                    }
+
+                    if (failures.length) {
+                        throw new Error(`OTP email providers failed: ${failures.join(" | ")}`);
                     }
 
                     throw new Error(
