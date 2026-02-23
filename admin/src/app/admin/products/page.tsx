@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ProtectedRoute } from '@/components/login/ProtectedRoute';
 import { AdminLayout } from '@/components/admin/layout/AdminLayout';
 import { ProductService, CollectionService, BrandService } from '@/lib/services';
-import { getImageUrl } from '@/lib/shared/images/image-utils';
 
 import { Package, Plus, Upload, Download, FileDown, X } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
@@ -148,9 +148,13 @@ function buildCollectionFilterOptions(input: CollectionNode[]): CollectionFilter
 }
 
 export default function ProductsPage() {
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const isFirstFilterRun = useRef(true);
 
     const [products, setProducts] = useState<Product[]>([]);
-    const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+    const [totalProducts, setTotalProducts] = useState(0);
+    const [totalProductsAll, setTotalProductsAll] = useState(0);
     const [loading, setLoading] = useState(true);
     const [showImportModal, setShowImportModal] = useState(false);
 
@@ -171,8 +175,14 @@ export default function ProductsPage() {
     const [showFilters, setShowFilters] = useState(false);
 
     // Pagination states
-    const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(50);
+    const [currentPage, setCurrentPage] = useState(() => {
+        const pageParam = Number(searchParams.get('page') ?? '1');
+        return Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1;
+    });
+    const [itemsPerPage, setItemsPerPage] = useState(() => {
+        const perPageParam = Number(searchParams.get('perPage') ?? '50');
+        return Number.isFinite(perPageParam) && perPageParam > 0 ? perPageParam : 50;
+    });
 
     // Collections and Brands for filters
     const [collections, setCollections] = useState<CollectionFilterOption[]>([]);
@@ -180,10 +190,33 @@ export default function ProductsPage() {
 
     const fetchProducts = async () => {
         try {
+            setLoading(true);
             const productService = new ProductService();
-            const data = await productService.getProducts();
-            setProducts(data);
-            setFilteredProducts(data);
+            const parsedMinPrice = minPrice.trim() === '' ? undefined : Number(minPrice);
+            const parsedMaxPrice = maxPrice.trim() === '' ? undefined : Number(maxPrice);
+            const response = await productService.getProductsPage({
+                limit: itemsPerPage,
+                offset: (currentPage - 1) * itemsPerPage,
+                q: searchTerm.trim() || undefined,
+                collectionId: selectedCollection && selectedCollection !== 'none' ? selectedCollection : undefined,
+                brandId: selectedBrand && selectedBrand !== 'none' ? selectedBrand : undefined,
+                enabled: selectedStatus === 'active' ? true : selectedStatus === 'draft' ? false : undefined,
+                condition: selectedCondition && selectedCondition !== 'none' ? selectedCondition : undefined,
+                stockStatus: selectedStockStatus && selectedStockStatus !== 'none' ? selectedStockStatus : undefined,
+                minPrice: Number.isFinite(parsedMinPrice) ? parsedMinPrice : undefined,
+                maxPrice: Number.isFinite(parsedMaxPrice) ? parsedMaxPrice : undefined,
+                includeTotalAll: true,
+            });
+            setProducts(response.products || []);
+            const total = Number(response.total || 0);
+            const totalAll = Number(response.totalAll ?? total);
+            setTotalProducts(total);
+            setTotalProductsAll(totalAll);
+
+            const totalPages = Math.max(1, Math.ceil(total / itemsPerPage));
+            if (currentPage > totalPages) {
+                setCurrentPage(totalPages);
+            }
         } catch (error: any) {
             console.error('Error fetching products:', {
                 message: error.message,
@@ -222,72 +255,24 @@ export default function ProductsPage() {
     };
 
     useEffect(() => {
-        fetchProducts();
         fetchCollections();
         fetchBrands();
     }, []);
 
-    // Apply filters whenever filter criteria or products change
     useEffect(() => {
-        let filtered = [...products];
-
-        // Search filter
-        if (searchTerm) {
-            filtered = filtered.filter(product =>
-                product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                product.slug.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-        }
-
-        if (selectedCollection && selectedCollection !== 'none') {
-            filtered = filtered.filter(product =>
-                product.collections?.some(pc => pc.collection.id === selectedCollection) || false
-            );
-        }
-
-        // Brand filter
-        if (selectedBrand && selectedBrand !== 'none') {
-            filtered = filtered.filter(product =>
-                (product as any).brandId === selectedBrand
-            );
-        }
-
-        // Status filter
-        if (selectedStatus && selectedStatus !== 'none') {
-            filtered = filtered.filter(product =>
-                selectedStatus === 'active' ? product.enabled : !product.enabled
-            );
-        }
-
-        // Condition filter
-        if (selectedCondition && selectedCondition !== 'none') {
-            filtered = filtered.filter(product =>
-                (product as any).condition === selectedCondition
-            );
-        }
-
-        if (selectedStockStatus && selectedStockStatus !== 'none') {
-            filtered = filtered.filter(product => {
-                const totalStock = product.stockOnHand || 0;
-                if (selectedStockStatus === 'in_stock') return totalStock > 0;
-                if (selectedStockStatus === 'low_stock') return totalStock > 0 && totalStock <= 10;
-                if (selectedStockStatus === 'out_of_stock') return totalStock === 0;
-                return true;
-            });
-        }
-
-        if (minPrice || maxPrice) {
-            filtered = filtered.filter(product => {
-                const productPrice = product.salePrice || 0;
-                const min = minPrice ? parseFloat(minPrice) : 0;
-                const max = maxPrice ? parseFloat(maxPrice) : Infinity;
-                return productPrice >= min && productPrice <= max;
-            });
-        }
-
-        setFilteredProducts(filtered);
-        setCurrentPage(1); // Reset to page 1 when filters change
-    }, [products, searchTerm, selectedCollection, selectedBrand, selectedStatus, selectedCondition, selectedStockStatus, minPrice, maxPrice]);
+        fetchProducts();
+    }, [
+        currentPage,
+        itemsPerPage,
+        searchTerm,
+        selectedCollection,
+        selectedBrand,
+        selectedStatus,
+        selectedCondition,
+        selectedStockStatus,
+        minPrice,
+        maxPrice,
+    ]);
 
     const clearFilters = () => {
         setSearchTerm('');
@@ -311,11 +296,23 @@ export default function ProductsPage() {
         maxPrice
     ].filter(Boolean).length;
 
-    // Pagination calculations
-    const paginatedProducts = filteredProducts.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
+    useEffect(() => {
+        if (isFirstFilterRun.current) {
+            isFirstFilterRun.current = false;
+            return;
+        }
+        if (currentPage !== 1) setCurrentPage(1);
+    }, [searchTerm, selectedCollection, selectedBrand, selectedStatus, selectedCondition, selectedStockStatus, minPrice, maxPrice]);
+
+    useEffect(() => {
+        const params = new URLSearchParams(searchParams.toString());
+        const pageValue = String(currentPage);
+        const perPageValue = String(itemsPerPage);
+        if (params.get('page') === pageValue && params.get('perPage') === perPageValue) return;
+        params.set('page', pageValue);
+        params.set('perPage', perPageValue);
+        router.replace(`?${params.toString()}`, { scroll: false });
+    }, [currentPage, itemsPerPage, router, searchParams]);
 
     const handleDelete = (productId: string, productName: string) => {
         setProductToDelete({ id: productId, name: productName });
@@ -434,8 +431,8 @@ export default function ProductsPage() {
                     clearFilters={clearFilters}
                     collections={collections}
                     brands={brands}
-                    filteredProductsCount={filteredProducts.length}
-                    totalProductsCount={products.length}
+                    filteredProductsCount={totalProducts}
+                    totalProductsCount={totalProductsAll || totalProducts}
                 />
 
                 <div className="mb-6 flex justify-between items-center">
@@ -484,7 +481,7 @@ export default function ProductsPage() {
                     <div className="bg-white rounded-xs shadow-xs border border-gray-200 p-8">
                         <p className="text-center text-gray-500">Loading products...</p>
                     </div>
-                ) : filteredProducts.length === 0 && products.length > 0 ? (
+                ) : totalProducts === 0 && totalProductsAll > 0 && activeFiltersCount > 0 ? (
                     <Card className="p-8 border-gray-200 shadow-xs">
                         <div className="flex flex-col items-center justify-center py-12 text-center">
                             <Package className="w-12 h-12 text-muted-foreground mb-4" />
@@ -500,7 +497,7 @@ export default function ProductsPage() {
                             </Button>
                         </div>
                     </Card>
-                ) : products.length === 0 ? (
+                ) : totalProductsAll === 0 ? (
                     <Card className="p-8 border-gray-200 shadow-xs">
                         <div className="flex flex-col items-center justify-center py-12 text-center">
                             <Package className="w-12 h-12 text-muted-foreground mb-4" />
@@ -520,11 +517,11 @@ export default function ProductsPage() {
                 ) : (
                     <>
                         <ProductTable
-                            products={paginatedProducts}
+                            products={products}
                             onDelete={handleDelete}
                         />
                         <ProductPagination
-                            totalItems={filteredProducts.length}
+                            totalItems={totalProducts}
                             itemsPerPage={itemsPerPage}
                             currentPage={currentPage}
                             onPageChange={setCurrentPage}

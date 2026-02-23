@@ -1,5 +1,5 @@
 import { BaseService } from '../base/base.service';
-import { Product, CreateProductInput, ProductListOptions } from './product.types';
+import { Product, CreateProductInput, ProductListOptions, ProductListResponse } from './product.types';
 
 export class ProductService extends BaseService {
     /**
@@ -40,9 +40,31 @@ export class ProductService extends BaseService {
      * Get a list of products
      */
     async getProducts(options: ProductListOptions = {}): Promise<Product[]> {
+        const response = await this.getProductsPage(options);
+        return response.products || [];
+    }
+
+    /**
+     * Get a paginated list of products
+     */
+    async getProductsPage(options: ProductListOptions = {}): Promise<ProductListResponse> {
         const response: any = await this.adminClient.products.list(options);
-        // Handle both raw array and wrapped object (legacy)
-        return Array.isArray(response) ? response : (response.products || []);
+
+        if (Array.isArray(response)) {
+            return {
+                products: response,
+                total: response.length,
+            };
+        }
+
+        return {
+            products: response?.products || [],
+            total: Number(response?.total || 0),
+            totalAll: response?.totalAll,
+            limit: response?.limit,
+            offset: response?.offset,
+            success: response?.success,
+        };
     }
 
     /**

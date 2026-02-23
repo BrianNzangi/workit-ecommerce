@@ -117,6 +117,10 @@ export function ProductTable({ products, onDelete }: ProductTableProps) {
                                         <img
                                             src={getImageUrl(product.assets[0].asset.source)}
                                             alt={product.name}
+                                            loading="lazy"
+                                            decoding="async"
+                                            width={40}
+                                            height={40}
                                             className="w-10 h-10 object-cover rounded shadow-sm border border-gray-200"
                                         />
                                     ) : (

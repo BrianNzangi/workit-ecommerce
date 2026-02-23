@@ -1,5 +1,5 @@
 import { FastifyPluginAsync } from "fastify";
-import { db, schema, eq, desc, inArray, and } from "../../../../lib/db.js";
+import { db, schema, eq, desc, inArray, and, or, ilike, gte, lte, gt, sql, count } from "../../../../lib/db.js";
 import { v4 as uuidv4 } from "uuid";
 import { productSearchService } from "../../../../services/search/product-search.service.js";
 
@@ -73,7 +73,25 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
     fastify.get("/", {
         preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
     }, async (request) => {
-        const { limit = 1000, offset = 0, collectionId, brandId, enabled } = request.query as any;
+        const {
+            limit = 50,
+            offset,
+            page,
+            collectionId,
+            brandId,
+            enabled,
+            q,
+            condition,
+            stockStatus,
+            minPrice,
+            maxPrice,
+            includeTotalAll,
+        } = request.query as any;
+
+        const parsedLimit = Math.min(Math.max(Number(limit) || 50, 1), 200);
+        const parsedOffset = Number.isFinite(Number(offset))
+            ? Math.max(Number(offset), 0)
+            : Math.max((Number(page) || 1) - 1, 0) * parsedLimit;
 
         const conditions = [];
 
@@ -94,10 +112,64 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
             ));
         }
 
+        const searchTerm = String(q || "").trim();
+        if (searchTerm) {
+            conditions.push(or(
+                ilike(schema.products.name as any, `%${searchTerm}%`),
+                ilike(schema.products.slug as any, `%${searchTerm}%`),
+                ilike(schema.products.sku as any, `%${searchTerm}%`)
+            ));
+        }
+
+        if (condition) {
+            conditions.push(eq(schema.products.condition as any, condition));
+        }
+
+        if (stockStatus) {
+            const stockExpr = sql<number>`coalesce(${schema.products.stockOnHand}, 0)`;
+            if (stockStatus === "in_stock") {
+                conditions.push(gt(stockExpr, 0));
+            } else if (stockStatus === "low_stock") {
+                conditions.push(and(gt(stockExpr, 0), lte(stockExpr, 10)));
+            } else if (stockStatus === "out_of_stock") {
+                conditions.push(eq(stockExpr, 0));
+            }
+        }
+
+        if (minPrice !== undefined || maxPrice !== undefined) {
+            const priceExpr = sql<number>`coalesce(${schema.products.salePrice}, ${schema.products.originalPrice}, 0)`;
+            const min = Number(minPrice);
+            const max = Number(maxPrice);
+            if (Number.isFinite(min)) {
+                conditions.push(gte(priceExpr, min));
+            }
+            if (Number.isFinite(max)) {
+                conditions.push(lte(priceExpr, max));
+            }
+        }
+
+        const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+        const totalCountQuery = db
+            .select({ count: count() })
+            .from(schema.products as any);
+        if (whereClause) {
+            totalCountQuery.where(whereClause);
+        }
+        const [{ count: totalCount }] = await totalCountQuery;
+
+        let totalAll: number | undefined;
+        if (includeTotalAll === "true" || includeTotalAll === true) {
+            const [{ count: totalAllCount }] = await db
+                .select({ count: count() })
+                .from(schema.products as any);
+            totalAll = Number(totalAllCount || 0);
+        }
+
         const results = await (db as any).query.products.findMany({
-            limit: Number(limit),
-            offset: Number(offset),
-            where: conditions.length > 0 ? and(...conditions) : undefined,
+            limit: parsedLimit,
+            offset: parsedOffset,
+            where: whereClause,
             orderBy: [desc(schema.products.createdAt as any)],
             with: {
                 assets: { with: { asset: true } },
@@ -107,7 +179,14 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
                 campaignProducts: { with: { campaign: true } },
             },
         });
-        return { products: enrichProductsWithCampaigns(results), success: true };
+        return {
+            products: enrichProductsWithCampaigns(results),
+            success: true,
+            total: Number(totalCount || 0),
+            totalAll,
+            limit: parsedLimit,
+            offset: parsedOffset,
+        };
     });
 
     // New Product
