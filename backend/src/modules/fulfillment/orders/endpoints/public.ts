@@ -7,10 +7,10 @@ export const ordersPublicRoutes: FastifyPluginAsync = async (fastify) => {
         schema: {
             tags: ["Fulfillment"]
         },
-        preHandler: [fastify.authenticate]
+        preHandler: [fastify.authenticateStorefront]
     }, async (request) => {
         // Assuming user is attached to request
-        const user = request.user as any;
+        const user = request.storefrontUser as any;
         if (!user || !user.id) return { orders: [] };
 
         // If user is a customer, find their orders
@@ -32,10 +32,10 @@ export const ordersPublicRoutes: FastifyPluginAsync = async (fastify) => {
         schema: {
             tags: ["Fulfillment"]
         },
-        preHandler: [fastify.authenticate]
+        preHandler: [fastify.authenticateStorefront]
     }, async (request, reply) => {
         const { id } = request.params as any;
-        const user = request.user as any;
+        const user = request.storefrontUser as any;
 
         const order = await db.query.orders.findFirst({
             where: eq(schema.orders.id, id),

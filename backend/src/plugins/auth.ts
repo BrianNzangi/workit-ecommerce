@@ -1,5 +1,6 @@
 import fp from "fastify-plugin";
 import { auth } from "../lib/auth.js";
+import { storefrontAuth } from "../lib/storefront-auth.js";
 import { fromNodeHeaders } from "better-auth/node";
 import {
     adminRoles,
@@ -15,10 +16,14 @@ declare module "fastify" {
         auth: typeof auth;
         session: any | null;
         user: any | null;
+        storefrontSession: any | null;
+        storefrontUser: any | null;
         permissions: Permission[];
     }
     interface FastifyInstance {
         authenticate: (request: any, reply: any) => Promise<void>;
+        authenticateStorefront: (request: any, reply: any) => Promise<void>;
+        optionalStorefrontAuth: (request: any, reply: any) => Promise<void>;
         authorize: (roles: string[]) => (request: any, reply: any) => Promise<void>;
         authorizePermission: (permissions: Permission | Permission[]) => (request: any, reply: any) => Promise<void>;
     }
@@ -32,6 +37,8 @@ export default fp(async (fastify) => {
     });
     fastify.decorateRequest("session", undefined);
     fastify.decorateRequest("user", undefined);
+    fastify.decorateRequest("storefrontSession", undefined);
+    fastify.decorateRequest("storefrontUser", undefined);
     fastify.decorateRequest("permissions", {
         getter(this: object) {
             return requestPermissions.get(this) ?? [];
@@ -44,6 +51,38 @@ export default fp(async (fastify) => {
     fastify.decorate("authenticate", async (request, reply) => {
         if (!request.session) {
             return reply.status(401).send({ message: "Unauthorized" });
+        }
+    });
+
+    fastify.decorate("authenticateStorefront", async (request, reply) => {
+        const storefrontSession = await storefrontAuth.api.getSession({
+            headers: fromNodeHeaders(request.headers),
+        });
+
+        if (storefrontSession) {
+            request.storefrontSession = storefrontSession.session;
+            request.storefrontUser = storefrontSession.user;
+        } else {
+            request.storefrontSession = null;
+            request.storefrontUser = null;
+        }
+
+        if (!request.storefrontSession) {
+            return reply.status(401).send({ message: "Unauthorized" });
+        }
+    });
+
+    fastify.decorate("optionalStorefrontAuth", async (request, reply) => {
+        const storefrontSession = await storefrontAuth.api.getSession({
+            headers: fromNodeHeaders(request.headers),
+        });
+
+        if (storefrontSession) {
+            request.storefrontSession = storefrontSession.session;
+            request.storefrontUser = storefrontSession.user;
+        } else {
+            request.storefrontSession = null;
+            request.storefrontUser = null;
         }
     });
 

@@ -4,8 +4,10 @@ import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 
 export const cartPublicRoutes: FastifyPluginAsync = async (fastify) => {
+    fastify.addHook("preHandler", fastify.optionalStorefrontAuth);
+
     const getCart = async (req: any) => {
-        const userId = req.user?.id;
+        const userId = req.storefrontUser?.id;
         const guestId = req.headers['x-guest-id'] as string;
 
         if (!userId && !guestId) return null;
@@ -57,7 +59,7 @@ export const cartPublicRoutes: FastifyPluginAsync = async (fastify) => {
         }
     }, async (request, reply) => {
         const { productId, variantId, quantity } = request.body as any;
-        const userId = (request as any).user?.id;
+        const userId = (request as any).storefrontUser?.id;
         const guestId = request.headers['x-guest-id'] as string;
 
         console.log(`[Cart DEBUG] POST / - Product: ${productId}, Qty: ${quantity}, User: ${userId}, Guest: ${guestId}`);

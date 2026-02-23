@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { emailOTP } from "better-auth/plugins";
+import { nextCookies } from "better-auth/next-js";
 import { db, schema } from "@workit/db";
 
 type OtpType = "sign-in" | "email-verification" | "forget-password";
@@ -117,7 +118,13 @@ const sendOtpViaResend = async ({
 }) => {
     const apiKey = process.env.RESEND_API_KEY?.trim();
     const fromEmail = process.env.RESEND_FROM_EMAIL?.trim() || process.env.OTP_FROM_EMAIL?.trim();
-    if (!apiKey || !fromEmail) return false;
+    if (!apiKey || !fromEmail) {
+        console.warn("[Auth OTP] Resend not configured", {
+            hasApiKey: !!apiKey,
+            hasFromEmail: !!fromEmail,
+        });
+        return false;
+    }
 
     const response = await fetchWithTimeout("https://api.resend.com/emails", {
         method: "POST",
@@ -136,6 +143,10 @@ const sendOtpViaResend = async ({
 
     if (!response.ok) {
         const body = await response.text();
+        console.error("[Auth OTP] Resend send failed", {
+            status: response.status,
+            body: body.slice(0, 500),
+        });
         throw new Error(`Resend send failed (${response.status}): ${body}`);
     }
 
@@ -156,7 +167,13 @@ const sendOtpViaUnosend = async ({
     const apiKey = process.env.UNOSEND_API_KEY?.trim();
     const fromEmail = process.env.UNOSEND_FROM_EMAIL?.trim() || process.env.OTP_FROM_EMAIL?.trim();
     const fromName = process.env.UNOSEND_FROM_NAME?.trim() || "Workit";
-    if (!apiKey || !fromEmail) return false;
+    if (!apiKey || !fromEmail) {
+        console.warn("[Auth OTP] Unosend not configured", {
+            hasApiKey: !!apiKey,
+            hasFromEmail: !!fromEmail,
+        });
+        return false;
+    }
     const from = `${fromName} <${fromEmail}>`;
 
     const response = await fetchWithTimeout("https://www.unosend.co/api/v1/emails", {
@@ -174,9 +191,33 @@ const sendOtpViaUnosend = async ({
         }),
     });
 
+    const shouldLogResponseBody = process.env.OTP_DEBUG === "true";
+    const responseText = shouldLogResponseBody || !response.ok ? await response.text() : "";
+
     if (!response.ok) {
-        const body = await response.text();
+        const body = responseText;
+        console.error("[Auth OTP] Unosend send failed", {
+            status: response.status,
+            body: body.slice(0, 500),
+        });
         throw new Error(`Unosend send failed (${response.status}): ${body}`);
+    }
+
+    if (process.env.OTP_DEBUG === "true") {
+        let parsedBody: unknown = responseText;
+        if (responseText) {
+            try {
+                parsedBody = JSON.parse(responseText);
+            } catch {
+                parsedBody = responseText;
+            }
+        }
+        console.info("[Auth OTP] Unosend send accepted", {
+            status: response.status,
+            to,
+            subject,
+            body: parsedBody,
+        });
     }
 
     return true;
@@ -264,6 +305,19 @@ export const auth = betterAuth({
                             : [sendOtpViaUnosend, sendOtpViaResend]
                     );
 
+                    if (process.env.OTP_DEBUG === "true") {
+                        console.info("[Auth OTP] Sending OTP", {
+                            type: normalizedType,
+                            email,
+                            providerOrder: providerOrder.map((provider) => provider.name),
+                            hasUnosendKey: !!process.env.UNOSEND_API_KEY,
+                            hasResendKey: !!process.env.RESEND_API_KEY,
+                            fromUnosend: !!process.env.UNOSEND_FROM_EMAIL,
+                            fromResend: !!process.env.RESEND_FROM_EMAIL,
+                            fromFallback: !!process.env.OTP_FROM_EMAIL,
+                        });
+                    }
+
                     for (const provider of providerOrder) {
                         const sent = await runWithTimeout(
                             provider({
@@ -288,5 +342,6 @@ export const auth = betterAuth({
                 }
             },
         }),
+        nextCookies(),
     ],
 });

@@ -17,9 +17,10 @@ const addressSchema = z.object({
 });
 
 export const checkoutPublicRoutes: FastifyPluginAsync = async (fastify) => {
+    fastify.addHook("preHandler", fastify.optionalStorefrontAuth);
 
     const getCart = async (req: any) => {
-        const userId = req.user?.id;
+        const userId = req.storefrontUser?.id;
         const guestId = req.headers['x-guest-id'] as string;
 
         console.log(`[Checkout DEBUG] getCart - UserId: ${userId}, GuestId: ${guestId}`);
@@ -85,7 +86,7 @@ export const checkoutPublicRoutes: FastifyPluginAsync = async (fastify) => {
     }, async (request, reply) => {
         const body = request.body as any;
         let { shippingAddressId, billingAddressId, shippingMethodId } = body;
-        const userId = (request as any).user?.id;
+        const userId = (request as any).storefrontUser?.id;
 
         if (!userId) return reply.status(401).send({ message: "Login required for checkout" });
 
@@ -291,7 +292,7 @@ export const checkoutPublicRoutes: FastifyPluginAsync = async (fastify) => {
 
         // Clear cart logic
         // We need to fetch cart again to get ID
-        const userId = (request as any).user?.id;
+        const userId = (request as any).storefrontUser?.id;
         console.log(`[Checkout Verify] Clearing cart for User: ${userId}`);
 
         if (userId) {

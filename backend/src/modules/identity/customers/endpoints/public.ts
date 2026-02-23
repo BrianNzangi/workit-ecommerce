@@ -7,9 +7,9 @@ export const customersPublicRoutes: FastifyPluginAsync = async (fastify) => {
         schema: {
             tags: ["Customers"]
         },
-        preHandler: [fastify.authenticate]
+        preHandler: [fastify.authenticateStorefront]
     }, async (request, reply) => {
-        const user = request.user as any;
+        const user = request.storefrontUser as any;
         if (!user || !user.id) return reply.status(401).send({ message: "Unauthorized" });
 
         const customer = await db.query.users.findFirst({
@@ -24,9 +24,9 @@ export const customersPublicRoutes: FastifyPluginAsync = async (fastify) => {
         schema: {
             tags: ["Customers"]
         },
-        preHandler: [fastify.authenticate]
+        preHandler: [fastify.authenticateStorefront]
     }, async (request, reply) => {
-        const user = request.user as any;
+        const user = request.storefrontUser as any;
         if (!user || !user.id) return reply.status(401).send({ message: "Unauthorized" });
 
         const results = await db.query.addresses.findMany({
@@ -40,9 +40,9 @@ export const customersPublicRoutes: FastifyPluginAsync = async (fastify) => {
         schema: {
             tags: ["Customers"]
         },
-        preHandler: [fastify.authenticate]
+        preHandler: [fastify.authenticateStorefront]
     }, async (request, reply) => {
-        const user = request.user as any;
+        const user = request.storefrontUser as any;
         if (!user || !user.id) return reply.status(401).send({ message: "Unauthorized" });
 
         const results = await db.query.orders.findMany({
