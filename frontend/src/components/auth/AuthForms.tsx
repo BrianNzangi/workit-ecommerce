@@ -126,7 +126,7 @@ export function LoginForm({ onBusyChange }: { onBusyChange?: ModalBusyReporter }
                         type="text"
                         value={otp}
                         onChange={(e) => setOtp(e.target.value)}
-                        className="w-full px-5 py-3 rounded-lg border border-secondary-200 focus:outline-none focus:ring-2 focus:ring-primary-900/5 focus:border-primary-900 transition-all text-secondary-900 placeholder:text-secondary-400 text-center text-2xl tracking-[0.5em] font-bold"
+                        className="w-full px-5 py-3 rounded-lg border border-secondary-200 focus:outline-none focus:ring-2 focus:ring-primary-900/5 focus:border-primary-900 transition-all text-secondary-900 placeholder:text-secondary-400 text-center text-2xl tracking-[0.5em] font-bold caret-primary-900 selection:bg-primary-900/20 selection:text-primary-900"
                         placeholder="000000"
                         maxLength={6}
                         required
@@ -312,7 +312,7 @@ export function VerifyOTPForm({ email, onBusyChange }: { email: string; onBusyCh
                     type="text"
                     value={otp}
                     onChange={(e) => setOtp(e.target.value)}
-                    className="w-full px-5 py-3 rounded-lg border border-secondary-200 focus:outline-none focus:ring-2 focus:ring-primary-900/5 focus:border-primary-900 transition-all text-secondary-900 placeholder:text-secondary-400 text-center text-2xl tracking-[0.5em] font-bold"
+                    className="w-full px-5 py-3 rounded-lg border border-secondary-200 focus:outline-none focus:ring-2 focus:ring-primary-900/5 focus:border-primary-900 transition-all text-secondary-900 placeholder:text-secondary-400 text-center text-2xl tracking-[0.5em] font-bold caret-primary-900 selection:bg-primary-900/20 selection:text-primary-900"
                     placeholder="000000"
                     maxLength={6}
                     required
