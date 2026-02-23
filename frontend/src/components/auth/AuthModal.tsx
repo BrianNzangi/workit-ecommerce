@@ -64,10 +64,10 @@ export default function AuthModal() {
                 className="relative w-full max-w-110 mx-4 bg-white rounded-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300"
             >
                 {isBusy && (
-                    <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/75 backdrop-blur-[1px]">
-                        <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white shadow-md border border-secondary-100">
-                            <span className="h-5 w-5 rounded-full border-2 border-primary-900 border-t-transparent animate-spin" />
-                            <span className="text-sm font-medium text-secondary-700">{busyMessage}</span>
+                    <div className="absolute inset-0 z-20 flex items-center justify-center bg-primary-900/20 backdrop-blur-[1px]">
+                        <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-primary-900 text-white shadow-md shadow-primary-900/30 border border-primary-800/40">
+                            <span className="h-5 w-5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                            <span className="text-sm font-medium text-white">{busyMessage}</span>
                         </div>
                     </div>
                 )}

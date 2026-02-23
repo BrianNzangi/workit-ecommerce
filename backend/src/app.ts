@@ -17,7 +17,9 @@ const __dirname = dirname(__filename);
 export const buildApp = async () => {
     const app = Fastify({
         logger: true,
-        ignoreTrailingSlash: true,
+        routerOptions: {
+            ignoreTrailingSlash: true,
+        },
     }).withTypeProvider<ZodTypeProvider>();
 
     // Proxy route: serve files from MinIO/S3 at /uploads/:filename
