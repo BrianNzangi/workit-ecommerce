@@ -1,10 +1,11 @@
 import fp from "fastify-plugin";
-import Redis from "ioredis";
+import IORedis from "ioredis";
+import type { Redis as RedisClient } from "ioredis";
 import { createCacheStore } from "../lib/cache.js";
 
 declare module "fastify" {
     interface FastifyInstance {
-        redis: Redis | null;
+        redis: RedisClient | null;
         cache: ReturnType<typeof createCacheStore>;
     }
 }
@@ -19,9 +20,9 @@ export default fp(async (fastify) => {
         return;
     }
 
-    const client = new Redis(redisUrl, {
+    const client = new IORedis(redisUrl, {
         maxRetriesPerRequest: null,
-        retryStrategy: (times) => Math.min(times * 50, 2000),
+        retryStrategy: (times: number) => Math.min(times * 50, 2000),
     });
 
     fastify.decorate("redis", client);

@@ -10,13 +10,18 @@ type JobPayloadMap = {
     "search.reindex": { batchSize?: number };
 };
 
-type Job<T extends JobType = JobType> = {
+type BaseJob = {
     id: string;
-    type: T;
-    payload: JobPayloadMap[T];
     attempts: number;
     maxAttempts: number;
 };
+
+type Job = {
+    [K in JobType]: BaseJob & {
+        type: K;
+        payload: JobPayloadMap[K];
+    }
+}[JobType];
 
 type EnqueueJob = Omit<Job, "id" | "attempts" | "maxAttempts"> &
     Partial<Pick<Job, "id" | "attempts" | "maxAttempts">>;
@@ -98,7 +103,7 @@ export default fp(async (fastify) => {
                 const due = await fastify.redis.zrangebyscore(DELAYED_KEY, 0, now, "LIMIT", 0, 10);
                 if (due.length > 0) {
                     const pipeline = fastify.redis.pipeline();
-                    due.forEach((payload) => {
+                    due.forEach((payload: string) => {
                         pipeline.zrem(DELAYED_KEY, payload);
                         pipeline.rpush(QUEUE_KEY, payload);
                     });

@@ -1,5 +1,5 @@
 import type { Logger } from "fastify";
-import type Redis from "ioredis";
+import type { Redis as RedisClient } from "ioredis";
 
 export interface CacheStore {
     enabled: boolean;
@@ -37,7 +37,7 @@ export function buildCacheKey(prefix: string, params?: Record<string, any>): str
     return query ? `${prefix}?${query}` : prefix;
 }
 
-export function createCacheStore(redis: Redis | null, log?: Logger): CacheStore {
+export function createCacheStore(redis: RedisClient | null, log?: Logger): CacheStore {
     if (!redis) {
         return {
             enabled: false,

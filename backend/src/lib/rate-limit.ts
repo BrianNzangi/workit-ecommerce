@@ -1,4 +1,4 @@
-import type Redis from "ioredis";
+import type { Redis as RedisClient } from "ioredis";
 
 export interface RateLimitResult {
     success: boolean;
@@ -8,7 +8,7 @@ export interface RateLimitResult {
 }
 
 export async function rateLimit(
-    redis: Redis | null,
+    redis: RedisClient | null,
     key: string,
     limit = 120,
     durationSeconds = 60,
