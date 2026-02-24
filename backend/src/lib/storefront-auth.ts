@@ -35,6 +35,9 @@ const storefrontCookiePrefix =
     "store-auth";
 
 const isProduction = process.env.NODE_ENV === "production";
+const cookieDomain =
+    process.env.STOREFRONT_AUTH_COOKIE_DOMAIN?.trim() ||
+    process.env.BETTER_AUTH_COOKIE_DOMAIN?.trim();
 
 export const storefrontAuth = betterAuth({
     secret: process.env.BETTER_AUTH_SECRET!,
@@ -59,5 +62,19 @@ export const storefrontAuth = betterAuth({
     advanced: {
         cookiePrefix: storefrontCookiePrefix,
         useSecureCookies: isProduction,
+        defaultCookieAttributes: {
+            secure: isProduction,
+            sameSite: isProduction ? "none" : "lax",
+            httpOnly: true,
+            path: "/",
+        },
+        ...(cookieDomain
+            ? {
+                crossSubDomainCookies: {
+                    enabled: true,
+                    domain: cookieDomain,
+                },
+            }
+            : {}),
     },
 });
