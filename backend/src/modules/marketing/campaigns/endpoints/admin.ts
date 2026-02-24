@@ -335,6 +335,8 @@ export const campaignsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
         const { featuredProducts } = await getCampaignProducts(campaign);
 
+        await fastify.cache.invalidateTags(["campaigns", "products"]);
+
         return {
             campaign: {
                 ...normalizeCampaignIds(campaign),
@@ -460,6 +462,8 @@ export const campaignsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
         const { featuredProducts, productIds } = await getCampaignProducts(updatedCampaign);
 
+        await fastify.cache.invalidateTags(["campaigns", "products"]);
+
         return {
             campaign: {
                 ...normalizeCampaignIds(updatedCampaign),
@@ -524,6 +528,8 @@ export const campaignsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
         const { featuredProducts, productIds: resolvedProductIds } = await getCampaignProducts(campaign);
 
+        await fastify.cache.invalidateTags(["campaigns", "products"]);
+
         return {
             campaign: {
                 ...normalizeCampaignIds(campaign),
@@ -549,6 +555,7 @@ export const campaignsAdminRoutes: FastifyPluginAsync = async (fastify) => {
     }, async (request) => {
         const { id } = request.params as { id: string };
         await db.delete(schema.campaigns).where(eq(schema.campaigns.id, id));
+        await fastify.cache.invalidateTags(["campaigns", "products"]);
         return { success: true };
     });
 
@@ -561,6 +568,7 @@ export const campaignsAdminRoutes: FastifyPluginAsync = async (fastify) => {
             return { success: false, message: "No IDs provided" };
         }
         await db.delete(schema.campaigns).where(inArray(schema.campaigns.id, ids));
+        await fastify.cache.invalidateTags(["campaigns", "products"]);
         return { success: true, count: ids.length };
     });
 };

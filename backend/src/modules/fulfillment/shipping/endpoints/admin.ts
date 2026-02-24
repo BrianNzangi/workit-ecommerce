@@ -56,6 +56,7 @@ export const shippingAdminRoutes: FastifyPluginAsync = async (fastify) => {
             );
         }
 
+        await fastify.cache.invalidateTags(["shipping"]);
         return { id: zoneId, success: true };
     });
 
@@ -88,6 +89,7 @@ export const shippingAdminRoutes: FastifyPluginAsync = async (fastify) => {
             }
         }
 
+        await fastify.cache.invalidateTags(["shipping"]);
         return { success: true };
     });
 
@@ -97,6 +99,7 @@ export const shippingAdminRoutes: FastifyPluginAsync = async (fastify) => {
     }, async (request) => {
         const { id } = request.params as any;
         await db.delete(schema.shippingZones).where(eq(schema.shippingZones.id, id));
+        await fastify.cache.invalidateTags(["shipping"]);
         return { success: true };
     });
 
@@ -107,6 +110,7 @@ export const shippingAdminRoutes: FastifyPluginAsync = async (fastify) => {
         const data = request.body as any;
         const id = uuidv4();
         const [method] = await db.insert(schema.shippingMethods).values({ ...data, id }).returning();
+        await fastify.cache.invalidateTags(["shipping"]);
         return method;
     });
 
@@ -118,6 +122,7 @@ export const shippingAdminRoutes: FastifyPluginAsync = async (fastify) => {
         const data = request.body as any;
         const [method] = await db.update(schema.shippingMethods).set({ ...data, updatedAt: new Date() }).where(eq(schema.shippingMethods.id, id)).returning();
         if (!method) return reply.status(404).send({ message: "Shipping method not found" });
+        await fastify.cache.invalidateTags(["shipping"]);
         return method;
     });
 
@@ -127,6 +132,7 @@ export const shippingAdminRoutes: FastifyPluginAsync = async (fastify) => {
     }, async (request) => {
         const { id } = request.params as any;
         await db.delete(schema.shippingMethods).where(eq(schema.shippingMethods.id, id));
+        await fastify.cache.invalidateTags(["shipping"]);
         return { success: true };
     });
 };

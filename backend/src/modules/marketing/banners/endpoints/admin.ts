@@ -47,6 +47,7 @@ export const bannersAdminRoutes: FastifyPluginAsync = async (fastify) => {
         delete values.name;
 
         const [banner] = await db.insert(schema.banners).values(values).returning();
+        await fastify.cache.invalidateTags(["banners"]);
         return { banner: mapBanner(banner), success: true };
     });
 
@@ -101,6 +102,7 @@ export const bannersAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
         const [banner] = await db.update(schema.banners).set(values).where(eq(schema.banners.id, id)).returning();
         if (!banner) return reply.status(404).send({ message: "Banner not found" });
+        await fastify.cache.invalidateTags(["banners"]);
         return { banner: mapBanner(banner), success: true };
     };
 
@@ -120,6 +122,7 @@ export const bannersAdminRoutes: FastifyPluginAsync = async (fastify) => {
     }, async (request) => {
         const { id } = request.params as any;
         await db.delete(schema.banners).where(eq(schema.banners.id, id));
+        await fastify.cache.invalidateTags(["banners"]);
         return { success: true };
     });
 
@@ -132,6 +135,7 @@ export const bannersAdminRoutes: FastifyPluginAsync = async (fastify) => {
             return { success: false, message: "No IDs provided" };
         }
         await db.delete(schema.banners).where(inArray(schema.banners.id, ids));
+        await fastify.cache.invalidateTags(["banners"]);
         return { success: true, count: ids.length };
     });
 };

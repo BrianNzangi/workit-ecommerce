@@ -20,6 +20,7 @@ export const brandsAdminRoutes: FastifyPluginAsync = async (fastify) => {
         const brandData = request.body as any;
         const id = uuidv4();
         const [brand] = await db.insert(schema.brands).values({ ...brandData, id }).returning();
+        await fastify.cache.invalidateTags(["brands", "products"]);
         return { brand, success: true };
     });
 
@@ -52,6 +53,7 @@ export const brandsAdminRoutes: FastifyPluginAsync = async (fastify) => {
         const brandData = request.body as any;
         const [brand] = await db.update(schema.brands).set({ ...brandData, updatedAt: new Date() }).where(eq(schema.brands.id, id)).returning();
         if (!brand) return reply.status(404).send({ message: "Brand not found" });
+        await fastify.cache.invalidateTags(["brands", "products"]);
         return { brand, success: true };
     };
 
@@ -71,6 +73,7 @@ export const brandsAdminRoutes: FastifyPluginAsync = async (fastify) => {
     }, async (request) => {
         const { id } = request.params as any;
         await db.delete(schema.brands).where(eq(schema.brands.id, id));
+        await fastify.cache.invalidateTags(["brands", "products"]);
         return { success: true };
     });
 
@@ -83,6 +86,7 @@ export const brandsAdminRoutes: FastifyPluginAsync = async (fastify) => {
             return { success: false, message: "No IDs provided" };
         }
         await db.delete(schema.brands).where(inArray(schema.brands.id, ids));
+        await fastify.cache.invalidateTags(["brands", "products"]);
         return { success: true, count: ids.length };
     });
 };

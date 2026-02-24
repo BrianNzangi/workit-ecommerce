@@ -2,6 +2,7 @@ import { FastifyPluginAsync } from "fastify";
 import { db, schema, and, eq, or, ilike, desc, count, isNull, inArray, asc, isNotNull, gt } from "../../../../lib/db.js";
 import { z } from "zod";
 import { productSearchService } from "../../../../services/search/product-search.service.js";
+import { buildCacheKey } from "../../../../lib/cache.js";
 
 const productsQuerySchema = z.object({
     limit: z.coerce.number().default(50),
@@ -76,6 +77,18 @@ const enrichStoreProductsCampaigns = (products: any[]) =>
     products.map((product: any) => enrichStoreProductCampaigns(product));
 
 export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
+    const TTL = {
+        productsList: 60,
+        productDetail: 300,
+        brands: 900,
+        collections: 900,
+        banners: 300,
+        homepageCollections: 300,
+        campaigns: 300,
+        shipping: 900,
+        policies: 3600,
+    };
+
     // Helper to get all sub-collection IDs recursively
     const getRecursiveCollectionIds = async (parentId: string): Promise<string[]> => {
         const children = await db.query.collections.findMany({
@@ -96,9 +109,18 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
         schema: {
             tags: ["Catalog"],
             querystring: productsQuerySchema
-        }
-    }, async (request) => {
+        },
+        preHandler: [fastify.publicRateLimit],
+    }, async (request, reply) => {
         const { limit, offset, collection, brand, q, shippingMethodId, onSale, inStock } = request.query as z.infer<typeof productsQuerySchema>;
+
+        const cacheKey = buildCacheKey("store:products:list", request.query as any);
+        const cached = await fastify.cache.get<{ products: any[] }>(cacheKey);
+        if (cached) {
+            reply.header("x-cache", "HIT");
+            reply.header("Cache-Control", `public, max-age=${TTL.productsList}`);
+            return cached;
+        }
 
         const whereClauses = [eq(schema.products.enabled, true)];
 
@@ -157,7 +179,11 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
                 campaignProducts: { with: { campaign: true } },
             }
         });
-        return { products: enrichStoreProductsCampaigns(results) };
+        const payload = { products: enrichStoreProductsCampaigns(results) };
+        await fastify.cache.set(cacheKey, payload, TTL.productsList, ["products"]);
+        reply.header("x-cache", "MISS");
+        reply.header("Cache-Control", `public, max-age=${TTL.productsList}`);
+        return payload;
     });
 
     const searchQuerySchema = z.object({
@@ -170,7 +196,8 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
         schema: {
             tags: ["Catalog"],
             querystring: searchQuerySchema
-        }
+        },
+        preHandler: [fastify.publicRateLimit],
     }, async (request) => {
         const { q, limit } = request.query as z.infer<typeof searchQuerySchema>;
         const results = await productSearchService.searchStoreProducts(q, limit);
@@ -186,9 +213,19 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
         schema: {
             tags: ["Catalog"],
             params: productParamsSchema
-        }
+        },
+        preHandler: [fastify.publicRateLimit],
     }, async (request, reply) => {
         const { idOrSlug } = request.params as z.infer<typeof productParamsSchema>;
+
+        const cacheKey = `store:products:detail:${idOrSlug}`;
+        const cached = await fastify.cache.get<any>(cacheKey);
+        if (cached) {
+            reply.header("x-cache", "HIT");
+            reply.header("Cache-Control", `public, max-age=${TTL.productDetail}`);
+            return cached;
+        }
+
         const product = await db.query.products.findFirst({
             where: or(eq(schema.products.id, idOrSlug), eq(schema.products.slug, idOrSlug)),
             with: {
@@ -199,7 +236,11 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
             }
         });
         if (!product) return reply.status(404).send({ message: "Product not found" });
-        return enrichStoreProductCampaigns(product);
+        const payload = enrichStoreProductCampaigns(product);
+        await fastify.cache.set(cacheKey, payload, TTL.productDetail, ["products"]);
+        reply.header("x-cache", "MISS");
+        reply.header("Cache-Control", `public, max-age=${TTL.productDetail}`);
+        return payload;
     });
 
     // Brands
@@ -207,10 +248,23 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
         schema: {
             tags: ["Catalog"],
             querystring: z.object({})
+        },
+        preHandler: [fastify.publicRateLimit],
+    }, async (_request, reply) => {
+        const cacheKey = buildCacheKey("store:brands:list");
+        const cached = await fastify.cache.get<{ brands: any[] }>(cacheKey);
+        if (cached) {
+            reply.header("x-cache", "HIT");
+            reply.header("Cache-Control", `public, max-age=${TTL.brands}`);
+            return cached;
         }
-    }, async () => {
+
         const results = await db.query.brands.findMany({});
-        return { brands: results };
+        const payload = { brands: results };
+        await fastify.cache.set(cacheKey, payload, TTL.brands, ["brands"]);
+        reply.header("x-cache", "MISS");
+        reply.header("Cache-Control", `public, max-age=${TTL.brands}`);
+        return payload;
     });
 
     const collectionsQuerySchema = z.object({
@@ -225,10 +279,19 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
         schema: {
             tags: ["Catalog"],
             querystring: collectionsQuerySchema
-        }
-    }, async (request) => {
+        },
+        preHandler: [fastify.publicRateLimit],
+    }, async (request, reply) => {
         const { includeChildren, parentId, take, skip } = request.query as z.infer<typeof collectionsQuerySchema>;
         const { collections } = schema;
+
+        const cacheKey = buildCacheKey("store:collections:list", request.query as any);
+        const cached = await fastify.cache.get<{ collections: any[] }>(cacheKey);
+        if (cached) {
+            reply.header("x-cache", "HIT");
+            reply.header("Cache-Control", `public, max-age=${TTL.collections}`);
+            return cached;
+        }
 
         let whereClause = eq(collections.enabled, true);
 
@@ -263,7 +326,11 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
                 } : {})
             }
         });
-        return { collections: results };
+        const payload = { collections: results };
+        await fastify.cache.set(cacheKey, payload, TTL.collections, ["collections"]);
+        reply.header("x-cache", "MISS");
+        reply.header("Cache-Control", `public, max-age=${TTL.collections}`);
+        return payload;
     });
 
     // Banners
@@ -271,9 +338,19 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
         schema: {
             tags: ["Marketing"],
             querystring: bannersQuerySchema
-        }
-    }, async (request) => {
+        },
+        preHandler: [fastify.publicRateLimit],
+    }, async (request, reply) => {
         const { position, enabled, collectionId, collection } = request.query as z.infer<typeof bannersQuerySchema>;
+
+        const cacheKey = buildCacheKey("store:banners:list", request.query as any);
+        const cached = await fastify.cache.get<{ banners: any[] }>(cacheKey);
+        if (cached) {
+            reply.header("x-cache", "HIT");
+            reply.header("Cache-Control", `public, max-age=${TTL.banners}`);
+            return cached;
+        }
+
         const whereClauses: any[] = [
             eq(schema.banners.enabled, enabled ?? true),
         ];
@@ -317,7 +394,11 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
                 collection: true,
             }
         });
-        return { banners: results };
+        const payload = { banners: results };
+        await fastify.cache.set(cacheKey, payload, TTL.banners, ["banners"]);
+        reply.header("x-cache", "MISS");
+        reply.header("Cache-Control", `public, max-age=${TTL.banners}`);
+        return payload;
     });
 
     // Homepage Collections
@@ -325,15 +406,28 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
         schema: {
             tags: ["Marketing"],
             querystring: z.object({})
+        },
+        preHandler: [fastify.publicRateLimit],
+    }, async (_request, reply) => {
+        const cacheKey = buildCacheKey("store:homepage-collections:list");
+        const cached = await fastify.cache.get<{ collections: any[] }>(cacheKey);
+        if (cached) {
+            reply.header("x-cache", "HIT");
+            reply.header("Cache-Control", `public, max-age=${TTL.homepageCollections}`);
+            return cached;
         }
-    }, async () => {
+
         const results = await db.query.homepageCollections.findMany({
             where: eq(schema.homepageCollections.enabled, true),
             with: {
                 products: { with: { product: { with: { assets: { with: { asset: true } } } } } }
             }
         });
-        return { collections: results };
+        const payload = { collections: results };
+        await fastify.cache.set(cacheKey, payload, TTL.homepageCollections, ["homepage-collections"]);
+        reply.header("x-cache", "MISS");
+        reply.header("Cache-Control", `public, max-age=${TTL.homepageCollections}`);
+        return payload;
     });
 
     // Campaigns
@@ -341,12 +435,25 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
         schema: {
             tags: ["Marketing"],
             querystring: z.object({})
+        },
+        preHandler: [fastify.publicRateLimit],
+    }, async (_request, reply) => {
+        const cacheKey = buildCacheKey("store:campaigns:list");
+        const cached = await fastify.cache.get<{ campaigns: any[] }>(cacheKey);
+        if (cached) {
+            reply.header("x-cache", "HIT");
+            reply.header("Cache-Control", `public, max-age=${TTL.campaigns}`);
+            return cached;
         }
-    }, async () => {
+
         const results = await db.query.campaigns.findMany({
             where: eq(schema.campaigns.status, 'ACTIVE'),
         });
-        return { campaigns: results };
+        const payload = { campaigns: results };
+        await fastify.cache.set(cacheKey, payload, TTL.campaigns, ["campaigns"]);
+        reply.header("x-cache", "MISS");
+        reply.header("Cache-Control", `public, max-age=${TTL.campaigns}`);
+        return payload;
     });
 
     const cartValidateSchema = z.object({
@@ -358,7 +465,8 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
         schema: {
             tags: ["Cart"],
             body: cartValidateSchema
-        }
+        },
+        preHandler: [fastify.publicRateLimit],
     }, async (request) => {
         const { items } = request.body as z.infer<typeof cartValidateSchema>;
         return { valid: true, items };
@@ -369,13 +477,26 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
         schema: {
             tags: ["Fulfillment"],
             querystring: z.object({})
+        },
+        preHandler: [fastify.publicRateLimit],
+    }, async (_request, reply) => {
+        const cacheKey = buildCacheKey("store:shipping:list");
+        const cached = await fastify.cache.get<{ methods: any[] }>(cacheKey);
+        if (cached) {
+            reply.header("x-cache", "HIT");
+            reply.header("Cache-Control", `public, max-age=${TTL.shipping}`);
+            return cached;
         }
-    }, async () => {
+
         const methods = await db.query.shippingMethods.findMany({
             where: eq(schema.shippingMethods.enabled, true),
             with: { zones: { with: { cities: true } } }
         });
-        return { methods };
+        const payload = { methods };
+        await fastify.cache.set(cacheKey, payload, TTL.shipping, ["shipping"]);
+        reply.header("x-cache", "MISS");
+        reply.header("Cache-Control", `public, max-age=${TTL.shipping}`);
+        return payload;
     });
 
     // Policies
@@ -383,14 +504,28 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
         schema: {
             tags: ["Store"],
             querystring: z.object({})
+        },
+        preHandler: [fastify.publicRateLimit],
+    }, async (_request, reply) => {
+        const cacheKey = buildCacheKey("store:policies");
+        const cached = await fastify.cache.get<any>(cacheKey);
+        if (cached) {
+            reply.header("x-cache", "HIT");
+            reply.header("Cache-Control", `public, max-age=${TTL.policies}`);
+            return cached;
         }
-    }, async () => {
-        return {
+
+        const payload = {
             shippingPolicy: "Standard shipping policy...",
             returnPolicy: "30-day return policy...",
             privacyPolicy: "Privacy policy...",
             termsOfService: "Terms of service..."
         };
+
+        await fastify.cache.set(cacheKey, payload, TTL.policies, ["policies"]);
+        reply.header("x-cache", "MISS");
+        reply.header("Cache-Control", `public, max-age=${TTL.policies}`);
+        return payload;
     });
 };
 

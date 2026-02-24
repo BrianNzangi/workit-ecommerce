@@ -72,6 +72,7 @@ export const collectionsAdminRoutes: FastifyPluginAsync = async (fastify) => {
             const collectionData = request.body as any;
             const id = uuidv4();
             const [collection] = await db.insert(schema.collections).values({ ...collectionData, id }).returning();
+            await fastify.cache.invalidateTags(["collections", "products"]);
             return { collection, success: true };
         } catch (error: any) {
             if (error.code === '23505' && error.message.includes('Collection_slug_unique')) {
@@ -116,6 +117,7 @@ export const collectionsAdminRoutes: FastifyPluginAsync = async (fastify) => {
             const collectionData = request.body as any;
             const [collection] = await db.update(schema.collections).set({ ...collectionData, updatedAt: new Date() }).where(eq(schema.collections.id, id)).returning();
             if (!collection) return reply.status(404).send({ message: "Collection not found" });
+            await fastify.cache.invalidateTags(["collections", "products"]);
             return { collection, success: true };
         } catch (error: any) {
             if (error.code === '23505' && error.message.includes('Collection_slug_unique')) {
@@ -144,6 +146,7 @@ export const collectionsAdminRoutes: FastifyPluginAsync = async (fastify) => {
     }, async (request) => {
         const { id } = request.params as any;
         await db.delete(schema.collections).where(eq(schema.collections.id, id));
+        await fastify.cache.invalidateTags(["collections", "products"]);
         return { success: true };
     });
 
@@ -156,6 +159,7 @@ export const collectionsAdminRoutes: FastifyPluginAsync = async (fastify) => {
             return { success: false, message: "No IDs provided" };
         }
         await db.delete(schema.collections).where(inArray(schema.collections.id, ids));
+        await fastify.cache.invalidateTags(["collections", "products"]);
         return { success: true, count: ids.length };
     });
 };

@@ -47,13 +47,26 @@ async function handler(req: NextRequest) {
         const data = await response.arrayBuffer();
         const responseHeaders = new Headers();
 
-        // Forward all headers from backend, especially set-cookie
+        const getSetCookie = (headers: Headers) => {
+            const anyHeaders = headers as unknown as { getSetCookie?: () => string[] };
+            if (typeof anyHeaders.getSetCookie === "function") {
+                return anyHeaders.getSetCookie();
+            }
+            const single = headers.get("set-cookie");
+            return single ? [single] : [];
+        };
+
+        const setCookies = getSetCookie(response.headers);
+
         response.headers.forEach((value, key) => {
-            if (key.toLowerCase() === 'set-cookie') {
-                responseHeaders.append(key, value);
-            } else if (key.toLowerCase() !== 'transfer-encoding') {
+            if (key.toLowerCase() === "set-cookie") return;
+            if (key.toLowerCase() !== "transfer-encoding") {
                 responseHeaders.set(key, value);
             }
+        });
+
+        setCookies.forEach((cookie) => {
+            responseHeaders.append("set-cookie", cookie);
         });
 
         return new NextResponse(data, {

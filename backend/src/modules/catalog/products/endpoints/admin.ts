@@ -61,9 +61,9 @@ const enrichProductsWithCampaigns = (products: any[], onlyActive = false) =>
     products.map((product: any) => enrichProductCampaigns(product, onlyActive));
 
 export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
-    const runSearchSyncSafely = async (operation: () => Promise<void>, context: string) => {
+    const runSearchSyncSafely = async (job: { type: string; payload: any }, context: string) => {
         try {
-            await operation();
+            await fastify.jobs.enqueue(job as any);
         } catch (error) {
             fastify.log.error({ error, context }, "Product search index sync failed");
         }
@@ -236,9 +236,11 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
         }
 
         await runSearchSyncSafely(
-            () => productSearchService.syncProductById(product.id),
+            { type: "search.sync", payload: { productIds: [product.id] } },
             `create:${product.id}`
         );
+
+        await fastify.cache.invalidateTags(["products", "homepage-collections"]);
 
         return { product, success: true };
     });
@@ -255,8 +257,11 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
     fastify.post("/search/reindex", {
         preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
     }, async () => {
-        const { indexed } = await productSearchService.reindexAllProducts();
-        return { success: true, indexed };
+        await runSearchSyncSafely(
+            { type: "search.reindex", payload: {} },
+            "reindex"
+        );
+        return { success: true, queued: true };
     });
 
     // Show Product (Admin)
@@ -324,9 +329,11 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
         }
 
         await runSearchSyncSafely(
-            () => productSearchService.syncProductById(id),
+            { type: "search.sync", payload: { productIds: [id] } },
             `update:${id}`
         );
+
+        await fastify.cache.invalidateTags(["products", "homepage-collections"]);
 
         return { product, success: true };
     };
@@ -348,9 +355,11 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
         const { id } = request.params as any;
         await db.delete(schema.products as any).where(eq(schema.products.id as any, id));
         await runSearchSyncSafely(
-            () => productSearchService.deleteProductById(id),
+            { type: "search.delete", payload: { productIds: [id] } },
             `delete:${id}`
         );
+
+        await fastify.cache.invalidateTags(["products", "homepage-collections"]);
         return { success: true };
     });
 
@@ -364,9 +373,11 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
         }
         await db.delete(schema.products as any).where(inArray(schema.products.id as any, ids));
         await runSearchSyncSafely(
-            () => productSearchService.deleteProductsByIds(ids),
+            { type: "search.delete", payload: { productIds: ids } },
             `bulk-delete:${ids.length}`
         );
+
+        await fastify.cache.invalidateTags(["products", "homepage-collections"]);
         return { success: true, count: ids.length };
     });
 
@@ -542,9 +553,11 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
         }
 
         await runSearchSyncSafely(
-            () => productSearchService.syncProductsByIds(Array.from(touchedProductIds)),
+            { type: "search.sync", payload: { productIds: Array.from(touchedProductIds) } },
             `import:${touchedProductIds.size}`
         );
+
+        await fastify.cache.invalidateTags(["products", "homepage-collections"]);
 
         return {
             success: true,

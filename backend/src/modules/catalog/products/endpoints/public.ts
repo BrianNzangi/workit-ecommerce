@@ -1,5 +1,6 @@
 import { FastifyPluginAsync } from "fastify";
 import { db, schema, eq, desc, ilike, or, and, inArray } from "../../../../lib/db.js";
+import { buildCacheKey } from "../../../../lib/cache.js";
 
 const normalizeCampaignDate = (value: unknown): Date | null => {
     if (!value) return null;
@@ -59,13 +60,26 @@ const enrichProductsWithCampaigns = (products: any[], onlyActive = true) =>
     products.map((product: any) => enrichProductCampaigns(product, onlyActive));
 
 export const productsPublicRoutes: FastifyPluginAsync = async (fastify) => {
+    const LIST_TTL_SECONDS = 60;
+    const DETAIL_TTL_SECONDS = 300;
+    const CACHE_TAG = "products";
+
     // List Products
     fastify.get("/", {
         schema: {
             tags: ["Catalog"]
-        }
-    }, async (request) => {
+        },
+        preHandler: [fastify.publicRateLimit],
+    }, async (request, reply) => {
         const { limit = 50, offset = 0, collection: collectionSlug } = request.query as any;
+
+        const cacheKey = buildCacheKey("public:products:list", request.query as any);
+        const cached = await fastify.cache.get<{ products: any[] }>(cacheKey);
+        if (cached) {
+            reply.header("x-cache", "HIT");
+            reply.header("Cache-Control", `public, max-age=${LIST_TTL_SECONDS}`);
+            return cached;
+        }
 
         const filters = [];
 
@@ -106,14 +120,19 @@ export const productsPublicRoutes: FastifyPluginAsync = async (fastify) => {
             },
         });
 
-        return { products: enrichProductsWithCampaigns(results) };
+        const payload = { products: enrichProductsWithCampaigns(results) };
+        await fastify.cache.set(cacheKey, payload, LIST_TTL_SECONDS, [CACHE_TAG]);
+        reply.header("x-cache", "MISS");
+        reply.header("Cache-Control", `public, max-age=${LIST_TTL_SECONDS}`);
+        return payload;
     });
 
     // Search Products
     fastify.get("/search", {
         schema: {
             tags: ["Catalog"]
-        }
+        },
+        preHandler: [fastify.publicRateLimit],
     }, async (request) => {
         const { q } = request.query as any;
 
@@ -137,9 +156,18 @@ export const productsPublicRoutes: FastifyPluginAsync = async (fastify) => {
     fastify.get("/:idOrSlug", {
         schema: {
             tags: ["Catalog"]
-        }
+        },
+        preHandler: [fastify.publicRateLimit],
     }, async (request, reply) => {
         const { idOrSlug } = request.params as any;
+
+        const cacheKey = `public:products:detail:${idOrSlug}`;
+        const cached = await fastify.cache.get<any>(cacheKey);
+        if (cached) {
+            reply.header("x-cache", "HIT");
+            reply.header("Cache-Control", `public, max-age=${DETAIL_TTL_SECONDS}`);
+            return cached;
+        }
 
         const product = await db.query.products.findFirst({
             where: or(eq(schema.products.id, idOrSlug), eq(schema.products.slug, idOrSlug)),
@@ -155,7 +183,11 @@ export const productsPublicRoutes: FastifyPluginAsync = async (fastify) => {
             return reply.status(404).send({ message: "Product not found" });
         }
 
-        return enrichProductCampaigns(product);
+        const payload = enrichProductCampaigns(product);
+        await fastify.cache.set(cacheKey, payload, DETAIL_TTL_SECONDS, [CACHE_TAG]);
+        reply.header("x-cache", "MISS");
+        reply.header("Cache-Control", `public, max-age=${DETAIL_TTL_SECONDS}`);
+        return payload;
     });
 };
 

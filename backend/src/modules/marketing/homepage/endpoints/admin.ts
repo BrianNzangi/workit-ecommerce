@@ -46,6 +46,7 @@ export const homepageAdminRoutes: FastifyPluginAsync = async (fastify) => {
             );
         }
 
+        await fastify.cache.invalidateTags(["homepage-collections"]);
         return { collection, success: true };
     });
 
@@ -103,6 +104,7 @@ export const homepageAdminRoutes: FastifyPluginAsync = async (fastify) => {
             }
         }
 
+        await fastify.cache.invalidateTags(["homepage-collections"]);
         return { collection, success: true };
     };
 
@@ -122,6 +124,7 @@ export const homepageAdminRoutes: FastifyPluginAsync = async (fastify) => {
     }, async (request) => {
         const { id } = request.params as any;
         await db.delete(schema.homepageCollections).where(eq(schema.homepageCollections.id, id));
+        await fastify.cache.invalidateTags(["homepage-collections"]);
         return { success: true };
     });
 };
