@@ -1,6 +1,8 @@
-import { pgTable, text, varchar, integer, boolean, timestamp, unique } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, boolean, timestamp, unique, index } from "drizzle-orm/pg-core";
 import { bannerPositionEnum, campaignStatusEnum, campaignTypeEnum, discountTypeEnum } from "./enums.js";
 import { assets, collections, products } from "./catalog.js";
+import { users } from "./identity.js";
+import { orders } from "./fulfillment.js";
 
 export const banners = pgTable("Banner", {
     id: text("id").primaryKey().notNull(),
@@ -70,6 +72,18 @@ export const campaignProducts = pgTable("CampaignProduct", {
     sortOrder: integer("sortOrder").default(0).notNull(),
 }, (t) => ({
     unq: unique().on(t.campaignId, t.productId),
+}));
+
+export const campaignRedemptions = pgTable("CampaignRedemption", {
+    id: text("id").primaryKey().notNull(),
+    campaignId: text("campaignId").notNull().references(() => campaigns.id, { onDelete: 'cascade' }),
+    customerId: text("customerId").notNull().references(() => users.id, { onDelete: 'cascade' }),
+    orderId: text("orderId").notNull().references(() => orders.id, { onDelete: 'cascade' }),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => ({
+    unq: unique().on(t.orderId),
+    byCampaign: index("CampaignRedemption_campaign_idx").on(t.campaignId),
+    byCampaignCustomer: index("CampaignRedemption_campaign_customer_idx").on(t.campaignId, t.customerId),
 }));
 
 export const homepageCollections = pgTable("HomepageCollection", {

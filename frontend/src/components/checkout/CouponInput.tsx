@@ -3,14 +3,20 @@
 import { useState } from 'react';
 import { Tag, Loader2, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { useCartStore } from '@/store/cartStore';
 
 interface DiscountData {
     success: boolean;
     code: string;
-    type: 'PERCENTAGE' | 'FIXED';
+    type: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_SHIPPING' | 'BUY_X_GET_Y';
     value: number;
     discountAmount: number;
     message: string;
+    details?: {
+        buyX?: number;
+        getY?: number;
+        freeCount?: number;
+    };
 }
 
 interface Props {
@@ -24,6 +30,7 @@ export function CouponInput({ subtotal, onApply, onRemove }: Props) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
+    const { items } = useCartStore();
 
     const handleApply = async () => {
         if (!code.trim()) return;
@@ -35,7 +42,16 @@ export function CouponInput({ subtotal, onApply, onRemove }: Props) {
             const res = await fetch('/api/coupons/validate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code, subtotal })
+                body: JSON.stringify({
+                    code,
+                    subtotal,
+                    items: items.map((item) => ({
+                        productId: item.productId,
+                        variantId: item.variantId,
+                        price: item.price,
+                        quantity: item.quantity,
+                    })),
+                })
             });
             const data = await res.json();
 

@@ -56,7 +56,9 @@ export const calculateTotals = (
   coupon?: Coupon
 ): CheckoutTotals => {
   const itemTotalInclusive = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  const discount = coupon?.discount || 0;
+  const baseDiscount = coupon?.discountAmount || 0;
+  const shippingDiscount = coupon?.type === 'FREE_SHIPPING' ? shippingCost : 0;
+  const discount = Math.min(itemTotalInclusive + shippingCost, baseDiscount + shippingDiscount);
 
   // Total is the sum of inclusive item prices + inclusive shipping - discount
   const total = itemTotalInclusive + shippingCost - discount;

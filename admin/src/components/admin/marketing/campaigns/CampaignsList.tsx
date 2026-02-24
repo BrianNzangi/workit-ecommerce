@@ -287,7 +287,11 @@ export function CampaignsList() {
                                                 <span>
                                                     {campaign.discountType === 'PERCENTAGE'
                                                         ? `${campaign.discountValue || 0}%`
-                                                        : formatKesMinor(campaign.discountValue)}
+                                                        : campaign.discountType === 'FREE_SHIPPING'
+                                                            ? 'Free Shipping'
+                                                            : campaign.discountType === 'BUY_X_GET_Y'
+                                                                ? `Buy ${campaign.minPurchaseAmount || 0} Get ${campaign.discountValue || 0}`
+                                                                : formatKesMinor(campaign.discountValue)}
                                                 </span>
                                             </div>
                                         ) : (

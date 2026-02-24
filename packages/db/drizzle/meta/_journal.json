@@ -22,6 +22,13 @@
       "when": 1771600500000,
       "tag": "0002_collection_most_shopped_sort_order",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1771946006681,
+      "tag": "0003_campaign_redemptions",
+      "breakpoints": true
     }
   ]
 }

@@ -96,6 +96,7 @@ export const homepageCollectionsRelations = relations(marketing.homepageCollecti
 
 export const campaignsRelations = relations(marketing.campaigns, ({ many }) => ({
     campaignProducts: many(marketing.campaignProducts),
+    redemptions: many(marketing.campaignRedemptions),
 }));
 
 export const campaignProductsRelations = relations(marketing.campaignProducts, ({ one }) => ({
@@ -106,6 +107,21 @@ export const campaignProductsRelations = relations(marketing.campaignProducts, (
     product: one(catalog.products, {
         fields: [marketing.campaignProducts.productId],
         references: [catalog.products.id],
+    }),
+}));
+
+export const campaignRedemptionsRelations = relations(marketing.campaignRedemptions, ({ one }) => ({
+    campaign: one(marketing.campaigns, {
+        fields: [marketing.campaignRedemptions.campaignId],
+        references: [marketing.campaigns.id],
+    }),
+    customer: one(identity.users, {
+        fields: [marketing.campaignRedemptions.customerId],
+        references: [identity.users.id],
+    }),
+    order: one(fulfillment.orders, {
+        fields: [marketing.campaignRedemptions.orderId],
+        references: [fulfillment.orders.id],
     }),
 }));
 
@@ -126,6 +142,7 @@ export const usersRelations = relations(identity.users, ({ many }) => ({
     accounts: many(identity.account),
     orders: many(fulfillment.orders),
     carts: many(cart.carts),
+    campaignRedemptions: many(marketing.campaignRedemptions),
 }));
 
 export const sessionRelations = relations(identity.session, ({ one }) => ({
@@ -149,6 +166,7 @@ export const ordersRelations = relations(fulfillment.orders, ({ one, many }) => 
         references: [identity.users.id],
     }),
     lines: many(fulfillment.orderLines),
+    campaignRedemptions: many(marketing.campaignRedemptions),
     shippingAddress: one(identity.addresses, {
         fields: [fulfillment.orders.shippingAddressId],
         references: [identity.addresses.id],

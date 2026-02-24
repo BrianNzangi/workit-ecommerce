@@ -62,9 +62,13 @@ export const toCampaignFormData = (campaign: Campaign): CampaignFormData => ({
     discountType: campaign.discountType || 'NONE',
     discountValue: campaign.discountType === 'PERCENTAGE'
         ? Number(campaign.discountValue || 0)
-        : fromKesMinorUnits(campaign.discountValue),
+        : campaign.discountType === 'BUY_X_GET_Y'
+            ? Number(campaign.discountValue || 0)
+            : fromKesMinorUnits(campaign.discountValue),
     couponCode: campaign.couponCode || '',
-    minPurchaseAmount: fromKesMinorUnits(campaign.minPurchaseAmount),
+    minPurchaseAmount: campaign.discountType === 'BUY_X_GET_Y'
+        ? Number(campaign.minPurchaseAmount || 0)
+        : fromKesMinorUnits(campaign.minPurchaseAmount),
     maxDiscountAmount: fromKesMinorUnits(campaign.maxDiscountAmount),
     usageLimit: Number(campaign.usageLimit || 0),
     usagePerCustomer: Number(campaign.usagePerCustomer || 1),

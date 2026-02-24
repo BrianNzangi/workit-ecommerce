@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
 import { CouponInput } from "@/components/checkout/CouponInput";
+import { useCheckoutStore } from "@/store/checkoutStore";
 
 interface CartSummaryProps {
   subtotal: number;
@@ -15,17 +16,27 @@ export default function CartSummary({ subtotal }: CartSummaryProps) {
   const { cart } = useCart();
   const { customer } = useAuth();
   const router = useRouter();
+  const { setCoupon, clearCoupon } = useCheckoutStore();
 
   const [discount, setDiscount] = useState(0);
 
-  const discountedTotal = subtotal - discount;
+  const discountedTotal = Math.max(0, subtotal - discount);
 
   const handleApplyCoupon = (data: any) => {
-    setDiscount(data.discountAmount);
+    setDiscount(data.discountAmount || 0);
+    if (data?.code && data?.type) {
+      setCoupon({
+        code: data.code,
+        type: data.type,
+        value: data.value ?? 0,
+        discountAmount: data.discountAmount ?? 0,
+      });
+    }
   };
 
   const handleRemoveCoupon = () => {
     setDiscount(0);
+    clearCoupon();
   };
 
   const handleCheckout = () => {

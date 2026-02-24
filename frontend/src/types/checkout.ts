@@ -59,7 +59,9 @@ export interface User {
 
 export interface Coupon {
   code: string;
-  discount: number;
+  type: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_SHIPPING' | 'BUY_X_GET_Y';
+  value: number;
+  discountAmount: number;
 }
 
 export interface CheckoutTotals {

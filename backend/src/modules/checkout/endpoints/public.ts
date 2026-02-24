@@ -1,5 +1,5 @@
 import { FastifyPluginAsync } from "fastify";
-import { db, schema, eq, and } from "../../../lib/db.js";
+import { db, schema, eq, and, ilike, isNotNull, count } from "../../../lib/db.js";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 import { productSearchService } from "../../../services/search/product-search.service.js";
@@ -15,6 +15,36 @@ const addressSchema = z.object({
     phoneNumber: z.string(),
     country: z.string().optional().default("KE")
 });
+
+const normalizeCampaignDate = (value: unknown): Date | null => {
+    if (!value) return null;
+    const parsed = new Date(String(value));
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
+const parseIdArray = (value: string | string[] | null | undefined) => {
+    if (!value) return [] as string[];
+    if (Array.isArray(value)) return value.map((item) => String(item).trim()).filter(Boolean);
+
+    const raw = String(value).trim();
+    if (!raw) return [] as string[];
+
+    try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+            return parsed.map((item) => String(item).trim()).filter(Boolean);
+        }
+    } catch {
+        // Fallback to comma-separated format.
+    }
+
+    return raw.split(",").map((item) => item.trim()).filter(Boolean);
+};
+
+const fromKesMinorUnits = (value?: number | null) => {
+    if (value === null || value === undefined) return 0;
+    return Number(value) / 100;
+};
 
 export const checkoutPublicRoutes: FastifyPluginAsync = async (fastify) => {
     fastify.addHook("preHandler", fastify.optionalStorefrontAuth);
@@ -81,12 +111,14 @@ export const checkoutPublicRoutes: FastifyPluginAsync = async (fastify) => {
                 shippingAddress: addressSchema.optional(), // Allow passing full address
                 billingAddress: addressSchema.optional(),
                 shippingMethodId: z.string().optional(),
+                couponCode: z.string().optional(),
             })
         }
     }, async (request, reply) => {
         const body = request.body as any;
         let { shippingAddressId, billingAddressId, shippingMethodId } = body;
         const userId = (request as any).storefrontUser?.id;
+        const couponCode = typeof body.couponCode === "string" ? body.couponCode.trim() : "";
 
         if (!userId) return reply.status(401).send({ message: "Login required for checkout" });
 
@@ -206,7 +238,123 @@ export const checkoutPublicRoutes: FastifyPluginAsync = async (fastify) => {
             }
 
             const tax = 0;
-            const total = subTotal + shippingCost + tax;
+            let discountAmount = 0;
+            let redemptionCampaign: any | null = null;
+
+            if (couponCode) {
+                const normalizedCode = couponCode.toUpperCase();
+                const campaign = await tx.query.campaigns.findFirst({
+                    where: and(
+                        eq(schema.campaigns.status, "ACTIVE"),
+                        isNotNull(schema.campaigns.couponCode),
+                        ilike(schema.campaigns.couponCode, normalizedCode)
+                    ),
+                });
+
+                if (!campaign) {
+                    throw new Error("Invalid coupon code");
+                }
+
+                const now = new Date();
+                const startsAt = normalizeCampaignDate(campaign.startDate);
+                const endsAt = normalizeCampaignDate(campaign.endDate);
+
+                if (startsAt && startsAt > now) {
+                    throw new Error("Coupon is not yet active");
+                }
+
+                if (endsAt && endsAt < now) {
+                    throw new Error("Coupon has expired");
+                }
+
+                if (campaign.usageLimit && campaign.usageLimit > 0) {
+                    const totalCountResult = await tx
+                        .select({ count: count() })
+                        .from(schema.campaignRedemptions)
+                        .where(eq(schema.campaignRedemptions.campaignId, campaign.id));
+                    const totalCount = Number(totalCountResult[0]?.count ?? 0);
+                    if (totalCount >= campaign.usageLimit) {
+                        throw new Error("Coupon usage limit reached");
+                    }
+                }
+
+                if (campaign.usagePerCustomer && campaign.usagePerCustomer > 0) {
+                    const customerCountResult = await tx
+                        .select({ count: count() })
+                        .from(schema.campaignRedemptions)
+                        .where(and(
+                            eq(schema.campaignRedemptions.campaignId, campaign.id),
+                            eq(schema.campaignRedemptions.customerId, userId)
+                        ));
+                    const customerCount = Number(customerCountResult[0]?.count ?? 0);
+                    if (customerCount >= campaign.usagePerCustomer) {
+                        throw new Error("Coupon usage limit reached for this customer");
+                    }
+                }
+
+                if (!campaign.discountType || campaign.discountType === "NONE") {
+                    throw new Error("Coupon is not applicable");
+                }
+
+                if (campaign.discountType !== "BUY_X_GET_Y") {
+                    const minPurchaseAmount = fromKesMinorUnits(campaign.minPurchaseAmount);
+                    if (subTotal < minPurchaseAmount) {
+                        throw new Error(`Minimum order value of KES ${minPurchaseAmount.toLocaleString()} required`);
+                    }
+                }
+
+                if (campaign.discountType === "PERCENTAGE") {
+                    discountAmount = (subTotal * (campaign.discountValue ?? 0)) / 100;
+                    const maxDiscountAmount = fromKesMinorUnits(campaign.maxDiscountAmount);
+                    if (maxDiscountAmount > 0) {
+                        discountAmount = Math.min(discountAmount, maxDiscountAmount);
+                    }
+                } else if (campaign.discountType === "FIXED_AMOUNT") {
+                    discountAmount = fromKesMinorUnits(campaign.discountValue);
+                } else if (campaign.discountType === "FREE_SHIPPING") {
+                    discountAmount = shippingCost;
+                } else if (campaign.discountType === "BUY_X_GET_Y") {
+                    const buyX = Math.max(1, Math.round(Number(campaign.minPurchaseAmount || 0)));
+                    const getY = Math.max(1, Math.round(Number(campaign.discountValue || 0)));
+                    const groupSize = buyX + getY;
+
+                    const eligibleProductIds = parseIdArray(campaign.productIds);
+                    const eligibleLines = eligibleProductIds.length > 0
+                        ? cart.lines.filter((line: any) => eligibleProductIds.includes(String(line.productId)))
+                        : cart.lines;
+
+                    const eligibleQuantity = eligibleLines.reduce((total, line) => total + line.quantity, 0);
+                    if (eligibleQuantity < groupSize) {
+                        throw new Error(`Add ${groupSize - eligibleQuantity} more item(s) to qualify for this offer`);
+                    }
+
+                    const freeCount = Math.floor(eligibleQuantity / groupSize) * getY;
+                    const unitPrices: number[] = [];
+                    eligibleLines.forEach((line: any) => {
+                        const price = line.product.salePrice ?? line.product.originalPrice ?? 0;
+                        for (let i = 0; i < line.quantity; i += 1) {
+                            unitPrices.push(price);
+                        }
+                    });
+
+                    unitPrices.sort((a, b) => a - b);
+                    discountAmount = unitPrices.slice(0, freeCount).reduce((sum, price) => sum + price, 0);
+                    const maxDiscountAmount = fromKesMinorUnits(campaign.maxDiscountAmount);
+                    if (maxDiscountAmount > 0) {
+                        discountAmount = Math.min(discountAmount, maxDiscountAmount);
+                    }
+                } else {
+                    throw new Error("Coupon is not applicable");
+                }
+
+                if (discountAmount > subTotal + shippingCost) {
+                    discountAmount = subTotal + shippingCost;
+                }
+
+                redemptionCampaign = campaign;
+            }
+
+            const total = Math.max(0, subTotal + shippingCost + tax - discountAmount);
 
             // 4. Create Order
             const orderId = uuidv4();
@@ -226,6 +374,15 @@ export const checkoutPublicRoutes: FastifyPluginAsync = async (fastify) => {
                 billingAddressId,
                 shippingMethodId: resolvedShippingMethodId
             });
+
+            if (redemptionCampaign) {
+                await tx.insert(schema.campaignRedemptions).values({
+                    id: uuidv4(),
+                    campaignId: redemptionCampaign.id,
+                    customerId: userId,
+                    orderId,
+                });
+            }
 
             // 5. Create Order Lines
             for (const line of orderLinesData) {

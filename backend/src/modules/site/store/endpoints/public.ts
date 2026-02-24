@@ -460,6 +460,41 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
         items: z.array(z.any())
     });
 
+    const couponValidateSchema = z.object({
+        code: z.string().min(1),
+        subtotal: z.coerce.number().min(0),
+        items: z.array(z.object({
+            productId: z.string().optional(),
+            variantId: z.string().optional(),
+            price: z.coerce.number().min(0),
+            quantity: z.coerce.number().min(1),
+        })).optional(),
+    });
+
+    const parseIdArray = (value: string | string[] | null | undefined) => {
+        if (!value) return [] as string[];
+        if (Array.isArray(value)) return value.map((item) => String(item).trim()).filter(Boolean);
+
+        const raw = String(value).trim();
+        if (!raw) return [] as string[];
+
+        try {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) {
+                return parsed.map((item) => String(item).trim()).filter(Boolean);
+            }
+        } catch {
+            // Fallback to comma-separated format.
+        }
+
+        return raw.split(",").map((item) => item.trim()).filter(Boolean);
+    };
+
+    const fromKesMinorUnits = (value?: number | null) => {
+        if (value === null || value === undefined) return 0;
+        return Number(value) / 100;
+    };
+
     // Cart Validation
     fastify.post("/cart/validate", {
         schema: {
@@ -470,6 +505,173 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
     }, async (request) => {
         const { items } = request.body as z.infer<typeof cartValidateSchema>;
         return { valid: true, items };
+    });
+
+    // Coupon Validation (Campaigns)
+    fastify.post("/coupons/validate", {
+        schema: {
+            tags: ["Marketing"],
+            body: couponValidateSchema,
+        },
+        preHandler: [fastify.optionalStorefrontAuth, fastify.publicRateLimit],
+    }, async (request, reply) => {
+        const { code, subtotal, items = [] } = request.body as z.infer<typeof couponValidateSchema>;
+        const normalizedCode = String(code).trim().toUpperCase();
+        const userId = (request as any).storefrontUser?.id;
+
+        if (!normalizedCode) {
+            return reply.status(400).send({ error: "Coupon code is required" });
+        }
+
+        const campaign = await db.query.campaigns.findFirst({
+            where: and(
+                eq(schema.campaigns.status, "ACTIVE"),
+                isNotNull(schema.campaigns.couponCode),
+                ilike(schema.campaigns.couponCode, normalizedCode)
+            ),
+        });
+
+        if (!campaign) {
+            return reply.status(404).send({ error: "Invalid coupon code" });
+        }
+
+        const now = new Date();
+        const startsAt = normalizeCampaignDate(campaign.startDate);
+        const endsAt = normalizeCampaignDate(campaign.endDate);
+
+        if (startsAt && startsAt > now) {
+            return reply.status(400).send({ error: "Coupon is not yet active" });
+        }
+
+        if (endsAt && endsAt < now) {
+            return reply.status(400).send({ error: "Coupon has expired" });
+        }
+
+        const hasDiscountType = campaign.discountType && campaign.discountType !== "NONE";
+        if (!hasDiscountType) {
+            return reply.status(400).send({ error: "Coupon is not applicable" });
+        }
+
+        if (campaign.usageLimit && campaign.usageLimit > 0) {
+            const totalCountResult = await db
+                .select({ count: count() })
+                .from(schema.campaignRedemptions)
+                .where(eq(schema.campaignRedemptions.campaignId, campaign.id));
+            const totalCount = Number(totalCountResult[0]?.count ?? 0);
+            if (totalCount >= campaign.usageLimit) {
+                return reply.status(400).send({ error: "Coupon usage limit reached" });
+            }
+        }
+
+        if (userId && campaign.usagePerCustomer && campaign.usagePerCustomer > 0) {
+            const customerCountResult = await db
+                .select({ count: count() })
+                .from(schema.campaignRedemptions)
+                .where(and(
+                    eq(schema.campaignRedemptions.campaignId, campaign.id),
+                    eq(schema.campaignRedemptions.customerId, userId)
+                ));
+            const customerCount = Number(customerCountResult[0]?.count ?? 0);
+            if (customerCount >= campaign.usagePerCustomer) {
+                return reply.status(400).send({ error: "Coupon usage limit reached for this customer" });
+            }
+        }
+
+        if (campaign.discountType !== "BUY_X_GET_Y") {
+            const minPurchaseAmount = fromKesMinorUnits(campaign.minPurchaseAmount);
+            if (subtotal < minPurchaseAmount) {
+                return reply.status(400).send({
+                    error: `Minimum order value of KES ${minPurchaseAmount.toLocaleString()} required`,
+                });
+            }
+        }
+
+        let discountAmount = 0;
+        let responseType = campaign.discountType;
+        let responseValue = campaign.discountValue ?? 0;
+        let details: Record<string, number> | undefined;
+
+        if (campaign.discountType === "PERCENTAGE") {
+            discountAmount = (subtotal * (campaign.discountValue ?? 0)) / 100;
+            const maxDiscountAmount = fromKesMinorUnits(campaign.maxDiscountAmount);
+            if (maxDiscountAmount > 0) {
+                discountAmount = Math.min(discountAmount, maxDiscountAmount);
+            }
+            responseValue = campaign.discountValue ?? 0;
+        } else if (campaign.discountType === "FIXED_AMOUNT") {
+            discountAmount = fromKesMinorUnits(campaign.discountValue);
+            responseValue = fromKesMinorUnits(campaign.discountValue);
+        } else if (campaign.discountType === "FREE_SHIPPING") {
+            discountAmount = 0;
+            responseValue = 0;
+        } else if (campaign.discountType === "BUY_X_GET_Y") {
+            const buyX = Math.max(1, Math.round(Number(campaign.minPurchaseAmount || 0)));
+            const getY = Math.max(1, Math.round(Number(campaign.discountValue || 0)));
+
+            if (!buyX || !getY) {
+                return reply.status(400).send({ error: "Buy X Get Y coupon is missing configuration" });
+            }
+
+            if (!items || items.length === 0) {
+                return reply.status(400).send({ error: "Cart items are required for this coupon" });
+            }
+
+            const eligibleProductIds = parseIdArray(campaign.productIds);
+            const eligibleItems = eligibleProductIds.length > 0
+                ? items.filter((item: any) => {
+                    const productId = item.productId || item.id;
+                    return productId && eligibleProductIds.includes(String(productId));
+                })
+                : items;
+
+            const eligibleQuantity = eligibleItems.reduce((total: number, item: any) => {
+                const qty = Math.max(0, Math.round(Number(item.quantity || 0)));
+                return total + qty;
+            }, 0);
+
+            const groupSize = buyX + getY;
+            if (eligibleQuantity < groupSize) {
+                return reply.status(400).send({
+                    error: `Add ${groupSize - eligibleQuantity} more item(s) to qualify for this offer`,
+                });
+            }
+
+            const freeCount = Math.floor(eligibleQuantity / groupSize) * getY;
+            const unitPrices: number[] = [];
+            eligibleItems.forEach((item: any) => {
+                const price = Number(item.price || 0);
+                const qty = Math.max(0, Math.round(Number(item.quantity || 0)));
+                for (let i = 0; i < qty; i += 1) {
+                    unitPrices.push(price);
+                }
+            });
+
+            unitPrices.sort((a, b) => a - b);
+            discountAmount = unitPrices.slice(0, freeCount).reduce((sum, price) => sum + price, 0);
+            details = { buyX, getY, freeCount };
+            responseValue = getY;
+        } else {
+            return reply.status(400).send({ error: "Coupon is not applicable" });
+        }
+
+        const maxDiscountAmount = fromKesMinorUnits(campaign.maxDiscountAmount);
+        if (maxDiscountAmount > 0) {
+            discountAmount = Math.min(discountAmount, maxDiscountAmount);
+        }
+
+        if (discountAmount > subtotal) {
+            discountAmount = subtotal;
+        }
+
+        return {
+            success: true,
+            code: (campaign.couponCode || normalizedCode).toUpperCase(),
+            type: responseType,
+            value: responseValue,
+            discountAmount,
+            message: "Coupon applied successfully!",
+            ...(details ? { details } : {}),
+        };
     });
 
     // Shipping Info

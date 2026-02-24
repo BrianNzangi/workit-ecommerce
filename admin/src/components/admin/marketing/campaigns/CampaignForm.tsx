@@ -227,6 +227,7 @@ export function CampaignForm({ mode = 'create', campaignId }: CampaignFormProps)
             const hasDiscount = formData.discountType !== 'NONE';
             const isPercentageDiscount = formData.discountType === 'PERCENTAGE';
             const isFixedDiscount = formData.discountType === 'FIXED_AMOUNT';
+            const isBuyXGetY = formData.discountType === 'BUY_X_GET_Y';
 
             const payload: CreateCampaignInput = {
                 name: formData.name,
@@ -244,9 +245,15 @@ export function CampaignForm({ mode = 'create', campaignId }: CampaignFormProps)
                         ? Math.round(formData.discountValue || 0)
                         : isFixedDiscount
                             ? toKesMinorUnits(formData.discountValue || 0)
-                            : undefined,
+                            : isBuyXGetY
+                                ? Math.max(1, Math.round(formData.discountValue || 0))
+                                : undefined,
                 couponCode: hasDiscount ? formData.couponCode || undefined : undefined,
-                minPurchaseAmount: hasDiscount ? toKesMinorUnits(formData.minPurchaseAmount || 0) : undefined,
+                minPurchaseAmount: hasDiscount
+                        ? isBuyXGetY
+                            ? Math.max(1, Math.round(formData.minPurchaseAmount || 0))
+                        : toKesMinorUnits(formData.minPurchaseAmount || 0)
+                    : undefined,
                 maxDiscountAmount: isPercentageDiscount ? toKesMinorUnits(formData.maxDiscountAmount || 0) : undefined,
                 usageLimit: hasDiscount ? Math.round(formData.usageLimit || 0) : undefined,
                 usagePerCustomer: hasDiscount ? Math.max(1, Math.round(formData.usagePerCustomer || 1)) : undefined,
@@ -287,6 +294,10 @@ export function CampaignForm({ mode = 'create', campaignId }: CampaignFormProps)
             </div>
         );
     }
+
+    const isBuyXGetY = formData.discountType === 'BUY_X_GET_Y';
+    const isPercentageDiscount = formData.discountType === 'PERCENTAGE';
+    const isFixedDiscount = formData.discountType === 'FIXED_AMOUNT';
 
     return (
         <div className="p-8">
@@ -434,13 +445,15 @@ export function CampaignForm({ mode = 'create', campaignId }: CampaignFormProps)
                                 {formData.discountType !== 'NONE' && formData.discountType !== 'FREE_SHIPPING' ? (
                                     <div className="space-y-2">
                                         <Label htmlFor="discount-value">
-                                            Discount Value {formData.discountType === 'PERCENTAGE' ? '(%)' : '(KES)'}
+                                            {isBuyXGetY
+                                                ? 'Get Quantity'
+                                                : `Discount Value ${isPercentageDiscount ? '(%)' : '(KES)'}`}
                                         </Label>
                                         <Input
                                             id="discount-value"
                                             type="number"
-                                            min={0}
-                                            step={formData.discountType === 'PERCENTAGE' ? 1 : 0.01}
+                                            min={isBuyXGetY ? 1 : 0}
+                                            step={isBuyXGetY || isPercentageDiscount ? 1 : 0.01}
                                             value={formData.discountValue}
                                             onChange={(event) => handleFieldChange('discountValue', toNumber(event.target.value))}
                                         />
@@ -461,18 +474,20 @@ export function CampaignForm({ mode = 'create', campaignId }: CampaignFormProps)
 
                                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                             <div className="space-y-2">
-                                                <Label htmlFor="min-purchase">Min Purchase Amount (KES)</Label>
+                                                <Label htmlFor="min-purchase">
+                                                    {isBuyXGetY ? 'Buy Quantity' : 'Min Purchase Amount (KES)'}
+                                                </Label>
                                                 <Input
                                                     id="min-purchase"
                                                     type="number"
-                                                    min={0}
-                                                    step={0.01}
+                                                    min={isBuyXGetY ? 1 : 0}
+                                                    step={isBuyXGetY ? 1 : 0.01}
                                                     value={formData.minPurchaseAmount}
                                                     onChange={(event) => handleFieldChange('minPurchaseAmount', toNumber(event.target.value))}
                                                 />
                                             </div>
 
-                                            {formData.discountType === 'PERCENTAGE' ? (
+                                            {isPercentageDiscount ? (
                                                 <div className="space-y-2">
                                                     <Label htmlFor="max-discount">Max Discount Amount (KES)</Label>
                                                     <Input
@@ -723,16 +738,24 @@ export function CampaignForm({ mode = 'create', campaignId }: CampaignFormProps)
                                     <span>
                                         {formData.discountType === 'PERCENTAGE'
                                             ? `${formData.discountValue || 0}%`
-                                            : formatKes(
-                                                formData.discountType === 'NONE'
-                                                    ? 0
-                                                    : fromKesMinorUnits(toKesMinorUnits(formData.discountValue || 0))
-                                            )}
+                                            : formData.discountType === 'FREE_SHIPPING'
+                                                ? 'Free Shipping'
+                                                : formData.discountType === 'BUY_X_GET_Y'
+                                                    ? `Buy ${formData.minPurchaseAmount || 0} Get ${formData.discountValue || 0}`
+                                                    : formatKes(
+                                                        formData.discountType === 'NONE'
+                                                            ? 0
+                                                            : fromKesMinorUnits(toKesMinorUnits(formData.discountValue || 0))
+                                                    )}
                                     </span>
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <span className="text-muted-foreground">Min purchase</span>
-                                    <span>{formatKes(formData.minPurchaseAmount || 0)}</span>
+                                    <span>
+                                        {formData.discountType === 'BUY_X_GET_Y'
+                                            ? `${formData.minPurchaseAmount || 0} items`
+                                            : formatKes(formData.minPurchaseAmount || 0)}
+                                    </span>
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <span className="text-muted-foreground">Featured products</span>

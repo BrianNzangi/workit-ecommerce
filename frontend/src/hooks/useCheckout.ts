@@ -265,7 +265,8 @@ export const useCheckout = (user: User) => {
       body: JSON.stringify({
         shippingAddress,
         billingAddress,
-        shippingMethodId: "standard" // TODO: Get from store
+        shippingMethodId: "standard", // TODO: Get from store
+        ...(coupon?.code ? { couponCode: coupon.code } : {})
       }),
     });
 

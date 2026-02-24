@@ -13,7 +13,9 @@ interface Address {
 
 interface Coupon {
   code: string
-  discount: number
+  type: "PERCENTAGE" | "FIXED_AMOUNT" | "FREE_SHIPPING" | "BUY_X_GET_Y"
+  value: number
+  discountAmount: number
 }
 
 interface CheckoutState {
@@ -32,6 +34,7 @@ interface CheckoutState {
   setPaymentMethod: (method: PaymentMethod) => void
   setPaymentData: (data: { method: PaymentMethod; phoneNumber?: string }) => void
   setCoupon: (coupon: Coupon) => void
+  clearCoupon: () => void
   setActiveStep: (step: number) => void
   resetCheckout: () => void
 }
@@ -56,6 +59,7 @@ export const useCheckoutStore = create<CheckoutState>()(
       setPaymentMethod: (method: PaymentMethod) => set({ paymentMethod: method }),
       setPaymentData: (data: { method: PaymentMethod; phoneNumber?: string }) => set({ paymentData: data }),
       setCoupon: (coupon: Coupon) => set({ coupon }),
+      clearCoupon: () => set({ coupon: undefined }),
       setActiveStep: (step: number) => set({ activeStep: step }),
       resetCheckout: () =>
         set({

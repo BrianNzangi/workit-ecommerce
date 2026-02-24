@@ -5,14 +5,10 @@ import { useCart } from "@/hooks/useCart";
 import { useCartStore } from "@/store/cartStore";
 import { getImageUrl } from "@/lib/image-utils";
 import { Heart, X, Info, Minus, Plus } from "lucide-react";
-
-interface Coupon {
-  code: string;
-  discount: number;
-}
+import type { Coupon as CheckoutCoupon } from "@/types/checkout";
 
 interface OrderSummaryProps {
-  coupon?: Coupon;
+  coupon?: CheckoutCoupon;
   shipping?: number;
   vatRate?: number;
   onPlaceOrder?: () => void;
@@ -34,8 +30,10 @@ export default function OrderSummary({
   const { removeItem, increaseQuantity, decreaseQuantity } = useCartStore();
 
   const subtotal = cart.subTotal;
-  const discount = coupon?.discount || 0;
-  const total = subtotal + shipping - discount;
+  const baseDiscount = coupon?.discountAmount || 0;
+  const shippingDiscount = coupon?.type === 'FREE_SHIPPING' ? shipping : 0;
+  const discount = baseDiscount + shippingDiscount;
+  const total = Math.max(0, subtotal + shipping - discount);
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-4 font-sans">
@@ -141,7 +139,10 @@ export default function OrderSummary({
       {/* Discount */}
       {discount > 0 && (
         <div className="flex justify-between text-sm text-green-600">
-          <span>Coupon ({coupon?.code})</span>
+          <span>
+            Coupon ({coupon?.code})
+            {coupon?.type === 'FREE_SHIPPING' ? ' + Free Shipping' : ''}
+          </span>
           <span className="font-semibold">-KES {discount.toLocaleString()}</span>
         </div>
       )}
