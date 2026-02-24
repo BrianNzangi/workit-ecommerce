@@ -296,6 +296,10 @@ export default function ProductsPageClient() {
         maxPrice
     ].filter(Boolean).length;
 
+    const resolvedTotalProducts = Math.max(totalProducts, products.length);
+    const resolvedTotalAll = Math.max(totalProductsAll, resolvedTotalProducts);
+    const hasProducts = products.length > 0;
+
     useEffect(() => {
         if (isFirstFilterRun.current) {
             isFirstFilterRun.current = false;
@@ -431,8 +435,8 @@ export default function ProductsPageClient() {
                     clearFilters={clearFilters}
                     collections={collections}
                     brands={brands}
-                    filteredProductsCount={totalProducts}
-                    totalProductsCount={totalProductsAll || totalProducts}
+                    filteredProductsCount={resolvedTotalProducts}
+                    totalProductsCount={resolvedTotalAll}
                 />
 
                 <div className="mb-6 flex justify-between items-center">
@@ -481,7 +485,7 @@ export default function ProductsPageClient() {
                     <div className="bg-white rounded-xs shadow-xs border border-gray-200 p-8">
                         <p className="text-center text-gray-500">Loading products...</p>
                     </div>
-                ) : totalProducts === 0 && totalProductsAll > 0 && activeFiltersCount > 0 ? (
+                ) : !hasProducts && resolvedTotalAll > 0 && activeFiltersCount > 0 ? (
                     <Card className="p-8 border-gray-200 shadow-xs">
                         <div className="flex flex-col items-center justify-center py-12 text-center">
                             <Package className="w-12 h-12 text-muted-foreground mb-4" />
@@ -497,7 +501,7 @@ export default function ProductsPageClient() {
                             </Button>
                         </div>
                     </Card>
-                ) : totalProductsAll === 0 ? (
+                ) : !hasProducts ? (
                     <Card className="p-8 border-gray-200 shadow-xs">
                         <div className="flex flex-col items-center justify-center py-12 text-center">
                             <Package className="w-12 h-12 text-muted-foreground mb-4" />
@@ -521,7 +525,7 @@ export default function ProductsPageClient() {
                             onDelete={handleDelete}
                         />
                         <ProductPagination
-                            totalItems={totalProducts}
+                            totalItems={resolvedTotalProducts}
                             itemsPerPage={itemsPerPage}
                             currentPage={currentPage}
                             onPageChange={setCurrentPage}
