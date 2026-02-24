@@ -50,7 +50,7 @@ export default function OrderSummary({
           <div key={item.lineId} className="relative border border-gray-200 rounded-lg p-4">
             {/* Remove Button */}
             <button
-              onClick={() => removeItem(item.id)}
+              onClick={() => removeItem(item.lineId)}
               className="absolute top-3 right-3 w-6 h-6 flex items-center justify-center bg-gray-200 text-gray-500 rounded-full hover:bg-primary-900 hover:text-white transition"
             >
               <X size={14} />
@@ -90,7 +90,7 @@ export default function OrderSummary({
                   <span className="text-xs text-gray-600">Qty</span>
                   <div className="flex items-center border border-gray-300 rounded-lg">
                     <button
-                      onClick={() => decreaseQuantity(item.id)}
+                      onClick={() => decreaseQuantity(item.lineId)}
                       className="px-2 py-1 hover:bg-gray-100 transition"
                       disabled={item.quantity <= 1}
                     >
@@ -100,7 +100,7 @@ export default function OrderSummary({
                       {item.quantity}
                     </span>
                     <button
-                      onClick={() => increaseQuantity(item.id)}
+                      onClick={() => increaseQuantity(item.lineId)}
                       className="px-2 py-1 hover:bg-gray-100 transition"
                     >
                       <Plus size={14} />

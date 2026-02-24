@@ -48,11 +48,20 @@ const getHeaders = (sessionId: string | null) => {
 
 export const useCartStore = create<CartState>()(
   persist(
-    (set, get) => ({
-      isOpen: false,
-      items: [],
-      sessionId: null,
-      loading: false,
+    (set, get) => {
+      const resolveLineId = (value: string) => {
+        const items = get().items;
+        const matched =
+          items.find(i => i.id === value) ||
+          items.find(i => i.productId === value || i.variantId === value);
+        return matched?.id || value;
+      };
+
+      return {
+        isOpen: false,
+        items: [],
+        sessionId: null,
+        loading: false,
 
       openCart: () => set({ isOpen: true }),
       closeCart: () => set({ isOpen: false }),
@@ -115,7 +124,8 @@ export const useCartStore = create<CartState>()(
         }
       },
 
-      updateQuantity: async (lineId, quantity) => {
+      updateQuantity: async (lineIdOrProductId, quantity) => {
+        const lineId = resolveLineId(lineIdOrProductId);
         const { sessionId } = get();
         if (quantity < 1) return;
 
@@ -133,7 +143,8 @@ export const useCartStore = create<CartState>()(
         }
       },
 
-      removeItem: async (lineId) => {
+      removeItem: async (lineIdOrProductId) => {
+        const lineId = resolveLineId(lineIdOrProductId);
         const { sessionId } = get();
 
         // Optimistic
@@ -149,14 +160,16 @@ export const useCartStore = create<CartState>()(
         }
       },
 
-      increaseQuantity: async (lineId) => {
+      increaseQuantity: async (lineIdOrProductId) => {
+        const lineId = resolveLineId(lineIdOrProductId);
         const item = get().items.find(i => i.id === lineId);
         if (item) {
           await get().updateQuantity(lineId, item.quantity + 1);
         }
       },
 
-      decreaseQuantity: async (lineId) => {
+      decreaseQuantity: async (lineIdOrProductId) => {
+        const lineId = resolveLineId(lineIdOrProductId);
         const item = get().items.find(i => i.id === lineId);
         if (item && item.quantity > 1) {
           await get().updateQuantity(lineId, item.quantity - 1);
@@ -175,9 +188,10 @@ export const useCartStore = create<CartState>()(
         }
       },
 
-      getTotalQuantity: () =>
-        get().items.reduce((total, item) => total + item.quantity, 0),
-    }),
+        getTotalQuantity: () =>
+          get().items.reduce((total, item) => total + item.quantity, 0),
+      };
+    },
     {
       name: 'cart-storage',
       partialize: (state) => ({ sessionId: state.sessionId }), // Only persist session ID, items should be fetched

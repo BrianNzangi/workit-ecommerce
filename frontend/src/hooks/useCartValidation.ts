@@ -75,7 +75,7 @@ export function useCartValidation() {
                         item.variantId === variantId || item.id === variantId
                     );
                     if (cartItem) {
-                        removeItem(cartItem.variantId || cartItem.id);
+                        removeItem(cartItem.id);
                     }
                 }
             });

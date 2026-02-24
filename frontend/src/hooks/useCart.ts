@@ -9,7 +9,7 @@ import { useMemo } from 'react';
 import { useCartStore } from '@/store/cartStore';
 
 export interface CartItem {
-    id: string;
+    id: string; // Line ID (kept for compatibility)
     lineId: string; // For cart line items
     productId: string;
     variantId: string | null;
@@ -43,8 +43,8 @@ export function useCart() {
     // Transform cart store items to match the expected CartItem interface
     const cart = useMemo<Cart>(() => {
         const transformedItems: CartItem[] = storeItems.map(item => ({
-            id: item.productId,
-            lineId: item.id, // Use store item ID as lineId
+            id: item.id, // Line ID
+            lineId: item.id,
             productId: item.productId,
             variantId: item.variantId, // Map from store item
             name: item.name,
@@ -78,16 +78,16 @@ export function useCart() {
         console.warn('useCart.addItem: Use useCartStore.addItem directly with full product data');
     };
 
-    const removeItem = async (itemId: string) => {
-        removeFromStore(itemId);
+    const removeItem = async (lineId: string) => {
+        removeFromStore(lineId);
     };
 
-    const increaseQuantity = async (itemId: string) => {
-        increaseInStore(itemId);
+    const increaseQuantity = async (lineId: string) => {
+        increaseInStore(lineId);
     };
 
-    const decreaseQuantity = async (itemId: string) => {
-        decreaseInStore(itemId);
+    const decreaseQuantity = async (lineId: string) => {
+        decreaseInStore(lineId);
     };
 
     const clearCart = async () => {
