@@ -73,7 +73,7 @@ const HelpFAQ = () => {
   }
 
   return (
-    <section className="pt-20 pb-8 bg-accent-800 font-sans min-h-[400px]">
+    <section className="pt-20 pb-8 bg-accent-800 font-sans min-h-100">
       <div className="container mx-auto px-8">
         {categories.length > 0 ? (
           categories.map((category) => (
@@ -82,9 +82,9 @@ const HelpFAQ = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {category.faqs.map((faq, index) => (
                   <div key={index} className="bg-white border border-secondary-300 rounded-xs p-6 shadow-sm">
-                    <h3 className="font-semibold text-lg mb-2 break-words">{he.decode(faq.question)}</h3>
+                    <h3 className="font-semibold text-lg mb-2 wrap-break-word">{he.decode(faq.question)}</h3>
                     <div
-                      className="text-secondary-700 text-md prose prose-sm max-w-none break-words overflow-wrap-anywhere"
+                      className="text-secondary-700 text-md prose prose-sm max-w-none wrap-break-word overflow-wrap-anywhere"
                       dangerouslySetInnerHTML={{ __html: he.decode(faq.answer) }}
                     />
                   </div>
