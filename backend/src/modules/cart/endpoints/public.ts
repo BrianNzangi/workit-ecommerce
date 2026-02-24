@@ -8,7 +8,10 @@ export const cartPublicRoutes: FastifyPluginAsync = async (fastify) => {
 
     const getCart = async (req: any) => {
         const userId = req.storefrontUser?.id;
-        const guestId = req.headers['x-guest-id'] as string;
+        const guestId =
+            (req.headers['x-guest-id'] as string | undefined) ||
+            (req.cookies?.guest_id as string | undefined) ||
+            (req.query?.guestId as string | undefined);
 
         if (!userId && !guestId) return null;
 

@@ -38,10 +38,24 @@ const generateSessionId = () => {
   return `guest_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 };
 
+const persistGuestCookie = (sessionId: string | null) => {
+  if (!sessionId || typeof document === 'undefined') return;
+  const maxAge = 60 * 60 * 24 * 30; // 30 days
+  const secure = typeof location !== 'undefined' && location.protocol === 'https:';
+  document.cookie = [
+    `guest_id=${sessionId}`,
+    'Path=/',
+    `Max-Age=${maxAge}`,
+    'SameSite=Lax',
+    secure ? 'Secure' : '',
+  ].filter(Boolean).join('; ');
+};
+
 const getHeaders = (sessionId: string | null) => {
   const headers: any = { 'Content-Type': 'application/json' };
   if (sessionId) {
     headers['x-guest-id'] = sessionId;
+    persistGuestCookie(sessionId);
   }
   return headers;
 };
@@ -76,7 +90,8 @@ export const useCartStore = create<CartState>()(
         try {
           // Use axios for consistency, proxied via /api/cart
           const response = await axios.get('/api/cart', {
-            headers: getHeaders(sessionId)
+            headers: getHeaders(sessionId),
+            withCredentials: true,
           });
 
           if (response.data) {
@@ -114,7 +129,7 @@ export const useCartStore = create<CartState>()(
             productId: item.id,
             variantId: item.variantId,
             quantity
-          }, { headers: getHeaders(sessionId) });
+          }, { headers: getHeaders(sessionId), withCredentials: true });
 
           // Refetch to get correct Line IDs and totals
           await get().fetchCart();
@@ -135,7 +150,7 @@ export const useCartStore = create<CartState>()(
         }));
 
         try {
-          await axios.put(`/api/cart/${lineId}`, { quantity }, { headers: getHeaders(sessionId) });
+          await axios.put(`/api/cart/${lineId}`, { quantity }, { headers: getHeaders(sessionId), withCredentials: true });
           // No need to refetch if successful, as we updated optimistically
         } catch (error) {
           console.error('Failed to update quantity:', error);
@@ -153,7 +168,7 @@ export const useCartStore = create<CartState>()(
         }));
 
         try {
-          await axios.delete(`/api/cart/${lineId}`, { headers: getHeaders(sessionId) });
+          await axios.delete(`/api/cart/${lineId}`, { headers: getHeaders(sessionId), withCredentials: true });
         } catch (error) {
           console.error('Failed to remove item:', error);
           await get().fetchCart();
@@ -182,7 +197,7 @@ export const useCartStore = create<CartState>()(
         const { sessionId } = get();
         set({ items: [] });
         try {
-          await axios.delete('/api/cart', { headers: getHeaders(sessionId) });
+          await axios.delete('/api/cart', { headers: getHeaders(sessionId), withCredentials: true });
         } catch (error) {
           console.error('Failed to clear cart:', error);
         }
