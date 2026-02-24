@@ -82,9 +82,9 @@ const HelpFAQ = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {category.faqs.map((faq, index) => (
                   <div key={index} className="bg-white border border-secondary-300 rounded-xs p-6 shadow-sm">
-                    <h3 className="font-semibold text-lg mb-2">{he.decode(faq.question)}</h3>
+                    <h3 className="font-semibold text-lg mb-2 break-words">{he.decode(faq.question)}</h3>
                     <div
-                      className="text-secondary-700 text-md prose prose-sm max-w-none"
+                      className="text-secondary-700 text-md prose prose-sm max-w-none break-words overflow-wrap-anywhere"
                       dangerouslySetInnerHTML={{ __html: he.decode(faq.answer) }}
                     />
                   </div>
