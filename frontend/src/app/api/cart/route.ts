@@ -10,10 +10,14 @@ const getBackendUrl = () => {
   ).replace(/\/$/, "");
 };
 
-const getForwardHeaders = (request: NextRequest) => {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
+const getForwardHeaders = (
+  request: NextRequest,
+  options: { includeJson?: boolean } = {},
+) => {
+  const headers: Record<string, string> = {};
+  if (options.includeJson) {
+    headers["Content-Type"] = "application/json";
+  }
 
   const guestId = request.headers.get("x-guest-id");
   if (guestId) headers["x-guest-id"] = guestId;
@@ -56,7 +60,7 @@ export async function POST(request: NextRequest) {
     const body = await request.text();
     const response = await fetch(`${getBackendUrl()}/cart`, {
       method: "POST",
-      headers: getForwardHeaders(request),
+      headers: getForwardHeaders(request, { includeJson: true }),
       body,
       cache: "no-store",
     });
