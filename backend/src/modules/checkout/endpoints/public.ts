@@ -323,7 +323,7 @@ export const checkoutPublicRoutes: FastifyPluginAsync = async (fastify) => {
                         ? cart.lines.filter((line: any) => eligibleProductIds.includes(String(line.productId)))
                         : cart.lines;
 
-                    const eligibleQuantity = eligibleLines.reduce((total, line) => total + line.quantity, 0);
+                    const eligibleQuantity = eligibleLines.reduce((total: number, line: any) => total + line.quantity, 0);
                     if (eligibleQuantity < groupSize) {
                         throw new Error(`Add ${groupSize - eligibleQuantity} more item(s) to qualify for this offer`);
                     }
