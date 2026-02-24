@@ -24,7 +24,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
         return (
             <div className="bg-[#a3d9a5] p-3 rounded-lg shadow-sm border-none text-center min-w-[100px]">
-                <p className="text-xs font-medium text-gray-800 mb-1">{label}</p>
+                <p className="text-xs font-medium text-gray-900 mb-1">{label}</p>
                 <p className="text-sm font-bold text-gray-900">
                     {payload[0].value >= 1000
                         ? `${(payload[0].value / 1000).toFixed(1)}k`
