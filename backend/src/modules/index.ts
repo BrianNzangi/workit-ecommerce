@@ -67,5 +67,4 @@ export const appModules: FastifyPluginAsync = async (fastify) => {
     await fastify.register(checkoutRoutes, { prefix: "/api/checkout" });
 };
 
-
 export default appModules;
