@@ -1,8 +1,9 @@
 import { FastifyPluginAsync } from "fastify";
-import { db, schema, eq, and, ilike, isNotNull, count } from "../../../lib/db.js";
+import { db, schema, eq, and, ilike, isNotNull, count, or } from "../../../lib/db.js";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 import { productSearchService } from "../../../services/search/product-search.service.js";
+import crypto from "crypto";
 
 // Address schema for creation on the fly
 const addressSchema = z.object({
@@ -46,8 +47,152 @@ const fromKesMinorUnits = (value?: number | null) => {
     return Number(value) / 100;
 };
 
+const normalizePaystackAmount = (value: number) => Math.round(Number(value) * 100);
+
+const resolveMetadataOrderId = (metadata: any): string | null => {
+    if (!metadata || typeof metadata !== "object") return null;
+    const candidate = metadata.orderId || metadata.order_id;
+    return candidate ? String(candidate) : null;
+};
+
+const parseOrderIdFromReference = (reference: string): string | null => {
+    const match = /^order-([a-f0-9-]+)-\d+$/i.exec(reference);
+    return match?.[1] || null;
+};
+
 export const checkoutPublicRoutes: FastifyPluginAsync = async (fastify) => {
     fastify.addHook("preHandler", fastify.optionalStorefrontAuth);
+
+    const verifyPaystackPayment = async (orderId: string, paymentReference?: string, userId?: string) => {
+        const order = await db.query.orders.findFirst({
+            where: eq(schema.orders.id, orderId)
+        });
+        console.log(`[Checkout Verify] Order found? ${!!order}`);
+
+        if (!order) {
+            return { status: 404, body: { message: "Order not found" } };
+        }
+
+        if (userId && order.customerId !== userId) {
+            return { status: 403, body: { message: "Not authorized to verify this order" } };
+        }
+
+        if (!paymentReference) {
+            if (order.state === "PAYMENT_SETTLED") {
+                return { status: 200, body: { message: "Order already verified", orderId }, order };
+            }
+            return { status: 400, body: { message: "paymentReference is required" } };
+        }
+
+        const paystackSecret = process.env.PAYSTACK_SECRET_KEY;
+        if (!paystackSecret) {
+            fastify.log.error("PAYSTACK_SECRET_KEY is not configured");
+            return { status: 500, body: { message: "Payment verification unavailable" } };
+        }
+
+        const verifyResponse = await fetch(
+            `https://api.paystack.co/transaction/verify/${encodeURIComponent(paymentReference)}`,
+            {
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${paystackSecret}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+        const verifyText = await verifyResponse.text();
+        if (!verifyResponse.ok) {
+            fastify.log.error({
+                status: verifyResponse.status,
+                body: verifyText,
+            }, "Paystack verification failed");
+            return { status: 400, body: { message: "Payment verification failed" } };
+        }
+
+        let verifyPayload: any;
+        try {
+            verifyPayload = JSON.parse(verifyText);
+        } catch {
+            fastify.log.error({ verifyText }, "Invalid Paystack verification response");
+            return { status: 400, body: { message: "Invalid verification response" } };
+        }
+
+        const paystackData = verifyPayload?.data;
+        if (!paystackData || paystackData.status !== "success") {
+            return { status: 400, body: { message: "Payment not successful" } };
+        }
+
+        const expectedAmount = normalizePaystackAmount(order.total);
+        const paidAmount = Number(paystackData.amount);
+        if (!Number.isFinite(paidAmount) || paidAmount !== expectedAmount) {
+            fastify.log.error({
+                orderId,
+                expectedAmount,
+                paidAmount,
+            }, "Paystack amount mismatch");
+            return { status: 400, body: { message: "Payment amount mismatch" } };
+        }
+
+        const paystackCurrency = paystackData.currency ? String(paystackData.currency).toUpperCase() : null;
+        const orderCurrency = String(order.currencyCode || "").toUpperCase();
+        if (paystackCurrency && orderCurrency && paystackCurrency !== orderCurrency) {
+            fastify.log.error({
+                orderId,
+                expected: orderCurrency,
+                received: paystackCurrency,
+            }, "Paystack currency mismatch");
+            return { status: 400, body: { message: "Payment currency mismatch" } };
+        }
+
+        const metadataOrderId = resolveMetadataOrderId(paystackData.metadata);
+        if (metadataOrderId && metadataOrderId !== orderId) {
+            fastify.log.error({
+                orderId,
+                metadataOrderId,
+            }, "Paystack metadata order mismatch");
+            return { status: 400, body: { message: "Payment metadata mismatch" } };
+        }
+
+        const referenceOrderId = parseOrderIdFromReference(String(paystackData.reference || paymentReference));
+        if (referenceOrderId && referenceOrderId !== orderId) {
+            fastify.log.error({
+                orderId,
+                referenceOrderId,
+            }, "Paystack reference order mismatch");
+            return { status: 400, body: { message: "Payment reference mismatch" } };
+        }
+
+        const paystackId = paystackData.id ? String(paystackData.id) : undefined;
+        const existingPayment = await db.query.payments.findFirst({
+            where: or(
+                eq(schema.payments.paystackRef, String(paystackData.reference || paymentReference)),
+                paystackId ? eq(schema.payments.transactionId, paystackId) : eq(schema.payments.transactionId, "__none__")
+            )
+        });
+
+        if (!existingPayment) {
+            await db.insert(schema.payments).values({
+                id: uuidv4(),
+                orderId,
+                amount: order.total,
+                method: "paystack",
+                state: "SETTLED",
+                transactionId: paystackId,
+                paystackRef: String(paystackData.reference || paymentReference),
+                metadata: paystackData,
+            });
+            console.log(`[Checkout Verify] Payment record created`);
+        }
+
+        if (order.state !== "PAYMENT_SETTLED") {
+            await db.update(schema.orders)
+                .set({ state: "PAYMENT_SETTLED", updatedAt: new Date() })
+                .where(eq(schema.orders.id, orderId));
+        }
+
+        return { status: 200, body: { message: "Order verified", orderId }, order };
+    };
 
     const getCart = async (req: any) => {
         const userId = req.storefrontUser?.id;
@@ -421,40 +566,20 @@ export const checkoutPublicRoutes: FastifyPluginAsync = async (fastify) => {
     }, async (request, reply) => {
         const { orderId, paymentReference } = request.body as any;
         console.log(`[Checkout Verify] Verifying order: ${orderId}, Ref: ${paymentReference}`);
-
-        const order = await db.query.orders.findFirst({
-            where: eq(schema.orders.id, orderId)
-        });
-        console.log(`[Checkout Verify] Order found? ${!!order}`);
-
-        if (!order) return reply.status(404).send({ message: "Order not found" });
-
-        // Update order state
-        await db.update(schema.orders)
-            .set({ state: 'PAYMENT_SETTLED' })
-            .where(eq(schema.orders.id, orderId));
-
-        if (paymentReference) {
-            await db.insert(schema.payments).values({
-                id: uuidv4(),
-                orderId,
-                amount: order.total,
-                method: 'paystack', // Default or from request
-                state: 'SETTLED', // Successfully verified
-                transactionId: paymentReference,
-                paystackRef: paymentReference
-            });
-            console.log(`[Checkout Verify] Payment record created`);
+        const userId = (request as any).storefrontUser?.id;
+        const verification = await verifyPaystackPayment(orderId, paymentReference, userId);
+        if (verification.status !== 200) {
+            return reply.status(verification.status).send(verification.body);
         }
 
         // Clear cart logic
         // We need to fetch cart again to get ID
-        const userId = (request as any).storefrontUser?.id;
-        console.log(`[Checkout Verify] Clearing cart for User: ${userId}`);
+        const customerId = userId || verification.order?.customerId;
+        console.log(`[Checkout Verify] Clearing cart for User: ${customerId}`);
 
-        if (userId) {
+        if (customerId) {
             const cart = await db.query.carts.findFirst({
-                where: eq(schema.carts.customerId, userId)
+                where: eq(schema.carts.customerId, customerId)
             });
             if (cart) {
                 await db.delete(schema.cartLines).where(eq(schema.cartLines.cartId, cart.id));
@@ -462,6 +587,80 @@ export const checkoutPublicRoutes: FastifyPluginAsync = async (fastify) => {
             }
         }
 
-        return { message: "Order verified", orderId };
+        return verification.body;
+    });
+
+    fastify.post("/webhook", {
+        preParsing: (request, reply, payload, done) => {
+            let data = "";
+            payload.on("data", (chunk) => {
+                data += chunk;
+            });
+            payload.on("end", () => {
+                (request as any).rawBody = data;
+                done(null, payload);
+            });
+        }
+    }, async (request, reply) => {
+        const rawBody = (request as any).rawBody as string | undefined;
+        if (!rawBody) {
+            return reply.status(400).send({ message: "Missing payload" });
+        }
+
+        const signature = request.headers["x-paystack-signature"];
+        const paystackSecret = process.env.PAYSTACK_SECRET_KEY || "";
+
+        if (!paystackSecret) {
+            fastify.log.error("PAYSTACK_SECRET_KEY is not configured");
+            return reply.status(500).send({ message: "Webhook unavailable" });
+        }
+
+        const computed = crypto
+            .createHmac("sha512", paystackSecret)
+            .update(rawBody)
+            .digest("hex");
+
+        if (!signature || computed !== signature) {
+            return reply.status(400).send({ message: "Invalid signature" });
+        }
+
+        let event: any;
+        try {
+            event = JSON.parse(rawBody);
+        } catch {
+            return reply.status(400).send({ message: "Invalid JSON payload" });
+        }
+
+        if (event?.event !== "charge.success") {
+            return { status: "ignored" };
+        }
+
+        const reference = event?.data?.reference || event?.data?.trxref;
+        const metadataOrderId = resolveMetadataOrderId(event?.data?.metadata);
+        const referenceOrderId = reference ? parseOrderIdFromReference(String(reference)) : null;
+        const orderId = metadataOrderId || referenceOrderId;
+
+        if (!reference || !orderId) {
+            fastify.log.warn({ reference, orderId }, "Paystack webhook missing reference/orderId");
+            return { status: "ignored" };
+        }
+
+        const verification = await verifyPaystackPayment(orderId, reference);
+        if (verification.status !== 200) {
+            return reply.status(verification.status).send(verification.body);
+        }
+
+        const customerId = verification.order?.customerId;
+        if (customerId) {
+            const cart = await db.query.carts.findFirst({
+                where: eq(schema.carts.customerId, customerId)
+            });
+            if (cart) {
+                await db.delete(schema.cartLines).where(eq(schema.cartLines.cartId, cart.id));
+                console.log(`[Checkout Verify] Cart cleared via webhook: ${cart.id}`);
+            }
+        }
+
+        return { status: "success" };
     });
 };

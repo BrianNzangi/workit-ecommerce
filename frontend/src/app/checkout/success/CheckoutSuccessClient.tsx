@@ -55,12 +55,8 @@ export default function CheckoutSuccessClient() {
       // If we have a reference, verify with backend
       verifyPayment();
     } else {
-      // If no payment reference but have orderId (e.g. COD or manual flow?)
-      // For now, assume success if here? Or maybe we require payment ref?
-      // existing code logic...
       console.log('[CheckoutSuccess] No payment reference found');
-      setStatus('success');
-      clearCart();
+      setStatus('failed');
     }
   }, [searchParams, clearCart]);
 

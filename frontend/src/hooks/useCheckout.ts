@@ -38,7 +38,7 @@ export const useCheckout = (user: User) => {
     setActiveStep,
   } = useCheckoutStore();
 
-  const { items, clearCart } = useCartStore();
+  const { items } = useCartStore();
 
   const [loading, setLoading] = useState(false);
   const [shippingZones, setShippingZones] = useState<any[]>([]);
@@ -295,6 +295,15 @@ export const useCheckout = (user: User) => {
       throw new Error('Paystack payments are currently disabled. Please contact support.');
     }
 
+    if (!Number.isFinite(amount) || amount <= 0) {
+      throw new Error('Invalid payment amount. Please contact support.');
+    }
+
+    const payerEmail = stepData.billing.email || user.email;
+    if (!payerEmail) {
+      throw new Error('Email is required to process payment.');
+    }
+
     return new Promise<void>((resolve, reject) => {
       if ((window as any).PaystackPop) {
         initializePaystack();
@@ -316,16 +325,20 @@ export const useCheckout = (user: User) => {
 
         const paystackConfig: any = {
           key: config.paystackPublicKey,
-          email: stepData.billing.email || user.email,
+          email: payerEmail,
           amount,
           currency: config.currency || "KES",
           ref: `order-${order.id}-${Date.now()}`,
+          metadata: {
+            orderId: order.id,
+            customerId: user.id || null,
+            email: payerEmail,
+          },
           onClose: () => {
             setLoading(false);
             reject(new Error("Payment popup closed"));
           },
           callback: (response: PaystackResponse) => {
-            clearCart();
             window.location.href = `/checkout/success?trxref=${response.trxref}&reference=${response.reference}&orderId=${order.id}`;
             resolve();
           },
