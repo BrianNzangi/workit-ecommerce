@@ -68,5 +68,4 @@ export const appModules: FastifyPluginAsync = async (fastify) => {
 };
 
 
-
 export default appModules;
