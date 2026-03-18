@@ -55,6 +55,21 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <Script
+          id="google-tag-script"
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-Y0DN0MB5CV"
+        />
+        <Script
+          id="google-tag-config"
+          dangerouslySetInnerHTML={{
+            __html: `window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+
+gtag('config', 'G-Y0DN0MB5CV');`,
+          }}
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link

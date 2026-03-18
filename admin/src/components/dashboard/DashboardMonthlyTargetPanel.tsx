@@ -17,7 +17,7 @@ export function DashboardMonthlyTargetPanel({ monthlyTarget }: DashboardMonthlyT
 
     return (
         <DashboardPanel title="Monthly Target" subtitle="A simple pulse on where revenue is pacing this month.">
-            <div className="mx-auto h-52 w-full max-w-[280px]">
+            <div className="mx-auto h-52 w-full max-w-70">
                 <ResponsiveContainer width="100%" height="100%">
                     <RadialBarChart
                         cx="50%"
