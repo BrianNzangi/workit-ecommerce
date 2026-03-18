@@ -60,12 +60,67 @@ const parseOrderIdFromReference = (reference: string): string | null => {
     return match?.[1] || null;
 };
 
+const buildPurchaseTracking = (order: any) => ({
+    orderId: order.id,
+    code: order.code,
+    total: order.total,
+    currencyCode: order.currencyCode,
+    customer: order.customer
+        ? {
+            id: order.customer.id,
+            email: order.customer.email,
+            firstName: order.customer.firstName,
+            lastName: order.customer.lastName,
+            name: order.customer.name,
+            phoneNumber: order.customer.phoneNumber,
+        }
+        : null,
+    shippingAddress: order.shippingAddress
+        ? {
+            fullName: order.shippingAddress.fullName,
+            city: order.shippingAddress.city,
+            province: order.shippingAddress.province,
+            postalCode: order.shippingAddress.postalCode,
+            country: order.shippingAddress.country,
+            phoneNumber: order.shippingAddress.phoneNumber,
+        }
+        : null,
+    billingAddress: order.billingAddress
+        ? {
+            fullName: order.billingAddress.fullName,
+            city: order.billingAddress.city,
+            province: order.billingAddress.province,
+            postalCode: order.billingAddress.postalCode,
+            country: order.billingAddress.country,
+            phoneNumber: order.billingAddress.phoneNumber,
+        }
+        : null,
+    items: Array.isArray(order.lines)
+        ? order.lines.map((line: any) => ({
+            productId: line.productId,
+            quantity: line.quantity,
+            linePrice: line.linePrice,
+            productName: line.product?.name ?? null,
+        }))
+        : [],
+});
+
 export const checkoutPublicRoutes: FastifyPluginAsync = async (fastify) => {
     fastify.addHook("preHandler", fastify.optionalStorefrontAuth);
 
     const verifyPaystackPayment = async (orderId: string, paymentReference?: string, userId?: string) => {
         const order = await db.query.orders.findFirst({
-            where: eq(schema.orders.id, orderId)
+            where: eq(schema.orders.id, orderId),
+            with: {
+                customer: true,
+                shippingAddress: true,
+                billingAddress: true,
+                lines: {
+                    with: {
+                        product: true,
+                    },
+                },
+            },
         });
         console.log(`[Checkout Verify] Order found? ${!!order}`);
 
@@ -79,7 +134,15 @@ export const checkoutPublicRoutes: FastifyPluginAsync = async (fastify) => {
 
         if (!paymentReference) {
             if (order.state === "PAYMENT_SETTLED") {
-                return { status: 200, body: { message: "Order already verified", orderId }, order };
+                return {
+                    status: 200,
+                    body: {
+                        message: "Order already verified",
+                        orderId,
+                        tracking: buildPurchaseTracking(order),
+                    },
+                    order,
+                };
             }
             return { status: 400, body: { message: "paymentReference is required" } };
         }
@@ -191,7 +254,15 @@ export const checkoutPublicRoutes: FastifyPluginAsync = async (fastify) => {
                 .where(eq(schema.orders.id, orderId));
         }
 
-        return { status: 200, body: { message: "Order verified", orderId }, order };
+        return {
+            status: 200,
+            body: {
+                message: "Order verified",
+                orderId,
+                tracking: buildPurchaseTracking(order),
+            },
+            order,
+        };
     };
 
     const getCart = async (req: any) => {

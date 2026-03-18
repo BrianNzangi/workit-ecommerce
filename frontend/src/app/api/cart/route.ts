@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { sendMetaEvent } from "@/lib/meta-conversions";
 
 const getBackendUrl = () => {
   const env = process.env as Record<string, string | undefined>;
@@ -41,6 +42,17 @@ const toJsonResponse = async (response: Response) => {
   }
 };
 
+const parseResponseBody = async (response: Response) => {
+  const text = await response.text();
+  if (!text) return {};
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { message: text };
+  }
+};
+
 export async function GET(request: NextRequest) {
   try {
     const response = await fetch(`${getBackendUrl()}/cart`, {
@@ -57,14 +69,54 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.text();
+    const payload = await request.json();
     const response = await fetch(`${getBackendUrl()}/cart`, {
       method: "POST",
       headers: getForwardHeaders(request, { includeJson: true }),
-      body,
+      body: JSON.stringify(payload),
       cache: "no-store",
     });
-    return toJsonResponse(response);
+    const responseBody = await parseResponseBody(response);
+
+    if (response.ok) {
+      const matchedLine = Array.isArray(responseBody?.lines)
+        ? responseBody.lines.find(
+            (line: any) =>
+              String(line.productId) === String(payload.productId) &&
+              String(line.variantId || "") === String(payload.variantId || ""),
+          )
+        : null;
+
+      const unitPrice = Number(
+        matchedLine?.product?.salePrice ??
+          matchedLine?.product?.originalPrice ??
+          0,
+      );
+      const quantity = Number(payload.quantity || 1);
+
+      void sendMetaEvent({
+        request,
+        eventName: "AddToCart",
+        eventId: `cart:${payload.productId}:${payload.variantId || "default"}:${Date.now()}`,
+        eventSourceUrl: request.headers.get("referer"),
+        customData: {
+          currency: "KES",
+          value: unitPrice * quantity,
+          content_type: "product",
+          content_ids: [String(payload.productId)],
+          contents: [
+            {
+              id: String(payload.productId),
+              quantity,
+              item_price: unitPrice,
+            },
+          ],
+          num_items: quantity,
+        },
+      });
+    }
+
+    return NextResponse.json(responseBody, { status: response.status });
   } catch (error) {
     console.error("Cart POST proxy failed:", error);
     return NextResponse.json({ message: "Failed to add cart item" }, { status: 500 });

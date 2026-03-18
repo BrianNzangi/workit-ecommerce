@@ -1,6 +1,7 @@
 import { FastifyPluginAsync } from "fastify";
 import { auth } from "../../lib/auth.js";
 import { toNodeHandler } from "better-auth/node";
+import { withDevOrigins } from "../../lib/dev-origins.js";
 
 const normalizeOrigin = (origin: string) => origin.trim().replace(/\/$/, "");
 
@@ -10,18 +11,14 @@ const splitOrigins = (value?: string): string[] =>
         .map((origin) => origin.trim())
         .filter(Boolean);
 
-const allowedOrigins = Array.from(
+const allowedOrigins = withDevOrigins(Array.from(
     new Set([
         ...splitOrigins(process.env.BETTER_AUTH_TRUSTED_ORIGINS),
         ...splitOrigins(process.env.CORS_ORIGIN),
         ...splitOrigins(process.env.FRONTEND_URL),
         ...splitOrigins(process.env.ADMIN_URL),
     ].map(normalizeOrigin)),
-);
-
-if (!allowedOrigins.length && process.env.NODE_ENV !== "production") {
-    allowedOrigins.push("http://localhost:3000", "http://localhost:3002");
-}
+));
 
 export const authRoutes: FastifyPluginAsync = async (fastify) => {
     // Better Auth standard routes (e.g., /auth/sign-in/email)

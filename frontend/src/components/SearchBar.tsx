@@ -40,7 +40,7 @@ export default function SearchBar() {
     };
   }, []);
 
-  const handleSearch = async (searchTerm: string) => {
+  const handleSearch = async (searchTerm: string, track = false) => {
     if (!searchTerm.trim()) {
       setResults([]);
       setShowResults(false);
@@ -49,7 +49,9 @@ export default function SearchBar() {
 
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/search?q=${encodeURIComponent(searchTerm)}`);
+      const res = await fetch(
+        `/api/search?q=${encodeURIComponent(searchTerm)}${track ? "&track=1" : ""}`,
+      );
       if (!res.ok) throw new Error('Failed search request');
       const data = await res.json();
       setResults(data);
@@ -64,13 +66,13 @@ export default function SearchBar() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    handleSearch(query);
+    void handleSearch(query, true);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setQuery(value);
-    handleSearch(value);
+    void handleSearch(value);
   };
 
   const handleResultClick = (product: Product) => {

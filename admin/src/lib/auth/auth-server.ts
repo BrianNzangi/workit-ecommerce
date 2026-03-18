@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db, schema } from "@workit/db";
+import { withDevOrigins } from "./dev-origins";
 
 const splitOrigins = (value?: string): string[] =>
     (value ?? "")
@@ -8,18 +9,14 @@ const splitOrigins = (value?: string): string[] =>
         .map((origin) => origin.trim())
         .filter(Boolean);
 
-const configuredOrigins = Array.from(
+const configuredOrigins = withDevOrigins(Array.from(
     new Set([
         ...splitOrigins(process.env.BETTER_AUTH_TRUSTED_ORIGINS),
         ...splitOrigins(process.env.CORS_ORIGIN),
         ...splitOrigins(process.env.NEXT_PUBLIC_ADMIN_BASE_URL),
         ...splitOrigins(process.env.ADMIN_URL),
     ]),
-);
-
-if (!configuredOrigins.length && process.env.NODE_ENV !== "production") {
-    configuredOrigins.push("http://localhost:3002", "http://127.0.0.1:3002");
-}
+));
 
 const authBaseUrl =
     process.env.NEXT_PUBLIC_AUTH_BASE_URL ||

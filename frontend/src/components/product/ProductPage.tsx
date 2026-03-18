@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import Image from "next/image"
 import { buildBreadcrumbs, findL2Category, Breadcrumb, Category } from "@/utils/breadcrumbs"
 import he from "he"
@@ -9,6 +9,7 @@ import ProductInfo from "@/components/product/ProductInfo"
 import ColProductCard from "@/components/product/ColProductCard"
 import { Product } from "@/types/product"
 import { getImageUrl } from "@/lib/image-utils"
+import { trackMetaEvent } from "@/lib/meta-browser"
 
 
 export default function ProductPage({
@@ -75,6 +76,7 @@ export default function ProductPage({
   const [alsoViewed, setAlsoViewed] = useState<Product[]>([])
   const [alsoViewedLoading, setAlsoViewedLoading] = useState(true)
   const [alsoViewedError, setAlsoViewedError] = useState<string | null>(null)
+  const trackedProductIdRef = useRef<string | null>(null)
 
   // Helper function to check if product belongs to android-smartphones collection
   // Helper function to find the L1 category (root ancestor)
@@ -100,6 +102,23 @@ export default function ProductPage({
       ? parseFloat(product.compareAtPrice)
       : product.compareAtPrice) ??
     0
+
+  useEffect(() => {
+    if (trackedProductIdRef.current === product.id) return
+
+    trackedProductIdRef.current = product.id
+    void trackMetaEvent({
+      eventName: "ViewContent",
+      eventId: `view-content:${product.id}:${Date.now()}`,
+      customData: {
+        currency: "KES",
+        value: Number(effectivePrice || 0),
+        content_type: "product",
+        content_ids: [String(product.id)],
+        content_name: product.name,
+      },
+    })
+  }, [effectivePrice, product.id, product.name])
 
   const nextImage = () => {
     setSelectedIdx((prev) => (prev + 1) % images.length)

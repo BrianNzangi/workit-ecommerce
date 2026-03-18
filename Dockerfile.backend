@@ -13,9 +13,8 @@ WORKDIR /app
 FROM base AS deps
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY backend/package.json ./backend/
-COPY frontend/package.json ./frontend/
-COPY admin/package.json ./admin/
-COPY packages ./packages/
+COPY packages/db/package.json ./packages/db/
+COPY packages/validation/package.json ./packages/validation/
 
 RUN pnpm install --no-frozen-lockfile --filter=@workit/backend...
 
@@ -39,7 +38,7 @@ RUN rm -rf node_modules backend/dist packages/db/dist packages/validation/dist
 RUN rm -rf backend/node_modules packages/db/node_modules packages/validation/node_modules
 
 # Fresh install and build from scratch
-RUN pnpm install --no-frozen-lockfile
+RUN pnpm install --no-frozen-lockfile --filter=@workit/backend...
 RUN pnpm --filter=@workit/backend... build
 
 # =========================

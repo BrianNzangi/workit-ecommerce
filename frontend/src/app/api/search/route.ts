@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { proxyFetch } from "@/lib/proxy-utils";
 import { normalizeProducts } from "@/lib/product-normalization";
+import { sendMetaEvent } from "@/lib/meta-conversions";
 import { Product } from "@/types/product";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const query = searchParams.get("q");
+  const shouldTrack = searchParams.get("track") === "1";
 
   if (!query) {
     return NextResponse.json({ error: "Missing search term" }, { status: 400 });
@@ -38,6 +40,20 @@ export async function GET(req: NextRequest) {
 
     // Use normalization logic for consistent pricing and fields.
     const products: Product[] = normalizeProducts(rawProducts);
+
+    if (shouldTrack) {
+      void sendMetaEvent({
+        request: req,
+        eventName: "Search",
+        eventId: `search:${query}:${Date.now()}`,
+        eventSourceUrl: req.headers.get("referer"),
+        customData: {
+          search_string: query,
+          num_items: products.length,
+          content_category: "product_search",
+        },
+      });
+    }
 
     // Return the normalized products directly for the client search component
     return NextResponse.json(products);

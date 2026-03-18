@@ -212,6 +212,7 @@ class HttpClient {
 
     public get analytics() {
         return {
+            getDashboardOverview: () => this.get<any>("/analytics/dashboard-overview"),
             getWeeklyStats: () => this.get<any>("/analytics/weekly-stats"),
             getSalesStats: () => this.get<any>("/analytics/sales-stats"),
             getWeeklyChart: () => this.get<any>("/analytics/weekly-chart"),

@@ -1,5 +1,6 @@
 import { BaseService } from '../base/base.service';
 import {
+    DashboardOverviewResponse,
     StatsResponse,
     SalesStatsResponse,
     RecentOrder,
@@ -7,6 +8,10 @@ import {
 } from './analytics.types';
 
 export class AnalyticsService extends BaseService {
+    async getDashboardOverview(): Promise<DashboardOverviewResponse> {
+        return this.adminClient.analytics.getDashboardOverview();
+    }
+
     /**
      * Get weekly dashboard statistics.
      */
