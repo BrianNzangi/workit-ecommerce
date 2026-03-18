@@ -126,7 +126,7 @@ export default function ProductCard({
               )}
               alt={name}
               fill
-              className="object-contain scale-90 md:scale-80 lg:scale-80 transition-transform duration-300 group-hover:scale-110"
+              className="object-contain scale-90 md:scale-80 lg:scale-80"
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
             />
           ) : (

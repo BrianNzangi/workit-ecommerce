@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import React from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, useAnimation } from 'framer-motion';
 import ProductCard from '../product/ProductCard';
 import HorizontalBanner from '../banners/HorizontalBanner';
@@ -140,9 +140,10 @@ function CollectionCarousel({ collection }: CollectionCarouselProps) {
                     </h2>
                     <a
                         href={`/deal-details/${collection.slug}`}
-                        className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors whitespace-nowrap"
+                        className="inline-flex items-center gap-1 text-sm font-medium text-primary-900 hover:text-primary-800 transition-colors whitespace-nowrap"
                     >
-                        View All {'->'}
+                        <span>View All</span>
+                        <ArrowRight size={16} />
                     </a>
                 </div>
                 {collection.subtitle && (
