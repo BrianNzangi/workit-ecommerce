@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { getImageUrl } from '@/lib/image-utils';
@@ -13,6 +14,7 @@ interface HeroSectionProps {
 }
 
 export default function HeroSection({ banners }: HeroSectionProps) {
+    const router = useRouter();
     const [currentSlide, setCurrentSlide] = useState(0);
     const [isPlaying, setIsPlaying] = useState(true);
     const [touchStart, setTouchStart] = useState<number | null>(null);
@@ -106,6 +108,12 @@ export default function HeroSection({ banners }: HeroSectionProps) {
         ? `/collections/${currentBanner.collection.slug}`
         : '#';
 
+    const prefetchBanner = () => {
+        if (bannerLink !== '#') {
+            router.prefetch(bannerLink);
+        }
+    };
+
     return (
         <section className="container mx-auto px-3 sm:px-6 md:px-2 lg:px-8 xl:px-8 2xl:px-8 pt-4 mb-4 md:mb-5">
             <div
@@ -152,6 +160,9 @@ export default function HeroSection({ banners }: HeroSectionProps) {
                             href={bannerLink}
                             className="absolute inset-0 z-10"
                             aria-label={`View ${currentBanner.title}`}
+                            onMouseEnter={prefetchBanner}
+                            onFocus={prefetchBanner}
+                            onTouchStart={prefetchBanner}
                         />
                     </motion.div>
                 </AnimatePresence>

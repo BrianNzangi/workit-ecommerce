@@ -113,17 +113,24 @@ function mapBackendBlogToFrontend(blog: BackendBlog): Blog {
     };
 }
 
-function sortBanners(banners: StoreBanner[], position?: string): StoreBanner[] {
+function sortBanners(banners: StoreBanner[], position?: string) {
     return banners
         .filter((banner) => banner.enabled && (!position || banner.position === position))
         .sort((a, b) => a.sortOrder - b.sortOrder);
 }
 
-export async function getStoreBanners(position?: string): Promise<StoreBanner[]> {
+export async function getStoreBanners(
+    position?: string,
+    options: { collectionSlug?: string } = {},
+): Promise<StoreBanner[]> {
     const params = new URLSearchParams();
 
     if (position) {
         params.set('position', position);
+    }
+
+    if (options.collectionSlug) {
+        params.set('collection', options.collectionSlug);
     }
 
     params.set('enabled', 'true');
@@ -143,8 +150,11 @@ export async function getStoreBanners(position?: string): Promise<StoreBanner[]>
     return sortBanners(banners, position);
 }
 
-export async function getFirstBanner(position: string): Promise<StoreBanner | null> {
-    const banners = await getStoreBanners(position);
+export async function getFirstBanner(
+    position: string,
+    options: { collectionSlug?: string } = {},
+): Promise<StoreBanner | null> {
+    const banners = await getStoreBanners(position, options);
     return banners[0] || null;
 }
 

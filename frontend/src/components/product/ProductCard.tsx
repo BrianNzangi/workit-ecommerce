@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { PackageCheck, ShoppingCart } from 'lucide-react'
 import { Product } from '@/types/product'
@@ -20,6 +21,7 @@ export default function ProductCard({
   variantId,
   canBuy,
 }: Product) {
+  const router = useRouter();
   // Use pre-normalized data for Single-Product Mode
   const displayPrice = price ?? 0;
   const displayRegular = compareAtPrice ?? null;
@@ -32,6 +34,11 @@ export default function ProductCard({
       : null
 
   const { addItem, openCart } = useCartStore();
+  const productHref = `/deal-details/${slug}`;
+
+  const prefetchProduct = () => {
+    router.prefetch(productHref);
+  };
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -112,7 +119,13 @@ export default function ProductCard({
   }
 
   return (
-    <Link href={`/deal-details/${slug}`} className="group w-full h-full block">
+    <Link
+      href={productHref}
+      className="group w-full h-full block"
+      onMouseEnter={prefetchProduct}
+      onFocus={prefetchProduct}
+      onTouchStart={prefetchProduct}
+    >
       <div className="p-3 border border-gray-300 hover:shadow-md transition-shadow duration-200 bg-white h-full flex flex-col cursor-pointer rounded-lg">
         {/* Image Container - Fixed aspect ratio for consistency */}
         <div className="relative w-full aspect-square overflow-hidden rounded-md mb-3">

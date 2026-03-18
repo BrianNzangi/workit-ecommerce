@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Search } from 'lucide-react';
 import Image from 'next/image';
 import { getImageUrl } from '@/lib/image-utils';
@@ -21,6 +22,7 @@ interface Product {
 }
 
 export default function SearchBar() {
+  const router = useRouter();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -76,7 +78,8 @@ export default function SearchBar() {
   };
 
   const handleResultClick = (product: Product) => {
-    window.location.href = `/deal-details/${product.slug}`;
+    setShowResults(false);
+    router.push(`/deal-details/${product.slug}`);
   };
 
   const getProductImageSrc = (product: Product): string | null => {

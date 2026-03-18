@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import React from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, useAnimation } from 'framer-motion';
 import ProductCard from '../product/ProductCard';
@@ -19,6 +21,7 @@ interface HomepageCollectionProps {
 }
 
 function CollectionCarousel({ collection }: CollectionCarouselProps) {
+    const router = useRouter();
     const [scrollIndex, setScrollIndex] = useState(0);
     const [containerWidth, setContainerWidth] = useState(0);
     const [visibleCards, setVisibleCards] = useState(2);
@@ -32,6 +35,11 @@ function CollectionCarousel({ collection }: CollectionCarouselProps) {
     const MIN_SWIPE_DISTANCE = 40;
     const products = collection.products || [];
     const displayedProducts = products.slice(0, 12);
+    const viewAllHref = `/deal-details/${collection.slug}`;
+
+    const prefetchCollection = () => {
+        router.prefetch(viewAllHref);
+    };
 
     useEffect(() => {
         if (typeof window === 'undefined') return;
@@ -138,13 +146,16 @@ function CollectionCarousel({ collection }: CollectionCarouselProps) {
                     <h2 className="font-sans text-lg md:text-2xl capitalize font-bold text-gray-900">
                         {collection.title}
                     </h2>
-                    <a
-                        href={`/deal-details/${collection.slug}`}
+                    <Link
+                        href={viewAllHref}
                         className="inline-flex items-center gap-1 text-sm font-medium text-primary-900 hover:text-primary-800 transition-colors whitespace-nowrap"
+                        onMouseEnter={prefetchCollection}
+                        onFocus={prefetchCollection}
+                        onTouchStart={prefetchCollection}
                     >
                         <span>View All</span>
                         <ArrowRight size={16} />
-                    </a>
+                    </Link>
                 </div>
                 {collection.subtitle && (
                     <h3 className="text-lg md:text-xl text-gray-600 mt-1">

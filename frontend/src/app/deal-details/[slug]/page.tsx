@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import ProductPage from '@/components/product/ProductPage';
 import { Category } from '@/types/collection';
 import type { Product } from '@/types/product';
@@ -9,6 +10,85 @@ import { getImageUrl } from '@/lib/image-utils';
 interface Props {
   params: Promise<{ slug: string }>;
 }
+
+export const revalidate = 300;
+
+const flattenCategories = (cats: any[]): any[] => {
+  const flattened: any[] = [];
+  cats.forEach((cat) => {
+    flattened.push(cat);
+    if (cat.children && cat.children.length > 0) {
+      flattened.push(...flattenCategories(cat.children));
+    }
+  });
+  return flattened;
+};
+
+const buildChain = (cat: any, all: any[]): any[] => {
+  const chain = [];
+  let current = cat;
+  while (current) {
+    chain.unshift(current);
+    const parentId = current.parentId || current.parent;
+    if (!parentId || String(parentId) === "0" || parentId === 0) break;
+    current = all.find((c) => String(c.id) === String(parentId));
+  }
+  return chain;
+};
+
+const findL1Category = (productCategories: any[], all: any[]): any | null => {
+  if (!productCategories || productCategories.length === 0 || !all || all.length === 0) {
+    return null;
+  }
+
+  const firstCat =
+    all.find((c) => String(c.id) === String(productCategories[0].id)) ||
+    productCategories[0];
+  const chain = buildChain(firstCat, all);
+  return chain.length > 0 ? chain[0] : null;
+};
+
+const mapStoreProducts = (rawProducts: any[]): Product[] =>
+  rawProducts.map((product: any) => {
+    const featuredProductAsset =
+      product.assets?.find((a: any) => a.featured) || product.assets?.[0];
+    const mainImage =
+      featuredProductAsset?.asset?.source || featuredProductAsset?.asset?.preview || '';
+
+    return {
+      id: product.id,
+      name: product.name,
+      slug: product.slug,
+      description: product.description,
+      images:
+        product.assets?.map((a: any) => ({
+          id: a.asset.id,
+          url: a.asset.source || a.asset.preview || '',
+          source: a.asset.source,
+          preview: a.asset.preview,
+          featured: a.featured,
+          altText: a.asset.name || product.name,
+        })) || [],
+      image: mainImage,
+      price: Number(product.salePrice ?? 0),
+      compareAtPrice: product.originalPrice ? Number(product.originalPrice) : undefined,
+      variantId: product.id,
+      stockOnHand: product.stockOnHand ?? 0,
+      canBuy: (product.stockOnHand ?? 0) > 0,
+      categories: product.collections?.map((c: any) => c.collection) || [],
+      brand: product.brand,
+      condition: product.condition,
+      shippingMethod: product.shippingMethod
+        ? {
+            id: product.shippingMethod.id,
+            code: product.shippingMethod.code,
+            name: product.shippingMethod.name,
+            description: product.shippingMethod.description,
+            isExpress: product.shippingMethod.isExpress || false,
+          }
+        : undefined,
+    } as Product;
+  });
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -59,13 +139,17 @@ export default async function ProductDetailPage({ params }: Props) {
   const { slug } = await params;
 
   try {
-    // 1. Fetch from backend via direct proxyFetch (Bypasses loopback networking issues)
-    const response = await proxyFetch(`/store/products/${slug}`, {
-      cache: 'no-store',
-    });
+    const [productResponse, categoriesRes] = await Promise.all([
+      proxyFetch(`/store/products/${slug}`, {
+        next: { revalidate },
+      }),
+      proxyFetch(`/store/collections?includeChildren=true&take=1000`, {
+        next: { revalidate },
+      }),
+    ]);
 
-    if (!response.ok) {
-      console.error(`[ProductDetailPage] Backend error ${response.status} for slug: ${slug}`);
+    if (!productResponse.ok) {
+      console.error(`[ProductDetailPage] Backend error ${productResponse.status} for slug: ${slug}`);
       return (
         <div className="container mx-auto px-4 py-10">
           <div className="text-center">
@@ -73,20 +157,19 @@ export default async function ProductDetailPage({ params }: Props) {
             <p className="text-gray-600 mb-4">
               The product you're looking for doesn't exist or has been removed.
             </p>
-            <a
+            <Link
               href="/"
               className="inline-block bg-primary-900 text-white px-6 py-2 rounded-md hover:bg-[#e04500] transition"
             >
               Back to Home
-            </a>
+            </Link>
           </div>
         </div>
       );
     }
 
-    const productObj = await response.json();
+    const productObj = await productResponse.json();
 
-    // 2. Map backend data to frontend Product interface (Logic mirrored from API route)
     const mappedImages = productObj.assets?.map((a: any) => ({
       id: a.asset.id,
       src: a.asset.source || a.asset.preview || '',
@@ -145,19 +228,62 @@ export default async function ProductDetailPage({ params }: Props) {
       updatedAt: productObj.updatedAt,
     };
 
-    // 3. Fetch categories (optional) via internal collections API
-    // Note: This could also be direct, but keeping it simple for now
     let allCategories: Category[] = [];
+    if (categoriesRes.ok) {
+      const data = await categoriesRes.json();
+      allCategories = Array.isArray(data) ? data : (data.collections || []);
+    } else {
+      console.error('Error fetching categories:', categoriesRes.status);
+    }
+
+    const flattenedCategories = flattenCategories(allCategories);
+    const l1Category = findL1Category(product.categories || [], flattenedCategories);
+    const categorySlugs = [
+      ...(l1Category?.slug ? [String(l1Category.slug)] : []),
+      ...(product.categories || []).map((category) => String(category.slug)),
+    ].filter((value, index, array) => array.indexOf(value) === index);
+
+    const similarResponses = await Promise.all(
+      categorySlugs.map((categorySlug) =>
+        proxyFetch(`/store/products?collection=${encodeURIComponent(categorySlug)}&limit=10`, {
+          next: { revalidate },
+        }).catch(() => null),
+      ),
+    );
+
+    const similarItemsMap = new Map<string, Product>();
+    for (const similarResponse of similarResponses) {
+      if (!similarResponse?.ok) continue;
+      const data = await similarResponse.json();
+      const mappedProducts = mapStoreProducts(data.products || []);
+
+      for (const similarProduct of mappedProducts) {
+        if (similarProduct.id === product.id) continue;
+        if (!similarItemsMap.has(similarProduct.id)) {
+          similarItemsMap.set(similarProduct.id, similarProduct);
+        }
+        if (similarItemsMap.size >= 5) break;
+      }
+
+      if (similarItemsMap.size >= 5) break;
+    }
+
+    let alsoViewed: Product[] = [];
     try {
-      const categoriesRes = await proxyFetch(`/store/collections?includeChildren=true&take=1000`, {
-        cache: 'no-store'
+      const alsoViewedResponse = await proxyFetch('/store/products?limit=20&offset=0', {
+        next: { revalidate },
       });
-      if (categoriesRes.ok) {
-        const data = await categoriesRes.json();
-        allCategories = Array.isArray(data) ? data : (data.collections || []);
+
+      if (alsoViewedResponse.ok) {
+        const data = await alsoViewedResponse.json();
+        const mappedProducts = mapStoreProducts(data.products || []).filter(
+          (item) => item.id !== product.id && !similarItemsMap.has(item.id),
+        );
+        const shuffledProducts = [...mappedProducts].sort(() => 0.5 - Math.random());
+        alsoViewed = shuffledProducts.slice(0, 5);
       }
     } catch (error) {
-      console.error('Error fetching categories:', error);
+      console.error('Error fetching also viewed items:', error);
     }
 
     return (
@@ -165,6 +291,8 @@ export default async function ProductDetailPage({ params }: Props) {
         <ProductPage
           product={product}
           allCategories={allCategories}
+          similarItems={Array.from(similarItemsMap.values()).slice(0, 5)}
+          alsoViewed={alsoViewed}
         />
       </div>
     );
@@ -177,12 +305,12 @@ export default async function ProductDetailPage({ params }: Props) {
           <p className="text-gray-600 mb-4">
             Something went wrong while loading this product. Please try again later.
           </p>
-          <a
+          <Link
             href="/"
             className="inline-block bg-primary-900 text-white px-6 py-2 rounded-md hover:bg-[#e04500] transition"
           >
             Back to Home
-          </a>
+          </Link>
         </div>
       </div>
     );

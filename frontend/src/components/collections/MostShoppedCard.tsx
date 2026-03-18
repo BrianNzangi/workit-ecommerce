@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { MoveRight } from 'lucide-react';
 import he from 'he';
 import Image from 'next/image';
@@ -13,10 +14,20 @@ interface MostShoppedCardProps {
 }
 
 export default function MostShoppedCard({ name, slug, image }: MostShoppedCardProps) {
+    const router = useRouter();
+    const collectionHref = `/collections/${slug}`;
+
+    const prefetchCollection = () => {
+        router.prefetch(collectionHref);
+    };
+
     return (
         <Link
-            href={`/collections/${slug}`}
+            href={collectionHref}
             className="block group mx-auto w-[120px]"
+            onMouseEnter={prefetchCollection}
+            onFocus={prefetchCollection}
+            onTouchStart={prefetchCollection}
         >
             <div className="flex flex-col items-center">
                 <div className="relative z-10 space-y-2 w-full text-center">

@@ -9,7 +9,7 @@ export default function Footer() {
         <div>
           <h3 className="text-white font-semibold mb-4">ABOUT</h3>
           <ul className="space-y-2 text-sm">
-            <li><a href="/about-workit" className="hover:text-white">About Workit</a></li>
+            <li><Link href="/about-workit" className="hover:text-white">About Workit</Link></li>
             <li><Link href="/blog" className="hover:text-white">Our Blog</Link></li>
             <li><Link href="/reviews" className="hover:text-white">Customer Reviews</Link></li>
             <li><Link href="/careers" className="hover:text-white">Careers</Link></li>
@@ -20,10 +20,10 @@ export default function Footer() {
         <div>
           <h3 className="text-white font-semibold mb-4">TERMS</h3>
           <ul className="space-y-2 text-sm">
-            <li><a href="/returns-refunds-policy" className="hover:text-white">Returns and Refunds Policy</a></li>
-            <li><a href="/shipping-policy" className="hover:text-white">Shipping Policy</a></li>
-            <li><a href="/terms-of-service" className="hover:text-white">Terms of Service</a></li>
-            <li><a href="/privacy-policy" className="hover:text-white">Privacy Policy</a></li>
+            <li><Link href="/returns-refunds-policy" className="hover:text-white">Returns and Refunds Policy</Link></li>
+            <li><Link href="/shipping-policy" className="hover:text-white">Shipping Policy</Link></li>
+            <li><Link href="/terms-of-service" className="hover:text-white">Terms of Service</Link></li>
+            <li><Link href="/privacy-policy" className="hover:text-white">Privacy Policy</Link></li>
           </ul>
         </div>
 
@@ -32,8 +32,8 @@ export default function Footer() {
           <h3 className="text-white font-semibold mb-4">HELP</h3>
           <ul className="space-y-2 text-sm">
             <li><Link href="/dashboard" className="hover:text-white">Track My Order</Link></li>
-            <li><a href="/help-center" className="hover:text-white">Help Center</a></li>
-            <li><a href="/advertising-policy" className="hover:text-white">Advertising Policy</a></li>
+            <li><Link href="/help-center" className="hover:text-white">Help Center</Link></li>
+            <li><Link href="/advertising-policy" className="hover:text-white">Advertising Policy</Link></li>
             <li>
               <Link href="/help-center" className="mt-2 w-36 bg-white text-black text-sm font-medium py-2 px-2 rounded-xs hover:bg-gray-200 transition inline-block text-center">
                 Contact Us

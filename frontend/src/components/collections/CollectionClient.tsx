@@ -12,6 +12,7 @@ import ProductSorter from './ProductSorter';
 import Head from 'next/head';
 import { Category, Brand } from '@/types/collection';
 import { Product } from '@/types/product';
+import type { StoreBanner } from '@/lib/homepage-data';
 
 interface CollectionClientProps {
   fullSlug: string;
@@ -19,6 +20,7 @@ interface CollectionClientProps {
   categories: Category[];
   products: Product[];
   brands: Brand[];
+  collectionBanner?: StoreBanner | null;
 }
 
 export default function CollectionClient({
@@ -27,6 +29,7 @@ export default function CollectionClient({
   categories,
   products,
   brands,
+  collectionBanner,
 }: CollectionClientProps) {
   const perPage = 20;
   const currentCollectionSlug = category?.slug || fullSlug.split('/').pop() || fullSlug;
@@ -102,6 +105,7 @@ export default function CollectionClient({
         <CollectionHeaderBanner
           title={category?.name || fullSlug}
           collectionSlug={currentCollectionSlug}
+          banner={collectionBanner}
         />
 
         {/* Unified Filter & Sort Toolbar */}
