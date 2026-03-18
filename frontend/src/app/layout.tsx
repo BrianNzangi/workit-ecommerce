@@ -6,18 +6,10 @@ import QueryProvider from "../components/providers/QueryProvider";
 import Footer from "../components/layout/Footer";
 import "./globals.css";
 import Script from "next/script";
-import { Barlow } from 'next/font/google';
 
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
 const AuthModalWrapper = dynamic(() => import("../components/auth/AuthModalWrapper"));
-
-const barlow = Barlow({
-  subsets: ['latin'],
-  weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
-  variable: '--font-barlow',
-  display: 'swap',
-});
 
 import { SITE_CONFIG, DEFAULT_OG, DEFAULT_TWITTER } from "@/lib/meta";
 
@@ -62,6 +54,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&display=swap"
+          rel="stylesheet"
+        />
         {/* JSON-LD SEO */}
         <Script
           id="workit-jsonld"
@@ -70,7 +68,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className={`${barlow.variable} font-barlow flex flex-col min-h-screen`}>
+      <body className="font-sans flex flex-col min-h-screen">
         <QueryProvider>
           <CartInitializer />
           <Suspense fallback={<div className="h-20" />}>
@@ -95,7 +93,7 @@ export default function RootLayout({
               boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)', // shadow-lg
               padding: '16px',
               fontSize: '14px',
-              fontFamily: 'Barlow, sans-serif',
+              fontFamily: '"IBM Plex Sans", sans-serif',
             },
             // Success toast
             success: {

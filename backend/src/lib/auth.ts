@@ -5,6 +5,7 @@ dotenv.config();
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db, schema } from "./db.js";
+import { getBetterAuthSecret } from "./auth-secret.js";
 
 const splitOrigins = (value?: string): string[] =>
     (value ?? "")
@@ -32,7 +33,7 @@ const cookieDomain = process.env.BETTER_AUTH_COOKIE_DOMAIN?.trim();
 const authCookiePrefix = process.env.BETTER_AUTH_COOKIE_PREFIX?.trim() || "admin-auth";
 
 export const auth = betterAuth({
-    secret: process.env.BETTER_AUTH_SECRET!,
+    secret: getBetterAuthSecret(),
     basePath: "/auth",
     ...(authBaseUrl ? { baseURL: authBaseUrl } : {}),
 

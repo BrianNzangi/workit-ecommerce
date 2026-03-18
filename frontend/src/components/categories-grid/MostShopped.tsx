@@ -1,9 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { fetchCollectionsClient } from '@/lib/collections-client';
-
-// Import Swiper components and styles
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation, Pagination } from 'swiper/modules';
 import 'swiper/css';
@@ -11,67 +8,14 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
 import MostShoppedCard from '../collections/MostShoppedCard';
+import type { MostShoppedCollection } from '@/lib/homepage-data';
 
-interface CollectionItem {
-    id: string;
-    name: string;
-    slug: string;
-    mostShoppedSortOrder: number;
-    image?: string;
+interface MostShoppedProps {
+    collections: MostShoppedCollection[];
 }
 
-export default function MostShopped() {
-    const [collections, setCollections] = useState<CollectionItem[]>([]);
-    const [loading, setLoading] = useState(true);
+export default function MostShopped({ collections }: MostShoppedProps) {
     const [isMobile, setIsMobile] = useState(false);
-
-    useEffect(() => {
-        const fetchCollections = async () => {
-            try {
-                const data = await fetchCollectionsClient({
-                    parentId: 'null', // Start with root collections
-                    includeChildren: true,
-                    take: 100,
-                    skip: 0,
-                });
-
-                const allFeaturedCollections: CollectionItem[] = [];
-                const addedIds = new Set<string>();
-
-                const findFeaturedRecursively = (items: any[]) => {
-                    items.forEach((item: any) => {
-                        if (item.showInMostShopped === true && !addedIds.has(item.id)) {
-                            allFeaturedCollections.push({
-                                id: item.id,
-                                name: item.name,
-                                slug: item.slug,
-                                mostShoppedSortOrder: item.mostShoppedSortOrder || 0,
-                                image: item.asset?.preview || item.asset?.source,
-                            });
-                            addedIds.add(item.id);
-                        }
-
-                        if (item.children && item.children.length > 0) {
-                            findFeaturedRecursively(item.children);
-                        }
-                    });
-                };
-
-                findFeaturedRecursively(data);
-
-                // Sort by mostShoppedSortOrder
-                allFeaturedCollections.sort((a, b) => a.mostShoppedSortOrder - b.mostShoppedSortOrder);
-
-                setCollections(allFeaturedCollections);
-            } catch (err) {
-                console.error('Error fetching collections:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchCollections();
-    }, []);
 
     useEffect(() => {
         if (typeof window === 'undefined') return;
@@ -84,27 +28,13 @@ export default function MostShopped() {
         return () => mediaQuery.removeEventListener('change', updateMobileState);
     }, []);
 
-    const renderSkeleton = () => (
-        <div className="w-30 flex flex-col items-center space-y-2">
-            <div className="relative w-30 h-30 bg-gray-100 animate-pulse rounded-lg" />
-            <div className="w-16 h-3 bg-gray-100 animate-pulse rounded mx-auto" />
-        </div>
-    );
-
-    const renderCollection = (collection: CollectionItem) => (
-        <SwiperSlide key={collection.id} className="h-auto!">
-            <MostShoppedCard
-                name={collection.name}
-                slug={collection.slug}
-                image={collection.image}
-            />
-        </SwiperSlide>
-    );
+    if (collections.length === 0) {
+        return null;
+    }
 
     return (
         <section className="bg-white">
             <div className="container mx-auto pt-2 px-4 md:px-6 lg:px-8">
-                {/* Section Header */}
                 <div className="flex items-end justify-between mb-5 md:mb-6">
                     <div className="space-y-2">
                         <h2 className="text-xl md:text-2xl font-bold text-secondary-900 tracking-tight">
@@ -113,40 +43,37 @@ export default function MostShopped() {
                     </div>
                 </div>
 
-                {/* Collections Carousel */}
                 <div className="relative">
-                    {loading ? (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                            {Array.from({ length: 11 }, (_, i) => (
-                                <div key={i}>
-                                    {renderSkeleton()}
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <Swiper
-                            modules={[Autoplay, Navigation, Pagination]}
-                            spaceBetween={24}
-                            slidesPerView="auto"
-                            navigation={!isMobile}
-                            pagination={isMobile ? { clickable: true, dynamicBullets: true } : false}
-                            autoplay={
-                                isMobile && collections.length > 1
-                                    ? {
-                                        delay: 2400,
-                                        disableOnInteraction: false,
-                                        pauseOnMouseEnter: false,
-                                    }
-                                    : false
-                            }
-                            loop={isMobile && collections.length > 2}
-                            speed={650}
-                            allowTouchMove={isMobile}
-                            className="most-shopped-swiper pb-8! md:pb-10!"
-                        >
-                            {collections.map(renderCollection)}
-                        </Swiper>
-                    )}
+                    <Swiper
+                        modules={[Autoplay, Navigation, Pagination]}
+                        spaceBetween={24}
+                        slidesPerView="auto"
+                        navigation={!isMobile}
+                        pagination={isMobile ? { clickable: true, dynamicBullets: true } : false}
+                        autoplay={
+                            isMobile && collections.length > 1
+                                ? {
+                                    delay: 2400,
+                                    disableOnInteraction: false,
+                                    pauseOnMouseEnter: false,
+                                }
+                                : false
+                        }
+                        loop={isMobile && collections.length > 2}
+                        speed={650}
+                        allowTouchMove={isMobile}
+                        className="most-shopped-swiper pb-8! md:pb-10!"
+                    >
+                        {collections.map((collection) => (
+                            <SwiperSlide key={collection.id} className="h-auto!">
+                                <MostShoppedCard
+                                    name={collection.name}
+                                    slug={collection.slug}
+                                    image={collection.image}
+                                />
+                            </SwiperSlide>
+                        ))}
+                    </Swiper>
                 </div>
             </div>
 

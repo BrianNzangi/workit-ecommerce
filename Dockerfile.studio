@@ -8,6 +8,7 @@ WORKDIR /app
 # Copy package.json and workspace config
 COPY package.json ./
 COPY pnpm-workspace.yaml ./
+COPY .npmrc ./
 
 # Copy lock file if it exists
 COPY pnpm-lock.yaml* ./
@@ -17,6 +18,7 @@ COPY packages ./packages
 
 # Install dependencies
 RUN pnpm install
+RUN pnpm --filter @workit/db build
 
 # Set working directory to db package
 WORKDIR /app/packages/db

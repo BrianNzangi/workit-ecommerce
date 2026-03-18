@@ -1,5 +1,3 @@
-'use client'
-
 import Link from 'next/link'
 import { FaFacebookF, FaInstagram, FaTiktok } from 'react-icons/fa'
 

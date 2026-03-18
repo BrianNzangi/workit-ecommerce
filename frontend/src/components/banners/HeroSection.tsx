@@ -1,93 +1,37 @@
-// src/components/banners/HeroSection.tsx
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { getImageUrl } from '@/lib/image-utils';
+import type { StoreBanner } from '@/lib/homepage-data';
 
-interface Banner {
-    id: string;
-    title: string;
-    slug: string;
-    position: string;
-    enabled: boolean;
-    sortOrder: number;
-    desktopImage?: {
-        id: string;
-        source: string;
-        preview: string;
-    };
-    mobileImage?: {
-        id: string;
-        source: string;
-        preview: string;
-    };
-    collection: {
-        id: string;
-        name: string;
-        slug: string;
-    };
+interface HeroSectionProps {
+    banners: StoreBanner[];
 }
 
-export default function HeroSection() {
-    const [banners, setBanners] = useState<Banner[]>([]);
-    const [loading, setLoading] = useState(true);
+export default function HeroSection({ banners }: HeroSectionProps) {
     const [currentSlide, setCurrentSlide] = useState(0);
     const [isPlaying, setIsPlaying] = useState(true);
     const [touchStart, setTouchStart] = useState<number | null>(null);
     const [touchEnd, setTouchEnd] = useState<number | null>(null);
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Minimum swipe distance
     const minSwipeDistance = 50;
 
-    // ---------------- Fetch banners from API ----------------
     useEffect(() => {
-        async function fetchBanners() {
-            try {
-                const response = await fetch('/api/store/banners?position=HERO&enabled=true');
-
-                if (!response.ok) {
-                    console.error('Failed to fetch hero banners:', response.statusText);
-                    return;
-                }
-
-                const data = await response.json();
-
-                if (data && Array.isArray(data)) {
-                    // Filter enabled banners with HERO position and sort by sortOrder
-                    const enabledBanners = data
-                        .filter((banner: Banner) => banner.position === 'HERO' && banner.enabled)
-                        .sort((a: Banner, b: Banner) => a.sortOrder - b.sortOrder);
-
-                    setBanners(enabledBanners);
-                } else {
-                    console.warn('⚠️ No banner data received or data is not an array:', data);
-                }
-            } catch (error) {
-                console.error('Error fetching hero banners:', error);
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        fetchBanners();
-    }, []);
-
-    // ---------------- Auto slide ----------------
-    useEffect(() => {
-        if (isPlaying && banners.length > 0) {
-            intervalRef.current = setInterval(() => {
-                setCurrentSlide((prev) => (prev + 1) % banners.length);
-            }, 8000);
-        } else {
+        if (!isPlaying || banners.length <= 1) {
             if (intervalRef.current) {
                 clearInterval(intervalRef.current);
             }
+            return;
         }
+
+        intervalRef.current = setInterval(() => {
+            setCurrentSlide((prev) => (prev + 1) % banners.length);
+        }, 8000);
 
         return () => {
             if (intervalRef.current) {
@@ -96,7 +40,27 @@ export default function HeroSection() {
         };
     }, [isPlaying, banners.length]);
 
-    // ---------------- Navigation functions ----------------
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (banners.length <= 1) {
+                return;
+            }
+
+            if (e.key === 'ArrowLeft') {
+                setCurrentSlide((prev) => (prev - 1 + banners.length) % banners.length);
+            } else if (e.key === 'ArrowRight') {
+                setCurrentSlide((prev) => (prev + 1) % banners.length);
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [banners.length]);
+
+    if (banners.length === 0) {
+        return null;
+    }
+
     const nextSlide = () => {
         setCurrentSlide((prev) => (prev + 1) % banners.length);
     };
@@ -105,7 +69,6 @@ export default function HeroSection() {
         setCurrentSlide((prev) => (prev - 1 + banners.length) % banners.length);
     };
 
-    // ---------------- Touch handlers ----------------
     const onTouchStart = (e: React.TouchEvent) => {
         setTouchEnd(null);
         setTouchStart(e.targetTouches[0].clientX);
@@ -129,36 +92,16 @@ export default function HeroSection() {
         }
     };
 
-    // ---------------- Keyboard navigation ----------------
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'ArrowLeft') {
-                prevSlide();
-            } else if (e.key === 'ArrowRight') {
-                nextSlide();
-            }
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [banners.length]);
-
-    // Don't render if loading or no banners
-    if (loading) {
-        return (
-            <section className="container mx-auto px-3 sm:px-6 md:px-2 lg:px-8 xl:px-8 2xl:px-8 pt-4 mb-4 md:mb-5">
-                <div className="relative w-full overflow-hidden aspect-16/11 sm:aspect-20/11 md:aspect-[3/1.2] lg:aspect-[4/1.2] xl:aspect-[5/1.2] bg-gray-200 animate-pulse" />
-            </section>
-        );
-    }
-
-    if (banners.length === 0) {
-        return null;
-    }
-
     const currentBanner = banners[currentSlide];
-    const desktopImage = getImageUrl(currentBanner.desktopImage?.preview || currentBanner.desktopImage?.source);
-    const mobileImage = getImageUrl(currentBanner.mobileImage?.preview || currentBanner.mobileImage?.source || currentBanner.desktopImage?.preview || currentBanner.desktopImage?.source);
+    const desktopImage = getImageUrl(
+        currentBanner.desktopImage?.source || currentBanner.desktopImage?.preview
+    );
+    const mobileImage = getImageUrl(
+        currentBanner.mobileImage?.source ||
+        currentBanner.mobileImage?.preview ||
+        currentBanner.desktopImage?.source ||
+        currentBanner.desktopImage?.preview
+    );
     const bannerLink = currentBanner.collection?.slug
         ? `/collections/${currentBanner.collection.slug}`
         : '#';
@@ -166,7 +109,7 @@ export default function HeroSection() {
     return (
         <section className="container mx-auto px-3 sm:px-6 md:px-2 lg:px-8 xl:px-8 2xl:px-8 pt-4 mb-4 md:mb-5">
             <div
-                className="relative w-full rounded-xl overflow-hidden group aspect-16/11 sm:aspect-20/11 md:aspect-[3/1.2] lg:aspect-[4/1.2] xl:aspect-[5/1.2] bg-black"
+                className="relative w-full rounded-xl overflow-hidden group aspect-[16/13.2] sm:aspect-[20/13.2] md:aspect-[3/1.44] lg:aspect-[4/1.44] xl:aspect-[5/1.44] bg-black"
                 onTouchStart={onTouchStart}
                 onTouchMove={onTouchMove}
                 onTouchEnd={onTouchEnd}
@@ -184,27 +127,26 @@ export default function HeroSection() {
                         exit={{ x: '-5%', opacity: 0 }}
                         transition={{
                             duration: 0.8,
-                            ease: [0.4, 0, 0.2, 1]
+                            ease: [0.4, 0, 0.2, 1],
                         }}
                     >
-                        {/* Desktop Image */}
                         <Image
                             src={desktopImage}
                             alt={currentBanner.title}
                             fill
                             className="object-cover scale-105 hidden sm:block"
                             priority={currentSlide === 0}
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
+                            quality={95}
+                            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 96vw, 1400px"
                         />
-                        {/* Mobile Image */}
                         <Image
                             src={mobileImage}
                             alt={currentBanner.title}
                             fill
                             className="object-cover scale-105 sm:hidden"
                             priority={currentSlide === 0}
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
-                            unoptimized
+                            quality={95}
+                            sizes="100vw"
                         />
                         <Link
                             href={bannerLink}
@@ -214,25 +156,30 @@ export default function HeroSection() {
                     </motion.div>
                 </AnimatePresence>
 
-                {/* Preload next images to prevent flashing */}
                 {banners.length > 1 && (
                     <>
                         <link
                             rel="preload"
                             as="image"
-                            href={getImageUrl(banners[(currentSlide + 1) % banners.length].desktopImage?.preview || banners[(currentSlide + 1) % banners.length].desktopImage?.source)}
+                            href={getImageUrl(
+                                banners[(currentSlide + 1) % banners.length].desktopImage?.source ||
+                                banners[(currentSlide + 1) % banners.length].desktopImage?.preview
+                            )}
                         />
-                        {(banners[(currentSlide + 1) % banners.length].mobileImage?.preview || banners[(currentSlide + 1) % banners.length].mobileImage?.source) && (
-                            <link
-                                rel="preload"
-                                as="image"
-                                href={getImageUrl(banners[(currentSlide + 1) % banners.length].mobileImage?.preview || banners[(currentSlide + 1) % banners.length].mobileImage?.source)}
-                            />
-                        )}
+                        {(banners[(currentSlide + 1) % banners.length].mobileImage?.preview ||
+                            banners[(currentSlide + 1) % banners.length].mobileImage?.source) && (
+                                <link
+                                    rel="preload"
+                                    as="image"
+                                    href={getImageUrl(
+                                        banners[(currentSlide + 1) % banners.length].mobileImage?.source ||
+                                        banners[(currentSlide + 1) % banners.length].mobileImage?.preview
+                                    )}
+                                />
+                            )}
                     </>
                 )}
 
-                {/* Navigation arrows - Bottom right, always visible */}
                 {banners.length > 1 && (
                     <div className="absolute bottom-4 right-4 flex gap-2 z-20">
                         <button
@@ -252,7 +199,6 @@ export default function HeroSection() {
                     </div>
                 )}
 
-                {/* Indicator dots */}
                 {banners.length > 1 && (
                     <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20">
                         <div className="bg-white/90 backdrop-blur-sm rounded-full px-3 py-2 shadow-xs">

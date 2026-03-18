@@ -56,8 +56,23 @@ export const buildApp = async () => {
         console.log(`[DEBUG] Incoming Request: ${request.method} ${request.url}`);
     });
 
-    // Ensure storage bucket exists once on startup (idempotent).
-    await storageService.ensureBucketExists();
+    // In local development we allow the API to boot without MinIO so non-upload
+    // routes remain usable. Production still fails fast if storage is unavailable.
+    const requireStorageOnStartup =
+        process.env.STORAGE_REQUIRED === "true" || process.env.NODE_ENV === "production";
+
+    try {
+        await storageService.ensureBucketExists();
+    } catch (err) {
+        if (requireStorageOnStartup) {
+            throw err;
+        }
+
+        app.log.warn(
+            { err },
+            "Storage unavailable during startup; continuing without upload support"
+        );
+    }
 
     // Register database and other global plugins
     await app.register(autoload, {

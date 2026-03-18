@@ -1,5 +1,3 @@
-'use client';
-
 import Image from 'next/image';
 
 export default function AboutWorkit() {
@@ -8,7 +6,14 @@ export default function AboutWorkit() {
       {/* START ADVERTISER: Awin (USD) from awin.com */}
       <div className="flex justify-center gap-6 mb-12">
         <a rel="sponsored" href="https://www.awin1.com/cread.php?s=531761&v=4032&q=173734&r=2523901">
-          <Image src="https://www.awin1.com/cshow.php?s=531761&v=4032&q=173734&r=2523901" width={720} height={90} alt="Awin advertiser" style={{ border: '0' }} unoptimized />
+          <Image
+            src="https://www.awin1.com/cshow.php?s=531761&v=4032&q=173734&r=2523901"
+            width={720}
+            height={90}
+            alt="Awin advertiser"
+            className="border-0"
+            unoptimized
+          />
         </a>
       </div>
       {/* END ADVERTISER: Awin (USD) from awin.com */}

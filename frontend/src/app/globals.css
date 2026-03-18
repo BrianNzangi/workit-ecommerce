@@ -27,117 +27,153 @@
   --color-accent-900: #1C9737;
   --color-accent-800: #E8EAED;
 
-  --font-barlow: "Barlow", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: var(--font-barlow);
+  --font-ibm-plex-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-ibm-plex-sans);
 }
 
-/* Barlow Font Utilities */
-.barlow-thin {
-  font-family: "Barlow", sans-serif;
+/* IBM Plex Sans Utilities */
+.ibm-plex-sans-thin {
+  font-family: "IBM Plex Sans", sans-serif;
+  font-optical-sizing: auto;
   font-weight: 100;
   font-style: normal;
+  font-variation-settings: "wdth" 100;
 }
 
-.barlow-extralight {
-  font-family: "Barlow", sans-serif;
+.ibm-plex-sans-extralight {
+  font-family: "IBM Plex Sans", sans-serif;
+  font-optical-sizing: auto;
   font-weight: 200;
   font-style: normal;
+  font-variation-settings: "wdth" 100;
 }
 
-.barlow-light {
-  font-family: "Barlow", sans-serif;
+.ibm-plex-sans-light {
+  font-family: "IBM Plex Sans", sans-serif;
+  font-optical-sizing: auto;
   font-weight: 300;
   font-style: normal;
+  font-variation-settings: "wdth" 100;
 }
 
-.barlow-regular {
-  font-family: "Barlow", sans-serif;
+.ibm-plex-sans-regular {
+  font-family: "IBM Plex Sans", sans-serif;
+  font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;
+  font-variation-settings: "wdth" 100;
 }
 
-.barlow-medium {
-  font-family: "Barlow", sans-serif;
+.ibm-plex-sans-medium {
+  font-family: "IBM Plex Sans", sans-serif;
+  font-optical-sizing: auto;
   font-weight: 500;
   font-style: normal;
+  font-variation-settings: "wdth" 100;
 }
 
-.barlow-semibold {
-  font-family: "Barlow", sans-serif;
+.ibm-plex-sans-semibold {
+  font-family: "IBM Plex Sans", sans-serif;
+  font-optical-sizing: auto;
   font-weight: 600;
   font-style: normal;
+  font-variation-settings: "wdth" 100;
 }
 
-.barlow-bold {
-  font-family: "Barlow", sans-serif;
+.ibm-plex-sans-bold {
+  font-family: "IBM Plex Sans", sans-serif;
+  font-optical-sizing: auto;
   font-weight: 700;
   font-style: normal;
+  font-variation-settings: "wdth" 100;
 }
 
-.barlow-extrabold {
-  font-family: "Barlow", sans-serif;
-  font-weight: 800;
-  font-style: normal;
-}
-
-.barlow-black {
-  font-family: "Barlow", sans-serif;
-  font-weight: 900;
-  font-style: normal;
-}
-
-.barlow-thin-italic {
-  font-family: "Barlow", sans-serif;
+.ibm-plex-sans-thin-italic {
+  font-family: "IBM Plex Sans", sans-serif;
+  font-optical-sizing: auto;
   font-weight: 100;
   font-style: italic;
+  font-variation-settings: "wdth" 100;
 }
 
-.barlow-extralight-italic {
-  font-family: "Barlow", sans-serif;
+.ibm-plex-sans-extralight-italic {
+  font-family: "IBM Plex Sans", sans-serif;
+  font-optical-sizing: auto;
   font-weight: 200;
   font-style: italic;
+  font-variation-settings: "wdth" 100;
 }
 
-.barlow-light-italic {
-  font-family: "Barlow", sans-serif;
+.ibm-plex-sans-light-italic {
+  font-family: "IBM Plex Sans", sans-serif;
+  font-optical-sizing: auto;
   font-weight: 300;
   font-style: italic;
+  font-variation-settings: "wdth" 100;
 }
 
-.barlow-regular-italic {
-  font-family: "Barlow", sans-serif;
+.ibm-plex-sans-regular-italic {
+  font-family: "IBM Plex Sans", sans-serif;
+  font-optical-sizing: auto;
   font-weight: 400;
   font-style: italic;
+  font-variation-settings: "wdth" 100;
 }
 
-.barlow-medium-italic {
-  font-family: "Barlow", sans-serif;
+.ibm-plex-sans-medium-italic {
+  font-family: "IBM Plex Sans", sans-serif;
+  font-optical-sizing: auto;
   font-weight: 500;
   font-style: italic;
+  font-variation-settings: "wdth" 100;
 }
 
-.barlow-semibold-italic {
-  font-family: "Barlow", sans-serif;
+.ibm-plex-sans-semibold-italic {
+  font-family: "IBM Plex Sans", sans-serif;
+  font-optical-sizing: auto;
   font-weight: 600;
   font-style: italic;
+  font-variation-settings: "wdth" 100;
 }
 
-.barlow-bold-italic {
-  font-family: "Barlow", sans-serif;
+.ibm-plex-sans-bold-italic {
+  font-family: "IBM Plex Sans", sans-serif;
+  font-optical-sizing: auto;
   font-weight: 700;
   font-style: italic;
+  font-variation-settings: "wdth" 100;
 }
 
-.barlow-extrabold-italic {
-  font-family: "Barlow", sans-serif;
+.ibm-plex-sans-extrabold {
+  font-family: "IBM Plex Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 800;
+  font-style: normal;
+  font-variation-settings: "wdth" 100;
+}
+
+.ibm-plex-sans-black {
+  font-family: "IBM Plex Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 900;
+  font-style: normal;
+  font-variation-settings: "wdth" 100;
+}
+
+.ibm-plex-sans-extrabold-italic {
+  font-family: "IBM Plex Sans", sans-serif;
+  font-optical-sizing: auto;
   font-weight: 800;
   font-style: italic;
+  font-variation-settings: "wdth" 100;
 }
 
-.barlow-black-italic {
-  font-family: "Barlow", sans-serif;
+.ibm-plex-sans-black-italic {
+  font-family: "IBM Plex Sans", sans-serif;
+  font-optical-sizing: auto;
   font-weight: 900;
   font-style: italic;
+  font-variation-settings: "wdth" 100;
 }
 
 :root {

@@ -5,7 +5,9 @@
     "description": "Workit Backend migrated to Fastify",
     "main": "dist/index.js",
     "scripts": {
+        "predev": "pnpm --dir .. --filter @workit/db build && pnpm --dir .. --filter @workit/validation build",
         "dev": "tsx watch src/server.ts",
+        "prebuild": "pnpm --dir .. --filter @workit/db build && pnpm --dir .. --filter @workit/validation build",
         "build": "tsc",
         "start": "node dist/server.js",
         "db:push": "drizzle-kit push --dialect=postgresql --url=$DATABASE_URL --schema=../packages/db/dist/schema/*.js"
