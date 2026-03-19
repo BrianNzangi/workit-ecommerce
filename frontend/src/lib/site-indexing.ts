@@ -39,8 +39,23 @@ function trimTrailingSlash(value: string) {
   return value.replace(/\/+$/, "");
 }
 
+function isLocalhostUrl(value: string) {
+  return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i.test(value);
+}
+
 export function getCanonicalSiteUrl() {
-  return trimTrailingSlash(process.env.INDEXNOW_SITE_URL?.trim() || SITE_CONFIG.url);
+  const explicitUrl =
+    process.env.INDEXNOW_SITE_URL?.trim() ||
+    process.env.NEXT_PUBLIC_FRONTEND_BASE_URL?.trim() ||
+    "";
+
+  if (process.env.NODE_ENV === "production") {
+    if (!explicitUrl || isLocalhostUrl(explicitUrl)) {
+      return "https://workit.co.ke";
+    }
+  }
+
+  return trimTrailingSlash(explicitUrl || SITE_CONFIG.url);
 }
 
 export function getIndexNowKeyLocation() {
