@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { getImageUrl } from '@/lib/image-utils';
-import { getBannerHref, type StoreBanner } from '@/lib/homepage-data';
+import { getBannerHref, type StoreBanner } from '@/lib/banner-target';
 
 interface HeroSectionProps {
     banners: StoreBanner[];

@@ -28,7 +28,7 @@ export function AssetCard({ asset, selected, onToggleSelect, onDelete }: AssetCa
                         className="h-full w-full object-cover"
                     />
                 ) : (
-                    <ImageIcon className="h-12 w-12 text-gray-400" />
+                    <ImageIcon className="h-12 w-12 text-gray-300" />
                 )}
             </div>
 

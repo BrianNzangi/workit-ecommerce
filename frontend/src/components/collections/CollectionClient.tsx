@@ -12,7 +12,7 @@ import ProductSorter from './ProductSorter';
 import Head from 'next/head';
 import { Category, Brand } from '@/types/collection';
 import { Product } from '@/types/product';
-import type { StoreBanner } from '@/lib/homepage-data';
+import type { StoreBanner } from '@/lib/banner-target';
 
 interface CollectionClientProps {
   fullSlug: string;

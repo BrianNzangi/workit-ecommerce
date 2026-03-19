@@ -8,7 +8,8 @@ import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, useAnimation } from 'framer-motion';
 import ProductCard from '../product/ProductCard';
 import HorizontalBanner from '../banners/HorizontalBanner';
-import type { HomepageCollectionData, StoreBanner } from '@/lib/homepage-data';
+import type { HomepageCollectionData } from '@/lib/homepage-data';
+import type { StoreBanner } from '@/lib/banner-target';
 
 interface CollectionCarouselProps {
     collection: HomepageCollectionData;
