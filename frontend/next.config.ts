@@ -21,6 +21,7 @@ const mediaRemotePattern = (() => {
 
 const nextConfig: NextConfig = {
   images: {
+    unoptimized: Boolean(mediaUrl),
     remotePatterns: [
       {
         protocol: 'http',
