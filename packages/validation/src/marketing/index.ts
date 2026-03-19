@@ -10,6 +10,7 @@ export const bannerSchema = z.object({
     desktopImageId: z.string().uuid().nullable().optional(),
     mobileImageId: z.string().uuid().nullable().optional(),
     collectionId: z.string().uuid().nullable().optional(),
+    productId: z.string().uuid().nullable().optional(),
 });
 
 export const updateBannerSchema = bannerSchema.partial();

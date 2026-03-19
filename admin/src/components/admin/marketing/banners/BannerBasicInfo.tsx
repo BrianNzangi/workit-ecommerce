@@ -1,31 +1,41 @@
 'use client';
 
-import { Link2 } from 'lucide-react';
+import { useMemo } from 'react';
+import { Check, ChevronDown, Link2, Package } from 'lucide-react';
 import { Collection } from '@/lib/services';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { buildCollectionOptions, getRootCollections } from './banner.utils';
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSub,
+    DropdownMenuSubContent,
+    DropdownMenuSubTrigger,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { cn } from '@/lib/shared/utils/cn';
+import { BannerLinkedProduct } from './types';
+import { BannerProductPicker } from './BannerProductPicker';
+import { findCollectionPath, getRootCollections } from './banner.utils';
 
 interface BannerFormData {
     name: string;
     description: string;
     slug: string;
     collectionId: string;
+    productId: string;
 }
 
 interface BannerBasicInfoProps {
     formData: BannerFormData;
     onChange: (data: Partial<BannerFormData>) => void;
     collections: Collection[];
+    selectedProduct: BannerLinkedProduct | null;
+    onProductChange: (product: BannerLinkedProduct | null) => void;
     loadingCollections: boolean;
     disabled?: boolean;
 }
@@ -34,10 +44,94 @@ export function BannerBasicInfo({
     formData,
     onChange,
     collections,
+    selectedProduct,
+    onProductChange,
     loadingCollections,
     disabled,
 }: BannerBasicInfoProps) {
-    const collectionOptions = buildCollectionOptions(getRootCollections(collections));
+    const rootCollections = useMemo(() => getRootCollections(collections), [collections]);
+    const selectedCollectionPath = formData.collectionId
+        ? findCollectionPath(rootCollections, formData.collectionId)
+        : [];
+    const selectedCollectionLabel = selectedCollectionPath.map((item) => item.name).join(' / ');
+
+    const renderLevel3Items = (items: Collection[]) =>
+        items.map((collection) => (
+            <DropdownMenuItem
+                key={collection.id}
+                onClick={() => onChange({ collectionId: collection.id })}
+                className="flex items-center justify-between gap-3"
+            >
+                <span>{collection.name}</span>
+                {formData.collectionId === collection.id ? (
+                    <Check className="h-4 w-4 text-primary-700" />
+                ) : null}
+            </DropdownMenuItem>
+        ));
+
+    const renderLevel2Items = (items: Collection[]) =>
+        items.map((collection) => {
+            const hasChildren = Boolean(collection.children?.length);
+
+            if (!hasChildren) {
+                return (
+                    <DropdownMenuItem key={collection.id} disabled>
+                        {collection.name}
+                    </DropdownMenuItem>
+                );
+            }
+
+            return (
+                <DropdownMenuSub key={collection.id}>
+                    <DropdownMenuSubTrigger className="flex items-center justify-between gap-3">
+                        <span>{collection.name}</span>
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent className="min-w-56 rounded-lg border-gray-200">
+                        {renderLevel3Items(collection.children || [])}
+                    </DropdownMenuSubContent>
+                </DropdownMenuSub>
+            );
+        });
+
+    const renderRootItems = (items: Collection[]) =>
+        items.map((collection) => {
+            const hasChildren = Boolean(collection.children?.length);
+
+            if (!hasChildren) {
+                return (
+                    <DropdownMenuItem
+                        key={collection.id}
+                        onClick={() => onChange({ collectionId: collection.id })}
+                        className="flex items-center justify-between gap-3"
+                    >
+                        <span>{collection.name}</span>
+                        {formData.collectionId === collection.id ? (
+                            <Check className="h-4 w-4 text-primary-700" />
+                        ) : null}
+                    </DropdownMenuItem>
+                );
+            }
+
+            return (
+                <DropdownMenuSub key={collection.id}>
+                    <DropdownMenuSubTrigger className="flex items-center justify-between gap-3">
+                        <span>{collection.name}</span>
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent className="min-w-60 rounded-lg border-gray-200">
+                        <DropdownMenuItem
+                            onClick={() => onChange({ collectionId: collection.id })}
+                            className="flex items-center justify-between gap-3 font-medium"
+                        >
+                            <span>Use {collection.name}</span>
+                            {formData.collectionId === collection.id ? (
+                                <Check className="h-4 w-4 text-primary-700" />
+                            ) : null}
+                        </DropdownMenuItem>
+                        {renderLevel2Items(collection.children || [])}
+                    </DropdownMenuSubContent>
+                </DropdownMenuSub>
+            );
+        });
 
     return (
         <Card className="border-gray-200 shadow-xs">
@@ -88,31 +182,60 @@ export function BannerBasicInfo({
                     />
                 </div>
 
-                <div className="space-y-2">
-                    <Label htmlFor="banner-collection" className="inline-flex items-center gap-2">
-                        <Link2 className="h-4 w-4 text-secondary-400" />
-                        Collection
-                    </Label>
-                    <Select
-                        value={formData.collectionId || 'none'}
-                        onValueChange={(value) => onChange({ collectionId: value === 'none' ? '' : value })}
-                        disabled={disabled || loadingCollections}
-                    >
-                        <SelectTrigger id="banner-collection" className="border-gray-200 focus-visible:ring-primary-200">
-                            <SelectValue placeholder="Select a collection (optional)" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="none">No Collection</SelectItem>
-                            {collectionOptions.map((option) => (
-                                <SelectItem key={option.id} value={option.id}>
-                                    {`${option.level ? `${'- '.repeat(option.level)}` : ''}${option.name}`}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                    {loadingCollections ? (
-                        <p className="text-xs font-medium text-secondary-500">Loading collections...</p>
-                    ) : null}
+                <div className="grid gap-5 xl:grid-cols-[1.2fr_0.8fr] xl:items-center">
+                    <div className="space-y-3 self-center">
+                        <Label className="inline-flex items-center gap-2">
+                            <Link2 className="h-4 w-4 text-secondary-400" />
+                            Collection Target
+                        </Label>
+
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild disabled={disabled || loadingCollections}>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="h-10 w-full justify-between border-gray-200 px-3 text-left font-normal text-secondary-900 hover:bg-white"
+                                >
+                                    <span className={cn('truncate', !selectedCollectionLabel && 'text-secondary-500')}>
+                                        {selectedCollectionLabel || 'Select collection target'}
+                                    </span>
+                                    <ChevronDown className="h-4 w-4 text-secondary-400" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                                align="start"
+                                className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-72 rounded-lg border-gray-200"
+                            >
+                                <DropdownMenuItem
+                                    onClick={() => onChange({ collectionId: '' })}
+                                    className="flex items-center justify-between gap-3"
+                                >
+                                    <span>No Collection</span>
+                                    {!formData.collectionId ? (
+                                        <Check className="h-4 w-4 text-primary-700" />
+                                    ) : null}
+                                </DropdownMenuItem>
+                                {renderRootItems(rootCollections)}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        {loadingCollections ? (
+                            <p className="text-xs font-medium text-secondary-500">Loading collections...</p>
+                        ) : null}
+                    </div>
+
+                    <div className="space-y-2 self-center">
+                        <Label className="inline-flex items-center gap-2">
+                            <Package className="h-4 w-4 text-secondary-400" />
+                            Product Target
+                        </Label>
+                        <BannerProductPicker
+                            value={formData.productId}
+                            selectedProduct={selectedProduct}
+                            onChange={onProductChange}
+                            disabled={disabled}
+                        />
+                    </div>
                 </div>
             </CardContent>
         </Card>

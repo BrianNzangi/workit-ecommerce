@@ -19,6 +19,7 @@ export const bannersAdminRoutes: FastifyPluginAsync = async (fastify) => {
             orderBy: [desc(schema.banners.sortOrder)],
             with: {
                 collection: true,
+                product: true,
                 desktopImage: true,
                 mobileImage: true,
             },
@@ -41,6 +42,7 @@ export const bannersAdminRoutes: FastifyPluginAsync = async (fastify) => {
             desktopImageId: data.desktopImageId || null,
             mobileImageId: data.mobileImageId || null,
             collectionId: data.collectionId || null,
+            productId: data.productId || null,
             updatedAt: new Date(),
         };
         // Remove 'name' if it exists to avoid conflicts if any
@@ -60,6 +62,7 @@ export const bannersAdminRoutes: FastifyPluginAsync = async (fastify) => {
             where: ilike(schema.banners.title, `%${q}%`), // Assuming title exists or mapped
             with: {
                 collection: true,
+                product: true,
                 desktopImage: true,
                 mobileImage: true,
             },
@@ -76,6 +79,7 @@ export const bannersAdminRoutes: FastifyPluginAsync = async (fastify) => {
             where: eq(schema.banners.id, id),
             with: {
                 collection: true,
+                product: true,
                 desktopImage: true,
                 mobileImage: true,
             },
@@ -96,6 +100,7 @@ export const bannersAdminRoutes: FastifyPluginAsync = async (fastify) => {
             desktopImageId: data.desktopImageId || null,
             mobileImageId: data.mobileImageId || null,
             collectionId: data.collectionId || null,
+            productId: data.productId || null,
             updatedAt: new Date(),
         };
         delete values.name;

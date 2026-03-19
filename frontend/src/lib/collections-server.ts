@@ -38,8 +38,9 @@ export async function fetchCollections(
             throw new Error(`Failed to fetch collections: ${response.status} ${response.statusText}`);
         }
 
-        const collections: Collection[] = await response.json();
-        return collections;
+        const payload = await response.json();
+        const collections = Array.isArray(payload) ? payload : (payload?.collections || []);
+        return collections as Collection[];
     } catch (error) {
         console.error('Error fetching collections:', error);
         throw error;
@@ -62,8 +63,8 @@ export async function fetchCollectionById(id: string): Promise<Collection> {
             throw new Error(`Failed to fetch collection: ${response.status} ${response.statusText}`);
         }
 
-        const collection: Collection = await response.json();
-        return collection;
+        const payload = await response.json();
+        return (payload?.collection || payload) as Collection;
     } catch (error) {
         console.error('Error fetching collection:', error);
         throw error;

@@ -81,6 +81,10 @@ export const bannersRelations = relations(marketing.banners, ({ one }) => ({
         fields: [marketing.banners.collectionId],
         references: [catalog.collections.id],
     }),
+    product: one(catalog.products, {
+        fields: [marketing.banners.productId],
+        references: [catalog.products.id],
+    }),
 }));
 
 export const blogsRelations = relations(marketing.blogs, ({ one }) => ({

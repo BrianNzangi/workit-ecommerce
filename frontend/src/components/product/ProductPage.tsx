@@ -134,7 +134,7 @@ export default function ProductPage({
         <div className="flex flex-col md:flex-row gap-6">
           <div className="w-full md:w-3/4 lg:w-2/3 flex flex-col gap-4">
             <div className="flex flex-col md:flex-row gap-4 bg-white p-4 rounded-sm">
-              <div className="flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-y-auto md:max-h-[608px]">
+              <div className="flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-y-auto md:max-h-152">
                 {images.slice(0, 6).map((img, idx) => (
                   <div
                     key={img.id || `${img.url}-${idx}`}
@@ -167,7 +167,7 @@ export default function ProductPage({
                   alt={product.name}
                   width={800}
                   height={608}
-                  className="h-[400px] md:h-[608px] w-auto object-contain"
+                  className="h-100 md:h-152 w-auto object-contain"
                   unoptimized
                 />
                 <button

@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { getImageUrl } from '@/lib/image-utils';
-import type { StoreBanner } from '@/lib/homepage-data';
+import { getBannerHref, type StoreBanner } from '@/lib/homepage-data';
 
 interface CollectionHeaderBannerProps {
   title: string;
@@ -24,7 +24,7 @@ export default function CollectionHeaderBanner({
   const mobileImage = getImageUrl(
     banner.mobileImage?.preview || banner.mobileImage?.source || banner.desktopImage?.preview || banner.desktopImage?.source
   );
-  const bannerLink = banner.collection?.slug ? `/collections/${banner.collection.slug}` : `/collections/${collectionSlug}`;
+  const bannerLink = getBannerHref(banner) || `/collections/${collectionSlug}`;
   const bannerAlt = banner.title || title;
 
   return (

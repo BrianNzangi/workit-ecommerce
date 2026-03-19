@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { getImageUrl } from '@/lib/image-utils';
-import type { StoreBanner } from '@/lib/homepage-data';
+import { getBannerHref, type StoreBanner } from '@/lib/homepage-data';
 
 interface HorizontalBannerProps {
     banner?: StoreBanner | null;
@@ -26,11 +26,16 @@ export default function HorizontalBanner({
         banner.desktopImage?.source
     );
     const isHeroType = position === 'DEALS_HORIZONTAL';
+    const bannerHref = getBannerHref(banner);
+
+    if (!bannerHref) {
+        return null;
+    }
 
     return (
         <section className="container mx-auto px-3 sm:px-6 md:px-2 lg:px-8 xl:px-8 2xl:px-8 mb-6 md:mb-8">
             <Link
-                href={`/collections/${banner.collection?.slug || ''}`}
+                href={bannerHref}
                 className={`block relative w-full h-52.5 rounded-lg overflow-hidden group transition-shadow ${isHeroType ? 'hover:shadow-md' : ''}`}
             >
                 <Image

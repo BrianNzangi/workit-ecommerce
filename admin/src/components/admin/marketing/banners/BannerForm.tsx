@@ -7,7 +7,7 @@ import { BannerService, CollectionService, Collection, Asset } from '@/lib/servi
 import { BannerBasicInfo } from './BannerBasicInfo';
 import { BannerDisplaySettings } from './BannerDisplaySettings';
 import { BannerImages } from './BannerImages';
-import { BannerFormMode, BannerFormData } from './types';
+import { BannerFormMode, BannerFormData, BannerLinkedProduct } from './types';
 import { BannerFormHeader } from './BannerFormHeader';
 import { BannerFormError } from './BannerFormError';
 import { BannerSaveCard } from './BannerSaveCard';
@@ -19,6 +19,7 @@ const initialFormData: BannerFormData = {
     slug: '',
     position: 'HERO',
     collectionId: '',
+    productId: '',
     enabled: true,
     sortOrder: 0,
     desktopImageId: '',
@@ -42,6 +43,7 @@ export function BannerForm({ mode = 'create', bannerId }: BannerFormProps) {
     const [collections, setCollections] = useState<Collection[]>([]);
     const [selectedDesktopAsset, setSelectedDesktopAsset] = useState<Asset | null>(null);
     const [selectedMobileAsset, setSelectedMobileAsset] = useState<Asset | null>(null);
+    const [selectedProduct, setSelectedProduct] = useState<BannerLinkedProduct | null>(null);
     const [formData, setFormData] = useState<BannerFormData>(initialFormData);
 
     const successTitle = useMemo(
@@ -77,6 +79,7 @@ export function BannerForm({ mode = 'create', bannerId }: BannerFormProps) {
                 slug: banner.slug || '',
                 position: banner.position || 'HERO',
                 collectionId: banner.collectionId || '',
+                productId: banner.productId || '',
                 enabled: banner.enabled ?? true,
                 sortOrder: banner.sortOrder ?? 0,
                 desktopImageId: banner.desktopImageId || '',
@@ -85,6 +88,16 @@ export function BannerForm({ mode = 'create', bannerId }: BannerFormProps) {
 
             setSelectedDesktopAsset((banner.desktopImage as Asset) || null);
             setSelectedMobileAsset((banner.mobileImage as Asset) || null);
+            setSelectedProduct(
+                banner.product
+                    ? {
+                        id: banner.product.id,
+                        name: banner.product.name,
+                        slug: banner.product.slug,
+                        sku: banner.product.sku,
+                    }
+                    : null
+            );
         } catch (bannerError: any) {
             console.error('Error loading banner:', bannerError);
             setError(bannerError?.message || 'Failed to load banner.');
@@ -128,6 +141,11 @@ export function BannerForm({ mode = 'create', bannerId }: BannerFormProps) {
         setFormData((previous) => ({ ...previous, mobileImageId: asset?.id || '' }));
     };
 
+    const handleProductChange = (product: BannerLinkedProduct | null) => {
+        setSelectedProduct(product);
+        setFormData((previous) => ({ ...previous, productId: product?.id || '' }));
+    };
+
     const validate = () => {
         if (!formData.name.trim()) return 'Banner name is required.';
         return null;
@@ -153,6 +171,7 @@ export function BannerForm({ mode = 'create', bannerId }: BannerFormProps) {
                 ...formData,
                 slug,
                 collectionId: formData.collectionId || '',
+                productId: formData.productId || '',
                 desktopImageId: formData.desktopImageId || '',
                 mobileImageId: formData.mobileImageId || '',
             };
@@ -199,6 +218,8 @@ export function BannerForm({ mode = 'create', bannerId }: BannerFormProps) {
                                 formData={formData}
                                 onChange={handleChange}
                                 collections={collections}
+                                selectedProduct={selectedProduct}
+                                onProductChange={handleProductChange}
                                 loadingCollections={loadingCollections}
                                 disabled={loading}
                             />

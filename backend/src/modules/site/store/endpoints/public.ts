@@ -392,6 +392,7 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
                 desktopImage: true,
                 mobileImage: true,
                 collection: true,
+                product: true,
             }
         });
         const payload = { banners: results };

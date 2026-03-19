@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { getImageUrl } from '@/lib/image-utils';
-import type { StoreBanner } from '@/lib/homepage-data';
+import { getBannerHref, type StoreBanner } from '@/lib/homepage-data';
 
 interface HeroSectionProps {
     banners: StoreBanner[];
@@ -104,9 +104,7 @@ export default function HeroSection({ banners }: HeroSectionProps) {
         currentBanner.desktopImage?.source ||
         currentBanner.desktopImage?.preview
     );
-    const bannerHref = currentBanner.collection?.slug
-        ? `/collections/${currentBanner.collection.slug}`
-        : null;
+    const bannerHref = getBannerHref(currentBanner);
 
     const prefetchBanner = () => {
         if (bannerHref) {

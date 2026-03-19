@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { getImageUrl } from '@/lib/image-utils';
-import type { StoreBanner } from '@/lib/homepage-data';
+import { getBannerHref, type StoreBanner } from '@/lib/homepage-data';
 
 interface DealsProps {
     deals: StoreBanner[];
@@ -17,17 +17,21 @@ export default function Deals({ deals }: DealsProps) {
             <div className="container mx-auto px-2 sm:px-2 md:px-2 lg:px-6">
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2 md:gap-2 lg:gap-2">
                     {deals.map((deal) => {
-                        if (!deal.collection || !deal.desktopImage) {
+                        const bannerHref = getBannerHref(deal);
+
+                        if (!bannerHref || !deal.desktopImage) {
                             return null;
                         }
 
                         const imageUrl = getImageUrl(deal.desktopImage.preview || deal.desktopImage.source);
-                        const ctaText = `Shop ${deal.collection.name} Deals`;
+                        const ctaText = deal.product?.name
+                            ? `View ${deal.product.name}`
+                            : `Shop ${deal.collection?.name || deal.title} Deals`;
 
                         return (
                             <Link
                                 key={deal.id}
-                                href={`/collections/${deal.collection.slug}`}
+                                href={bannerHref}
                                 className="block rounded-lg overflow-hidden transition-shadow"
                             >
                                 <div className="p-2 sm:p-2 md:p-2 lg:p-2">

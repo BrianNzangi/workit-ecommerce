@@ -10,9 +10,11 @@ export type Banner = banners.Banner & {
     desktopImage?: any;
     mobileImage?: any;
     collection?: any;
+    product?: any;
     desktopImageId?: string;
     mobileImageId?: string;
     collectionId?: string;
+    productId?: string;
 };
 
 export type CreateBannerInput = banners.CreateBannerInput & {
@@ -25,6 +27,7 @@ export type CreateBannerInput = banners.CreateBannerInput & {
     desktopImageId?: string;
     mobileImageId?: string;
     collectionId?: string;
+    productId?: string;
 };
 
 export interface BannerListOptions {
