@@ -155,6 +155,59 @@ For production CDN/media routing:
 
 When that env var is set, frontend/admin image helpers will prefer the dedicated media host.
 
+## Sitemap And IndexNow
+
+The storefront sitemap is generated from the current live structure:
+
+- static public pages
+- nested collection paths
+- product detail pages
+- published blog posts
+
+IndexNow key file is hosted from the storefront public root at:
+
+- `/1362f663ee08495c823032577fefb4db.txt`
+
+Recommended frontend env values:
+
+```bash
+NEXT_PUBLIC_FRONTEND_BASE_URL=https://workit.co.ke
+INDEXNOW_SITE_URL=https://workit.co.ke
+INDEXNOW_KEY=1362f663ee08495c823032577fefb4db
+```
+
+To submit URLs internally after content changes, call the protected frontend route:
+
+```bash
+curl -X POST https://workit.co.ke/api/indexnow \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: <INTERNAL_API_KEY>" \
+  -d '{"scope":"products"}'
+```
+
+Supported request body fields:
+
+- `scope`: one of `static`, `products`, `collections`, `blogs`, `all`
+- `scopes`: array version of the above
+- `paths`: relative site paths like `["/deal-details/example-slug"]`
+- `urls`: fully-qualified URLs on the canonical storefront host
+
+Examples:
+
+```bash
+curl -X POST https://workit.co.ke/api/indexnow \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: <INTERNAL_API_KEY>" \
+  -d '{"paths":["/deal-details/example-product","/collections/phones/android"]}'
+```
+
+```bash
+curl -X POST https://workit.co.ke/api/indexnow \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: <INTERNAL_API_KEY>" \
+  -d '{"scopes":["products","collections","blogs"]}'
+```
+
 ## Deployment Notes
 
 - frontend and admin `next.config.ts` changes require a full rebuild/redeploy
