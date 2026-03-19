@@ -104,13 +104,13 @@ export default function HeroSection({ banners }: HeroSectionProps) {
         currentBanner.desktopImage?.source ||
         currentBanner.desktopImage?.preview
     );
-    const bannerLink = currentBanner.collection?.slug
+    const bannerHref = currentBanner.collection?.slug
         ? `/collections/${currentBanner.collection.slug}`
-        : '#';
+        : null;
 
     const prefetchBanner = () => {
-        if (bannerLink !== '#') {
-            router.prefetch(bannerLink);
+        if (bannerHref) {
+            router.prefetch(bannerHref);
         }
     };
 
@@ -156,40 +156,18 @@ export default function HeroSection({ banners }: HeroSectionProps) {
                             quality={95}
                             sizes="100vw"
                         />
-                        <Link
-                            href={bannerLink}
-                            className="absolute inset-0 z-10"
-                            aria-label={`View ${currentBanner.title}`}
-                            onMouseEnter={prefetchBanner}
-                            onFocus={prefetchBanner}
-                            onTouchStart={prefetchBanner}
-                        />
+                        {bannerHref ? (
+                            <Link
+                                href={bannerHref}
+                                className="absolute inset-0 z-10"
+                                aria-label={`View ${currentBanner.title}`}
+                                onMouseEnter={prefetchBanner}
+                                onFocus={prefetchBanner}
+                                onTouchStart={prefetchBanner}
+                            />
+                        ) : null}
                     </motion.div>
                 </AnimatePresence>
-
-                {banners.length > 1 && (
-                    <>
-                        <link
-                            rel="preload"
-                            as="image"
-                            href={getImageUrl(
-                                banners[(currentSlide + 1) % banners.length].desktopImage?.source ||
-                                banners[(currentSlide + 1) % banners.length].desktopImage?.preview
-                            )}
-                        />
-                        {(banners[(currentSlide + 1) % banners.length].mobileImage?.preview ||
-                            banners[(currentSlide + 1) % banners.length].mobileImage?.source) && (
-                                <link
-                                    rel="preload"
-                                    as="image"
-                                    href={getImageUrl(
-                                        banners[(currentSlide + 1) % banners.length].mobileImage?.source ||
-                                        banners[(currentSlide + 1) % banners.length].mobileImage?.preview
-                                    )}
-                                />
-                            )}
-                    </>
-                )}
 
                 {banners.length > 1 && (
                     <div className="absolute bottom-4 right-4 flex gap-2 z-20">
