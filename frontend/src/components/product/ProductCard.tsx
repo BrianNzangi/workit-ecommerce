@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { PackageCheck, ShoppingCart } from 'lucide-react'
 import { Product } from '@/types/product'
-import { getProductImageUrl } from '@/lib/image-utils'
+import { getProductImageUrl, shouldBypassImageOptimization } from '@/lib/image-utils'
 import { useCartStore } from '@/store/cartStore'
 
 export default function ProductCard({
@@ -35,6 +35,13 @@ export default function ProductCard({
 
   const { addItem, openCart } = useCartStore();
   const productHref = `/deal-details/${slug}`;
+  const productImageSrc = getProductImageUrl(
+    image ||
+    images?.[0]?.url ||
+    '',
+    'card'
+  );
+  const shouldBypassOptimization = shouldBypassImageOptimization(productImageSrc);
 
   const prefetchProduct = () => {
     router.prefetch(productHref);
@@ -131,16 +138,12 @@ export default function ProductCard({
         <div className="relative w-full aspect-square overflow-hidden rounded-md mb-3">
           {image || images?.[0]?.url ? (
             <Image
-              src={getProductImageUrl(
-                image ||
-                images?.[0]?.url ||
-                '',
-                'card'
-              )}
+              src={productImageSrc}
               alt={name}
               fill
               className="object-contain scale-90 md:scale-80 lg:scale-80"
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
+              unoptimized={shouldBypassOptimization}
             />
           ) : (
             <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-sm">

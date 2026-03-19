@@ -17,6 +17,27 @@ function getMediaBaseUrl(): string | null {
     return mediaUrl.replace(/\/$/, '');
 }
 
+export function shouldBypassImageOptimization(
+    url: string | undefined | null
+): boolean {
+    const mediaBaseUrl = getMediaBaseUrl();
+
+    if (!mediaBaseUrl || !url) {
+        return false;
+    }
+
+    const trimmedUrl = url.trim();
+    if (!trimmedUrl) {
+        return false;
+    }
+
+    const normalizedUrl = trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')
+        ? trimmedUrl
+        : getImageUrl(trimmedUrl);
+
+    return normalizedUrl.startsWith(mediaBaseUrl);
+}
+
 /**
  * Normalize image URL for use in Next.js application
  * 

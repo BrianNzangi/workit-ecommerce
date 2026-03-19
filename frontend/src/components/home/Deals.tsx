@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { getImageUrl } from '@/lib/image-utils';
+import { getImageUrl, shouldBypassImageOptimization } from '@/lib/image-utils';
 import { getBannerHref, type StoreBanner } from '@/lib/banner-target';
 
 interface DealsProps {
@@ -24,6 +24,7 @@ export default function Deals({ deals }: DealsProps) {
                         }
 
                         const imageUrl = getImageUrl(deal.desktopImage.preview || deal.desktopImage.source);
+                        const shouldBypassOptimization = shouldBypassImageOptimization(imageUrl);
                         const ctaText = deal.product?.name
                             ? `View ${deal.product.name}`
                             : `Shop ${deal.collection?.name || deal.title} Deals`;
@@ -42,6 +43,7 @@ export default function Deals({ deals }: DealsProps) {
                                             fill
                                             className="object-cover"
                                             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                                            unoptimized={shouldBypassOptimization}
                                         />
                                     </div>
 

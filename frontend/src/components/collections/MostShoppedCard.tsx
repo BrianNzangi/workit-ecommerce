@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { MoveRight } from 'lucide-react';
 import he from 'he';
 import Image from 'next/image';
-import { getImageUrl } from '@/lib/image-utils';
+import { getImageUrl, shouldBypassImageOptimization } from '@/lib/image-utils';
 
 interface MostShoppedCardProps {
     name: string;
@@ -16,6 +16,8 @@ interface MostShoppedCardProps {
 export default function MostShoppedCard({ name, slug, image }: MostShoppedCardProps) {
     const router = useRouter();
     const collectionHref = `/collections/${slug}`;
+    const imageUrl = getImageUrl(image);
+    const shouldBypassOptimization = shouldBypassImageOptimization(imageUrl);
 
     const prefetchCollection = () => {
         router.prefetch(collectionHref);
@@ -34,11 +36,12 @@ export default function MostShoppedCard({ name, slug, image }: MostShoppedCardPr
                     <div className="relative w-[120px] h-[120px] bg-white border border-gray-200 rounded-lg overflow-hidden mx-auto">
                         {image ? (
                             <Image
-                                src={getImageUrl(image)}
+                                src={imageUrl}
                                 alt={name}
                                 fill
                                 className="object-cover"
                                 sizes="120px"
+                                unoptimized={shouldBypassOptimization}
                             />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center p-2">

@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { getImageUrl } from '@/lib/image-utils';
+import { getImageUrl, shouldBypassImageOptimization } from '@/lib/image-utils';
 import { getBannerHref, type StoreBanner } from '@/lib/banner-target';
 
 interface HorizontalBannerProps {
@@ -27,6 +27,8 @@ export default function HorizontalBanner({
     );
     const isHeroType = position === 'DEALS_HORIZONTAL';
     const bannerHref = getBannerHref(banner);
+    const shouldBypassDesktopOptimization = shouldBypassImageOptimization(imageUrl);
+    const shouldBypassMobileOptimization = shouldBypassImageOptimization(mobileImageUrl);
 
     if (!bannerHref) {
         return null;
@@ -43,12 +45,14 @@ export default function HorizontalBanner({
                     alt={banner.title}
                     fill
                     className={`object-cover hidden sm:block transition-transform duration-700 ${isHeroType ? 'group-hover:scale-105' : ''}`}
+                    unoptimized={shouldBypassDesktopOptimization}
                 />
                 <Image
                     src={mobileImageUrl}
                     alt={banner.title}
                     fill
                     className={`object-cover sm:hidden transition-transform duration-700 ${isHeroType ? 'group-hover:scale-105' : ''}`}
+                    unoptimized={shouldBypassMobileOptimization}
                 />
 
                 <div className="absolute inset-0 bg-linear-to-r from-black/20 to-transparent flex flex-col justify-center p-8 sm:p-12" />

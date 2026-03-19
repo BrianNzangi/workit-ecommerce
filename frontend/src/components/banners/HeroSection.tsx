@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { getImageUrl } from '@/lib/image-utils';
+import { getImageUrl, shouldBypassImageOptimization } from '@/lib/image-utils';
 import { getBannerHref, type StoreBanner } from '@/lib/banner-target';
 
 interface HeroSectionProps {
@@ -104,6 +104,8 @@ export default function HeroSection({ banners }: HeroSectionProps) {
         currentBanner.desktopImage?.source ||
         currentBanner.desktopImage?.preview
     );
+    const shouldBypassDesktopOptimization = shouldBypassImageOptimization(desktopImage);
+    const shouldBypassMobileOptimization = shouldBypassImageOptimization(mobileImage);
     const bannerHref = getBannerHref(currentBanner);
 
     const prefetchBanner = () => {
@@ -144,6 +146,7 @@ export default function HeroSection({ banners }: HeroSectionProps) {
                             priority={currentSlide === 0}
                             quality={95}
                             sizes="(max-width: 768px) 100vw, (max-width: 1280px) 96vw, 1400px"
+                            unoptimized={shouldBypassDesktopOptimization}
                         />
                         <Image
                             src={mobileImage}
@@ -153,6 +156,7 @@ export default function HeroSection({ banners }: HeroSectionProps) {
                             priority={currentSlide === 0}
                             quality={95}
                             sizes="100vw"
+                            unoptimized={shouldBypassMobileOptimization}
                         />
                         {bannerHref ? (
                             <Link
