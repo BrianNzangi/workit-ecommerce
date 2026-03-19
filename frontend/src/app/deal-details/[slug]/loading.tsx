@@ -47,7 +47,7 @@ export default function Loading() {
                 ))}
               </div>
 
-              <div className="flex-1 h-[25rem] md:h-[38rem] rounded bg-gray-100" />
+              <div className="flex-1 h-100 md:h-152 rounded bg-gray-100" />
             </div>
 
             <section className="mt-2 space-y-4">

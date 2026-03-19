@@ -16,9 +16,9 @@ export default function BlogCard({ title, slug, category, image }: BlogCardProps
   return (
     <Link
       href={`/blog/${slug}`}
-      className="group block w-70 rounded-xs overflow-hidden"
+      className="group block w-70"
     >
-      <div className="relative w-full h-60"> {/* Adjusted card height */}
+      <div className="relative w-full aspect-video overflow-hidden rounded-xs">
         {image ? (
           <Image
             src={image}
@@ -35,14 +35,11 @@ export default function BlogCard({ title, slug, category, image }: BlogCardProps
             No Image
           </div>
         )}
+      </div>
 
-        <div
-          className="absolute bottom-0 left-0 w-full bg-white text-black p-4 flex flex-col gap-1"
-          style={{ height: '90px' }} // fixed overlay height
-        >
-          <span className="text-xs font-semibold uppercase">{category}</span>
-          <h3 className="text-sm font-bold line-clamp-2">{title}</h3>
-        </div>
+      <div className="pt-3 space-y-1 text-black">
+        <span className="block text-xs font-semibold uppercase">{category}</span>
+        <h3 className="text-sm font-bold line-clamp-2">{title}</h3>
       </div>
     </Link>
   );

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Upload, X } from 'lucide-react';
 import Link from 'next/link';
 import { getImageUrl } from '@/lib/shared/images';
+import { uploadAdminAsset } from '@/lib/shared/images/admin-asset-upload';
 
 interface BrandFormProps {
     brandId?: string;
@@ -111,21 +112,11 @@ export function BrandForm({ brandId, mode }: BrandFormProps) {
 
             // Upload logo if a new file is selected
             if (logoFile) {
-                const formDataImg = new FormData();
-                formDataImg.append('file', logoFile);
-                formDataImg.append('folder', 'brands');
-
-                const uploadResponse = await fetch('/api/admin/assets', {
-                    method: 'POST',
-                    body: formDataImg,
+                const { asset: uploadData } = await uploadAdminAsset({
+                    file: logoFile,
+                    folder: 'brands',
                 });
-
-                if (uploadResponse.ok) {
-                    const uploadData = await uploadResponse.json();
-                    logoUrl = uploadData.url;
-                } else {
-                    throw new Error('Failed to upload logo');
-                }
+                logoUrl = uploadData.url;
             }
 
             const url = mode === 'edit' ? `/api/admin/brands/${brandId}` : '/api/admin/brands';

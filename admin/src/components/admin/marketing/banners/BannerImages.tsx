@@ -3,10 +3,11 @@
 import { Monitor, Smartphone, Upload, X } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { getImageUrl } from '@/lib/shared/images';
-import { AssetService, Asset } from '@/lib/services';
+import { Asset } from '@/lib/services';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { getDimensionsText, getRecommendationText } from './banner.constants';
+import { uploadAdminAsset } from '@/lib/shared/images/admin-asset-upload';
 
 interface BannerImagesProps {
     position: string;
@@ -118,15 +119,10 @@ export function BannerImages({
     const handleImageUpload = async (file: File, type: 'desktop' | 'mobile') => {
         try {
             setLoadingAssets(true);
-            const assetService = new AssetService();
-            const response = await assetService.uploadAsset({
+            const { asset } = await uploadAdminAsset({
                 file,
-                fileName: file.name,
-                mimeType: file.type,
                 folder: 'banners',
             });
-
-            const asset = (response as any).asset || response;
             if (type === 'desktop') {
                 onDesktopAssetChange(asset);
             } else {

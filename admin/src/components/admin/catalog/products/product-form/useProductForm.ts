@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { HomepageCollectionService } from '@/lib/services';
+import { uploadAdminAsset } from '@/lib/shared/images/admin-asset-upload';
 
 export interface Collection {
     id: string;
@@ -346,17 +347,11 @@ export function useProductForm({ productId, mode }: UseProductFormProps) {
             if (selectedFiles.length > 0) {
                 setUploadingImages(true);
                 for (const file of selectedFiles) {
-                    const formDataImg = new FormData();
-                    formDataImg.append('file', file);
-                    formDataImg.append('folder', 'products');
-                    const response = await fetch('/api/admin/assets', {
-                        method: 'POST',
-                        body: formDataImg,
+                    const { asset } = await uploadAdminAsset({
+                        file,
+                        folder: 'products',
                     });
-                    if (response.ok) {
-                        const asset = await response.json();
-                        newAssetIds.push(asset.id);
-                    }
+                    newAssetIds.push(asset.id);
                 }
                 setUploadingImages(false);
             }

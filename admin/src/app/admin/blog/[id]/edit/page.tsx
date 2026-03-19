@@ -13,6 +13,7 @@ import { BlogService } from '@/lib/services/content/blog.service';
 import { BlogFormFields } from '@/components/admin/marketing/blog/BlogFormFields';
 import { BlogEditor } from '@/components/admin/marketing/blog/BlogEditor';
 import { BlogSidebar } from '@/components/admin/marketing/blog/BlogSidebar';
+import { uploadAdminAsset } from '@/lib/shared/images/admin-asset-upload';
 
 interface BlogPost {
     id: string;
@@ -142,41 +143,25 @@ export default function EditBlogPage() {
 
         setUploadingImage(true);
         try {
-            const formData = new FormData();
-            formData.append('file', file);
+            const { asset: data } = await uploadAdminAsset({ file });
+            console.log('Upload response data:', data);
+            // Handle various response structures for maximum compatibility
+            const imageUrl = data.url || data.source || data.asset?.source || data.preview || data.asset?.preview;
+            const uploadedAssetId = data.id || data.asset?.id;
 
-            const response = await fetch('/api/admin/assets', {
-                method: 'POST',
-                body: formData,
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                console.log('Upload response data:', data);
-                // Handle various response structures for maximum compatibility
-                const imageUrl = data.url || data.source || data.asset?.source || data.preview || data.asset?.preview;
-                const uploadedAssetId = data.id || data.asset?.id;
-
-                if (imageUrl && uploadedAssetId) {
-                    setFeaturedImage(imageUrl);
-                    setAssetId(uploadedAssetId);
-                    toast({
-                        title: 'Success',
-                        description: 'Image uploaded successfully',
-                        variant: 'success',
-                    });
-                } else {
-                    console.error('No image URL in response:', data);
-                    toast({
-                        title: 'Upload failed',
-                        description: 'Image uploaded but URL not found',
-                        variant: 'error',
-                    });
-                }
+            if (imageUrl && uploadedAssetId) {
+                setFeaturedImage(imageUrl);
+                setAssetId(uploadedAssetId);
+                toast({
+                    title: 'Success',
+                    description: 'Image uploaded successfully',
+                    variant: 'success',
+                });
             } else {
+                console.error('No image URL in response:', data);
                 toast({
                     title: 'Upload failed',
-                    description: 'Failed to upload image',
+                    description: 'Image uploaded but URL not found',
                     variant: 'error',
                 });
             }

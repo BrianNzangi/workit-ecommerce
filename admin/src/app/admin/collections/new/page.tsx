@@ -16,6 +16,7 @@ import {
     CollectionSaveCard,
     CollectionTreeNode,
 } from '@/components/admin/catalog/collections/form';
+import { uploadAdminAsset } from '@/lib/shared/images/admin-asset-upload';
 
 const initialFormData: CollectionFormData = {
     name: '',
@@ -120,20 +121,10 @@ export default function NewCollectionPage() {
 
         setUploading(true);
         try {
-            const uploadFormData = new FormData();
-            uploadFormData.append('file', imageFile);
-            uploadFormData.append('folder', 'collections');
-
-            const response = await fetch('/api/admin/assets', {
-                method: 'POST',
-                body: uploadFormData,
+            const { asset } = await uploadAdminAsset({
+                file: imageFile,
+                folder: 'collections',
             });
-
-            if (!response.ok) {
-                throw new Error('Failed to upload image');
-            }
-
-            const asset = await response.json();
             return asset.id;
         } catch (uploadError) {
             console.error('Error uploading image:', uploadError);

@@ -18,6 +18,7 @@ import {
     AssetsUploadDialog,
     DeleteMode,
 } from '@/components/admin/catalog/assets';
+import { uploadAdminAsset } from '@/lib/shared/images/admin-asset-upload';
 
 interface DeleteConfirmState {
     show: boolean;
@@ -92,18 +93,11 @@ export default function AssetsPage() {
             let failCount = 0;
 
             for (const file of selectedFiles) {
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('folder', 'assets');
-
-                const response = await fetch('/api/admin/assets', {
-                    method: 'POST',
-                    body: formData,
-                });
-
-                if (response.ok) {
+                try {
+                    await uploadAdminAsset({ file, folder: 'assets' });
                     successCount++;
-                } else {
+                } catch (error) {
+                    console.error('Error uploading file:', error);
                     failCount++;
                 }
             }
