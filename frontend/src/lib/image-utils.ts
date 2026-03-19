@@ -2,8 +2,20 @@
  * Image URL Utility
  * 
  * Handles image URL normalization for the storefront.
- * Images are stored in PostgreSQL and served from public/uploads directory.
+ * Images are stored in PostgreSQL and served from the backend uploads route,
+ * optionally through a dedicated media hostname/CDN.
  */
+
+function getMediaBaseUrl(): string | null {
+    const env = process.env as Record<string, string | undefined>;
+    const mediaUrl = env['NEXT_PUBLIC_MEDIA_URL']?.trim();
+
+    if (!mediaUrl) {
+        return null;
+    }
+
+    return mediaUrl.replace(/\/$/, '');
+}
 
 /**
  * Normalize image URL for use in Next.js application
@@ -55,9 +67,11 @@ export function getImageUrl(
         relativePath = url;
     }
 
-    // Use relative path starting with /uploads/ to leverage Next.js rewrites.
-    // This avoids absolute URL issues with Next.js Image optimization and CORS.
-    return relativePath;
+    const mediaBaseUrl = getMediaBaseUrl();
+
+    // Prefer a dedicated media/CDN host when configured; otherwise keep the
+    // same-origin /uploads path so the existing rewrites continue to work.
+    return mediaBaseUrl ? `${mediaBaseUrl}${relativePath}` : relativePath;
 }
 
 /**

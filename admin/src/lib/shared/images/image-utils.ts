@@ -2,8 +2,19 @@
  * Image URL Utility
  * 
  * Handles image URL normalization for the admin panel.
- * Images are served from the backend URL.
+ * Images are served from the backend URL or an optional dedicated media host.
  */
+
+function getMediaBaseUrl(): string | null {
+    const env = process.env as Record<string, string | undefined>;
+    const mediaUrl = env['NEXT_PUBLIC_MEDIA_URL']?.trim();
+
+    if (!mediaUrl) {
+        return null;
+    }
+
+    return mediaUrl.replace(/\/$/, '');
+}
 
 
 /**
@@ -33,6 +44,8 @@ export function getImageUrl(url: string | undefined | null): string {
     if (url.startsWith('data:')) {
         return url;
     }
+
+    const mediaBaseUrl = getMediaBaseUrl();
 
     // Determine the base backend URL
     const env = process.env as Record<string, string | undefined>;
@@ -73,5 +86,5 @@ export function getImageUrl(url: string | undefined | null): string {
         relativePath = url;
     }
 
-    return `${cleanBaseUrl}${relativePath}`;
+    return mediaBaseUrl ? `${mediaBaseUrl}${relativePath}` : `${cleanBaseUrl}${relativePath}`;
 }

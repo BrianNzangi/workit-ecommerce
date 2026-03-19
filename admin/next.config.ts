@@ -1,5 +1,24 @@
 import type { NextConfig } from "next";
 
+const mediaUrl = process.env.NEXT_PUBLIC_MEDIA_URL;
+const mediaRemotePattern = (() => {
+  if (!mediaUrl) return [];
+
+  try {
+    const parsed = new URL(mediaUrl);
+    return [
+      {
+        protocol: parsed.protocol.replace(':', ''),
+        hostname: parsed.hostname,
+        ...(parsed.port ? { port: parsed.port } : {}),
+        pathname: '/uploads/**',
+      },
+    ] as any[];
+  } catch {
+    return [];
+  }
+})();
+
 const nextConfig: NextConfig = {
   output: 'standalone',
   images: {
@@ -32,6 +51,7 @@ const nextConfig: NextConfig = {
         hostname: 'staging.workit.co.ke',
         pathname: '/**',
       },
+      ...mediaRemotePattern,
     ],
     dangerouslyAllowSVG: true,
   },
