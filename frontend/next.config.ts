@@ -41,6 +41,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'media.workit.co.ke',
+        pathname: '/uploads/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'www.awin1.com',
         pathname: '/**',
       },
