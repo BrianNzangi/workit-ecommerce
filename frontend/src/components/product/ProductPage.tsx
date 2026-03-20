@@ -151,7 +151,7 @@ export default function ProductPage({
                       alt={product.name}
                       width={900}
                       height={900}
-                      className="max-h-80 w-auto object-contain lg:max-h-100"
+                      className="max-h-80 w-auto object-contain lg:max-h-80"
                       unoptimized
                     />
                   </div>
@@ -188,7 +188,7 @@ export default function ProductPage({
                             src={getImageUrl(img.url || "")}
                             alt={`${product.name} thumbnail ${idx + 1}`}
                             fill
-                            className="object-contain p-2"
+                            className="object-contain"
                             unoptimized
                           />
                         </button>
