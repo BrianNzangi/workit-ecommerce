@@ -3,6 +3,10 @@ import { rateLimit } from './rate-limit';
 import { headers } from 'next/headers';
 import { observeApiRequestDuration } from './metrics';
 
+type ProxyFetchOptions = RequestInit & {
+    useRequestContext?: boolean;
+};
+
 function getBackendUrl() {
     // We use bracket notation to prevent Next.js from inlining these values at build time
     const env = process.env as Record<string, string | undefined>;
@@ -14,34 +18,37 @@ function getBackendUrl() {
     ).replace(/\/$/, '');
 }
 
-export async function proxyFetch(path: string, options: RequestInit = {}) {
+export async function proxyFetch(path: string, options: ProxyFetchOptions = {}) {
     const isProduction = process.env.NODE_ENV === 'production';
     const startedAt = Date.now();
     const method = options.method?.toUpperCase() || 'GET';
+    const useRequestContext = options.useRequestContext !== false;
 
     // 1. Rate Limiting (Protects the backend from abuse)
-    try {
-        const headerList = await headers();
-        const ip = headerList.get('x-forwarded-for') || headerList.get('x-real-ip') || 'unknown';
+    if (useRequestContext) {
+        try {
+            const headerList = await headers();
+            const ip = headerList.get('x-forwarded-for') || headerList.get('x-real-ip') || 'unknown';
 
-        // Limit to 100 requests per minute per IP for proxy routes
-        const limiter = await rateLimit(ip, 120, 60);
+            // Limit to 100 requests per minute per IP for proxy routes
+            const limiter = await rateLimit(ip, 120, 60);
 
-        if (!limiter.success) {
-            return new Response(JSON.stringify({
-                error: 'Too Many Requests',
-                retryAfter: limiter.retryAfter
-            }), {
-                status: 429,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Retry-After': String(limiter.retryAfter)
-                },
-            });
+            if (!limiter.success) {
+                return new Response(JSON.stringify({
+                    error: 'Too Many Requests',
+                    retryAfter: limiter.retryAfter
+                }), {
+                    status: 429,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Retry-After': String(limiter.retryAfter)
+                    },
+                });
+            }
+        } catch (e) {
+            // next/headers might throw if called outside of request context
+            // we skip rate limiting in that case
         }
-    } catch (e) {
-        // next/headers might throw if called outside of request context
-        // we skip rate limiting in that case
     }
 
     const isGet = !options.method || options.method.toUpperCase() === 'GET';
@@ -79,14 +86,16 @@ export async function proxyFetch(path: string, options: RequestInit = {}) {
     };
 
     // Forward cookies if available
-    try {
-        const headerList = await headers();
-        const cookie = headerList.get('cookie');
-        if (cookie) {
-            defaultHeaders['cookie'] = cookie;
+    if (useRequestContext) {
+        try {
+            const headerList = await headers();
+            const cookie = headerList.get('cookie');
+            if (cookie) {
+                defaultHeaders['cookie'] = cookie;
+            }
+        } catch (e) {
+            // next/headers might throw if called outside of request context
         }
-    } catch (e) {
-        // next/headers might throw if called outside of request context
     }
 
     try {

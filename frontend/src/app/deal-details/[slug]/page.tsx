@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { Suspense } from 'react';
 import ProductPage from '@/components/product/ProductPage';
+import ProductRecommendationsLoading from '@/components/product/ProductRecommendationsLoading';
+import ProductRecommendationsServer from '@/components/product/ProductRecommendationsServer';
 import { Category } from '@/types/collection';
 import type { Product } from '@/types/product';
 import { SITE_CONFIG } from '@/lib/meta';
@@ -56,6 +59,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const response = await proxyFetch(`/store/products/${slug}`, {
       cache: 'force-cache',
+      next: { revalidate },
+      useRequestContext: false,
     });
 
     if (!response.ok) return { title: 'Product Not Found' };
@@ -102,10 +107,14 @@ export default async function ProductDetailPage({ params }: Props) {
   try {
     const [productResponse, categoriesRes] = await Promise.all([
       proxyFetch(`/store/products/${slug}`, {
+        cache: 'force-cache',
         next: { revalidate },
+        useRequestContext: false,
       }),
       proxyFetch(`/store/collections?includeChildren=true&take=1000`, {
+        cache: 'force-cache',
         next: { revalidate },
+        useRequestContext: false,
       }),
     ]);
 
@@ -182,58 +191,20 @@ export default async function ProductDetailPage({ params }: Props) {
       ...(product.categories || []).map((category) => String(category.slug)),
     ].filter((value, index, array) => array.indexOf(value) === index);
 
-    const similarResponses = await Promise.all(
-      categorySlugs.map((categorySlug) =>
-        proxyFetch(`/store/products?collection=${encodeURIComponent(categorySlug)}&limit=10`, {
-          next: { revalidate },
-        }).catch(() => null),
-      ),
-    );
-
-    const similarItemsMap = new Map<string, Product>();
-    for (const similarResponse of similarResponses) {
-      if (!similarResponse?.ok) continue;
-      const data = await similarResponse.json();
-      const mappedProducts = normalizeProducts(data.products || []);
-
-      for (const similarProduct of mappedProducts) {
-        if (similarProduct.id === product.id) continue;
-        if (!similarItemsMap.has(similarProduct.id)) {
-          similarItemsMap.set(similarProduct.id, similarProduct);
-        }
-        if (similarItemsMap.size >= 5) break;
-      }
-
-      if (similarItemsMap.size >= 5) break;
-    }
-
-    let alsoViewed: Product[] = [];
-    try {
-      const alsoViewedResponse = await proxyFetch('/store/products?limit=20&offset=0', {
-        next: { revalidate },
-      });
-
-      if (alsoViewedResponse.ok) {
-        const data = await alsoViewedResponse.json();
-        const mappedProducts = normalizeProducts(data.products || []).filter(
-          (item) => item.id !== product.id && !similarItemsMap.has(item.id),
-        );
-        const shuffledProducts = [...mappedProducts].sort(() => 0.5 - Math.random());
-        alsoViewed = shuffledProducts.slice(0, 5);
-      }
-    } catch (error) {
-      console.error('Error fetching also viewed items:', error);
-    }
-
     recordSsrRenderTime('/deal-details/[slug]', Date.now() - startedAt);
     return (
       <div className="min-h-screen">
         <ProductPage
           product={product}
           allCategories={allCategories}
-          similarItems={Array.from(similarItemsMap.values()).slice(0, 5)}
-          alsoViewed={alsoViewed}
         />
+        <Suspense fallback={<ProductRecommendationsLoading />}>
+          <ProductRecommendationsServer
+            productId={product.id}
+            categorySlugs={categorySlugs}
+            revalidateSeconds={revalidate}
+          />
+        </Suspense>
       </div>
     );
   } catch (error) {

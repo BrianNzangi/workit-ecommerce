@@ -7,7 +7,6 @@ import { Breadcrumb, Category } from "@/utils/breadcrumbs"
 import he from "he"
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa"
 import ProductInfo from "@/components/product/ProductInfo"
-import ProductRecommendations from "@/components/product/ProductRecommendations"
 import { Product } from "@/types/product"
 import { getImageUrl } from "@/lib/image-utils"
 import { trackMetaEvent } from "@/lib/meta-browser"
@@ -15,13 +14,9 @@ import { trackMetaEvent } from "@/lib/meta-browser"
 export default function ProductPage({
   product,
   allCategories,
-  similarItems,
-  alsoViewed,
 }: {
   product: Product
   allCategories: Category[]
-  similarItems: Product[]
-  alsoViewed: Product[]
 }) {
   const flattenCategories = (cats: any[]): any[] => {
     const flattened: any[] = [];
@@ -221,10 +216,6 @@ export default function ProductPage({
         />
         </div>
       </div>
-      <ProductRecommendations
-        similarItems={similarItems}
-        alsoViewed={alsoViewed}
-      />
     </main>
   )
 }

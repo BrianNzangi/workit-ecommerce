@@ -1,4 +1,4 @@
-import { pgTable, text, varchar, integer, boolean, doublePrecision, unique, timestamp, foreignKey } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, boolean, doublePrecision, unique, timestamp, foreignKey, index } from "drizzle-orm/pg-core";
 import { assetTypeEnum, productConditionEnum } from "./enums.js";
 
 export const assets = pgTable("Asset", {
@@ -63,7 +63,10 @@ export const products = pgTable("Product", {
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().notNull(),
     deletedAt: timestamp("deletedAt"),
-});
+}, (t) => ({
+    byEnabledCreatedAt: index("Product_enabled_created_at_idx").on(t.enabled, t.createdAt),
+    byBrand: index("Product_brand_idx").on(t.brandId),
+}));
 
 export const productAssets = pgTable("ProductAsset", {
     id: text("id").primaryKey().notNull(),
@@ -73,6 +76,7 @@ export const productAssets = pgTable("ProductAsset", {
     featured: boolean("featured").default(false).notNull(),
 }, (t) => ({
     unq: unique().on(t.productId, t.assetId),
+    byProductSort: index("ProductAsset_product_sort_idx").on(t.productId, t.sortOrder),
 }));
 
 export const productCollections = pgTable("ProductCollection", {
@@ -82,4 +86,6 @@ export const productCollections = pgTable("ProductCollection", {
     sortOrder: integer("sortOrder").default(0).notNull(),
 }, (t) => ({
     unq: unique().on(t.productId, t.collectionId),
+    byCollectionProduct: index("ProductCollection_collection_product_idx").on(t.collectionId, t.productId),
+    byProduct: index("ProductCollection_product_idx").on(t.productId),
 }));

@@ -31,7 +31,7 @@ const bannersQuerySchema = z.object({
 
 export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
     const TTL = {
-        productsList: 60,
+        productsList: 300,
         productSearch: 60,
         productDetail: 300,
         brands: 1800,
@@ -229,10 +229,78 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
             offset: parsedOffset,
             orderBy,
             with: {
-                assets: { with: { asset: true } },
-                collections: { with: { collection: true } },
-                brand: true,
-                campaignProducts: { with: { campaign: true } },
+                assets: {
+                    columns: {
+                        id: true,
+                        productId: true,
+                        assetId: true,
+                        sortOrder: true,
+                        featured: true,
+                    },
+                    with: {
+                        asset: {
+                            columns: {
+                                id: true,
+                                name: true,
+                                source: true,
+                                preview: true,
+                            },
+                        },
+                    },
+                },
+                collections: {
+                    columns: {
+                        id: true,
+                        productId: true,
+                        collectionId: true,
+                        sortOrder: true,
+                    },
+                    with: {
+                        collection: {
+                            columns: {
+                                id: true,
+                                name: true,
+                                slug: true,
+                                parentId: true,
+                            },
+                        },
+                    },
+                },
+                brand: {
+                    columns: {
+                        id: true,
+                        name: true,
+                        slug: true,
+                    },
+                },
+                campaignProducts: {
+                    columns: {
+                        id: true,
+                        campaignId: true,
+                        productId: true,
+                        sortOrder: true,
+                    },
+                    with: {
+                        campaign: {
+                            columns: {
+                                id: true,
+                                name: true,
+                                slug: true,
+                                type: true,
+                                status: true,
+                                startDate: true,
+                                endDate: true,
+                                discountType: true,
+                                discountValue: true,
+                                couponCode: true,
+                                minPurchaseAmount: true,
+                                maxDiscountAmount: true,
+                                usageLimit: true,
+                                usagePerCustomer: true,
+                            },
+                        },
+                    },
+                },
             }
         });
         const payload = {
