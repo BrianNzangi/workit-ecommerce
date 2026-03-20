@@ -1,9 +1,21 @@
-import SectionContainer from "@/components/layout/SectionContainer";
+function PageSkeletonContainer({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={`mx-auto w-full max-w-[1200px] px-4 sm:px-6 md:px-8 ${className}`}>
+      {children}
+    </div>
+  );
+}
 
 function RelatedProductsSkeleton({ title }: { title: string }) {
   return (
     <section className="bg-accent-800 py-12 mt-12 w-full">
-      <SectionContainer>
+      <PageSkeletonContainer>
         <div className="h-8 w-72 rounded bg-white/20 animate-pulse mb-6" />
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {Array.from({ length: 5 }).map((_, index) => (
@@ -18,7 +30,7 @@ function RelatedProductsSkeleton({ title }: { title: string }) {
             </div>
           ))}
         </div>
-      </SectionContainer>
+      </PageSkeletonContainer>
     </section>
   );
 }
@@ -26,7 +38,7 @@ function RelatedProductsSkeleton({ title }: { title: string }) {
 export default function Loading() {
   return (
     <main className="font-sans mt-8 animate-pulse">
-      <SectionContainer className="mb-8">
+      <PageSkeletonContainer className="mb-8">
         <div className="mb-6 flex items-center gap-2">
           <div className="h-4 w-16 rounded bg-gray-200" />
           <div className="h-4 w-4 rounded bg-gray-200" />
@@ -87,7 +99,7 @@ export default function Loading() {
             </div>
           </div>
         </div>
-      </SectionContainer>
+      </PageSkeletonContainer>
 
       <RelatedProductsSkeleton title="similar-items" />
       <RelatedProductsSkeleton title="also-viewed" />

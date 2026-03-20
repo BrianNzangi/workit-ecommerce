@@ -205,7 +205,7 @@ export default function ProductPage({
                   More about this item
                 </h2>
                 <div
-                  className="-mt-12 prose prose-sm md:prose-base max-w-none text-secondary-700 [&>p]:mb-2 [&>ul]:mb-4 [&>ol]:mb-4 [&>h1]:mb-3 [&>h2]:mb-3 [&>h3]:mb-3 [&>li]:mb-1 [&_a]:text-primary-900 [&_a]:underline [&_a:hover]:text-[#e04500]"
+                  className="prose prose-sm md:prose-base max-w-none text-secondary-700 [&>p]:mb-2 [&>ul]:mb-4 [&>ol]:mb-4 [&>h1]:mb-3 [&>h2]:mb-3 [&>h3]:mb-3 [&>li]:mb-1 [&_a]:text-primary-900 [&_a]:underline [&_a:hover]:text-[#e04500]"
                   dangerouslySetInnerHTML={{
                     __html: he.decode(product.description.trim()),
                   }}
