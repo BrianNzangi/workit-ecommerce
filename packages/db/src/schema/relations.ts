@@ -15,6 +15,10 @@ export const productsRelations = relations(catalog.products, ({ many, one }) => 
         fields: [catalog.products.brandId],
         references: [catalog.brands.id],
     }),
+    shippingMethod: one(fulfillment.shippingMethods, {
+        fields: [catalog.products.shippingMethodId],
+        references: [fulfillment.shippingMethods.id],
+    }),
 }));
 
 export const assetsRelations = relations(catalog.assets, ({ many }) => ({
@@ -211,6 +215,7 @@ export const paymentsRelations = relations(fulfillment.payments, ({ one }) => ({
 }));
 
 export const shippingMethodsRelations = relations(fulfillment.shippingMethods, ({ many }) => ({
+    products: many(catalog.products),
     zones: many(fulfillment.shippingZones),
 }));
 

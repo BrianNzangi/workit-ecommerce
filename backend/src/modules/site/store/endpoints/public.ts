@@ -780,16 +780,18 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
                 title: collection.title,
                 slug: collection.slug,
                 enabled: collection.enabled,
+                status: collection.enabled ? "active" : "draft",
                 sortOrder: collection.sortOrder,
                 createdAt: collection.createdAt,
                 updatedAt: collection.updatedAt,
                 products: (collection.products || [])
                     .slice(0, 12)
-                    .map((entry: any) => entry.product)
-                    .filter(Boolean)
-                    .map((product: any) =>
-                        serializeProductListItem(enrichProductCampaigns(product, { onlyActive: true }))
-                    ),
+                    .map((entry: any) => ({
+                        ...entry,
+                        product: entry.product
+                            ? serializeProductListItem(enrichProductCampaigns(entry.product, { onlyActive: true }))
+                            : entry.product,
+                    })),
             })),
         };
         await fastify.cache.set(cacheKey, payload, TTL.homepageCollections, ["homepage-collections", "products", "campaigns"]);
