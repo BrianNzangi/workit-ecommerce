@@ -26,7 +26,6 @@ export default function BlogCard({ title, slug, category, image }: BlogCardProps
             fill
             sizes="(max-width: 768px) 100vw, 300px"
             style={{ objectFit: 'cover' }}
-            className="transition-transform group-hover:scale-105"
             priority={true} // optional: for faster loading of visible cards
             unoptimized
           />

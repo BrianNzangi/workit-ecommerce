@@ -36,6 +36,7 @@ export default function EditBlogPage() {
     const [fetchingBlog, setFetchingBlog] = useState(true);
     const [uploadingImage, setUploadingImage] = useState(false);
     const [blogId, setBlogId] = useState<string | null>(null);
+    const [editorContent, setEditorContent] = useState<string | null>(null);
 
     const [formData, setFormData] = useState({
         title: '',
@@ -63,7 +64,7 @@ export default function EditBlogPage() {
                 },
             }),
         ],
-        content: '<p>Loading...</p>',
+        content: '',
         editorProps: {
             attributes: {
                 class: 'prose max-w-none focus:outline-none min-h-[400px] px-4 py-3',
@@ -81,6 +82,12 @@ export default function EditBlogPage() {
         }
     }, [params.id]);
 
+    useEffect(() => {
+        if (editor && editorContent !== null) {
+            editor.commands.setContent(editorContent || '<p></p>');
+        }
+    }, [editor, editorContent]);
+
     const fetchBlog = async (id: string) => {
         try {
             const service = new BlogService();
@@ -94,6 +101,7 @@ export default function EditBlogPage() {
                 metaDescription: blog.metaDescription || '',
             });
             setPublished(blog.published);
+            setEditorContent(blog.content || '');
 
             // Load image from asset if available
             if (blog.assetId) {
@@ -102,10 +110,6 @@ export default function EditBlogPage() {
                 if (blog.asset?.source) {
                     setFeaturedImage(blog.asset.source);
                 }
-            }
-
-            if (editor) {
-                editor.commands.setContent(blog.content);
             }
         } catch (error: any) {
             console.error('Error fetching blog:', error);
@@ -328,7 +332,10 @@ export default function EditBlogPage() {
                         <BlogSidebar
                             featuredImage={featuredImage}
                             onImageUpload={handleImageUpload}
-                            onImageRemove={() => setFeaturedImage(null)}
+                            onImageRemove={() => {
+                                setFeaturedImage(null);
+                                setAssetId(null);
+                            }}
                             author={formData.author}
                             onAuthorChange={handleChange}
                             uploadingImage={uploadingImage}

@@ -43,11 +43,13 @@ export function BlogSidebar({
                 <h3 className="text-sm font-medium text-gray-700 mb-4">Featured Image</h3>
                 {featuredImage ? (
                     <div className="relative">
-                        <img
-                            src={featuredImage}
-                            alt="Featured"
-                            className="w-full h-48 object-cover rounded-lg"
-                        />
+                        <div className="aspect-video w-full overflow-hidden rounded-lg">
+                            <img
+                                src={featuredImage}
+                                alt="Featured"
+                                className="h-full w-full object-cover"
+                            />
+                        </div>
                         <button
                             onClick={onImageRemove}
                             className="absolute top-2 right-2 bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 text-sm"

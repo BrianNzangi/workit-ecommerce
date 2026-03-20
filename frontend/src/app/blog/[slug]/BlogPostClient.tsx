@@ -82,13 +82,15 @@ export default function BlogPostClient({ slug }: BlogPostClientProps) {
 
               {blog.image && (
                 <div className="mb-8">
-                  <Image
-                    src={blog.image}
-                    alt={blog.title}
-                    width={800}
-                    height={400}
-                    className="w-full h-auto rounded-xs"
-                  />
+                  <div className="relative aspect-video w-full overflow-hidden rounded-xs">
+                    <Image
+                      src={blog.image}
+                      alt={blog.title}
+                      fill
+                      className="object-cover"
+                      unoptimized
+                    />
+                  </div>
                 </div>
               )}
 
