@@ -7,6 +7,7 @@ import { SITE_CONFIG } from '@/lib/meta';
 import { fetchCollections } from '@/lib/collections-server';
 import { proxyFetch } from '@/lib/proxy-utils';
 import { getFirstBanner } from '@/lib/homepage-data';
+import { normalizeProducts } from '@/lib/product-normalization';
 
 interface Props {
   params: Promise<{ slug: string[] }>
@@ -24,36 +25,6 @@ const flattenCollections = (colls: ApiCollection[]): ApiCollection[] => {
   }
   return result;
 };
-
-const normalizeProducts = (data: any) =>
-  (data.products || []).map((product: any) => {
-    const featuredProductAsset = product.assets?.find((a: any) => a.featured) || product.assets?.[0];
-    const mainImage = featuredProductAsset?.asset?.source || featuredProductAsset?.asset?.preview || '';
-
-    return {
-      id: product.id,
-      name: product.name,
-      slug: product.slug,
-      description: product.description,
-      images: product.assets?.map((a: any) => ({
-        id: a.asset.id,
-        url: a.asset.source || a.asset.preview || '',
-        source: a.asset.source,
-        preview: a.asset.preview,
-        featured: a.featured,
-        altText: a.asset.name || product.name,
-      })) || [],
-      image: mainImage,
-      price: Number(product.salePrice ?? 0),
-      compareAtPrice: product.originalPrice ? Number(product.originalPrice) : undefined,
-      variantId: product.id,
-      stockOnHand: product.stockOnHand ?? 0,
-      canBuy: (product.stockOnHand ?? 0) > 0,
-      categories: product.collections?.map((c: any) => c.collection) || [],
-      brand: product.brand,
-      condition: product.condition,
-    } as Product;
-  });
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const resolvedParams = await params;
@@ -151,7 +122,7 @@ export default async function CollectionPage({ params }: Props) {
 
       if (productsRes.ok) {
         const data = await productsRes.json()
-        products = normalizeProducts(data)
+        products = normalizeProducts(data.products || [])
       } else {
         console.error('Failed to fetch products, status:', productsRes.status);
       }

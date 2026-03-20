@@ -85,7 +85,7 @@ gtag('config', 'G-Y0DN0MB5CV');`,
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className="font-sans flex flex-col min-h-screen">
+      <body suppressHydrationWarning className="font-sans flex flex-col min-h-screen">
         <QueryProvider>
           <CartInitializer />
           <MetaCookieInitializer />

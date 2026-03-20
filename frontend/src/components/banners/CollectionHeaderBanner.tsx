@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { getImageUrl } from '@/lib/image-utils';
 import { getBannerHref, type StoreBanner } from '@/lib/banner-target';
+import SectionContainer from '@/components/layout/SectionContainer';
 
 interface CollectionHeaderBannerProps {
   title: string;
@@ -28,27 +29,29 @@ export default function CollectionHeaderBanner({
   const bannerAlt = banner.title || title;
 
   return (
-    <Link href={bannerLink} className="block">
-      <div className="relative mb-6 hidden h-32 w-full overflow-hidden md:block">
-        <Image
-          src={desktopImage}
-          alt={bannerAlt}
-          fill
-          className="object-cover"
-          priority
-          unoptimized
-        />
-      </div>
-      <div className="relative mb-6 block h-48 w-full overflow-hidden md:hidden">
-        <Image
-          src={mobileImage}
-          alt={bannerAlt}
-          fill
-          className="object-cover"
-          priority
-          unoptimized
-        />
-      </div>
-    </Link>
+    <SectionContainer>
+      <Link href={bannerLink} className="block">
+        <div className="relative mb-6 hidden h-32 w-full overflow-hidden md:block">
+          <Image
+            src={desktopImage}
+            alt={bannerAlt}
+            fill
+            className="object-cover"
+            priority
+            unoptimized
+          />
+        </div>
+        <div className="relative mb-6 block h-48 w-full overflow-hidden md:hidden">
+          <Image
+            src={mobileImage}
+            alt={bannerAlt}
+            fill
+            className="object-cover"
+            priority
+            unoptimized
+          />
+        </div>
+      </Link>
+    </SectionContainer>
   );
 }

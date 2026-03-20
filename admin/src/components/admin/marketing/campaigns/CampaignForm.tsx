@@ -2,23 +2,27 @@
 
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Calendar, Plus, Search, Tag, Trash2, Users } from 'lucide-react';
+import { format } from 'date-fns';
+import { Calendar, Plus, Search, Trash2, Users } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import {
-    Banner,
-    BannerService,
     CampaignFeaturedProduct,
     CampaignService,
     Collection,
     CollectionService,
     CreateCampaignInput,
 } from '@/lib/services';
+import { getImageUrl } from '@/lib/shared/images';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
     Select,
     SelectContent,
@@ -58,8 +62,155 @@ const toNumber = (value: string) => {
     return Number.isFinite(parsed) ? parsed : 0;
 };
 
-const getBannerDisplayName = (banner: Banner) =>
-    (banner as any)?.name || (banner as any)?.title || banner.id;
+const PRODUCTS_PER_PAGE = 10;
+const MAX_SELECTED_PRODUCTS = 10;
+
+const getProductImage = (product: CampaignFeaturedProduct) => {
+    const asset = product.assets?.[0]?.asset || product.assets?.[0];
+    return getImageUrl(asset?.preview || asset?.source || '');
+};
+
+const formatDateTimeLabel = (value: string) => {
+    if (!value) return 'Select date & time';
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+        return 'Select date & time';
+    }
+
+    return format(parsed, 'PPP p');
+};
+
+const splitDateTimeValue = (value: string) => {
+    if (!value) {
+        return {
+            date: '',
+            time: '',
+        };
+    }
+
+    const [date = '', time = ''] = value.split('T');
+    return {
+        date,
+        time: time.slice(0, 5),
+    };
+};
+
+const mergeDateAndTimeValue = (currentValue: string, nextDate?: string, nextTime?: string) => {
+    const current = splitDateTimeValue(currentValue);
+    const date = nextDate ?? current.date;
+    const time = nextTime ?? current.time ?? '00:00';
+
+    if (!date) return '';
+    return `${date}T${time || '00:00'}`;
+};
+
+function DateTimeDropdownField({
+    id,
+    label,
+    value,
+    required,
+    onChange,
+}: {
+    id: string;
+    label: string;
+    value: string;
+    required?: boolean;
+    onChange: (value: string) => void;
+}) {
+    const { date, time } = splitDateTimeValue(value);
+
+    return (
+        <div className="space-y-2">
+            <Label htmlFor={id}>{label}</Label>
+            <DropdownMenu modal={false}>
+                <DropdownMenuTrigger asChild>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full justify-start border-gray-200 px-3 font-normal"
+                    >
+                        <span className={`flex-1 text-left ${value ? 'text-secondary-900' : 'text-muted-foreground'}`}>
+                            {formatDateTimeLabel(value)}
+                        </span>
+                        <Calendar className="ml-auto h-4 w-4 shrink-0 text-muted-foreground" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-80 border-gray-200 p-4">
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor={`${id}-date`}>Date</Label>
+                            <Input
+                                id={`${id}-date`}
+                                type="date"
+                                value={date}
+                                required={required}
+                                onChange={(event) => onChange(mergeDateAndTimeValue(value, event.target.value, undefined))}
+                                className="border-gray-200"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor={`${id}-time`}>Time</Label>
+                            <Input
+                                id={`${id}-time`}
+                                type="time"
+                                value={time}
+                                onChange={(event) => onChange(mergeDateAndTimeValue(value, undefined, event.target.value))}
+                                className="border-gray-200"
+                            />
+                        </div>
+                    </div>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
+    );
+}
+
+function PaginationControls({
+    currentPage,
+    totalItems,
+    onPageChange,
+}: {
+    currentPage: number;
+    totalItems: number;
+    onPageChange: (page: number) => void;
+}) {
+    const totalPages = Math.max(1, Math.ceil(totalItems / PRODUCTS_PER_PAGE));
+
+    if (totalItems <= PRODUCTS_PER_PAGE) {
+        return null;
+    }
+
+    return (
+        <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3 text-sm">
+            <span className="text-muted-foreground">
+                Page {currentPage} of {totalPages}
+            </span>
+            <div className="flex items-center gap-2">
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="border-gray-200"
+                    onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                >
+                    Previous
+                </Button>
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="border-gray-200"
+                    onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+                    disabled={currentPage === totalPages}
+                >
+                    Next
+                </Button>
+            </div>
+        </div>
+    );
+}
 
 export function CampaignForm({ mode = 'create', campaignId }: CampaignFormProps) {
     const router = useRouter();
@@ -71,22 +222,19 @@ export function CampaignForm({ mode = 'create', campaignId }: CampaignFormProps)
 
     const [formData, setFormData] = useState(createInitialCampaignFormData());
     const [collections, setCollections] = useState<Collection[]>([]);
-    const [banners, setBanners] = useState<Banner[]>([]);
 
     const [productQuery, setProductQuery] = useState('');
     const [productCategoryId, setProductCategoryId] = useState('');
     const [productOptions, setProductOptions] = useState<CampaignFeaturedProduct[]>([]);
     const [selectedProducts, setSelectedProducts] = useState<CampaignFeaturedProduct[]>([]);
     const [loadingProducts, setLoadingProducts] = useState(false);
+    const [availableProductsPage, setAvailableProductsPage] = useState(1);
+    const [selectedProductsPage, setSelectedProductsPage] = useState(1);
 
     const loadCollectionsAndBanners = async () => {
-        const [collectionData, bannerData] = await Promise.all([
-            new CollectionService().getCollections(),
-            new BannerService().getBanners(),
-        ]);
+        const collectionData = await new CollectionService().getCollections();
 
         setCollections(collectionData || []);
-        setBanners(bannerData || []);
     };
 
     const loadCampaign = async () => {
@@ -156,7 +304,7 @@ export function CampaignForm({ mode = 'create', campaignId }: CampaignFormProps)
                 const results = await campaignService.getCampaignProductOptions({
                     q: productQuery.trim() || undefined,
                     categoryId: productCategoryId || undefined,
-                    limit: 30,
+                    limit: 50,
                     selectedIds: formData.productIds,
                 });
 
@@ -176,6 +324,14 @@ export function CampaignForm({ mode = 'create', campaignId }: CampaignFormProps)
         };
     }, [productCategoryId, productQuery, formData.productIds]);
 
+    useEffect(() => {
+        setAvailableProductsPage(1);
+    }, [productCategoryId, productQuery]);
+
+    useEffect(() => {
+        setSelectedProductsPage(1);
+    }, [selectedProducts.length]);
+
     const handleFieldChange = <K extends keyof typeof formData>(field: K, value: (typeof formData)[K]) => {
         setFormData((previous) => ({
             ...previous,
@@ -183,17 +339,16 @@ export function CampaignForm({ mode = 'create', campaignId }: CampaignFormProps)
         }));
     };
 
-    const toggleIdField = (field: 'bannerIds' | 'collectionIds', id: string) => {
-        setFormData((previous) => ({
-            ...previous,
-            [field]: previous[field].includes(id)
-                ? previous[field].filter((item) => item !== id)
-                : [...previous[field], id],
-        }));
-    };
-
     const addFeaturedProduct = (product: CampaignFeaturedProduct) => {
         if (formData.productIds.includes(product.id)) return;
+        if (formData.productIds.length >= MAX_SELECTED_PRODUCTS) {
+            toast({
+                title: 'Selection limit reached',
+                description: `You can only select up to ${MAX_SELECTED_PRODUCTS} featured products per campaign.`,
+                variant: 'error',
+            });
+            return;
+        }
 
         setFormData((previous) => ({
             ...previous,
@@ -214,6 +369,16 @@ export function CampaignForm({ mode = 'create', campaignId }: CampaignFormProps)
         const selectedSet = new Set(formData.productIds);
         return productOptions.filter((product) => !selectedSet.has(product.id));
     }, [productOptions, formData.productIds]);
+
+    const paginatedFeaturedProductOptions = useMemo(() => {
+        const start = (availableProductsPage - 1) * PRODUCTS_PER_PAGE;
+        return featuredProductOptions.slice(start, start + PRODUCTS_PER_PAGE);
+    }, [availableProductsPage, featuredProductOptions]);
+
+    const paginatedSelectedProducts = useMemo(() => {
+        const start = (selectedProductsPage - 1) * PRODUCTS_PER_PAGE;
+        return selectedProducts.slice(start, start + PRODUCTS_PER_PAGE);
+    }, [selectedProducts, selectedProductsPage]);
 
     const submit = async (event: FormEvent) => {
         event.preventDefault();
@@ -298,6 +463,7 @@ export function CampaignForm({ mode = 'create', campaignId }: CampaignFormProps)
     const isBuyXGetY = formData.discountType === 'BUY_X_GET_Y';
     const isPercentageDiscount = formData.discountType === 'PERCENTAGE';
     const isFixedDiscount = formData.discountType === 'FIXED_AMOUNT';
+    const hasDiscountSettings = formData.discountType !== 'NONE';
 
     return (
         <div className="p-8">
@@ -317,15 +483,33 @@ export function CampaignForm({ mode = 'create', campaignId }: CampaignFormProps)
                                 <CardTitle>Campaign Details</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="campaign-name">Campaign Name</Label>
-                                    <Input
-                                        id="campaign-name"
-                                        required
-                                        value={formData.name}
-                                        onChange={(event) => handleFieldChange('name', event.target.value)}
-                                        placeholder="e.g. Back to School 2026"
-                                    />
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+                                    <div className="space-y-2 md:col-span-3">
+                                        <Label htmlFor="campaign-name">Campaign Name</Label>
+                                        <Input
+                                            id="campaign-name"
+                                            required
+                                            value={formData.name}
+                                            onChange={(event) => handleFieldChange('name', event.target.value)}
+                                            placeholder="e.g. Back to School 2026"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2 md:col-span-1">
+                                        <Label>Status</Label>
+                                        <Select value={formData.status} onValueChange={(value) => handleFieldChange('status', value)}>
+                                            <SelectTrigger className="border-gray-200">
+                                                <SelectValue placeholder="Select status" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {CAMPAIGN_STATUS_OPTIONS.map((option) => (
+                                                    <SelectItem key={option.value} value={option.value}>
+                                                        {option.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                 </div>
 
                                 <div className="space-y-2">
@@ -351,9 +535,28 @@ export function CampaignForm({ mode = 'create', campaignId }: CampaignFormProps)
 
                                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                     <div className="space-y-2">
+                                        <Label>Discount Type</Label>
+                                        <Select
+                                            value={formData.discountType}
+                                            onValueChange={(value) => handleFieldChange('discountType', value)}
+                                        >
+                                            <SelectTrigger className="border-gray-200">
+                                                <SelectValue placeholder="Select discount type" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {DISCOUNT_TYPE_OPTIONS.map((option) => (
+                                                    <SelectItem key={option.value} value={option.value}>
+                                                        {option.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    <div className="space-y-2">
                                         <Label>Campaign Type</Label>
                                         <Select value={formData.type} onValueChange={(value) => handleFieldChange('type', value)}>
-                                            <SelectTrigger>
+                                            <SelectTrigger className="border-gray-200">
                                                 <SelectValue placeholder="Select type" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -365,25 +568,120 @@ export function CampaignForm({ mode = 'create', campaignId }: CampaignFormProps)
                                             </SelectContent>
                                         </Select>
                                     </div>
-
-                                    <div className="space-y-2">
-                                        <Label>Status</Label>
-                                        <Select value={formData.status} onValueChange={(value) => handleFieldChange('status', value)}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select status" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {CAMPAIGN_STATUS_OPTIONS.map((option) => (
-                                                    <SelectItem key={option.value} value={option.value}>
-                                                        {option.label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
                                 </div>
                             </CardContent>
                         </Card>
+
+                        {hasDiscountSettings ? (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>
+                                        {isBuyXGetY
+                                            ? 'Buy X Get Y Settings'
+                                            : formData.discountType === 'FREE_SHIPPING'
+                                                ? 'Free Shipping Settings'
+                                                : 'Discount Settings'}
+                                    </CardTitle>
+                                    <CardDescription>
+                                        Configure the extra rules for the selected discount type.
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                        {formData.discountType !== 'FREE_SHIPPING' ? (
+                                            <div className="space-y-2">
+                                                <Label htmlFor="discount-value">
+                                                    {isBuyXGetY
+                                                        ? 'Get Quantity'
+                                                        : `Discount Value ${isPercentageDiscount ? '(%)' : '(KES)'}`}
+                                                </Label>
+                                                <Input
+                                                    id="discount-value"
+                                                    type="number"
+                                                    min={isBuyXGetY ? 1 : 0}
+                                                    step={isBuyXGetY || isPercentageDiscount ? 1 : 0.01}
+                                                    value={formData.discountValue}
+                                                    onChange={(event) => handleFieldChange('discountValue', toNumber(event.target.value))}
+                                                    className="border-gray-200"
+                                                />
+                                            </div>
+                                        ) : (
+                                            <div />
+                                        )}
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="coupon-code">Coupon Code</Label>
+                                            <Input
+                                                id="coupon-code"
+                                                value={formData.couponCode}
+                                                onChange={(event) => handleFieldChange('couponCode', event.target.value.toUpperCase())}
+                                                placeholder="e.g. SCHOOL2026"
+                                                className="border-gray-200"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="min-purchase">
+                                                {isBuyXGetY ? 'Buy Quantity' : 'Min Purchase Amount (KES)'}
+                                            </Label>
+                                            <Input
+                                                id="min-purchase"
+                                                type="number"
+                                                min={isBuyXGetY ? 1 : 0}
+                                                step={isBuyXGetY ? 1 : 0.01}
+                                                value={formData.minPurchaseAmount}
+                                                onChange={(event) => handleFieldChange('minPurchaseAmount', toNumber(event.target.value))}
+                                                className="border-gray-200"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="usage-limit">Total Usage Limit</Label>
+                                            <Input
+                                                id="usage-limit"
+                                                type="number"
+                                                min={0}
+                                                value={formData.usageLimit}
+                                                onChange={(event) => handleFieldChange('usageLimit', toNumber(event.target.value))}
+                                                className="border-gray-200"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="usage-per-customer">Usage Per Customer</Label>
+                                            <Input
+                                                id="usage-per-customer"
+                                                type="number"
+                                                min={1}
+                                                value={formData.usagePerCustomer}
+                                                onChange={(event) => handleFieldChange('usagePerCustomer', Math.max(1, toNumber(event.target.value)))}
+                                                className="border-gray-200"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {isPercentageDiscount ? (
+                                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="max-discount">Max Discount Amount (KES)</Label>
+                                                <Input
+                                                    id="max-discount"
+                                                    type="number"
+                                                    min={0}
+                                                    step={0.01}
+                                                    value={formData.maxDiscountAmount}
+                                                    onChange={(event) => handleFieldChange('maxDiscountAmount', toNumber(event.target.value))}
+                                                    className="border-gray-200"
+                                                />
+                                            </div>
+                                            <div />
+                                        </div>
+                                    ) : null}
+                                </CardContent>
+                            </Card>
+                        ) : null}
 
                         <Card>
                             <CardHeader>
@@ -393,181 +691,19 @@ export function CampaignForm({ mode = 'create', campaignId }: CampaignFormProps)
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                <div className="space-y-2">
-                                    <Label htmlFor="campaign-start">Start Date</Label>
-                                    <Input
-                                        id="campaign-start"
-                                        type="datetime-local"
-                                        required
-                                        value={formData.startDate}
-                                        onChange={(event) => handleFieldChange('startDate', event.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="campaign-end">End Date</Label>
-                                    <Input
-                                        id="campaign-end"
-                                        type="datetime-local"
-                                        value={formData.endDate}
-                                        onChange={(event) => handleFieldChange('endDate', event.target.value)}
-                                    />
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Tag className="h-5 w-5" />
-                                    Discount & Promotion
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label>Discount Type</Label>
-                                    <Select
-                                        value={formData.discountType}
-                                        onValueChange={(value) => handleFieldChange('discountType', value)}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select discount type" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {DISCOUNT_TYPE_OPTIONS.map((option) => (
-                                                <SelectItem key={option.value} value={option.value}>
-                                                    {option.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                {formData.discountType !== 'NONE' && formData.discountType !== 'FREE_SHIPPING' ? (
-                                    <div className="space-y-2">
-                                        <Label htmlFor="discount-value">
-                                            {isBuyXGetY
-                                                ? 'Get Quantity'
-                                                : `Discount Value ${isPercentageDiscount ? '(%)' : '(KES)'}`}
-                                        </Label>
-                                        <Input
-                                            id="discount-value"
-                                            type="number"
-                                            min={isBuyXGetY ? 1 : 0}
-                                            step={isBuyXGetY || isPercentageDiscount ? 1 : 0.01}
-                                            value={formData.discountValue}
-                                            onChange={(event) => handleFieldChange('discountValue', toNumber(event.target.value))}
-                                        />
-                                    </div>
-                                ) : null}
-
-                                {formData.discountType !== 'NONE' ? (
-                                    <>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="coupon-code">Coupon Code</Label>
-                                            <Input
-                                                id="coupon-code"
-                                                value={formData.couponCode}
-                                                onChange={(event) => handleFieldChange('couponCode', event.target.value.toUpperCase())}
-                                                placeholder="e.g. SCHOOL2026"
-                                            />
-                                        </div>
-
-                                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                            <div className="space-y-2">
-                                                <Label htmlFor="min-purchase">
-                                                    {isBuyXGetY ? 'Buy Quantity' : 'Min Purchase Amount (KES)'}
-                                                </Label>
-                                                <Input
-                                                    id="min-purchase"
-                                                    type="number"
-                                                    min={isBuyXGetY ? 1 : 0}
-                                                    step={isBuyXGetY ? 1 : 0.01}
-                                                    value={formData.minPurchaseAmount}
-                                                    onChange={(event) => handleFieldChange('minPurchaseAmount', toNumber(event.target.value))}
-                                                />
-                                            </div>
-
-                                            {isPercentageDiscount ? (
-                                                <div className="space-y-2">
-                                                    <Label htmlFor="max-discount">Max Discount Amount (KES)</Label>
-                                                    <Input
-                                                        id="max-discount"
-                                                        type="number"
-                                                        min={0}
-                                                        step={0.01}
-                                                        value={formData.maxDiscountAmount}
-                                                        onChange={(event) => handleFieldChange('maxDiscountAmount', toNumber(event.target.value))}
-                                                    />
-                                                </div>
-                                            ) : null}
-                                        </div>
-
-                                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                            <div className="space-y-2">
-                                                <Label htmlFor="usage-limit">Total Usage Limit</Label>
-                                                <Input
-                                                    id="usage-limit"
-                                                    type="number"
-                                                    min={0}
-                                                    value={formData.usageLimit}
-                                                    onChange={(event) => handleFieldChange('usageLimit', toNumber(event.target.value))}
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="usage-per-customer">Usage Per Customer</Label>
-                                                <Input
-                                                    id="usage-per-customer"
-                                                    type="number"
-                                                    min={1}
-                                                    value={formData.usagePerCustomer}
-                                                    onChange={(event) => handleFieldChange('usagePerCustomer', Math.max(1, toNumber(event.target.value)))}
-                                                />
-                                            </div>
-                                        </div>
-                                    </>
-                                ) : null}
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Associated Content</CardTitle>
-                                <CardDescription>Select related banners and categories for this campaign.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                <div className="space-y-2">
-                                    <Label>Banners</Label>
-                                    <div className="max-h-48 space-y-2 overflow-auto rounded-sm border p-3">
-                                        {banners.length === 0 ? (
-                                            <p className="text-sm text-muted-foreground">No banners available.</p>
-                                        ) : banners.map((banner) => (
-                                            <label key={banner.id} className="flex items-center gap-3 text-sm">
-                                                <Checkbox
-                                                    checked={formData.bannerIds.includes(banner.id)}
-                                                    onCheckedChange={() => toggleIdField('bannerIds', banner.id)}
-                                                />
-                                                <span>{getBannerDisplayName(banner)}</span>
-                                            </label>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label>Categories</Label>
-                                    <div className="max-h-48 space-y-2 overflow-auto rounded-sm border p-3">
-                                        {collections.length === 0 ? (
-                                            <p className="text-sm text-muted-foreground">No categories available.</p>
-                                        ) : collections.map((collection) => (
-                                            <label key={collection.id} className="flex items-center gap-3 text-sm">
-                                                <Checkbox
-                                                    checked={formData.collectionIds.includes(collection.id)}
-                                                    onCheckedChange={() => toggleIdField('collectionIds', collection.id)}
-                                                />
-                                                <span>{collection.name}</span>
-                                            </label>
-                                        ))}
-                                    </div>
-                                </div>
+                                <DateTimeDropdownField
+                                    id="campaign-start"
+                                    label="Start Date"
+                                    value={formData.startDate}
+                                    required
+                                    onChange={(value) => handleFieldChange('startDate', value)}
+                                />
+                                <DateTimeDropdownField
+                                    id="campaign-end"
+                                    label="End Date"
+                                    value={formData.endDate}
+                                    onChange={(value) => handleFieldChange('endDate', value)}
+                                />
                             </CardContent>
                         </Card>
 
@@ -594,7 +730,7 @@ export function CampaignForm({ mode = 'create', campaignId }: CampaignFormProps)
                                         value={productCategoryId || '__all__'}
                                         onValueChange={(value) => setProductCategoryId(value === '__all__' ? '' : value)}
                                     >
-                                        <SelectTrigger>
+                                        <SelectTrigger className="border-gray-200">
                                             <SelectValue placeholder="Filter by category" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -608,7 +744,7 @@ export function CampaignForm({ mode = 'create', campaignId }: CampaignFormProps)
                                     </Select>
                                 </div>
 
-                                <div className="rounded-sm border">
+                                <div className="rounded-sm border border-gray-200">
                                     <Table>
                                         <TableHeader>
                                             <TableRow>
@@ -630,15 +766,35 @@ export function CampaignForm({ mode = 'create', campaignId }: CampaignFormProps)
                                                         No products found for this filter.
                                                     </TableCell>
                                                 </TableRow>
-                                            ) : featuredProductOptions.map((product) => (
+                                            ) : paginatedFeaturedProductOptions.map((product) => (
                                                 <TableRow key={product.id}>
                                                     <TableCell>
-                                                        <div className="font-medium">{product.name}</div>
-                                                        <div className="text-xs text-muted-foreground">{product.sku || product.slug}</div>
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xs border border-gray-200 bg-gray-50">
+                                                                {getProductImage(product) ? (
+                                                                    <img
+                                                                        src={getProductImage(product)}
+                                                                        alt={product.name}
+                                                                        className="h-full w-full object-cover"
+                                                                    />
+                                                                ) : null}
+                                                            </div>
+                                                            <div>
+                                                                <div className="font-medium">{product.name}</div>
+                                                                <div className="text-xs text-muted-foreground">{product.sku || product.slug}</div>
+                                                            </div>
+                                                        </div>
                                                     </TableCell>
                                                     <TableCell>{formatKes(product.salePrice ?? product.originalPrice ?? 0)}</TableCell>
                                                     <TableCell>
-                                                        <Button type="button" size="sm" variant="outline" onClick={() => addFeaturedProduct(product)}>
+                                                        <Button
+                                                            type="button"
+                                                            size="sm"
+                                                            variant="outline"
+                                                            className="border-gray-200"
+                                                            onClick={() => addFeaturedProduct(product)}
+                                                            disabled={formData.productIds.length >= MAX_SELECTED_PRODUCTS}
+                                                        >
                                                             <Plus className="h-4 w-4" />
                                                             Add
                                                         </Button>
@@ -647,15 +803,24 @@ export function CampaignForm({ mode = 'create', campaignId }: CampaignFormProps)
                                             ))}
                                         </TableBody>
                                     </Table>
+                                    <PaginationControls
+                                        currentPage={availableProductsPage}
+                                        totalItems={featuredProductOptions.length}
+                                        onPageChange={setAvailableProductsPage}
+                                    />
                                 </div>
 
                                 <div className="space-y-2">
                                     <div className="flex items-center justify-between">
                                         <Label>Selected Products</Label>
-                                        <Badge variant="info">{formData.productIds.length} selected</Badge>
+                                        <Badge variant="info">{formData.productIds.length}/{MAX_SELECTED_PRODUCTS} selected</Badge>
                                     </div>
 
-                                    <div className="rounded-sm border">
+                                    <p className="text-xs text-muted-foreground">
+                                        Featured products are capped at {MAX_SELECTED_PRODUCTS} per campaign.
+                                    </p>
+
+                                    <div className="rounded-sm border border-gray-200">
                                         <Table>
                                             <TableHeader>
                                                 <TableRow>
@@ -665,17 +830,30 @@ export function CampaignForm({ mode = 'create', campaignId }: CampaignFormProps)
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
-                                                {selectedProducts.length === 0 ? (
-                                                    <TableRow>
-                                                        <TableCell colSpan={3} className="text-sm text-muted-foreground">
-                                                            No featured products selected.
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ) : selectedProducts.map((product) => (
+                                            {selectedProducts.length === 0 ? (
+                                                <TableRow>
+                                                    <TableCell colSpan={3} className="text-sm text-muted-foreground">
+                                                        No featured products selected.
+                                                    </TableCell>
+                                                </TableRow>
+                                                ) : paginatedSelectedProducts.map((product) => (
                                                     <TableRow key={product.id}>
                                                         <TableCell>
-                                                            <div className="font-medium">{product.name}</div>
-                                                            <div className="text-xs text-muted-foreground">{product.sku || product.slug}</div>
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xs border border-gray-200 bg-gray-50">
+                                                                    {getProductImage(product) ? (
+                                                                        <img
+                                                                            src={getProductImage(product)}
+                                                                            alt={product.name}
+                                                                            className="h-full w-full object-cover"
+                                                                        />
+                                                                    ) : null}
+                                                                </div>
+                                                                <div>
+                                                                    <div className="font-medium">{product.name}</div>
+                                                                    <div className="text-xs text-muted-foreground">{product.sku || product.slug}</div>
+                                                                </div>
+                                                            </div>
                                                         </TableCell>
                                                         <TableCell>{formatKes(product.salePrice ?? product.originalPrice ?? 0)}</TableCell>
                                                         <TableCell>
@@ -692,6 +870,11 @@ export function CampaignForm({ mode = 'create', campaignId }: CampaignFormProps)
                                                 ))}
                                             </TableBody>
                                         </Table>
+                                        <PaginationControls
+                                            currentPage={selectedProductsPage}
+                                            totalItems={selectedProducts.length}
+                                            onPageChange={setSelectedProductsPage}
+                                        />
                                     </div>
                                 </div>
                             </CardContent>

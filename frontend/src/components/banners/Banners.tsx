@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import SectionContainer from '@/components/layout/SectionContainer'
 
 export default function Banners() {
   const banners = [
@@ -10,12 +11,13 @@ export default function Banners() {
   ]
 
   return (
-    <section className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-4 mb-8">
-      <div className="flex gap-4 overflow-x-auto md:grid md:grid-cols-3 md:overflow-visible no-scrollbar cursor-pointer">
-        {banners.map((banner, index) => (
-          <div
-            key={index}
-            className="
+    <section className="mb-8">
+      <SectionContainer>
+        <div className="flex gap-4 overflow-x-auto md:grid md:grid-cols-3 md:overflow-visible no-scrollbar cursor-pointer">
+          {banners.map((banner, index) => (
+            <div
+              key={index}
+              className="
               relative 
               w-[80%] sm:w-[60%] md:w-full 
               aspect-video sm:aspect-20/9 md:aspect-4/1 lg:aspect-5/1 
@@ -23,18 +25,19 @@ export default function Banners() {
               rounded-sm 
               shrink-0
             "
-          >
-            <Image
-              src={banner.src}
-              alt={banner.alt}
-              fill
-              className="object-cover object-center rounded-sm"
-              priority={index === 0}
-              unoptimized
-            />
-          </div>
-        ))}
-      </div>
+            >
+              <Image
+                src={banner.src}
+                alt={banner.alt}
+                fill
+                className="object-cover object-center rounded-sm"
+                priority={index === 0}
+                unoptimized
+              />
+            </div>
+          ))}
+        </div>
+      </SectionContainer>
     </section>
   )
 }

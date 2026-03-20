@@ -6,17 +6,18 @@ import toast from "react-hot-toast"
 import { useCartStore } from "@/store/cartStore"
 import { useRouter } from "next/navigation"
 import { ShieldCheck, Undo2, Handshake, Minus, Plus as PlusIcon, ChevronRight } from "lucide-react"
+import { getProductPriceDisplay, getProductPromotionBadge } from "@/lib/product-promotion"
 
 interface ProductInfoProps {
   product: Product
-  effectivePrice: number
-  effectiveOriginalPrice: number
+  cartPrice: number
+  cartOriginalPrice: number
 }
 
 export default function ProductInfo({
   product,
-  effectivePrice,
-  effectiveOriginalPrice,
+  cartPrice,
+  cartOriginalPrice,
 }: ProductInfoProps) {
   const [quantity, setQuantity] = useState(1)
 
@@ -26,6 +27,13 @@ export default function ProductInfo({
   // Helper to normalize Woo prices
   const getNumericPrice = (val?: string | number) =>
     val && !isNaN(Number(val)) ? Number(val) : undefined
+
+  const { displayPrice, regularPrice, savingsLabel } = getProductPriceDisplay({
+    price: cartPrice,
+    compareAtPrice: cartOriginalPrice,
+    activePromotion: product.activePromotion,
+  })
+  const promotionBadge = getProductPromotionBadge(product)
 
   const handleAddToCart = async () => {
     // ✅ Single-Product Mode: Use the pre-normalized fields from the proxy API
@@ -47,8 +55,9 @@ export default function ProductInfo({
       variantId: String(variantId),
       name: product.name || 'Product',
       image: product.image || product.images?.[0]?.url || '',
-      price: effectivePrice,
+      price: cartPrice,
       quantity: quantity,
+      activePromotion: product.activePromotion || null,
     })
 
     toast.success(`Added ${quantity} item(s) to cart`)
@@ -68,8 +77,9 @@ export default function ProductInfo({
       variantId: String(variantId),
       name: product.name || 'Product',
       image: product.image || product.images?.[0]?.url || '',
-      price: effectivePrice,
+      price: cartPrice,
       quantity: quantity,
+      activePromotion: product.activePromotion || null,
     })
 
     router.push("/checkout")
@@ -84,13 +94,16 @@ export default function ProductInfo({
     return value.toLocaleString("en-KE")
   }
 
-  // Active price logic - already normalized
-  const activePrice = effectivePrice
-  const activeOriginalPrice = effectiveOriginalPrice
-
   return (
     <div className="w-full md:w-1/4 lg:w-1/3 sticky top-24 self-start">
       <div className="rounded-sm bg-white flex flex-col gap-4 mt-2">
+        {promotionBadge && (
+          <div className="flex">
+            <span className="inline-flex rounded-sm bg-primary-100 px-2 py-3 text-xs font-bold leading-none text-primary-900">
+              {promotionBadge}
+            </span>
+          </div>
+        )}
         <h1 className="text-lg text-secondary-900 font-bold -mb-4">{product.name}</h1>
         <div className="text-sm text-primary-900">
           Brand: {product.brand?.name || "N/A"}
@@ -98,16 +111,21 @@ export default function ProductInfo({
 
         {/* Price */}
         <div className="text-2xl md:text-2xl lg:md:text-3xl font-bold text-primary">
-          KSh.{formatPrice(activePrice)}
+          KSh.{formatPrice(displayPrice)}
           <span className="text-gray-500 text-base font-normal ml-2">
             excl. VAT
           </span>
-          {activeOriginalPrice > 0 && activeOriginalPrice !== activePrice && (
+          {regularPrice && regularPrice > displayPrice && (
             <span className="text-gray-400 text-lg font-normal line-through ml-3">
-              KSh.{formatPrice(activeOriginalPrice)}
+              KSh.{formatPrice(regularPrice)}
             </span>
           )}
         </div>
+        {savingsLabel && regularPrice && regularPrice > displayPrice && (
+          <div className="text-sm font-bold text-green-700">
+            {savingsLabel}
+          </div>
+        )}
 
         {/* Divider */}
         <div className="border-b border-gray-200"></div>

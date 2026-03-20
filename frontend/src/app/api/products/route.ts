@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { proxyFetch } from '@/lib/proxy-utils';
+import { normalizeProducts } from '@/lib/product-normalization';
 
 export async function GET(request: NextRequest) {
   try {
@@ -38,35 +39,7 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await response.json();
-    const products = (data.products || []).map((product: any) => {
-      // Find the featured asset or default to the first one
-      const featuredProductAsset = product.assets?.find((a: any) => a.featured) || product.assets?.[0];
-      const mainImage = featuredProductAsset?.asset?.source || featuredProductAsset?.asset?.preview || '';
-
-      return {
-        id: product.id,
-        name: product.name,
-        slug: product.slug,
-        description: product.description,
-        images: product.assets?.map((a: any) => ({
-          id: a.asset.id,
-          url: a.asset.source || a.asset.preview || '',
-          source: a.asset.source,
-          preview: a.asset.preview,
-          featured: a.featured,
-          altText: a.asset.name || product.name,
-        })) || [],
-        image: mainImage,
-        price: Number(product.salePrice ?? 0),
-        compareAtPrice: product.originalPrice ? Number(product.originalPrice) : undefined,
-        variantId: product.id,
-        stockOnHand: product.stockOnHand ?? 0,
-        canBuy: (product.stockOnHand ?? 0) > 0,
-        categories: product.collections?.map((c: any) => c.collection) || [],
-        brand: product.brand,
-        condition: product.condition,
-      };
-    });
+    const products = normalizeProducts(data.products || []);
 
     return NextResponse.json({
       products,

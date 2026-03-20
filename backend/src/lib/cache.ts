@@ -38,7 +38,10 @@ export function buildCacheKey(prefix: string, params?: Record<string, any>): str
 }
 
 export function createCacheStore(redis: RedisClient | null, log?: FastifyBaseLogger): CacheStore {
-    if (!redis) {
+    const enableCacheInDev = process.env.ENABLE_CACHE_IN_DEV === "true";
+    const cacheEnabled = Boolean(redis) && (process.env.NODE_ENV === "production" || enableCacheInDev);
+
+    if (!cacheEnabled || !redis) {
         return {
             enabled: false,
             async get<T>() {

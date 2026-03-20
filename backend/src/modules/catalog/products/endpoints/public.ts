@@ -1,63 +1,7 @@
 import { FastifyPluginAsync } from "fastify";
 import { db, schema, eq, desc, ilike, or, and, inArray } from "../../../../lib/db.js";
 import { buildCacheKey } from "../../../../lib/cache.js";
-
-const normalizeCampaignDate = (value: unknown): Date | null => {
-    if (!value) return null;
-    const parsed = new Date(String(value));
-    return Number.isNaN(parsed.getTime()) ? null : parsed;
-};
-
-const enrichProductCampaigns = (product: any, onlyActive = true) => {
-    const now = new Date();
-    const campaignRows = Array.isArray(product?.campaignProducts) ? product.campaignProducts : [];
-    const campaigns = campaignRows
-        .map((row: any) => row?.campaign)
-        .filter(Boolean)
-        .filter((campaign: any) => {
-            if (!onlyActive) return true;
-            if (campaign.status !== "ACTIVE") return false;
-
-            const startsAt = normalizeCampaignDate(campaign.startDate);
-            const endsAt = normalizeCampaignDate(campaign.endDate);
-            if (startsAt && startsAt > now) return false;
-            if (endsAt && endsAt < now) return false;
-            return true;
-        });
-
-    const dedupedCampaigns = Array.from(
-        new Map(campaigns.map((campaign: any) => [campaign.id, campaign])).values()
-    );
-
-    const campaignTypes = Array.from(
-        new Set(dedupedCampaigns.map((campaign: any) => campaign.type).filter(Boolean))
-    );
-    const discountTypes = Array.from(
-        new Set(dedupedCampaigns.map((campaign: any) => campaign.discountType).filter(Boolean))
-    );
-
-    return {
-        ...product,
-        campaigns: dedupedCampaigns.map((campaign: any) => ({
-            id: campaign.id,
-            name: campaign.name,
-            slug: campaign.slug,
-            type: campaign.type,
-            discountType: campaign.discountType,
-            status: campaign.status,
-            startDate: campaign.startDate,
-            endDate: campaign.endDate,
-        })),
-        campaignTypes,
-        campaignType: campaignTypes[0] || null,
-        discountTypes,
-        discountType: discountTypes[0] || null,
-        campaignProducts: undefined,
-    };
-};
-
-const enrichProductsWithCampaigns = (products: any[], onlyActive = true) =>
-    products.map((product: any) => enrichProductCampaigns(product, onlyActive));
+import { enrichProductCampaigns, enrichProductsWithCampaigns } from "../../../../lib/product-campaigns.js";
 
 export const productsPublicRoutes: FastifyPluginAsync = async (fastify) => {
     const LIST_TTL_SECONDS = 60;
@@ -120,7 +64,7 @@ export const productsPublicRoutes: FastifyPluginAsync = async (fastify) => {
             },
         });
 
-        const payload = { products: enrichProductsWithCampaigns(results) };
+        const payload = { products: enrichProductsWithCampaigns(results, { onlyActive: true }) };
         await fastify.cache.set(cacheKey, payload, LIST_TTL_SECONDS, [CACHE_TAG]);
         reply.header("x-cache", "MISS");
         reply.header("Cache-Control", `public, max-age=${LIST_TTL_SECONDS}`);
@@ -149,7 +93,7 @@ export const productsPublicRoutes: FastifyPluginAsync = async (fastify) => {
             },
         });
 
-        return { products: enrichProductsWithCampaigns(results) };
+        return { products: enrichProductsWithCampaigns(results, { onlyActive: true }) };
     });
 
     // Show Product (by ID or Slug)
@@ -183,7 +127,7 @@ export const productsPublicRoutes: FastifyPluginAsync = async (fastify) => {
             return reply.status(404).send({ message: "Product not found" });
         }
 
-        const payload = enrichProductCampaigns(product);
+        const payload = enrichProductCampaigns(product, { onlyActive: true });
         await fastify.cache.set(cacheKey, payload, DETAIL_TTL_SECONDS, [CACHE_TAG]);
         reply.header("x-cache", "MISS");
         reply.header("Cache-Control", `public, max-age=${DETAIL_TTL_SECONDS}`);

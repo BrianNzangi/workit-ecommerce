@@ -2,16 +2,16 @@
 @import "tw-animate-css";
 
 @theme {
-  --color-primary-900: #cc0000;
-  --color-primary-800: #d5372b;
-  --color-primary-700: #dd5445;
-  --color-primary-600: #e46c5c;
-  --color-primary-500: #ea8273;
-  --color-primary-400: #f0988a;
-  --color-primary-300: #f5ada1;
-  --color-primary-200: #f9c1b8;
-  --color-primary-100: #fcd6d0;
-  --color-primary-50: #feeae7;
+  --color-primary-900: #ea1d2a;
+  --color-primary-800: #ec343f;
+  --color-primary-700: #ee4a55;
+  --color-primary-600: #f0616a;
+  --color-primary-500: #f2777f;
+  --color-primary-400: #f58e95;
+  --color-primary-300: #f7a5aa;
+  --color-primary-200: #f9bbbf;
+  --color-primary-100: #fbd2d4;
+  --color-primary-50: #fde8ea;
 
   --color-secondary-900: #060709;
   --color-secondary-800: #181a1c;

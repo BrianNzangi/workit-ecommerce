@@ -4,16 +4,19 @@ import { cn } from "@/lib/utils";
 interface SectionContainerProps {
   children: ReactNode;
   className?: string;
+  fluid?: boolean;
 }
 
 export default function SectionContainer({
   children,
   className,
+  fluid = false,
 }: SectionContainerProps) {
   return (
     <div
       className={cn(
-        "mx-auto max-w-7xl px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-4",
+        "mx-auto",
+        fluid ? "w-full max-w-none" : "container",
         className,
       )}
     >

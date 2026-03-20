@@ -3,6 +3,7 @@ import { db, schema, and, eq, or, ilike, desc, count, isNull, inArray, asc, isNo
 import { z } from "zod";
 import { productSearchService } from "../../../../services/search/product-search.service.js";
 import { buildCacheKey } from "../../../../lib/cache.js";
+import { enrichProductCampaigns, enrichProductsWithCampaigns, normalizeCampaignDate } from "../../../../lib/product-campaigns.js";
 
 const productsQuerySchema = z.object({
     limit: z.coerce.number().default(50),
@@ -21,60 +22,6 @@ const bannersQuerySchema = z.object({
     collectionId: z.string().optional(),
     collection: z.string().optional(),
 });
-
-const normalizeCampaignDate = (value: unknown): Date | null => {
-    if (!value) return null;
-    const parsed = new Date(String(value));
-    return Number.isNaN(parsed.getTime()) ? null : parsed;
-};
-
-const enrichStoreProductCampaigns = (product: any) => {
-    const now = new Date();
-    const campaignRows = Array.isArray(product?.campaignProducts) ? product.campaignProducts : [];
-    const campaigns = campaignRows
-        .map((row: any) => row?.campaign)
-        .filter(Boolean)
-        .filter((campaign: any) => {
-            if (campaign.status !== "ACTIVE") return false;
-            const startsAt = normalizeCampaignDate(campaign.startDate);
-            const endsAt = normalizeCampaignDate(campaign.endDate);
-            if (startsAt && startsAt > now) return false;
-            if (endsAt && endsAt < now) return false;
-            return true;
-        });
-
-    const dedupedCampaigns = Array.from(
-        new Map(campaigns.map((campaign: any) => [campaign.id, campaign])).values()
-    );
-    const campaignTypes = Array.from(
-        new Set(dedupedCampaigns.map((campaign: any) => campaign.type).filter(Boolean))
-    );
-    const discountTypes = Array.from(
-        new Set(dedupedCampaigns.map((campaign: any) => campaign.discountType).filter(Boolean))
-    );
-
-    return {
-        ...product,
-        campaigns: dedupedCampaigns.map((campaign: any) => ({
-            id: campaign.id,
-            name: campaign.name,
-            slug: campaign.slug,
-            type: campaign.type,
-            discountType: campaign.discountType,
-            status: campaign.status,
-            startDate: campaign.startDate,
-            endDate: campaign.endDate,
-        })),
-        campaignTypes,
-        campaignType: campaignTypes[0] || null,
-        discountTypes,
-        discountType: discountTypes[0] || null,
-        campaignProducts: undefined,
-    };
-};
-
-const enrichStoreProductsCampaigns = (products: any[]) =>
-    products.map((product: any) => enrichStoreProductCampaigns(product));
 
 export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
     const TTL = {
@@ -179,7 +126,7 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
                 campaignProducts: { with: { campaign: true } },
             }
         });
-        const payload = { products: enrichStoreProductsCampaigns(results) };
+        const payload = { products: enrichProductsWithCampaigns(results, { onlyActive: true }) };
         await fastify.cache.set(cacheKey, payload, TTL.productsList, ["products"]);
         reply.header("x-cache", "MISS");
         reply.header("Cache-Control", `public, max-age=${TTL.productsList}`);
@@ -236,7 +183,7 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
             }
         });
         if (!product) return reply.status(404).send({ message: "Product not found" });
-        const payload = enrichStoreProductCampaigns(product);
+        const payload = enrichProductCampaigns(product, { onlyActive: true });
         await fastify.cache.set(cacheKey, payload, TTL.productDetail, ["products"]);
         reply.header("x-cache", "MISS");
         reply.header("Cache-Control", `public, max-age=${TTL.productDetail}`);
@@ -421,11 +368,30 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
         const results = await db.query.homepageCollections.findMany({
             where: eq(schema.homepageCollections.enabled, true),
             with: {
-                products: { with: { product: { with: { assets: { with: { asset: true } } } } } }
+                products: {
+                    with: {
+                        product: {
+                            with: {
+                                assets: { with: { asset: true } },
+                                campaignProducts: { with: { campaign: true } },
+                            },
+                        },
+                    },
+                },
             }
         });
-        const payload = { collections: results };
-        await fastify.cache.set(cacheKey, payload, TTL.homepageCollections, ["homepage-collections"]);
+        const payload = {
+            collections: results.map((collection: any) => ({
+                ...collection,
+                products: (collection.products || []).map((entry: any) => ({
+                    ...entry,
+                    product: entry.product
+                        ? enrichProductCampaigns(entry.product, { onlyActive: true })
+                        : entry.product,
+                })),
+            })),
+        };
+        await fastify.cache.set(cacheKey, payload, TTL.homepageCollections, ["homepage-collections", "products", "campaigns"]);
         reply.header("x-cache", "MISS");
         reply.header("Cache-Control", `public, max-age=${TTL.homepageCollections}`);
         return payload;

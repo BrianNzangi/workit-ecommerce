@@ -27,6 +27,15 @@ export async function POST(request: NextRequest) {
     const headersList = await headers();
     const cookie = headersList.get('cookie');
     const authHeader = headersList.get('authorization');
+    const csrfHeaderName = (
+        process.env.NEXT_PUBLIC_CSRF_HEADER_NAME?.trim() ||
+        process.env.CSRF_HEADER_NAME?.trim() ||
+        'x-xsrf-token'
+    ).toLowerCase();
+    const csrfToken =
+        headersList.get(csrfHeaderName) ||
+        headersList.get('x-xsrf-token') ||
+        headersList.get('x-csrf-token');
     const contentType = request.headers.get('content-type') || '';
     const env = process.env as Record<string, string | undefined>;
 
@@ -46,6 +55,7 @@ export async function POST(request: NextRequest) {
                 'x-api-key': env['INTERNAL_API_KEY'] || '',
                 ...(cookie && { 'Cookie': cookie }),
                 ...(authHeader && { 'Authorization': authHeader }),
+                ...(csrfToken && { [csrfHeaderName]: csrfToken }),
             },
             body: bodyBuffer,
         });

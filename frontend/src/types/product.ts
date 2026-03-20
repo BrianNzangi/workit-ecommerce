@@ -1,5 +1,50 @@
 import { Variant } from './variant';
 
+export interface ProductCampaign {
+  id: string;
+  name: string;
+  slug: string;
+  type: string;
+  discountType?: string | null;
+  status: string;
+  startDate?: string;
+  endDate?: string | null;
+  couponCode?: string | null;
+  discountValue?: number | null;
+  minPurchaseAmount?: number | null;
+  maxDiscountAmount?: number | null;
+  usageLimit?: number | null;
+  usagePerCustomer?: number | null;
+  badgeText?: string | null;
+  promotionalPrice?: number | null;
+  savingsAmount?: number | null;
+  savingsPercent?: number | null;
+  isActiveNow?: boolean;
+}
+
+export interface ProductPromotion {
+  id: string;
+  name: string;
+  slug: string;
+  type: string;
+  discountType?: string | null;
+  status: string;
+  startDate?: string;
+  endDate?: string | null;
+  couponCode?: string | null;
+  discountValue?: number | null;
+  minPurchaseAmount?: number | null;
+  maxDiscountAmount?: number | null;
+  usageLimit?: number | null;
+  usagePerCustomer?: number | null;
+  badgeText?: string | null;
+  promotionalPrice?: number | null;
+  savingsAmount?: number | null;
+  savingsPercent?: number | null;
+  isActiveNow?: boolean;
+  basePrice?: number;
+}
+
 // Product filter for search/filtering
 export interface ProductFilter {
   attribute?: string;
@@ -71,16 +116,8 @@ export interface Product {
     slug: string;
   }[];
 
-  campaigns?: {
-    id: string;
-    name: string;
-    slug: string;
-    type: string;
-    discountType?: string | null;
-    status: string;
-    startDate?: string;
-    endDate?: string | null;
-  }[];
+  campaigns?: ProductCampaign[];
+  activePromotion?: ProductPromotion | null;
 
   campaignType?: string | null;
   campaignTypes?: string[];

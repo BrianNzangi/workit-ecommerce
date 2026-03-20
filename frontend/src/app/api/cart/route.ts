@@ -26,6 +26,12 @@ const getForwardHeaders = (
   const cookie = request.headers.get("cookie");
   if (cookie) headers["cookie"] = cookie;
 
+  const csrfHeader =
+    request.headers.get("x-xsrf-token") ||
+    request.headers.get("x-csrf-token") ||
+    request.headers.get("csrf-token");
+  if (csrfHeader) headers["x-xsrf-token"] = csrfHeader;
+
   return headers;
 };
 

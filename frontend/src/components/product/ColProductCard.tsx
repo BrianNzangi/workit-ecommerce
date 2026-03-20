@@ -4,6 +4,7 @@ import toast from 'react-hot-toast'
 import { PackageCheck, ShoppingCart } from 'lucide-react'
 import { Product } from '@/types/product'
 import { getProductImageUrl } from '@/lib/image-utils'
+import { getProductPriceDisplay, getProductPromotionBadge } from '@/lib/product-promotion'
 import { useCartStore } from '@/store/cartStore'
 
 export default function ColProductCard({
@@ -17,21 +18,20 @@ export default function ColProductCard({
   variants,
   shippingMethod,
   condition,
+  activePromotion,
   variantId,
   canBuy,
 }: Product) {
   // Use pre-normalized data for Single-Product Mode
-  const displayPrice = price ?? 0;
-  const displayRegular = compareAtPrice ?? null;
+  const basePrice = price ?? 0;
+  const { displayPrice, regularPrice, savingsLabel } = getProductPriceDisplay({
+    price: basePrice,
+    compareAtPrice,
+    activePromotion,
+  });
+  const promotionBadge = getProductPromotionBadge({ activePromotion });
   const isVariantAvailable = canBuy ?? true;
   const finalVariantId = variantId || variants?.[0]?.id || id || '';
-
-
-
-  const discount =
-    displayRegular && displayRegular > displayPrice
-      ? Math.round(((displayRegular - displayPrice) / displayRegular) * 100)
-      : null
 
   const { addItem, openCart } = useCartStore();
 
@@ -68,8 +68,9 @@ export default function ColProductCard({
       variantId: finalVariantId, // Already a string (UUID)
       name: name || 'Product',
       image: imageUrl,
-      price: displayPrice,
+      price: basePrice,
       quantity: 1,
+      activePromotion: activePromotion || null,
     });
 
     // Open cart slide
@@ -136,6 +137,14 @@ export default function ColProductCard({
 
         {/* Product Info - Reduced spacing on mobile */}
         <div className="grow flex flex-col space-y-1 sm:space-y-1.5">
+          {promotionBadge && (
+            <div className="flex">
+              <span className="inline-flex rounded-md bg-red-600 px-2 py-1 text-[11px] font-bold leading-none text-white">
+                {promotionBadge}
+              </span>
+            </div>
+          )}
+
           {/* Product Name */}
           <h3 className="font-sans text-[15px] md:text-base font-medium text-gray-800 wrap-break-word whitespace-normal leading-snug">
             {name || 'Product'}
@@ -148,14 +157,16 @@ export default function ColProductCard({
                 KES {displayPrice.toLocaleString('en-US', { maximumFractionDigits: 0 })}
               </span>
             </div>
-            {displayRegular && displayRegular > displayPrice && discount !== null && (
+            {regularPrice && regularPrice > displayPrice && (
               <div className="flex items-center gap-2">
                 <span className="font-sans text-gray-500 text-sm md:text-base line-through">
-                  KES {displayRegular.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                  KES {regularPrice.toLocaleString('en-US', { maximumFractionDigits: 0 })}
                 </span>
-                <span className="text-green-700 text-sm md:text-base font-bold">
-                  {discount}% OFF
-                </span>
+                {savingsLabel && (
+                  <span className="text-green-700 text-sm md:text-base font-bold">
+                    {savingsLabel}
+                  </span>
+                )}
               </div>
             )}
 

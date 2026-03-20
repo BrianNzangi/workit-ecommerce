@@ -1,4 +1,25 @@
+import {
+  CSRF_COOKIE_NAME,
+  CSRF_HEADER_NAME,
+  ensureCsrfToken,
+  getCookieValue,
+  getSessionUrl,
+} from "@/lib/auth/csrf";
+
 const OPTIMIZABLE_IMAGE_TYPES = new Set(["image/jpeg", "image/jpg", "image/png", "image/webp"]);
+
+const getAuthBaseUrl = () => {
+  if (typeof window !== "undefined") {
+    return process.env.NEXT_PUBLIC_AUTH_BASE_URL?.trim() || window.location.origin;
+  }
+
+  return process.env.NEXT_PUBLIC_AUTH_BASE_URL?.trim() ||
+    process.env.NEXT_PUBLIC_ADMIN_BASE_URL?.trim() ||
+    "";
+};
+
+const AUTH_BASE_PATH = process.env.NEXT_PUBLIC_AUTH_BASE_PATH?.trim() || "/api/auth";
+const AUTH_SESSION_URL = getSessionUrl(AUTH_BASE_PATH, getAuthBaseUrl());
 
 function getOutputMimeType(inputType: string) {
   if (inputType === "image/png") return "image/png";
@@ -100,10 +121,17 @@ export async function uploadAdminAsset({
     formData.append("folder", folder);
   }
 
+  const headers = new Headers();
+  const csrfToken = (await ensureCsrfToken(AUTH_SESSION_URL)) || getCookieValue(CSRF_COOKIE_NAME);
+  if (csrfToken) {
+    headers.set(CSRF_HEADER_NAME, csrfToken);
+  }
+
   const response = await fetch("/api/admin/assets", {
     method: "POST",
     body: formData,
     credentials: "include",
+    headers,
   });
 
   if (!response.ok) {

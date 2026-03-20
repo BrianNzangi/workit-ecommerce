@@ -7,6 +7,7 @@
 
 import { useMemo } from 'react';
 import { useCartStore } from '@/store/cartStore';
+import type { ProductPromotion } from '@/types/product';
 
 export interface CartItem {
     id: string; // Line ID (kept for compatibility)
@@ -18,6 +19,7 @@ export interface CartItem {
     priceWithTax: number; // Price including tax
     quantity: number;
     image?: string;
+    activePromotion?: ProductPromotion | null;
 }
 
 export interface Cart {
@@ -52,6 +54,7 @@ export function useCart() {
             priceWithTax: item.price, // For now, price includes tax
             quantity: item.quantity,
             image: item.image,
+            activePromotion: item.activePromotion || null,
         }));
 
         const subtotal = transformedItems.reduce((sum, item) =>

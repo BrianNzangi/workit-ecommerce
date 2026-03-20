@@ -6,6 +6,7 @@ import type { Product } from '@/types/product';
 import { SITE_CONFIG } from '@/lib/meta';
 import { proxyFetch } from '@/lib/proxy-utils';
 import { getImageUrl } from '@/lib/image-utils';
+import { normalizeProduct, normalizeProducts } from '@/lib/product-normalization';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -47,48 +48,6 @@ const findL1Category = (productCategories: any[], all: any[]): any | null => {
   const chain = buildChain(firstCat, all);
   return chain.length > 0 ? chain[0] : null;
 };
-
-const mapStoreProducts = (rawProducts: any[]): Product[] =>
-  rawProducts.map((product: any) => {
-    const featuredProductAsset =
-      product.assets?.find((a: any) => a.featured) || product.assets?.[0];
-    const mainImage =
-      featuredProductAsset?.asset?.source || featuredProductAsset?.asset?.preview || '';
-
-    return {
-      id: product.id,
-      name: product.name,
-      slug: product.slug,
-      description: product.description,
-      images:
-        product.assets?.map((a: any) => ({
-          id: a.asset.id,
-          url: a.asset.source || a.asset.preview || '',
-          source: a.asset.source,
-          preview: a.asset.preview,
-          featured: a.featured,
-          altText: a.asset.name || product.name,
-        })) || [],
-      image: mainImage,
-      price: Number(product.salePrice ?? 0),
-      compareAtPrice: product.originalPrice ? Number(product.originalPrice) : undefined,
-      variantId: product.id,
-      stockOnHand: product.stockOnHand ?? 0,
-      canBuy: (product.stockOnHand ?? 0) > 0,
-      categories: product.collections?.map((c: any) => c.collection) || [],
-      brand: product.brand,
-      condition: product.condition,
-      shippingMethod: product.shippingMethod
-        ? {
-            id: product.shippingMethod.id,
-            code: product.shippingMethod.code,
-            name: product.shippingMethod.name,
-            description: product.shippingMethod.description,
-            isExpress: product.shippingMethod.isExpress || false,
-          }
-        : undefined,
-    } as Product;
-  });
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -195,38 +154,15 @@ export default async function ProductDetailPage({ params }: Props) {
       }
     };
 
-    const product: Product = {
-      id: productObj.id,
-      name: productObj.name,
-      slug: productObj.slug,
-      description: productObj.description,
-      short_description: productObj.shortDescription || productObj.description?.substring(0, 160),
+    const product: Product = normalizeProduct({
+      ...productObj,
+      shortDescription: productObj.shortDescription || productObj.description?.substring(0, 160),
+      featuredImage: mainImage,
       images: mappedImages,
-      image: mainImage,
-      price: Number(productObj.salePrice ?? 0),
-      compareAtPrice: productObj.originalPrice ? Number(productObj.originalPrice) : undefined,
-      variantId: productObj.id,
-      stockOnHand: productObj.stockOnHand ?? 0,
-      canBuy: (productObj.stockOnHand ?? 0) > 0,
-      variants: [fallbackVariant],
-      categories: productObj.collections?.map((c: any) => ({
-        id: c.collection.id,
-        name: c.collection.name,
-        slug: c.collection.slug,
-      })) || [],
-      brand: productObj.brand,
+      variants: productObj.variants?.length ? productObj.variants : [fallbackVariant],
+      collections: productObj.collections?.map((c: any) => c.collection) || [],
       inStock: (productObj.stockOnHand ?? 0) > 0,
-      condition: productObj.condition,
-      shippingMethod: productObj.shippingMethod ? {
-        id: productObj.shippingMethod.id,
-        code: productObj.shippingMethod.code,
-        name: productObj.shippingMethod.name,
-        description: productObj.shippingMethod.description,
-        isExpress: productObj.shippingMethod.isExpress || false,
-      } : undefined,
-      createdAt: productObj.createdAt,
-      updatedAt: productObj.updatedAt,
-    };
+    });
 
     let allCategories: Category[] = [];
     if (categoriesRes.ok) {
@@ -255,7 +191,7 @@ export default async function ProductDetailPage({ params }: Props) {
     for (const similarResponse of similarResponses) {
       if (!similarResponse?.ok) continue;
       const data = await similarResponse.json();
-      const mappedProducts = mapStoreProducts(data.products || []);
+      const mappedProducts = normalizeProducts(data.products || []);
 
       for (const similarProduct of mappedProducts) {
         if (similarProduct.id === product.id) continue;
@@ -276,7 +212,7 @@ export default async function ProductDetailPage({ params }: Props) {
 
       if (alsoViewedResponse.ok) {
         const data = await alsoViewedResponse.json();
-        const mappedProducts = mapStoreProducts(data.products || []).filter(
+        const mappedProducts = normalizeProducts(data.products || []).filter(
           (item) => item.id !== product.id && !similarItemsMap.has(item.id),
         );
         const shuffledProducts = [...mappedProducts].sort(() => 0.5 - Math.random());

@@ -1,4 +1,13 @@
 
+import {
+    CSRF_COOKIE_NAME,
+    CSRF_HEADER_NAME,
+    SAFE_HTTP_METHODS,
+    ensureCsrfToken,
+    getCookieValue,
+    getSessionUrl,
+} from "@/lib/auth/csrf";
+
 // For client-side requests, use the admin's own API proxy routes
 // This ensures cookies are sent correctly (same-origin)
 const getServerBackendUrl = () => {
@@ -15,6 +24,19 @@ const getServerBackendUrl = () => {
 const API_URL = typeof window !== "undefined"
     ? "/api/admin"  // Client-side: use admin's API proxy
     : getServerBackendUrl(); // Server-side: direct backend
+
+const getAuthBaseUrl = () => {
+    if (typeof window !== "undefined") {
+        return process.env.NEXT_PUBLIC_AUTH_BASE_URL?.trim() || window.location.origin;
+    }
+
+    return process.env.NEXT_PUBLIC_AUTH_BASE_URL?.trim() ||
+        process.env.NEXT_PUBLIC_ADMIN_BASE_URL?.trim() ||
+        "";
+};
+
+const AUTH_BASE_PATH = process.env.NEXT_PUBLIC_AUTH_BASE_PATH?.trim() || "/api/auth";
+const AUTH_SESSION_URL = getSessionUrl(AUTH_BASE_PATH, getAuthBaseUrl());
 
 interface RequestOptions extends RequestInit {
     params?: Record<string, string | number | boolean>;
@@ -82,6 +104,14 @@ class HttpClient {
             }
         } else {
             init.credentials = "include"; // For client-side requests
+
+            const method = String(init.method || "GET").toUpperCase();
+            if (!SAFE_HTTP_METHODS.has(method) && !headers.has(CSRF_HEADER_NAME)) {
+                const csrfToken = (await ensureCsrfToken(AUTH_SESSION_URL)) || getCookieValue(CSRF_COOKIE_NAME);
+                if (csrfToken) {
+                    headers.set(CSRF_HEADER_NAME, csrfToken);
+                }
+            }
         }
 
         const response = await fetch(url, { ...init, headers });

@@ -5,16 +5,19 @@ import { useCartStore } from "@/store/cartStore";
 import CartItem from "@/components/cart/CartItem";
 import CartSummary from "@/components/cart/CartSummary";
 import CartEmpty from "@/components/cart/CartEmpty";
+import { useHydrated } from "@/hooks/useHydrated";
 
 export default function CartPageClient() {
+  const hydrated = useHydrated();
   const { items } = useCartStore();
+  const safeItems = hydrated ? items : [];
 
   // Calculate total
-  const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const total = safeItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
   return (
     <section className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-12 py-6 font-sans space-y-4">
-      {items.length === 0 ? (
+      {safeItems.length === 0 ? (
         <CartEmpty />
       ) : (
         <>
@@ -23,7 +26,7 @@ export default function CartPageClient() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Cart Items */}
             <div className="md:col-span-2 space-y-6">
-              {items.map((item) => (
+              {safeItems.map((item) => (
                 <CartItem
                   key={item.id}
                   lineId={item.id}
@@ -31,6 +34,7 @@ export default function CartPageClient() {
                   price={item.price}
                   quantity={item.quantity}
                   image={item.image}
+                  activePromotion={item.activePromotion}
                 />
               ))}
 

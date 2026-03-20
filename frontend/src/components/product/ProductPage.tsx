@@ -74,11 +74,11 @@ export default function ProductPage({
   const images = product.images || []
   const trackedProductIdRef = useRef<string | null>(null)
 
-  const effectivePrice =
+  const cartPrice =
     (product as any).selectedVariationPrice ??
     (typeof product.price === "string" ? parseFloat(product.price) : product.price)
 
-  const effectiveOriginalPrice =
+  const cartOriginalPrice =
     (product as any).selectedVariationOriginalPrice ??
     (typeof product.compareAtPrice === "string"
       ? parseFloat(product.compareAtPrice)
@@ -94,13 +94,13 @@ export default function ProductPage({
       eventId: `view-content:${product.id}:${Date.now()}`,
       customData: {
         currency: "KES",
-        value: Number(effectivePrice || 0),
+        value: Number(cartPrice || 0),
         content_type: "product",
         content_ids: [String(product.id)],
         content_name: product.name,
       },
     })
-  }, [effectivePrice, product.id, product.name])
+  }, [cartPrice, product.id, product.name])
 
   const nextImage = () => {
     setSelectedIdx((prev) => (prev + 1) % images.length)
@@ -194,11 +194,11 @@ export default function ProductPage({
             )}
           </div>
 
-          <ProductInfo
-            product={product}
-            effectivePrice={effectivePrice}
-            effectiveOriginalPrice={effectiveOriginalPrice}
-          />
+        <ProductInfo
+          product={product}
+          cartPrice={cartPrice}
+          cartOriginalPrice={cartOriginalPrice}
+        />
         </div>
       </div>
 

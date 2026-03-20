@@ -14,6 +14,8 @@ function getBackendUrl() {
 }
 
 export async function proxyFetch(path: string, options: RequestInit = {}) {
+    const isProduction = process.env.NODE_ENV === 'production';
+
     // 1. Rate Limiting (Protects the backend from abuse)
     try {
         const headerList = await headers();
@@ -41,10 +43,11 @@ export async function proxyFetch(path: string, options: RequestInit = {}) {
 
     const isGet = !options.method || options.method.toUpperCase() === 'GET';
     const bypassCache = options.cache === 'no-store';
+    const canUseProxyCache = isProduction && !bypassCache;
     const cacheKey = `proxy:${path}`;
 
     // 2. Try to get from Redis cache if it's a GET request
-    if (isGet && !bypassCache) {
+    if (isGet && canUseProxyCache) {
         const cached = await getCachedData(cacheKey);
         if (cached) {
             return new Response(JSON.stringify(cached), {
@@ -82,7 +85,7 @@ export async function proxyFetch(path: string, options: RequestInit = {}) {
     });
 
     // 3. If it's a successful GET response, cache it in Redis
-    if (isGet && response.ok && !bypassCache) {
+    if (isGet && response.ok && canUseProxyCache) {
         const clonedResponse = response.clone();
         try {
             const data = await clonedResponse.json();

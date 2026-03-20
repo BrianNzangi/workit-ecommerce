@@ -5,6 +5,7 @@ import toast from 'react-hot-toast'
 import { PackageCheck, ShoppingCart } from 'lucide-react'
 import { Product } from '@/types/product'
 import { getProductImageUrl, shouldBypassImageOptimization } from '@/lib/image-utils'
+import { getProductPriceDisplay, getProductPromotionBadge } from '@/lib/product-promotion'
 import { useCartStore } from '@/store/cartStore'
 
 export default function ProductCard({
@@ -18,20 +19,21 @@ export default function ProductCard({
   variants,
   shippingMethod,
   condition,
+  activePromotion,
   variantId,
   canBuy,
 }: Product) {
   const router = useRouter();
   // Use pre-normalized data for Single-Product Mode
-  const displayPrice = price ?? 0;
-  const displayRegular = compareAtPrice ?? null;
+  const basePrice = price ?? 0;
+  const { displayPrice, regularPrice, savingsLabel } = getProductPriceDisplay({
+    price: basePrice,
+    compareAtPrice,
+    activePromotion,
+  });
+  const promotionBadge = getProductPromotionBadge({ activePromotion });
   const isVariantAvailable = canBuy ?? true;
   const finalVariantId = variantId || variants?.[0]?.id || id || '';
-
-  const discount =
-    displayRegular && displayRegular > displayPrice
-      ? Math.round(((displayRegular - displayPrice) / displayRegular) * 100)
-      : null
 
   const { addItem, openCart } = useCartStore();
   const productHref = `/deal-details/${slug}`;
@@ -80,8 +82,9 @@ export default function ProductCard({
       variantId: finalVariantId, // Already a string (UUID)
       name: name || 'Product',
       image: imageUrl,
-      price: displayPrice,
+      price: basePrice,
       quantity: 1,
+      activePromotion: activePromotion || null,
     });
 
     // Open cart slide
@@ -154,26 +157,39 @@ export default function ProductCard({
 
         {/* Product Info - Reduced spacing on mobile */}
         <div className="grow flex flex-col space-y-1 sm:space-y-1.5">
+          {promotionBadge && (
+            <div className="flex">
+              <span
+                className="inline-flex rounded-sm bg-primary-100 px-1 py-2 text-xs font-semibold leading-none text-primary-900"
+                aria-label={promotionBadge}
+              >
+                {promotionBadge}
+              </span>
+            </div>
+          )}
+
           {/* Product Name */}
-          <h3 className="font-sans text-sm md:text-base font-medium text-gray-800 wrap-break-word whitespace-normal leading-snug">
+          <h3 className="font-sans text-sm md:text-base font-medium text-secondary-800 wrap-break-word whitespace-normal leading-snug">
             {name || 'Product'}
           </h3>
 
           {/* Price Section */}
           <div className="pt-0.5 flex flex-col gap-1">
             <div>
-              <span className="font-sans text-lg md:text-xl font-bold text-[#1F2323]">
+              <span className="font-sans text-lg md:text-xl font-bold text-secondary-900">
                 KES {displayPrice.toLocaleString('en-US', { maximumFractionDigits: 0 })}
               </span>
             </div>
-            {displayRegular && displayRegular > displayPrice && discount !== null && (
+            {regularPrice && regularPrice > displayPrice && (
               <div className="flex items-center gap-2">
                 <span className="font-sans text-gray-500 text-sm md:text-base line-through">
-                  KES {displayRegular.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                  KES {regularPrice.toLocaleString('en-US', { maximumFractionDigits: 0 })}
                 </span>
-                <span className="text-green-700 text-sm md:text-base font-bold">
-                  {discount}% OFF
-                </span>
+                {savingsLabel && (
+                  <span className="text-green-700 text-sm md:text-base font-bold">
+                    {savingsLabel}
+                  </span>
+                )}
               </div>
             )}
 

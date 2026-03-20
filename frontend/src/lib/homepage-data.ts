@@ -3,6 +3,7 @@ import { normalizeProducts } from '@/lib/product-normalization';
 import { getImageUrl } from '@/lib/image-utils';
 import { Blog } from '@/types/blog';
 import { Collection } from '@/types/collections';
+import type { ProductPromotion, ProductCampaign } from '@/types/product';
 import { Variant } from '@/types/variant';
 import type { StoreBanner } from '@/lib/banner-target';
 
@@ -36,6 +37,8 @@ export interface HomepageProduct {
     variants?: Variant[];
     stockOnHand?: number;
     canBuy?: boolean;
+    campaigns?: ProductCampaign[];
+    activePromotion?: ProductPromotion | null;
 }
 
 export interface HomepageCollectionData {

@@ -23,26 +23,32 @@ export const POSITION_OPTIONS = POSITION_ORDER.map((value) => ({
 
 export function getDimensionsText(position: string, imageType: 'desktop' | 'mobile') {
     if (position === 'HERO') {
-        return imageType === 'desktop' ? '(1200 x 630px)' : '(1080 x 608px)';
+        return imageType === 'desktop' ? '(3000 x 864px)' : '(1200 x 990px)';
     }
     if (position === 'DEALS') {
-        return imageType === 'desktop' ? '(310 x 215px)' : '(310 x 165px)';
+        return imageType === 'desktop' ? '(1200 x 825px)' : '(1200 x 630px)';
     }
     if (['DEALS_HORIZONTAL', 'MIDDLE', 'BOTTOM'].includes(position)) {
-        return imageType === 'desktop' ? '(1200 x 210px)' : '(1080 x 210px)';
+        return imageType === 'desktop' ? '(2400 x 420px)' : '(1200 x 700px)';
+    }
+    if (position === 'COLLECTION_TOP') {
+        return imageType === 'desktop' ? '(2400 x 256px)' : '(1200 x 640px)';
     }
     return '';
 }
 
 export function getRecommendationText(position: string) {
     if (position === 'HERO') {
-        return 'Desktop - 1200 x 630 pixels, Mobile - 1080 x 608 pixels';
+        return 'Desktop - 3000 x 864 pixels, Mobile - 1200 x 990 pixels';
     }
     if (position === 'DEALS') {
-        return 'Desktop: 310 x 215px (16:11), Mobile: 310 x 165px (16:8.5)';
+        return 'Desktop: 1200 x 825px (16:11), Mobile: 1200 x 630px (16:8.4)';
     }
     if (['DEALS_HORIZONTAL', 'MIDDLE', 'BOTTOM'].includes(position)) {
-        return 'Desktop: 1200 x 210px, Mobile: 1080 x 210px';
+        return 'Desktop: 2400 x 420px, Mobile: 1200 x 700px';
+    }
+    if (position === 'COLLECTION_TOP') {
+        return 'Desktop: 2400 x 256px, Mobile: 1200 x 640px';
     }
     return '';
 }

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Tag, Loader2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCartStore } from '@/store/cartStore';
+import { CSRF_HEADER_NAME, ensureCsrfToken } from '@/lib/csrf';
 
 interface DiscountData {
     success: boolean;
@@ -39,9 +40,18 @@ export function CouponInput({ subtotal, onApply, onRemove }: Props) {
         setError(null);
 
         try {
+            const csrfToken = await ensureCsrfToken();
+            const headers: Record<string, string> = {
+                'Content-Type': 'application/json',
+            };
+            if (csrfToken) {
+                headers[CSRF_HEADER_NAME] = csrfToken;
+            }
+
             const res = await fetch('/api/coupons/validate', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers,
+                credentials: 'include',
                 body: JSON.stringify({
                     code,
                     subtotal,

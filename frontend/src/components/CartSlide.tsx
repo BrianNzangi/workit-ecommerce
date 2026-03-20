@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { X, Minus, Plus, ShoppingCart, Trash2 } from 'lucide-react';
 import { useCartStore } from '@/store/cartStore';
 import { getImageUrl } from '@/lib/image-utils';
+import { useHydrated } from '@/hooks/useHydrated';
 
 interface CartSlideProps {
   isOpen: boolean;
@@ -12,10 +13,12 @@ interface CartSlideProps {
 }
 
 export default function CartSlide({ isOpen, onClose }: CartSlideProps) {
+  const hydrated = useHydrated();
   const { items, increaseQuantity, decreaseQuantity, removeItem, getTotalQuantity } = useCartStore();
 
-  const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const itemCount = getTotalQuantity();
+  const safeItems = hydrated ? items : [];
+  const total = safeItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const itemCount = hydrated ? getTotalQuantity() : 0;
 
   return (
     <>
@@ -44,7 +47,7 @@ export default function CartSlide({ isOpen, onClose }: CartSlideProps) {
 
         {/* Body */}
         <div className="p-5 h-[calc(100%-180px)] overflow-y-auto">
-          {items.length === 0 ? (
+          {safeItems.length === 0 ? (
             <div className="text-center text-gray-600 mt-10">
               <ShoppingCart className="w-12 h-12 mx-auto text-gray-300 mb-3" />
               <p className="text-md font-sans font-medium">Your cart is empty</p>
@@ -54,7 +57,7 @@ export default function CartSlide({ isOpen, onClose }: CartSlideProps) {
             </div>
           ) : (
             <div className="space-y-4">
-              {items.map((item) => (
+              {safeItems.map((item) => (
                 <div key={item.id} className="flex gap-4 border-b border-gray-100 pb-4">
                   {/* Product Image */}
                   <div className="relative w-20 h-20 shrink-0 bg-gray-100 rounded-md overflow-hidden">
@@ -116,7 +119,7 @@ export default function CartSlide({ isOpen, onClose }: CartSlideProps) {
         {/* Footer */}
         <div className="absolute bottom-0 left-0 w-full bg-white border-t border-gray-100">
           {/* Total */}
-          {items.length > 0 && (
+          {safeItems.length > 0 && (
             <div className="px-5 py-3 border-b border-gray-100">
               <div className="flex justify-between items-center">
                 <span className="font-sans text-base font-semibold text-gray-800">Subtotal</span>
@@ -140,7 +143,7 @@ export default function CartSlide({ isOpen, onClose }: CartSlideProps) {
             <Link
               href="/checkout"
               onClick={onClose}
-              className={`w-full text-center bg-primary-900 text-white py-2 rounded-xs text-sm font-sans font-semibold hover:bg-[#e04500] transition ${items.length === 0 ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''
+              className={`w-full text-center bg-primary-900 text-white py-2 rounded-xs text-sm font-sans font-semibold hover:bg-[#e04500] transition ${safeItems.length === 0 ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''
                 }`}
             >
               Checkout Now

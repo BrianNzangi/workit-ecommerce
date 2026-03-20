@@ -214,9 +214,14 @@ const syncCampaignProducts = async (campaignId: string, productIds: string[]) =>
 };
 
 export const campaignsAdminRoutes: FastifyPluginAsync = async (fastify) => {
+    const campaignManagementGuard = [
+        fastify.authenticate,
+        fastify.authorizePermission(['marketing.campaigns.manage', 'marketing.content.manage']),
+    ];
+
     // List Campaigns
     fastify.get("/", {
-        preHandler: [fastify.authenticate, fastify.authorizePermission('marketing.campaigns.manage')],
+        preHandler: campaignManagementGuard,
     }, async (request) => {
         const { status, type, q } = request.query as any;
 
@@ -264,7 +269,7 @@ export const campaignsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Product options for Featured Products search/filter
     fastify.get("/products", {
-        preHandler: [fastify.authenticate, fastify.authorizePermission('marketing.campaigns.manage')],
+        preHandler: campaignManagementGuard,
     }, async (request) => {
         const {
             q = "",
@@ -322,7 +327,7 @@ export const campaignsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // New Campaign
     fastify.post("/", {
-        preHandler: [fastify.authenticate, fastify.authorizePermission('marketing.campaigns.manage')],
+        preHandler: campaignManagementGuard,
     }, async (request) => {
         const payload = request.body as CampaignInput;
         const id = uuidv4();
@@ -348,7 +353,7 @@ export const campaignsAdminRoutes: FastifyPluginAsync = async (fastify) => {
     });
 
     fastify.get("/search", {
-        preHandler: [fastify.authenticate, fastify.authorizePermission('marketing.campaigns.manage')],
+        preHandler: campaignManagementGuard,
     }, async (request) => {
         const { q } = request.query as any;
         const searchTerm = String(q || "").trim();
@@ -372,7 +377,7 @@ export const campaignsAdminRoutes: FastifyPluginAsync = async (fastify) => {
     });
 
     fastify.get("/:id/send-payload", {
-        preHandler: [fastify.authenticate, fastify.authorizePermission('marketing.campaigns.manage')],
+        preHandler: campaignManagementGuard,
     }, async (request, reply) => {
         const { id } = request.params as { id: string };
         const campaign = await db.query.campaigns.findFirst({
@@ -425,7 +430,7 @@ export const campaignsAdminRoutes: FastifyPluginAsync = async (fastify) => {
     });
 
     fastify.post("/:id/send", {
-        preHandler: [fastify.authenticate, fastify.authorizePermission('marketing.campaigns.manage')],
+        preHandler: campaignManagementGuard,
     }, async (request, reply) => {
         const { id } = request.params as { id: string };
         const body = request.body as Record<string, unknown>;
@@ -485,7 +490,7 @@ export const campaignsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Show Campaign
     fastify.get("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorizePermission('marketing.campaigns.manage')],
+        preHandler: campaignManagementGuard,
     }, async (request, reply) => {
         const { id } = request.params as { id: string };
         const campaign = await db.query.campaigns.findFirst({
@@ -542,16 +547,16 @@ export const campaignsAdminRoutes: FastifyPluginAsync = async (fastify) => {
     };
 
     fastify.put("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorizePermission('marketing.campaigns.manage')],
+        preHandler: campaignManagementGuard,
     }, updateCampaignHandler);
 
     fastify.patch("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorizePermission('marketing.campaigns.manage')],
+        preHandler: campaignManagementGuard,
     }, updateCampaignHandler);
 
     // Delete Campaign
     fastify.delete("/:id", {
-        preHandler: [fastify.authenticate, fastify.authorizePermission('marketing.campaigns.manage')],
+        preHandler: campaignManagementGuard,
     }, async (request) => {
         const { id } = request.params as { id: string };
         await db.delete(schema.campaigns).where(eq(schema.campaigns.id, id));
@@ -561,7 +566,7 @@ export const campaignsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Bulk Delete
     fastify.post("/bulk-delete", {
-        preHandler: [fastify.authenticate, fastify.authorizePermission('marketing.campaigns.manage')],
+        preHandler: campaignManagementGuard,
     }, async (request) => {
         const { ids } = request.body as { ids?: string[] };
         if (!Array.isArray(ids) || ids.length === 0) {

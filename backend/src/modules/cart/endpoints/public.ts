@@ -2,9 +2,24 @@ import { FastifyPluginAsync } from "fastify";
 import { db, schema, eq, and } from "../../../lib/db.js";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
+import { enrichProductCampaigns } from "../../../lib/product-campaigns.js";
 
 export const cartPublicRoutes: FastifyPluginAsync = async (fastify) => {
     fastify.addHook("preHandler", fastify.optionalStorefrontAuth);
+
+    const enrichCart = (cart: any) => {
+        if (!cart?.lines) return cart;
+
+        return {
+            ...cart,
+            lines: cart.lines.map((line: any) => ({
+                ...line,
+                product: line.product
+                    ? enrichProductCampaigns(line.product, { onlyActive: true })
+                    : line.product,
+            })),
+        };
+    };
 
     const getCart = async (req: any) => {
         const userId = req.storefrontUser?.id;
@@ -30,7 +45,12 @@ export const cartPublicRoutes: FastifyPluginAsync = async (fastify) => {
                                     with: {
                                         asset: true
                                     }
-                                }
+                                },
+                                campaignProducts: {
+                                    with: {
+                                        campaign: true,
+                                    },
+                                },
                             }
                         }
                     }
@@ -38,7 +58,7 @@ export const cartPublicRoutes: FastifyPluginAsync = async (fastify) => {
             }
         });
 
-        return cart;
+        return enrichCart(cart);
     };
 
     fastify.get("/", {

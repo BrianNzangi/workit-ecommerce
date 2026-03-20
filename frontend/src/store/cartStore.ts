@@ -2,6 +2,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import axios from 'axios';
+import type { ProductPromotion } from '@/types/product';
+import { CSRF_HEADER_NAME, ensureCsrfToken } from '@/lib/csrf';
 
 export type CartItem = {
   id: string; // This is the Line ID in backend
@@ -11,6 +13,7 @@ export type CartItem = {
   image: string;
   price: number;
   quantity: number;
+  activePromotion?: ProductPromotion | null;
 };
 
 type CartState = {
@@ -23,7 +26,15 @@ type CartState = {
   closeCart: () => void;
 
   fetchCart: () => Promise<void>;
-  addItem: (item: { id: string; variantId?: string; name: string; price: number; image: string; quantity?: number }) => Promise<void>;
+  addItem: (item: {
+    id: string;
+    variantId?: string;
+    name: string;
+    price: number;
+    image: string;
+    quantity?: number;
+    activePromotion?: ProductPromotion | null;
+  }) => Promise<void>;
   updateQuantity: (lineId: string, quantity: number) => Promise<void>;
   increaseQuantity: (lineId: string) => Promise<void>;
   decreaseQuantity: (lineId: string) => Promise<void>;
@@ -56,6 +67,15 @@ const getHeaders = (sessionId: string | null) => {
   if (sessionId) {
     headers['x-guest-id'] = sessionId;
     persistGuestCookie(sessionId);
+  }
+  return headers;
+};
+
+const getMutationHeaders = async (sessionId: string | null) => {
+  const headers = getHeaders(sessionId);
+  const csrfToken = await ensureCsrfToken();
+  if (csrfToken) {
+    headers[CSRF_HEADER_NAME] = csrfToken;
   }
   return headers;
 };
@@ -105,7 +125,8 @@ export const useCartStore = create<CartState>()(
               image: (line.product.assets && line.product.assets.length > 0 && line.product.assets[0].asset)
                 ? line.product.assets[0].asset.preview
                 : '',
-              quantity: line.quantity
+              quantity: line.quantity,
+              activePromotion: line.product.activePromotion || null,
             }));
             set({ items: mappedItems });
           }
@@ -129,7 +150,7 @@ export const useCartStore = create<CartState>()(
             productId: item.id,
             variantId: item.variantId,
             quantity
-          }, { headers: getHeaders(sessionId), withCredentials: true });
+          }, { headers: await getMutationHeaders(sessionId), withCredentials: true });
 
           // Refetch to get correct Line IDs and totals
           await get().fetchCart();
@@ -150,7 +171,7 @@ export const useCartStore = create<CartState>()(
         }));
 
         try {
-          await axios.put(`/api/cart/${lineId}`, { quantity }, { headers: getHeaders(sessionId), withCredentials: true });
+          await axios.put(`/api/cart/${lineId}`, { quantity }, { headers: await getMutationHeaders(sessionId), withCredentials: true });
           // No need to refetch if successful, as we updated optimistically
         } catch (error) {
           console.error('Failed to update quantity:', error);
@@ -168,7 +189,7 @@ export const useCartStore = create<CartState>()(
         }));
 
         try {
-          await axios.delete(`/api/cart/${lineId}`, { headers: getHeaders(sessionId), withCredentials: true });
+          await axios.delete(`/api/cart/${lineId}`, { headers: await getMutationHeaders(sessionId), withCredentials: true });
         } catch (error) {
           console.error('Failed to remove item:', error);
           await get().fetchCart();
@@ -197,7 +218,7 @@ export const useCartStore = create<CartState>()(
         const { sessionId } = get();
         set({ items: [] });
         try {
-          await axios.delete('/api/cart', { headers: getHeaders(sessionId), withCredentials: true });
+          await axios.delete('/api/cart', { headers: await getMutationHeaders(sessionId), withCredentials: true });
         } catch (error) {
           console.error('Failed to clear cart:', error);
         }
