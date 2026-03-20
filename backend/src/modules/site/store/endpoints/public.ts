@@ -36,8 +36,8 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
         productDetail: 300,
         brands: 1800,
         collections: 1800,
-        banners: 120,
-        homepageCollections: 120,
+        banners: 300,
+        homepageCollections: 300,
         campaigns: 120,
         shipping: 900,
         policies: 3600,
@@ -613,12 +613,53 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
         const results = await db.query.banners.findMany({
             where: bannerWhereClause,
             orderBy: [asc(schema.banners.sortOrder)],
+            columns: {
+                id: true,
+                title: true,
+                description: true,
+                slug: true,
+                position: true,
+                enabled: true,
+                sortOrder: true,
+            },
             with: {
-                desktopImage: true,
-                mobileImage: true,
-                collection: true,
-                product: true,
-                campaign: true,
+                desktopImage: {
+                    columns: {
+                        id: true,
+                        name: true,
+                        source: true,
+                        preview: true,
+                    },
+                },
+                mobileImage: {
+                    columns: {
+                        id: true,
+                        name: true,
+                        source: true,
+                        preview: true,
+                    },
+                },
+                collection: {
+                    columns: {
+                        id: true,
+                        name: true,
+                        slug: true,
+                    },
+                },
+                product: {
+                    columns: {
+                        id: true,
+                        name: true,
+                        slug: true,
+                    },
+                },
+                campaign: {
+                    columns: {
+                        id: true,
+                        name: true,
+                        slug: true,
+                    },
+                },
             }
         });
         const payload = { banners: results };

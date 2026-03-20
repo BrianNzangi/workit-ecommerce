@@ -99,6 +99,36 @@ function sortBanners(banners: StoreBanner[], position?: string) {
         .sort((a, b) => a.sortOrder - b.sortOrder);
 }
 
+export async function getHomepageBanners(): Promise<Record<string, StoreBanner[]>> {
+    const response = await proxyFetch('/store/banners?enabled=true', {
+        method: 'GET',
+        cache: 'force-cache',
+        next: { revalidate: 300 },
+        useRequestContext: false,
+    });
+
+    if (!response.ok) {
+        return {
+            HERO: [],
+            DEALS: [],
+            DEALS_HORIZONTAL: [],
+            MIDDLE: [],
+            BOTTOM: [],
+        };
+    }
+
+    const data = await response.json();
+    const banners = Array.isArray(data) ? data : (data.banners || []);
+
+    return {
+        HERO: sortBanners(banners, 'HERO'),
+        DEALS: sortBanners(banners, 'DEALS'),
+        DEALS_HORIZONTAL: sortBanners(banners, 'DEALS_HORIZONTAL'),
+        MIDDLE: sortBanners(banners, 'MIDDLE'),
+        BOTTOM: sortBanners(banners, 'BOTTOM'),
+    };
+}
+
 export async function getStoreBanners(
     position?: string,
     options: { collectionSlug?: string; campaignSlug?: string } = {},
@@ -121,7 +151,7 @@ export async function getStoreBanners(
 
     const response = await proxyFetch(`/store/banners?${params.toString()}`, {
         method: 'GET',
-        next: { revalidate: 120 },
+        next: { revalidate: 300 },
     });
 
     if (!response.ok) {
@@ -228,7 +258,7 @@ export async function getHomepageCollections(
 
     const response = await proxyFetch(`/store/homepage-collections?${params.toString()}`, {
         method: 'GET',
-        next: { revalidate: 120 },
+        next: { revalidate: 300 },
     });
 
     if (!response.ok) {

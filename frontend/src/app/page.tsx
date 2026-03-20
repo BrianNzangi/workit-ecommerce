@@ -8,10 +8,9 @@ import HorizontalBanner from '@/components/banners/HorizontalBanner';
 import AboutWorkit from '@/components/home/AboutWorkit';
 import {
     getFeaturedBlogs,
-    getFirstBanner,
+    getHomepageBanners,
     getHomepageCollections,
     getMostShoppedCollections,
-    getStoreBanners,
 } from '@/lib/homepage-data';
 import { recordSsrRenderTime } from '@/lib/metrics';
 import { SITE_CONFIG, DEFAULT_OG, DEFAULT_TWITTER } from '@/lib/meta';
@@ -28,7 +27,7 @@ export const metadata: Metadata = {
     twitter: DEFAULT_TWITTER,
 };
 
-export const revalidate = 120;
+export const revalidate = 300;
 
 const unwrapSettled = <T,>(result: PromiseSettledResult<T>, fallback: T): T =>
     result.status === 'fulfilled' ? result.value : fallback;
@@ -36,24 +35,27 @@ const unwrapSettled = <T,>(result: PromiseSettledResult<T>, fallback: T): T =>
 export default async function Home() {
     const startedAt = Date.now();
     const results = await Promise.allSettled([
-        getStoreBanners('HERO'),
-        getStoreBanners('DEALS'),
-        getFirstBanner('DEALS_HORIZONTAL'),
-        getFirstBanner('MIDDLE'),
-        getFirstBanner('BOTTOM'),
+        getHomepageBanners(),
         getMostShoppedCollections(),
         getHomepageCollections({ status: 'active' }),
         getFeaturedBlogs(),
     ]);
 
-    const heroBanners = unwrapSettled(results[0], []);
-    const dealsBanners = unwrapSettled(results[1], []);
-    const topHorizontalBanner = unwrapSettled(results[2], null);
-    const middleBanner = unwrapSettled(results[3], null);
-    const bottomBanner = unwrapSettled(results[4], null);
-    const mostShoppedCollections = unwrapSettled(results[5], []);
-    const homepageCollections = unwrapSettled(results[6], []);
-    const featuredBlogs = unwrapSettled(results[7], []);
+    const homepageBanners = unwrapSettled(results[0], {
+        HERO: [],
+        DEALS: [],
+        DEALS_HORIZONTAL: [],
+        MIDDLE: [],
+        BOTTOM: [],
+    });
+    const heroBanners = homepageBanners.HERO;
+    const dealsBanners = homepageBanners.DEALS;
+    const topHorizontalBanner = homepageBanners.DEALS_HORIZONTAL[0] || null;
+    const middleBanner = homepageBanners.MIDDLE[0] || null;
+    const bottomBanner = homepageBanners.BOTTOM[0] || null;
+    const mostShoppedCollections = unwrapSettled(results[1], []);
+    const homepageCollections = unwrapSettled(results[2], []);
+    const featuredBlogs = unwrapSettled(results[3], []);
     recordSsrRenderTime('/', Date.now() - startedAt);
 
     return (

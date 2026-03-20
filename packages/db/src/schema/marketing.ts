@@ -19,7 +19,9 @@ export const banners = pgTable("Banner", {
     campaignId: text("campaignId").references(() => campaigns.id, { onDelete: 'set null' }),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().notNull(),
-});
+}, (t) => ({
+    enabledPositionSortIdx: index("Banner_enabled_position_sort_idx").on(t.enabled, t.position, t.sortOrder),
+}));
 
 export const blogs = pgTable("Blog", {
     id: text("id").primaryKey().notNull(),
@@ -65,7 +67,9 @@ export const campaigns = pgTable("Campaign", {
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().notNull(),
     createdBy: text("createdBy"),
-});
+}, (t) => ({
+    statusIdx: index("Campaign_status_idx").on(t.status),
+}));
 
 export const campaignProducts = pgTable("CampaignProduct", {
     id: text("id").primaryKey().notNull(),
@@ -96,7 +100,9 @@ export const homepageCollections = pgTable("HomepageCollection", {
     sortOrder: integer("sortOrder").default(0).notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().notNull(),
-});
+}, (t) => ({
+    enabledSortIdx: index("HomepageCollection_enabled_sort_idx").on(t.enabled, t.sortOrder),
+}));
 
 export const homepageCollectionProducts = pgTable("HomepageCollectionProduct", {
     id: text("id").primaryKey().notNull(),
