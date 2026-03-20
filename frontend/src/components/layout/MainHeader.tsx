@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -25,11 +25,42 @@ export default function MainHeader({
   onCloseMobileMenu,
   onOpenCart,
 }: MainHeaderProps) {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.prefetch('/');
+  }, [router]);
+
+  const handleLogoClick = (
+    event: React.MouseEvent<HTMLAnchorElement>,
+    onAfterNavigate?: () => void,
+  ) => {
+    onAfterNavigate?.();
+
+    if (
+      event.defaultPrevented ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+    window.location.assign('/');
+  };
+
   return (
     <header id="site-header" className="bg-white">
       <div className="bg-white font-sans text-secondary-900 border-b border-gray-300">
         <div className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-8 py-4 flex items-center justify-between gap-4 flex-wrap md:flex-nowrap">
-          <Link href="/" className="inline-block relative w-37.5 sm:w-45 md:w-50 lg:w-30 xl:w-37.5 h-auto">
+          <Link
+            href="/"
+            onClick={handleLogoClick}
+            className="inline-block relative w-37.5 sm:w-45 md:w-50 lg:w-30 xl:w-37.5 h-auto"
+          >
             <Image
               src="/workit-logo.png"
               alt="Workit Logo"
@@ -102,7 +133,11 @@ export default function MainHeader({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center p-4 border-b">
-              <Link href="/" onClick={onCloseMobileMenu} className="inline-block relative w-25 h-auto">
+              <Link
+                href="/"
+                onClick={(event) => handleLogoClick(event, onCloseMobileMenu)}
+                className="inline-block relative w-25 h-auto"
+              >
                 <Image
                   src="/workit-logo.png"
                   alt="Workit Logo"
