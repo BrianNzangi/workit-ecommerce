@@ -210,6 +210,25 @@ export default function CollectionClient({
   const totalPages = pagination.totalPages || 1;
   const safeCurrentPage = Math.min(currentPage, totalPages);
   const isLastPage = !pagination.hasMore;
+  const handleFilterChange = useCallback((nextFilters: {
+    category?: string | number | null;
+    tag?: Array<string | number>;
+    brand?: Array<string | number>;
+    minPrice?: number;
+    maxPrice?: number;
+    onSale?: boolean;
+    inStock?: boolean;
+    shippingMethodId?: string;
+  }) => {
+    setFilterState(nextFilters);
+    setCurrentPage(1);
+  }, []);
+
+  const handlePageChange = useCallback((page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  }, [totalPages]);
 
   useEffect(() => {
     if (currentPage !== safeCurrentPage) {
@@ -259,10 +278,7 @@ export default function CollectionClient({
             collectionSlug={selectedCategorySlug}
             sortBy={sortBy}
             onSortChange={setSortBy}
-            onFilterChange={(nextFilters) => {
-              setFilterState(nextFilters);
-              setCurrentPage(1);
-            }}
+            onFilterChange={handleFilterChange}
           />
 
           {/* Brands Quick-Access (Optional) */}
@@ -305,11 +321,7 @@ export default function CollectionClient({
                   currentPage={safeCurrentPage}
                   totalPages={totalPages}
                   isLastPage={isLastPage}
-                  onPageChange={(page) => {
-                    if (page >= 1 && page <= totalPages) {
-                      setCurrentPage(page);
-                    }
-                  }}
+                  onPageChange={handlePageChange}
                 />
               </div>
             ) : (

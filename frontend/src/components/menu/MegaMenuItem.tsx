@@ -13,11 +13,8 @@ interface MegaMenuItemProps {
 
 export default function MegaMenuItem({ title, image, href }: MegaMenuItemProps) {
   return (
-    <div className="group block w-full">
-      <a
-        href={href}
-        className="block bg-gray-100 rounded-sm overflow-hidden transition"
-      >
+    <a href={href} className="group block w-full">
+      <div className="block bg-gray-100 rounded-sm overflow-hidden transition">
         <div className="relative aspect-4/2 w-full">
           {image ? (
             <Image
@@ -35,12 +32,11 @@ export default function MegaMenuItem({ title, image, href }: MegaMenuItemProps) 
             </div>
           )}
         </div>
-      </a>
+      </div>
 
-      {/* Text below image */}
       <div className="py-2 text-sm font-semibold text-gray-800 group-hover:text-primary transition text-start">
         {he.decode(title)}
       </div>
-    </div>
+    </a>
   );
 }

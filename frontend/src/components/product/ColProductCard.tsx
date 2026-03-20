@@ -6,6 +6,7 @@ import { Product } from '@/types/product'
 import { getProductImageUrl } from '@/lib/image-utils'
 import { getProductPriceDisplay, getProductPromotionBadge } from '@/lib/product-promotion'
 import { useCartStore } from '@/store/cartStore'
+import { handleDocumentNavigation } from '@/lib/document-navigation'
 
 export default function ColProductCard({
   id,
@@ -32,6 +33,7 @@ export default function ColProductCard({
   const promotionBadge = getProductPromotionBadge({ activePromotion });
   const isVariantAvailable = canBuy ?? true;
   const finalVariantId = variantId || variants?.[0]?.id || id || '';
+  const productHref = `/deal-details/${slug}`;
 
   const { addItem, openCart } = useCartStore();
 
@@ -110,7 +112,11 @@ export default function ColProductCard({
   };
 
   return (
-    <Link href={`/deal-details/${slug}`} className="group w-full h-full block">
+    <Link
+      href={productHref}
+      onClick={(event) => handleDocumentNavigation(event, productHref)}
+      className="group w-full h-full block"
+    >
       <div className="p-3 border border-gray-200 hover:shadow-md transition-shadow duration-200 bg-white h-full flex flex-col cursor-pointer rounded-lg">
         {/* Image Container - Fixed aspect ratio for consistency */}
         <div className="relative w-full aspect-square overflow-hidden rounded-md mb-3">

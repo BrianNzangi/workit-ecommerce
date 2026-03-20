@@ -31,6 +31,7 @@ export default function ProductPagination({ currentPage, totalPages, isLastPage,
     <div className="mt-8 flex justify-center items-center space-x-2">
       {/* Prev button */}
       <button
+        type="button"
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
         className={`px-4 py-2 rounded-l border text-sm font-medium transition ${
@@ -47,6 +48,7 @@ export default function ProductPagination({ currentPage, totalPages, isLastPage,
         typeof pageNum === 'number' ? (
           <button
             key={idx}
+            type="button"
             onClick={() => onPageChange(pageNum)}
             className={`px-4 py-2 text-sm font-medium rounded border transition ${
               pageNum === currentPage
@@ -65,6 +67,7 @@ export default function ProductPagination({ currentPage, totalPages, isLastPage,
 
       {/* Next button */}
       <button
+        type="button"
         onClick={() => onPageChange(currentPage + 1)}
         disabled={isLastPage}
         className={`px-4 py-2 rounded-r border text-sm font-medium transition ${

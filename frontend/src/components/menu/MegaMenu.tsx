@@ -8,6 +8,7 @@ import { ChevronRight, Menu, X, ArrowLeft } from 'lucide-react';
 import { fetchNavigationCollectionsDisplayClient } from '@/lib/collections-client';
 import type { CollectionDisplay } from '@/types/collections';
 import { motion, AnimatePresence } from 'framer-motion';
+import { handleDocumentNavigation } from '@/lib/document-navigation';
 
 export default function MegaMenu() {
   const [collections, setCollections] = useState<CollectionDisplay[]>([]);
@@ -104,6 +105,13 @@ export default function MegaMenu() {
   const handleBack = () => {
     setView('l1');
     setActiveL1(null);
+  };
+
+  const handleCollectionNavigation = (
+    event: React.MouseEvent<HTMLAnchorElement>,
+    href: string,
+  ) => {
+    handleDocumentNavigation(event, href, closeMenu);
   };
 
   if (loading) {
@@ -221,7 +229,9 @@ export default function MegaMenu() {
                           <div className="pb-4 border-b border-secondary-100">
                             <Link
                               href={`/collections/${activeL1.slug}`}
-                              onClick={closeMenu}
+                              onClick={(event) =>
+                                handleCollectionNavigation(event, `/collections/${activeL1.slug}`)
+                              }
                               className="text-primary-900 font-bold text-lg flex items-center gap-2 hover:underline"
                             >
                               Shop all {he.decode(activeL1.name)}
@@ -240,7 +250,9 @@ export default function MegaMenu() {
                                     <li key={l3.id}>
                                       <Link
                                         href={`/collections/${l3.slug}`}
-                                        onClick={closeMenu}
+                                        onClick={(event) =>
+                                          handleCollectionNavigation(event, `/collections/${l3.slug}`)
+                                        }
                                         className="text-secondary-600 hover:text-primary-900 transition-colors text-sm font-medium"
                                       >
                                         {he.decode(l3.name)}
@@ -268,6 +280,9 @@ export default function MegaMenu() {
           <Link
             key={l1.id}
             href={`/collections/${l1.slug}`}
+            onClick={(event) =>
+              handleCollectionNavigation(event, `/collections/${l1.slug}`)
+            }
             className="text-base font-bold text-secondary-900 hover:text-primary-900 transition-colors tracking-tight whitespace-nowrap"
           >
             {he.decode(l1.name)}

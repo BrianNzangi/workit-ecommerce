@@ -9,6 +9,7 @@ import SearchBar from '@/components/SearchBar';
 import MobileMegaMenu from '@/components/menu/MobileMegaMenu';
 import UserMenu from '@/components/menu/UserMenu';
 import { useAuth } from '@/hooks/useAuth';
+import { handleDocumentNavigation } from '@/lib/document-navigation';
 
 interface MainHeaderProps {
   cartItemCount: number;
@@ -35,21 +36,7 @@ export default function MainHeader({
     event: React.MouseEvent<HTMLAnchorElement>,
     onAfterNavigate?: () => void,
   ) => {
-    onAfterNavigate?.();
-
-    if (
-      event.defaultPrevented ||
-      event.button !== 0 ||
-      event.metaKey ||
-      event.ctrlKey ||
-      event.shiftKey ||
-      event.altKey
-    ) {
-      return;
-    }
-
-    event.preventDefault();
-    window.location.assign('/');
+    handleDocumentNavigation(event, '/', onAfterNavigate);
   };
 
   return (

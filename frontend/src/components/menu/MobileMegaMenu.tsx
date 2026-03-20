@@ -7,6 +7,7 @@ import { ChevronRight, ChevronLeft } from 'lucide-react';
 import { fetchNavigationCollectionsDisplayClient } from '@/lib/collections-client';
 import type { CollectionDisplay } from '@/types/collections';
 import MegaMenuItem from '@/components/menu/MegaMenuItem';
+import { handleDocumentNavigation } from '@/lib/document-navigation';
 
 export default function MobileMegaMenu() {
   const [collections, setCollections] = useState<CollectionDisplay[]>([]);
@@ -106,6 +107,9 @@ export default function MobileMegaMenu() {
           <li className="mt-4 px-4">
             <Link
               href={`/collections/${current.slug}`}
+              onClick={(event) =>
+                handleDocumentNavigation(event, `/collections/${current.slug}`)
+              }
               className="block w-full text-center py-3 bg-primary-900 text-white font-bold rounded-xs hover:bg-black transition-colors"
             >
               Shop all {he.decode(current.name)}

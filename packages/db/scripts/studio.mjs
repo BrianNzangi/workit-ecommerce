@@ -1,12 +1,14 @@
 import { spawn } from "node:child_process";
 
 const pnpmCommand = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
+const useShell = process.platform === "win32";
 
 function run(args, env = process.env) {
     return new Promise((resolve, reject) => {
         const child = spawn(pnpmCommand, args, {
             cwd: process.cwd(),
             env,
+            shell: useShell,
             stdio: "inherit",
         });
 
@@ -31,7 +33,7 @@ await run(
         "studio",
         "--config=drizzle.config.ts",
         "--host",
-        "0.0.0.0",
+        "127.0.0.1",
         "--port",
         "4983",
     ],
