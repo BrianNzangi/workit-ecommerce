@@ -5,6 +5,7 @@ import CartSlide from '../CartSlide';
 import MainHeader from '@/components/layout/MainHeader';
 import MenuHeader from '@/components/layout/MenuHeader';
 import { useCartStore } from '@/store/cartStore';
+import { prefetchNavigationCollectionsDisplayClient } from '@/lib/collections-client';
 
 export default function Header() {
   const [mounted, setMounted] = useState(false);
@@ -14,6 +15,7 @@ export default function Header() {
 
   useEffect(() => {
     setMounted(true);
+    prefetchNavigationCollectionsDisplayClient();
 
     const updateHeaderHeight = () => {
       if (headerRef.current) {

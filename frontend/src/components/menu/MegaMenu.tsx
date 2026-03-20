@@ -12,7 +12,7 @@ import { handleDocumentNavigation } from '@/lib/document-navigation';
 
 export default function MegaMenu() {
   const [collections, setCollections] = useState<CollectionDisplay[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [hasLoadedCollections, setHasLoadedCollections] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [activeL1, setActiveL1] = useState<CollectionDisplay | null>(null);
   const [view, setView] = useState<'l1' | 'subcategory'>('l1');
@@ -63,7 +63,7 @@ export default function MegaMenu() {
       } catch (err) {
         console.error('Failed to fetch collections:', err);
       } finally {
-        setLoading(false);
+        setHasLoadedCollections(true);
       }
     }
 
@@ -113,16 +113,6 @@ export default function MegaMenu() {
   ) => {
     handleDocumentNavigation(event, href, closeMenu);
   };
-
-  if (loading) {
-    return (
-      <div className="h-10 w-full flex items-center gap-4">
-        <div className="h-8 w-40 bg-secondary-100 animate-pulse rounded" />
-        <div className="h-4 w-24 bg-secondary-50 animate-pulse rounded" />
-        <div className="h-4 w-24 bg-secondary-50 animate-pulse rounded" />
-      </div>
-    );
-  }
 
   return (
     <div className="font-sans flex items-center gap-8">
@@ -205,16 +195,22 @@ export default function MegaMenu() {
                       exit={{ opacity: 0, x: -10 }}
                       className="py-2"
                     >
-                      {dropdownCollections.map((l1) => (
-                        <button
-                          key={l1.id}
-                          onClick={() => handleL1Click(l1)}
-                          className="w-full flex items-center justify-between px-6 py-4 hover:bg-secondary-50 text-secondary-700 transition-colors border-b border-secondary-50 last:border-0 group"
-                        >
-                          <span className="font-semibold text-base">{he.decode(l1.name)}</span>
-                          <ChevronRight size={18} className="text-secondary-300 group-hover:text-primary-900 group-hover:translate-x-1 transition-all" />
-                        </button>
-                      ))}
+                      {!hasLoadedCollections ? (
+                        <div className="px-6 py-4 text-sm text-secondary-500">
+                          Loading categories...
+                        </div>
+                      ) : (
+                        dropdownCollections.map((l1) => (
+                          <button
+                            key={l1.id}
+                            onClick={() => handleL1Click(l1)}
+                            className="w-full flex items-center justify-between px-6 py-4 hover:bg-secondary-50 text-secondary-700 transition-colors border-b border-secondary-50 last:border-0 group"
+                          >
+                            <span className="font-semibold text-base">{he.decode(l1.name)}</span>
+                            <ChevronRight size={18} className="text-secondary-300 group-hover:text-primary-900 group-hover:translate-x-1 transition-all" />
+                          </button>
+                        ))
+                      )}
                     </motion.div>
                   ) : (
                     <motion.div

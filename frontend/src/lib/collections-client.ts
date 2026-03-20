@@ -7,6 +7,9 @@
 
 import { Collection, CollectionsQueryParams, CollectionDisplay } from '@/types/collections';
 
+let navigationCollectionsDisplayPromise: Promise<CollectionDisplay[]> | null = null;
+let navigationCollectionsDisplayCache: CollectionDisplay[] | null = null;
+
 /**
  * Fetch collections from the frontend API route (Client-Side)
  * 
@@ -86,6 +89,15 @@ export function transformCollectionForDisplay(collection: Collection): Collectio
  * @returns Promise<CollectionDisplay[]>
  */
 export async function fetchNavigationCollectionsDisplayClient(): Promise<CollectionDisplay[]> {
+    if (navigationCollectionsDisplayCache) {
+        return navigationCollectionsDisplayCache;
+    }
+
+    if (navigationCollectionsDisplayPromise) {
+        return navigationCollectionsDisplayPromise;
+    }
+
+    navigationCollectionsDisplayPromise = (async () => {
     try {
         const collections = await fetchNavigationCollectionsClient();
 
@@ -94,13 +106,24 @@ export async function fetchNavigationCollectionsDisplayClient(): Promise<Collect
             return [];
         }
 
-        // Filter only enabled collections, transform, and sort top-level
-        return collections
+        const transformed = collections
             .filter(collection => collection?.enabled)
             .map(transformCollectionForDisplay)
             .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+
+        navigationCollectionsDisplayCache = transformed;
+        return transformed;
     } catch (error) {
         console.error('Error fetching navigation collections:', error);
         return [];
+    } finally {
+        navigationCollectionsDisplayPromise = null;
     }
+    })();
+
+    return navigationCollectionsDisplayPromise;
+}
+
+export function prefetchNavigationCollectionsDisplayClient() {
+    void fetchNavigationCollectionsDisplayClient();
 }

@@ -11,7 +11,7 @@ import { handleDocumentNavigation } from '@/lib/document-navigation';
 
 export default function MobileMegaMenu() {
   const [collections, setCollections] = useState<CollectionDisplay[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [hasLoadedCollections, setHasLoadedCollections] = useState(false);
   const [path, setPath] = useState<CollectionDisplay[]>([]); // active drill-down path
 
   useEffect(() => {
@@ -22,14 +22,12 @@ export default function MobileMegaMenu() {
       } catch (err) {
         console.error('Failed to fetch collections:', err);
       } finally {
-        setLoading(false);
+        setHasLoadedCollections(true);
       }
     }
 
     fetchCollections();
   }, []);
-
-  if (loading) return <div className="p-4 animate-pulse">Loading menu...</div>;
 
   const current = path[path.length - 1] || null;
 
@@ -68,7 +66,9 @@ export default function MobileMegaMenu() {
       {/* List Area */}
       <ul className="flex-1 overflow-y-auto pt-2 pb-10">
         {items.length === 0 ? (
-          <li className="p-4 text-gray-500 italic text-sm text-center">No categories found in this section</li>
+          <li className="p-4 text-gray-500 italic text-sm text-center">
+            {hasLoadedCollections ? 'No categories found in this section' : 'Loading menu...'}
+          </li>
         ) : (
           items.map((cat) => {
             const hasChildren = cat.children && cat.children.length > 0;
