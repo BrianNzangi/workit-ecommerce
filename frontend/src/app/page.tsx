@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     twitter: DEFAULT_TWITTER,
 };
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 120;
 
 const unwrapSettled = <T,>(result: PromiseSettledResult<T>, fallback: T): T =>
     result.status === 'fulfilled' ? result.value : fallback;

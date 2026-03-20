@@ -146,6 +146,7 @@ export default function HeroSection({ banners }: HeroSectionProps) {
                                 fill
                                 className="object-cover scale-105 hidden sm:block"
                                 priority={currentSlide === 0}
+                                fetchPriority={currentSlide === 0 ? 'high' : undefined}
                                 quality={95}
                                 sizes="(max-width: 768px) 100vw, (max-width: 1280px) 96vw, 1400px"
                                 unoptimized={shouldBypassDesktopOptimization}
@@ -156,6 +157,7 @@ export default function HeroSection({ banners }: HeroSectionProps) {
                                 fill
                                 className="object-cover scale-105 sm:hidden"
                                 priority={currentSlide === 0}
+                                fetchPriority={currentSlide === 0 ? 'high' : undefined}
                                 quality={95}
                                 sizes="100vw"
                                 unoptimized={shouldBypassMobileOptimization}

@@ -118,7 +118,7 @@ export async function getStoreBanners(
 
     const response = await proxyFetch(`/store/banners?${params.toString()}`, {
         method: 'GET',
-        next: { revalidate: 300 },
+        next: { revalidate: 120 },
     });
 
     if (!response.ok) {
@@ -142,7 +142,7 @@ export async function getFirstBanner(
 export async function getFeaturedBlogs(): Promise<Blog[]> {
     const response = await proxyFetch('/marketing/blog?limit=50&offset=0', {
         method: 'GET',
-        next: { revalidate: 300 },
+        next: { revalidate: 120 },
     });
 
     if (!response.ok) {
@@ -175,7 +175,7 @@ export async function getMostShoppedCollections(): Promise<MostShoppedCollection
 
     const response = await proxyFetch(`/store/collections?${params.toString()}`, {
         method: 'GET',
-        next: { revalidate: 300 },
+        next: { revalidate: 120 },
     });
 
     if (!response.ok) {
@@ -225,7 +225,7 @@ export async function getHomepageCollections(
 
     const response = await proxyFetch(`/store/homepage-collections?${params.toString()}`, {
         method: 'GET',
-        next: { revalidate: 300 },
+        next: { revalidate: 120 },
     });
 
     if (!response.ok) {

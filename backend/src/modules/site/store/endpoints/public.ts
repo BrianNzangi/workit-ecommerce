@@ -29,9 +29,10 @@ const bannersQuerySchema = z.object({
 export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
     const TTL = {
         productsList: 60,
+        productSearch: 60,
         productDetail: 300,
-        brands: 900,
-        collections: 900,
+        brands: 1800,
+        collections: 1800,
         banners: 120,
         homepageCollections: 120,
         campaigns: 120,
@@ -212,10 +213,26 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
             querystring: searchQuerySchema
         },
         preHandler: [fastify.publicRateLimit],
-    }, async (request) => {
+    }, async (request, reply) => {
         const { q, limit } = request.query as z.infer<typeof searchQuerySchema>;
-        const results = await productSearchService.searchStoreProducts(q, limit);
-        return { products: results };
+        const parsedLimit = Math.min(Math.max(Number(limit) || 20, 1), 100);
+        const cacheKey = buildCacheKey("store:products:search", {
+            q,
+            limit: parsedLimit,
+        } as any);
+        const cached = await fastify.cache.get<{ products: any[] }>(cacheKey);
+        if (cached) {
+            reply.header("x-cache", "HIT");
+            reply.header("Cache-Control", `public, max-age=${TTL.productSearch}`);
+            return cached;
+        }
+
+        const results = await productSearchService.searchStoreProducts(q, parsedLimit);
+        const payload = { products: results };
+        await fastify.cache.set(cacheKey, payload, TTL.productSearch, ["products"]);
+        reply.header("x-cache", "MISS");
+        reply.header("Cache-Control", `public, max-age=${TTL.productSearch}`);
+        return payload;
     });
 
     const productParamsSchema = z.object({
