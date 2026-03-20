@@ -4,9 +4,8 @@ import { Product } from '@/types/product'
 import { Category, Brand } from '@/types/collection'
 import type { Collection as ApiCollection } from '@/types/collections';
 import { SITE_CONFIG } from '@/lib/meta';
-import { fetchCollections } from '@/lib/collections-server';
+import { fetchCollectionBySlug, fetchNavigationCollections } from '@/lib/collections-server';
 import { proxyFetch } from '@/lib/proxy-utils';
-import { getFirstBanner } from '@/lib/homepage-data';
 import { recordSsrRenderTime } from '@/lib/metrics';
 import { normalizeProducts } from '@/lib/product-normalization';
 
@@ -34,28 +33,12 @@ interface PublicCampaign {
 
 export const revalidate = 300;
 
-const flattenCollections = (colls: ApiCollection[]): ApiCollection[] => {
-  const result: ApiCollection[] = [];
-  for (const c of colls) {
-    result.push(c);
-    if (c.children && c.children.length > 0) {
-      result.push(...flattenCollections(c.children));
-    }
-  }
-  return result;
-};
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const resolvedParams = await params;
   const lastSlug = resolvedParams.slug.at(-1) || '';
 
   try {
-    const collections = await fetchCollections({
-      includeChildren: true,
-      includeAssets: true,
-      take: 1000,
-    });
-    const collection = flattenCollections(collections).find((c) => c.slug === lastSlug);
+    const collection = await fetchCollectionBySlug(lastSlug).catch(() => null);
 
     if (collection) {
       const collectionName = collection.name;
@@ -92,7 +75,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
 
     const campaignResponse = await proxyFetch(`/marketing/campaigns/${lastSlug}`, {
+      cache: 'force-cache',
       next: { revalidate },
+      useRequestContext: false,
     });
 
     if (campaignResponse.ok) {
@@ -146,26 +131,27 @@ export default async function CollectionPage({ params }: Props) {
 
   let collections: ApiCollection[] = []
   try {
-    collections = await fetchCollections({
-      includeChildren: true,
-      includeAssets: true,
-      take: 1000,
-    });
+    collections = await fetchNavigationCollections();
   } catch (error) {
     console.error('Failed to fetch collections:', error)
   }
 
-  const allCollections = flattenCollections(collections);
-  const collection = allCollections.find((c) => c.slug === lastSlug) || null;
+  let collection: ApiCollection | null = null;
+  try {
+    collection = await fetchCollectionBySlug(lastSlug);
+  } catch (error) {
+    collection = null;
+  }
   let campaign: PublicCampaign | null = null;
   const legacyCollections = collections as unknown as Category[];
   let legacyCollection = collection as unknown as Category | null;
-  let collectionBanner = null;
 
   if (!collection) {
     try {
       const campaignResponse = await proxyFetch(`/marketing/campaigns/${lastSlug}`, {
+        cache: 'force-cache',
         next: { revalidate },
+        useRequestContext: false,
       });
 
       if (campaignResponse.ok) {
@@ -207,15 +193,11 @@ export default async function CollectionPage({ params }: Props) {
       if (campaign) {
         params.set('campaign', campaign.slug);
       }
-      const [productsRes, banner] = await Promise.all([
-        proxyFetch(`/store/products?${params.toString()}`, {
-          next: { revalidate },
-        }),
-        getFirstBanner('COLLECTION_TOP', collection
-          ? { collectionSlug: collection.slug }
-          : { campaignSlug: campaign?.slug }),
-      ]);
-      collectionBanner = banner;
+      const productsRes = await proxyFetch(`/store/products?${params.toString()}`, {
+        cache: 'force-cache',
+        next: { revalidate },
+        useRequestContext: false,
+      });
 
       if (productsRes.ok) {
         const data = await productsRes.json()
@@ -242,8 +224,7 @@ export default async function CollectionPage({ params }: Props) {
         products={products}
         initialPagination={initialPagination}
         brands={brands}
-      collectionBanner={collectionBanner}
-      campaignSlug={campaign?.slug}
+        campaignSlug={campaign?.slug}
       />
     </div>
   )

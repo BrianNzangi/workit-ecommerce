@@ -6,13 +6,12 @@ import Image from 'next/image';
 import ColProductGrid from '@/components/product/ColProductGrid';
 import ProductFilters from '@/components/filters/ProductFilters';
 import ProductPagination from '@/components/ui/ProductPagination';
-import CollectionHeaderBanner from '@/components/banners/CollectionHeaderBanner';
+import CollectionHeaderBannerLoader from '@/components/banners/CollectionHeaderBannerLoader';
 import Breadcrumbs from '@/components/ui/Breadcrumbs';
 import ProductSorter from './ProductSorter';
 import Head from 'next/head';
 import { Category, Brand } from '@/types/collection';
 import { Product } from '@/types/product';
-import type { StoreBanner } from '@/lib/banner-target';
 
 interface CollectionPagination {
   total: number;
@@ -30,7 +29,6 @@ interface CollectionClientProps {
   products: Product[];
   initialPagination: CollectionPagination;
   brands: Brand[];
-  collectionBanner?: StoreBanner | null;
   campaignSlug?: string | null;
 }
 
@@ -41,7 +39,6 @@ export default function CollectionClient({
   products,
   initialPagination,
   brands,
-  collectionBanner,
   campaignSlug,
 }: CollectionClientProps) {
   const perPage = 20;
@@ -265,10 +262,10 @@ export default function CollectionClient({
           ]}
         />
 
-        <CollectionHeaderBanner
+        <CollectionHeaderBannerLoader
           title={category?.name || fullSlug}
           collectionSlug={campaignSlug || currentCollectionSlug}
-          banner={collectionBanner}
+          campaignSlug={campaignSlug}
         />
 
         {/* Unified Filter & Sort Toolbar */}

@@ -30,8 +30,9 @@ export async function fetchCollections(
 
     try {
         const response = await proxyFetch(`/store/collections?${queryParams.toString()}`, {
-            // Revalidate every 5 minutes
+            cache: 'force-cache',
             next: { revalidate: 300 },
+            useRequestContext: false,
         });
 
         if (!response.ok) {
@@ -56,7 +57,9 @@ export async function fetchCollections(
 export async function fetchCollectionById(id: string): Promise<Collection> {
     try {
         const response = await proxyFetch(`/store/collections/${id}`, {
+            cache: 'force-cache',
             next: { revalidate: 300 },
+            useRequestContext: false,
         });
 
         if (!response.ok) {
@@ -72,6 +75,31 @@ export async function fetchCollectionById(id: string): Promise<Collection> {
 }
 
 /**
+ * Fetch a single collection by slug (Server-Side)
+ *
+ * @param slug - Collection slug
+ * @returns Promise<Collection>
+ */
+export async function fetchCollectionBySlug(slug: string): Promise<Collection> {
+    try {
+        const response = await proxyFetch(`/catalog/collections/slug/${slug}`, {
+            cache: 'force-cache',
+            next: { revalidate: 300 },
+            useRequestContext: false,
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch collection by slug: ${response.status} ${response.statusText}`);
+        }
+
+        return await response.json() as Collection;
+    } catch (error) {
+        console.error('Error fetching collection by slug:', error);
+        throw error;
+    }
+}
+
+/**
  * Fetch hierarchical collections (Level 1 with children) for navigation
  * 
  * @returns Promise<Collection[]>
@@ -79,6 +107,7 @@ export async function fetchCollectionById(id: string): Promise<Collection> {
 export async function fetchNavigationCollections(): Promise<Collection[]> {
     return fetchCollections({
         includeChildren: true,
+        parentId: 'null',
     });
 }
 
