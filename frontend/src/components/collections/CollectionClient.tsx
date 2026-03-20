@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import ColProductGrid from '@/components/product/ColProductGrid';
@@ -14,11 +14,21 @@ import { Category, Brand } from '@/types/collection';
 import { Product } from '@/types/product';
 import type { StoreBanner } from '@/lib/banner-target';
 
+interface CollectionPagination {
+  total: number;
+  limit: number;
+  offset: number;
+  currentPage: number;
+  totalPages: number;
+  hasMore: boolean;
+}
+
 interface CollectionClientProps {
   fullSlug: string;
   category?: Category | null;
   categories: Category[];
   products: Product[];
+  initialPagination: CollectionPagination;
   brands: Brand[];
   collectionBanner?: StoreBanner | null;
 }
@@ -28,17 +38,146 @@ export default function CollectionClient({
   category,
   categories,
   products,
+  initialPagination,
   brands,
   collectionBanner,
 }: CollectionClientProps) {
   const perPage = 20;
   const currentCollectionSlug = category?.slug || fullSlug.split('/').pop() || fullSlug;
-
-  // We can still have local state for pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isLastPage] = useState(products.length < perPage);
+  const [currentPage, setCurrentPage] = useState(initialPagination.currentPage || 1);
   const [sortBy, setSortBy] = useState('popularity');
+  const [serverProducts, setServerProducts] = useState<Product[]>(products);
+  const [loadingProducts, setLoadingProducts] = useState(false);
+  const [pagination, setPagination] = useState<CollectionPagination>(initialPagination);
+  const [filterState, setFilterState] = useState<{
+    category?: string | number | null;
+    tag?: Array<string | number>;
+    brand?: Array<string | number>;
+    minPrice?: number;
+    maxPrice?: number;
+    onSale?: boolean;
+    inStock?: boolean;
+    shippingMethodId?: string;
+  }>({});
 
+  const flattenCategories = useCallback((items: Category[] = []): Category[] => {
+    const flattened: Category[] = [];
+    items.forEach((item) => {
+      flattened.push(item);
+      if (item.children?.length) {
+        flattened.push(...flattenCategories(item.children));
+      }
+    });
+    return flattened;
+  }, []);
+
+  const categoryList = useMemo(() => flattenCategories(categories), [categories, flattenCategories]);
+  const selectedCategorySlug = useMemo(() => {
+    const categoryId = filterState.category;
+    if (categoryId === undefined || categoryId === null || categoryId === '') {
+      return currentCollectionSlug;
+    }
+
+    return categoryList.find((item) => String(item.id) === String(categoryId))?.slug || currentCollectionSlug;
+  }, [categoryList, currentCollectionSlug, filterState.category]);
+
+  useEffect(() => {
+    setServerProducts(products);
+  }, [products]);
+
+  useEffect(() => {
+    setPagination(initialPagination);
+  }, [initialPagination]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchProducts = async () => {
+      setLoadingProducts(true);
+      try {
+        const params = new URLSearchParams({
+          collection: selectedCategorySlug,
+          limit: String(perPage),
+          offset: String((currentPage - 1) * perPage),
+          sortBy,
+        });
+
+        if (filterState.brand?.length) {
+          params.set('brand', String(filterState.brand[0]));
+        }
+        if (filterState.onSale) {
+          params.set('onSale', 'true');
+        }
+        if (filterState.inStock) {
+          params.set('inStock', 'true');
+        }
+        if (filterState.shippingMethodId) {
+          params.set('shippingMethodId', filterState.shippingMethodId);
+        }
+        if (filterState.minPrice !== undefined) {
+          params.set('minPrice', String(filterState.minPrice));
+        }
+        if (filterState.maxPrice !== undefined) {
+          params.set('maxPrice', String(filterState.maxPrice));
+        }
+
+        const response = await fetch(`/api/store/products?${params.toString()}`, {
+          cache: 'no-store',
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch products: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (!cancelled) {
+          setServerProducts(data.products || []);
+          setPagination(data.pagination || {
+            total: data.products?.length || 0,
+            limit: perPage,
+            offset: (currentPage - 1) * perPage,
+            currentPage,
+            totalPages: Math.max(1, Math.ceil((data.products?.length || 0) / perPage)),
+            hasMore: false,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to fetch collection products:', error);
+        if (!cancelled) {
+          setServerProducts([]);
+          setPagination({
+            total: 0,
+            limit: perPage,
+            offset: 0,
+            currentPage: 1,
+            totalPages: 1,
+            hasMore: false,
+          });
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingProducts(false);
+        }
+      }
+    };
+
+    fetchProducts();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    currentPage,
+    perPage,
+    selectedCategorySlug,
+    filterState.brand,
+    filterState.inStock,
+    filterState.maxPrice,
+    filterState.minPrice,
+    filterState.onSale,
+    filterState.shippingMethodId,
+    sortBy,
+  ]);
 
   // JSON-LD for structured data
   const jsonLd = {
@@ -46,7 +185,7 @@ export default function CollectionClient({
     '@type': 'CollectionPage',
     name: category?.name || fullSlug,
     description: `Products in ${category?.name || 'this collection'}`,
-    hasPart: products.map((p) => ({
+    hasPart: serverProducts.map((p) => ({
       '@type': 'Product',
       name: p.name,
       image: p.image,
@@ -63,15 +202,15 @@ export default function CollectionClient({
     })),
   };
 
-  const sortedProducts = useMemo(() => {
-    const sorted = [...products]
-    if (sortBy === 'price_asc') {
-      sorted.sort((a, b) => Number(a.price || 0) - Number(b.price || 0))
-    } else if (sortBy === 'price_desc') {
-      sorted.sort((a, b) => Number(b.price || 0) - Number(a.price || 0))
+  const totalPages = pagination.totalPages || 1;
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const isLastPage = !pagination.hasMore;
+
+  useEffect(() => {
+    if (currentPage !== safeCurrentPage) {
+      setCurrentPage(safeCurrentPage);
     }
-    return sorted
-  }, [products, sortBy])
+  }, [currentPage, safeCurrentPage]);
 
   if (!category && categories.length > 0)
     return (
@@ -111,11 +250,14 @@ export default function CollectionClient({
         {/* Unified Filter & Sort Toolbar */}
         <div className="space-y-4">
           <ProductFilters
-            selectedCategory={category?.id ?? null}
-            collectionSlug={category?.slug}
+            selectedCategory={filterState.category ?? category?.id ?? null}
+            collectionSlug={selectedCategorySlug}
             sortBy={sortBy}
             onSortChange={setSortBy}
-            onFilterChange={() => {}}
+            onFilterChange={(nextFilters) => {
+              setFilterState(nextFilters);
+              setCurrentPage(1);
+            }}
           />
 
           {/* Brands Quick-Access (Optional) */}
@@ -147,14 +289,21 @@ export default function CollectionClient({
 
         <div className="grid grid-cols-1 gap-8">
           <section className="w-full">
-            {sortedProducts.length > 0 ? (
+            {loadingProducts ? (
+              <div className="rounded-xl border border-gray-100 bg-white p-16 text-center shadow-sm">
+                <p className="text-gray-500">Loading products...</p>
+              </div>
+            ) : serverProducts.length > 0 ? (
               <div className="space-y-10">
-                <ColProductGrid products={sortedProducts} />
+                <ColProductGrid products={serverProducts} />
                 <ProductPagination
-                  currentPage={currentPage}
+                  currentPage={safeCurrentPage}
+                  totalPages={totalPages}
                   isLastPage={isLastPage}
                   onPageChange={(page) => {
-                    if (!isLastPage || page < currentPage) setCurrentPage(page);
+                    if (page >= 1 && page <= totalPages) {
+                      setCurrentPage(page);
+                    }
                   }}
                 />
               </div>

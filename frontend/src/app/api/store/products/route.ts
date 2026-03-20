@@ -17,8 +17,9 @@ export async function GET(request: NextRequest) {
 
         const json = await response.json();
 
-        // The backend returns { data: { products: [], pagination: {} } }
-        if (json.data && Array.isArray(json.data.products)) {
+        if (Array.isArray(json.products)) {
+            json.products = normalizeProducts(json.products);
+        } else if (json.data && Array.isArray(json.data.products)) {
             json.data.products = normalizeProducts(json.data.products);
         }
 

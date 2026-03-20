@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { HomepageCollectionService } from '@/lib/services';
 import { uploadAdminAsset } from '@/lib/shared/images/admin-asset-upload';
+import { CSRF_COOKIE_NAME, CSRF_HEADER_NAME, ensureCsrfToken, getCookieValue, getSessionUrl } from '@/lib/auth/csrf';
 
 export interface Collection {
     id: string;
@@ -95,6 +96,11 @@ export function useProductForm({ productId, mode }: UseProductFormProps) {
 
     // Brand state
     const [brands, setBrands] = useState<Brand[]>([]);
+    const authSessionUrl =
+        getSessionUrl(
+            process.env.NEXT_PUBLIC_AUTH_BASE_PATH?.trim() || '/api/auth',
+            process.env.NEXT_PUBLIC_AUTH_BASE_URL?.trim() || ''
+        );
 
     // Initial data fetching
     useEffect(() => {
@@ -374,10 +380,15 @@ export function useProductForm({ productId, mode }: UseProductFormProps) {
 
             const endpoint = mode === 'edit' ? `/api/admin/products/${productId}` : '/api/admin/products';
             const method = mode === 'edit' ? 'PATCH' : 'POST';
+            const csrfToken = (await ensureCsrfToken(authSessionUrl)) || getCookieValue(CSRF_COOKIE_NAME);
+            const headers: HeadersInit = { 'Content-Type': 'application/json' };
+            if (csrfToken) {
+                headers[CSRF_HEADER_NAME] = csrfToken;
+            }
 
             const response = await fetch(endpoint, {
                 method,
-                headers: { 'Content-Type': 'application/json' },
+                headers,
                 body: JSON.stringify(payload),
             });
 

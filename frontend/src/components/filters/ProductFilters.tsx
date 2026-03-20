@@ -3,15 +3,15 @@ import { ChevronDown, SlidersHorizontal, Plus, Minus, X, Tag as TagIcon, LayoutG
 import he from 'he';
 
 interface ProductFiltersProps {
-  selectedCategory: number | null;
+  selectedCategory: string | number | null;
   currentCategoryName?: string;
   collectionSlug?: string;
   sortBy: string;
   onSortChange: (sortBy: string) => void;
   onFilterChange: (filters: {
-    category?: number | null;
-    tag?: number[];
-    brand?: number[];
+    category?: string | number | null;
+    tag?: Array<string | number>;
+    brand?: Array<string | number>;
     minPrice?: number;
     maxPrice?: number;
     onSale?: boolean;
@@ -21,7 +21,7 @@ interface ProductFiltersProps {
 }
 
 interface Category {
-  id: number;
+  id: string | number;
   name: string;
   slug: string;
   count: number;
@@ -30,13 +30,13 @@ interface Category {
 }
 
 interface Tag {
-  id: number;
+  id: string | number;
   name: string;
   count: number;
 }
 
 interface Brand {
-  id: number;
+  id: string | number;
   name: string;
   count: number;
   slug: string;
@@ -56,8 +56,8 @@ export default function ProductFilters({
   const [loading, setLoading] = useState(true);
 
   // Filter states
-  const [selectedTags, setSelectedTags] = useState<number[]>([]);
-  const [selectedBrands, setSelectedBrands] = useState<number[]>([]);
+  const [selectedTags, setSelectedTags] = useState<Array<string | number>>([]);
+  const [selectedBrands, setSelectedBrands] = useState<Array<string | number>>([]);
   const [priceRange, setPriceRange] = useState<{ min?: number; max?: number }>({});
   const [onSale, setOnSale] = useState(false);
   const [inStock, setInStock] = useState(false);
@@ -138,7 +138,7 @@ export default function ProductFilters({
     });
   }, [selectedCategory, selectedTags, selectedBrands, priceRange, onSale, inStock, shippingMethodId, onFilterChange]);
 
-  const handleBrandToggle = (brandId: number) => {
+  const handleBrandToggle = (brandId: string | number) => {
     setSelectedBrands(prev =>
       prev.includes(brandId)
         ? prev.filter(id => id !== brandId)

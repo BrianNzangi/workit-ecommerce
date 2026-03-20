@@ -3,25 +3,20 @@
 import React, { useEffect, useState } from 'react';
 import he from 'he';
 import Link from 'next/link';
-import { ChevronRight, ChevronLeft, X } from 'lucide-react';
+import { ChevronRight, ChevronLeft } from 'lucide-react';
 import { fetchNavigationCollectionsDisplayClient } from '@/lib/collections-client';
 import type { CollectionDisplay } from '@/types/collections';
 import MegaMenuItem from '@/components/menu/MegaMenuItem';
 
-let cachedCollections: CollectionDisplay[] | null = null;
-
 export default function MobileMegaMenu() {
-  const [collections, setCollections] = useState<CollectionDisplay[]>(cachedCollections || []);
-  const [loading, setLoading] = useState(!cachedCollections);
+  const [collections, setCollections] = useState<CollectionDisplay[]>([]);
+  const [loading, setLoading] = useState(true);
   const [path, setPath] = useState<CollectionDisplay[]>([]); // active drill-down path
 
   useEffect(() => {
-    if (cachedCollections) return;
-
     async function fetchCollections() {
       try {
         const data = await fetchNavigationCollectionsDisplayClient();
-        cachedCollections = data;
         setCollections(data);
       } catch (err) {
         console.error('Failed to fetch collections:', err);

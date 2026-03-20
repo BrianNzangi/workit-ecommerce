@@ -13,6 +13,15 @@ interface Props {
   params: Promise<{ slug: string[] }>
 }
 
+interface CollectionPagination {
+  total: number;
+  limit: number;
+  offset: number;
+  currentPage: number;
+  totalPages: number;
+  hasMore: boolean;
+}
+
 export const revalidate = 300;
 
 const flattenCollections = (colls: ApiCollection[]): ApiCollection[] => {
@@ -105,6 +114,14 @@ export default async function CollectionPage({ params }: Props) {
   let collectionBanner = null;
 
   let products: Product[] = []
+  let initialPagination: CollectionPagination = {
+    total: 0,
+    limit: 20,
+    offset: 0,
+    currentPage: 1,
+    totalPages: 1,
+    hasMore: false,
+  }
   if (collection) {
     try {
       const params = new URLSearchParams({
@@ -123,6 +140,7 @@ export default async function CollectionPage({ params }: Props) {
       if (productsRes.ok) {
         const data = await productsRes.json()
         products = normalizeProducts(data.products || [])
+        initialPagination = data.pagination || initialPagination
       } else {
         console.error('Failed to fetch products, status:', productsRes.status);
       }
@@ -141,6 +159,7 @@ export default async function CollectionPage({ params }: Props) {
         category={legacyCollection}
         categories={legacyCollections}
         products={products}
+        initialPagination={initialPagination}
         brands={brands}
         collectionBanner={collectionBanner}
       />

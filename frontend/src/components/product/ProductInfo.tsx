@@ -1,12 +1,14 @@
 "use client"
 
 import { useState } from "react"
-import { Product } from "@/types/product"
-import toast from "react-hot-toast"
-import { useCartStore } from "@/store/cartStore"
 import { useRouter } from "next/navigation"
-import { ShieldCheck, Undo2, Handshake, Minus, Plus as PlusIcon, ChevronRight } from "lucide-react"
+import { Heart, ShoppingCart, Tag } from "lucide-react"
+import toast from "react-hot-toast"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import ProductBenefits from "@/components/product/ProductBenefits"
 import { getProductPriceDisplay, getProductPromotionBadge } from "@/lib/product-promotion"
+import { useCartStore } from "@/store/cartStore"
+import { Product } from "@/types/product"
 
 interface ProductInfoProps {
   product: Product
@@ -24,39 +26,57 @@ export default function ProductInfo({
   const { addItem: addToCartStore } = useCartStore()
   const router = useRouter()
 
-  // Helper to normalize Woo prices
-  const getNumericPrice = (val?: string | number) =>
-    val && !isNaN(Number(val)) ? Number(val) : undefined
-
   const { displayPrice, regularPrice, savingsLabel } = getProductPriceDisplay({
     price: cartPrice,
     compareAtPrice: cartOriginalPrice,
     activePromotion: product.activePromotion,
   })
   const promotionBadge = getProductPromotionBadge(product)
+  const hasCampaignPromotion = Boolean(product.activePromotion)
+  const effectiveDisplayPrice = hasCampaignPromotion ? Number(cartPrice || 0) : displayPrice
+  const effectiveRegularPrice = hasCampaignPromotion ? null : regularPrice
+  const shouldShowSavingsLabel = !product.activePromotion && Boolean(savingsLabel && regularPrice && regularPrice > displayPrice)
+  const couponCode = product.activePromotion?.couponCode?.trim() || ""
+  const couponMessage = (() => {
+    const promotion = product.activePromotion
+    if (!promotion || !couponCode) return ""
 
-  const handleAddToCart = async () => {
-    // ✅ Single-Product Mode: Use the pre-normalized fields from the proxy API
-    const canBuy = product.canBuy ?? true;
-    const variantId = product.variantId || product.variants?.[0]?.id;
-
-    if (!canBuy) {
-      toast.error('This product is currently out of stock');
-      return;
+    if (promotion.badgeText?.trim()) {
+      return promotion.badgeText.trim()
     }
 
-    if (!variantId || variantId === 'undefined' || variantId === 'null') {
-      toast.error('Invalid product variant. Please refresh the page.');
-      return;
+    if (promotion.discountType === "FIXED_AMOUNT" && typeof promotion.savingsAmount === "number" && promotion.savingsAmount > 0) {
+      return `KES ${promotion.savingsAmount.toLocaleString("en-KE")} off use ${couponCode}`
+    }
+
+    if (promotion.discountType === "PERCENTAGE" && typeof promotion.savingsPercent === "number" && promotion.savingsPercent > 0) {
+      return `${promotion.savingsPercent}% off use ${couponCode}`
+    }
+
+    return `Save with code ${couponCode}`
+  })()
+
+  const handleAddToCart = async () => {
+    const canBuy = product.canBuy ?? true
+    const variantId = product.variantId || product.variants?.[0]?.id
+
+    if (!canBuy) {
+      toast.error("This product is currently out of stock")
+      return
+    }
+
+    if (!variantId || variantId === "undefined" || variantId === "null") {
+      toast.error("Invalid product variant. Please refresh the page.")
+      return
     }
 
     addToCartStore({
       id: String(product.id),
       variantId: String(variantId),
-      name: product.name || 'Product',
-      image: product.image || product.images?.[0]?.url || '',
+      name: product.name || "Product",
+      image: product.image || product.images?.[0]?.url || "",
       price: cartPrice,
-      quantity: quantity,
+      quantity,
       activePromotion: product.activePromotion || null,
     })
 
@@ -64,21 +84,21 @@ export default function ProductInfo({
   }
 
   const handleBuyNow = async () => {
-    const canBuy = product.canBuy ?? true;
-    const variantId = product.variantId || product.variants?.[0]?.id;
+    const canBuy = product.canBuy ?? true
+    const variantId = product.variantId || product.variants?.[0]?.id
 
     if (!canBuy) {
-      toast.error('This product is currently out of stock');
-      return;
+      toast.error("This product is currently out of stock")
+      return
     }
 
     addToCartStore({
       id: String(product.id),
       variantId: String(variantId),
-      name: product.name || 'Product',
-      image: product.image || product.images?.[0]?.url || '',
+      name: product.name || "Product",
+      image: product.image || product.images?.[0]?.url || "",
       price: cartPrice,
-      quantity: quantity,
+      quantity,
       activePromotion: product.activePromotion || null,
     })
 
@@ -89,179 +109,168 @@ export default function ProductInfo({
     toast.success("Added to wishlist")
   }
 
+  const handleCopyCode = async () => {
+    if (!couponCode) return
+
+    try {
+      await navigator.clipboard.writeText(couponCode)
+      toast.success(`${couponCode} copied`)
+    } catch {
+      toast.error("Could not copy code")
+    }
+  }
+
   const formatPrice = (value?: number) => {
     if (typeof value !== "number" || isNaN(value)) return "0"
     return value.toLocaleString("en-KE")
   }
 
   return (
-    <div className="w-full md:w-1/4 lg:w-1/3 sticky top-24 self-start">
-      <div className="rounded-sm bg-white flex flex-col gap-4 mt-2">
+    <div className="sticky top-24 self-start flex w-full flex-col gap-4 md:w-1/4 lg:w-1/3">
+      <div className="flex flex-col gap-5 rounded-lg bg-white px-2 py-2 shadow-md md:px-5 md:py-5">
         {promotionBadge && (
           <div className="flex">
-            <span className="inline-flex rounded-sm bg-primary-100 px-2 py-3 text-xs font-bold leading-none text-primary-900">
+            <span className="inline-flex rounded-sm bg-primary-100 px-2 py-2 text-xs font-bold leading-none text-primary-900">
               {promotionBadge}
             </span>
           </div>
         )}
-        <h1 className="text-lg text-secondary-900 font-bold -mb-4">{product.name}</h1>
-        <div className="text-sm text-primary-900">
+
+        <h1 className="text-xl font-bold text-secondary-900 md:text-[1.75rem]">
+          {product.name}
+        </h1>
+
+        <div className="-mt-2 text-sm font-semibold text-primary-900">
           Brand: {product.brand?.name || "N/A"}
         </div>
 
-        {/* Price */}
-        <div className="text-2xl md:text-2xl lg:md:text-3xl font-bold text-primary">
-          KSh.{formatPrice(displayPrice)}
-          <span className="text-gray-500 text-base font-normal ml-2">
-            excl. VAT
-          </span>
-          {regularPrice && regularPrice > displayPrice && (
-            <span className="text-gray-400 text-lg font-normal line-through ml-3">
-              KSh.{formatPrice(regularPrice)}
+        <div className="text-3xl font-bold text-secondary-900 md:text-[2rem]">
+          KSh.{formatPrice(effectiveDisplayPrice)}
+          {effectiveRegularPrice && effectiveRegularPrice > effectiveDisplayPrice && (
+            <span className="ml-3 text-lg font-normal text-primary-700 line-through">
+              KSh.{formatPrice(effectiveRegularPrice)}
             </span>
           )}
         </div>
-        {savingsLabel && regularPrice && regularPrice > displayPrice && (
-          <div className="text-sm font-bold text-green-700">
+
+        {shouldShowSavingsLabel && (
+          <div className="-mt-4 text-sm font-bold text-[#225b24]">
             {savingsLabel}
           </div>
         )}
 
-        {/* Divider */}
+        {couponCode && (
+          <div className="-mt-2 max-w-fit">
+            <div className="flex min-w-70 items-start gap-3 rounded-md border border-dashed border-red-300 bg-primary-100/10 px-4 py-3">
+              <span className="mt-0.5 shrink-0 text-primary-900">
+                <Tag size={17} strokeWidth={2} />
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold leading-tight text-primary-900">
+                  {couponMessage}
+                </p>
+                <button
+                  type="button"
+                  onClick={handleCopyCode}
+                  className="mt-1 text-sm font-medium text-primary-900 underline underline-offset-2 hover:text-[#225b24]"
+                >
+                  Copy code
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="border-b border-gray-200"></div>
 
-        {/* Options / Variations - Hidden in Single-Product Mode */}
-        {/* We automatically use the first variant (at index 0) */}
-
-        {/* Stock Status */}
         {(() => {
-          const isAvailable = product.canBuy ?? true;
-          const stockOnHandValue = product.stockOnHand ?? 0;
+          const isAvailable = product.canBuy ?? true
+          const stockOnHandValue = product.stockOnHand ?? 0
 
           return (
-            <>
+            <div className="flex items-center justify-between gap-3">
               {isAvailable ? (
-                <div className="text-green-600 text-lg font-bold">
-                  In Stock {stockOnHandValue > 0 && `(${stockOnHandValue} available)`}
+                <div className="text-lg font-bold text-[#225b24]">
+                  {stockOnHandValue > 0 && `${stockOnHandValue} available`} In Stock
                 </div>
               ) : (
-                <div className="text-red-600 text-lg font-bold">
-                  ❌ Out of Stock
+                <div className="text-lg font-bold text-red-600">
+                  Out of Stock
                 </div>
               )}
-            </>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleAddToCart}
+                  disabled={!isAvailable}
+                  className={`inline-flex h-10 w-10 items-center justify-center rounded-full border transition ${
+                    isAvailable
+                      ? "border-gray-200 bg-white text-secondary-900 hover:border-gray-300 hover:bg-gray-50"
+                      : "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
+                  }`}
+                  aria-label="Add to cart"
+                >
+                  <ShoppingCart size={18} />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleWishlist}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-secondary-900 transition hover:border-gray-300 hover:bg-gray-50"
+                  aria-label="Add to wishlist"
+                >
+                  <Heart size={18} />
+                </button>
+              </div>
+            </div>
           )
         })()}
 
-        <div className="flex items-center gap-3">
-          <div className="flex items-center border border-gray-300 rounded-xs bg-gray-50">
-            <button
-              type="button"
-              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-              className="px-3 py-2 text-gray-600 hover:bg-gray-200 border-r border-r-gray-200 rounded-l-sm"
-            >
-              <Minus />
-            </button>
-            <input
-              id="qty"
-              type="number"
-              min={1}
-              value={quantity}
-              onChange={(e) => setQuantity(Number(e.target.value))}
-              className="w-14 text-center bg-white py-2 border-0 focus:ring-0 text-gray-900"
-            />
-            <button
-              type="button"
-              onClick={() => setQuantity((q) => q + 1)}
-              className="px-3 py-2 text-gray-600 hover:bg-gray-200 border-l border-l-gray-200 rounded-r-sm"
-            >
-              <PlusIcon />
-            </button>
-          </div>
-        </div>
-
-        {/* Buttons */}
         {(() => {
-          const isAvailable = product.canBuy ?? true;
+          const isAvailable = product.canBuy ?? true
 
           return (
-            <>
+            <div className="flex items-stretch gap-3">
+              <Select
+                value={String(quantity)}
+                onValueChange={(value) => setQuantity(Number(value))}
+              >
+                <SelectTrigger
+                  className="h-auto min-h-12 w-23 rounded-none border-gray-200 bg-white px-3 py-3 font-medium text-secondary-900"
+                  aria-label="Select quantity"
+                >
+                  <SelectValue placeholder="Qty" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 10 }, (_, index) => {
+                    const value = String(index + 1)
+                    return (
+                      <SelectItem key={value} value={value}>
+                        {value}
+                      </SelectItem>
+                    )
+                  })}
+                </SelectContent>
+              </Select>
+
               <button
-                className={`font-medium px-6 py-3 transition w-full ${isAvailable
-                  ? 'bg-primary-900 text-white hover:bg-primary-800'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  }`}
+                className={`flex-1 px-6 py-3 font-medium transition ${
+                  isAvailable
+                    ? "bg-primary-900 text-white hover:bg-primary-800"
+                    : "cursor-not-allowed bg-gray-300 text-gray-500"
+                }`}
                 onClick={handleBuyNow}
                 disabled={!isAvailable}
               >
-                {isAvailable ? 'Buy Now' : 'Out of Stock'}
+                {isAvailable ? "Buy Now" : "Out of Stock"}
               </button>
-              <div className="flex gap-2">
-                <button
-                  onClick={handleAddToCart}
-                  disabled={!isAvailable}
-                  className={`font-medium px-6 py-2 transition flex-1 ${isAvailable
-                    ? 'border border-secondary-900 text-secondary-900 hover:bg-secondary-100'
-                    : 'border border-gray-300 text-gray-400 cursor-not-allowed bg-gray-50'
-                    }`}
-                >
-                  Add to Cart
-                </button>
-                <button
-                  onClick={handleWishlist}
-                  className="border border-secondary-900 text-secondary-900 font-medium px-6 py-2 hover:bg-secondary-100 transition flex-1"
-                >
-                  Wishlist
-                </button>
-              </div>
-            </>
+            </div>
           )
         })()}
 
-        {/* ✅ Benefits Section */}
-        <div className="mt-6 space-y-4 text-left border-t border-gray-200 pt-4">
-          {/* Security & Privacy */}
-          <div className="flex items-start gap-3">
-            <span className="text-green-600 bg-green-100 p-2 rounded-full">
-              <ShieldCheck size={20} />
-            </span>
-            <div>
-              <div className="flex items-center font-semibold text-sm">Security & Privacy {<ChevronRight size={16} />}</div>
-              <div className="text-xs grid text-gray-900">
-                <span>• 100% Secure payment</span>
-                <span>• Secure privacy</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Free Returns */}
-          <div className="flex items-start gap-3">
-            <span className="text-green-600 bg-green-100 p-2 rounded-full">
-              <Undo2 size={20} />
-            </span>
-            <div>
-              <div className="flex items-center font-semibold text-sm">FREE Returns {<ChevronRight size={16} />}</div>
-              <div className="text-xs grid text-gray-900">
-                <span>• 30-day Free Returns</span>
-                <span>• Refund for lost/damaged items</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Professional Service */}
-          <div className="flex items-start gap-3">
-            <span className="text-green-600 bg-green-100 p-2 rounded-full">
-              <Handshake size={20} />
-            </span>
-            <div>
-              <div className="flex items-center font-semibold text-sm">Professional Service {<ChevronRight size={16} />}</div>
-              <div className="text-xs grid text-gray-900">
-                <span>• 12-month warranty</span>
-                <span>• Customer Support</span>
-              </div>
-            </div>
-          </div>
-        </div>
+      </div>
+      <div className="flex flex-col gap-5 rounded-lg bg-white px-2 py-2 shadow-md md:px-5 md:py-5">
+        <ProductBenefits />
       </div>
     </div>
   )

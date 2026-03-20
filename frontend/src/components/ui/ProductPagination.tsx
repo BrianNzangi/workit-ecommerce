@@ -2,15 +2,15 @@
 
 interface ProductPaginationProps {
   currentPage: number;
+  totalPages: number;
   isLastPage: boolean;
   onPageChange: (page: number) => void;
 }
 
-export default function ProductPagination({ currentPage, isLastPage, onPageChange }: ProductPaginationProps) {
+export default function ProductPagination({ currentPage, totalPages, isLastPage, onPageChange }: ProductPaginationProps) {
   // Generate page numbers with max 5 visible pages and ellipses
   const getPaginationPages = () => {
     const pages: (number | string)[] = [];
-    const totalPages = isLastPage ? currentPage : currentPage + 1;
 
     if (totalPages <= 5) {
       for (let i = 1; i <= totalPages; i++) pages.push(i);

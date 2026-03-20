@@ -9,11 +9,9 @@ import { fetchNavigationCollectionsDisplayClient } from '@/lib/collections-clien
 import type { CollectionDisplay } from '@/types/collections';
 import { motion, AnimatePresence } from 'framer-motion';
 
-let cachedCollections: CollectionDisplay[] | null = null;
-
 export default function MegaMenu() {
-  const [collections, setCollections] = useState<CollectionDisplay[]>(cachedCollections || []);
-  const [loading, setLoading] = useState(!cachedCollections);
+  const [collections, setCollections] = useState<CollectionDisplay[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const [activeL1, setActiveL1] = useState<CollectionDisplay | null>(null);
   const [view, setView] = useState<'l1' | 'subcategory'>('l1');
@@ -57,12 +55,9 @@ export default function MegaMenu() {
   }, []);
 
   useEffect(() => {
-    if (cachedCollections) return;
-
     async function fetchCollections() {
       try {
         const data = await fetchNavigationCollectionsDisplayClient();
-        cachedCollections = data;
         setCollections(data);
       } catch (err) {
         console.error('Failed to fetch collections:', err);

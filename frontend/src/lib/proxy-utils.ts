@@ -43,7 +43,10 @@ export async function proxyFetch(path: string, options: RequestInit = {}) {
 
     const isGet = !options.method || options.method.toUpperCase() === 'GET';
     const bypassCache = options.cache === 'no-store';
-    const canUseProxyCache = isProduction && !bypassCache;
+    const isExternalUrl = path.startsWith('http');
+    // Backend store data is already cached centrally in the API layer. We only
+    // keep this Redis cache path for explicit external absolute URLs.
+    const canUseProxyCache = isProduction && isExternalUrl && !bypassCache;
     const cacheKey = `proxy:${path}`;
 
     // 2. Try to get from Redis cache if it's a GET request
@@ -57,7 +60,7 @@ export async function proxyFetch(path: string, options: RequestInit = {}) {
     }
 
     const backendUrl = getBackendUrl();
-    const url = path.startsWith('http') ? path : `${backendUrl}${path}`;
+    const url = isExternalUrl ? path : `${backendUrl}${path}`;
 
     const env = process.env as Record<string, string | undefined>;
     const defaultHeaders: Record<string, string> = {

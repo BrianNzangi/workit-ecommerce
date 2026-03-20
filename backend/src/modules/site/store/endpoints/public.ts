@@ -1,5 +1,5 @@
 import { FastifyPluginAsync } from "fastify";
-import { db, schema, and, eq, or, ilike, desc, count, isNull, inArray, asc, isNotNull, gt } from "../../../../lib/db.js";
+import { db, schema, and, eq, or, ilike, desc, count, isNull, inArray, asc, isNotNull, gt, gte, lte, sql } from "../../../../lib/db.js";
 import { z } from "zod";
 import { productSearchService } from "../../../../services/search/product-search.service.js";
 import { buildCacheKey } from "../../../../lib/cache.js";
@@ -14,6 +14,9 @@ const productsQuerySchema = z.object({
     shippingMethodId: z.string().optional(),
     onSale: z.coerce.boolean().optional(),
     inStock: z.coerce.boolean().optional(),
+    minPrice: z.coerce.number().optional(),
+    maxPrice: z.coerce.number().optional(),
+    sortBy: z.enum(["popularity", "price_asc", "price_desc"]).optional().default("popularity"),
 });
 
 const bannersQuerySchema = z.object({
@@ -29,9 +32,9 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
         productDetail: 300,
         brands: 900,
         collections: 900,
-        banners: 300,
-        homepageCollections: 300,
-        campaigns: 300,
+        banners: 120,
+        homepageCollections: 120,
+        campaigns: 120,
         shipping: 900,
         policies: 3600,
     };
@@ -59,10 +62,39 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
         },
         preHandler: [fastify.publicRateLimit],
     }, async (request, reply) => {
-        const { limit, offset, collection, brand, q, shippingMethodId, onSale, inStock } = request.query as z.infer<typeof productsQuerySchema>;
+        const {
+            limit,
+            offset,
+            collection,
+            brand,
+            q,
+            shippingMethodId,
+            onSale,
+            inStock,
+            minPrice,
+            maxPrice,
+            sortBy,
+        } = request.query as z.infer<typeof productsQuerySchema>;
 
-        const cacheKey = buildCacheKey("store:products:list", request.query as any);
-        const cached = await fastify.cache.get<{ products: any[] }>(cacheKey);
+        const parsedLimit = Math.min(Math.max(Number(limit) || 50, 1), 100);
+        const parsedOffset = Math.max(Number(offset) || 0, 0);
+
+        const cacheKey = buildCacheKey("store:products:list", {
+            ...(request.query as Record<string, unknown>),
+            limit: parsedLimit,
+            offset: parsedOffset,
+        } as any);
+        const cached = await fastify.cache.get<{
+            products: any[];
+            pagination: {
+                total: number;
+                limit: number;
+                offset: number;
+                currentPage: number;
+                totalPages: number;
+                hasMore: boolean;
+            };
+        }>(cacheKey);
         if (cached) {
             reply.header("x-cache", "HIT");
             reply.header("Cache-Control", `public, max-age=${TTL.productsList}`);
@@ -107,6 +139,15 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
         if (inStock) {
             whereClauses.push(gt(schema.products.stockOnHand, 0));
         }
+        if (minPrice !== undefined || maxPrice !== undefined) {
+            const priceExpr = sql<number>`coalesce(${schema.products.salePrice}, ${schema.products.originalPrice}, 0)`;
+            if (Number.isFinite(minPrice)) {
+                whereClauses.push(gte(priceExpr, Number(minPrice)));
+            }
+            if (Number.isFinite(maxPrice)) {
+                whereClauses.push(lte(priceExpr, Number(maxPrice)));
+            }
+        }
         if (q) {
             whereClauses.push(or(
                 ilike(schema.products.name, `%${q}%`),
@@ -114,11 +155,27 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
             )!);
         }
 
+        const whereClause = and(...whereClauses);
+        const [{ count: totalCountRaw }] = await db
+            .select({ count: count() })
+            .from(schema.products)
+            .where(whereClause);
+        const total = Number(totalCountRaw || 0);
+        const totalPages = Math.max(1, Math.ceil(total / parsedLimit));
+        const currentPage = Math.floor(parsedOffset / parsedLimit) + 1;
+
+        const orderBy =
+            sortBy === "price_asc"
+                ? [asc(schema.products.salePrice), asc(schema.products.createdAt)]
+                : sortBy === "price_desc"
+                    ? [desc(schema.products.salePrice), desc(schema.products.createdAt)]
+                    : [desc(schema.products.createdAt)];
+
         const results = await db.query.products.findMany({
-            where: and(...whereClauses),
-            limit: Number(limit),
-            offset: Number(offset),
-            orderBy: [desc(schema.products.createdAt)],
+            where: whereClause,
+            limit: parsedLimit,
+            offset: parsedOffset,
+            orderBy,
             with: {
                 assets: { with: { asset: true } },
                 collections: { with: { collection: true } },
@@ -126,7 +183,17 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
                 campaignProducts: { with: { campaign: true } },
             }
         });
-        const payload = { products: enrichProductsWithCampaigns(results, { onlyActive: true }) };
+        const payload = {
+            products: enrichProductsWithCampaigns(results, { onlyActive: true }),
+            pagination: {
+                total,
+                limit: parsedLimit,
+                offset: parsedOffset,
+                currentPage,
+                totalPages,
+                hasMore: parsedOffset + parsedLimit < total,
+            },
+        };
         await fastify.cache.set(cacheKey, payload, TTL.productsList, ["products"]);
         reply.header("x-cache", "MISS");
         reply.header("Cache-Control", `public, max-age=${TTL.productsList}`);

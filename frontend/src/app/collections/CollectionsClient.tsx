@@ -27,19 +27,27 @@ export default function CollectionsClient() {
   const [sortBy, setSortBy] = useState('popularity');
 
   const handleFilterChange = (filters: {
-    category?: number | null;
-    tag?: number[];
-    brand?: number[];
+    category?: string | number | null;
+    tag?: Array<string | number>;
+    brand?: Array<string | number>;
     minPrice?: number;
     maxPrice?: number;
     onSale?: boolean;
     inStock?: boolean;
     shippingMethodId?: string;
   }) => {
-    if (filters.category !== undefined && filters.category !== initialCategoryId) {
-      changeCategory(filters.category || 0);
+    const nextCategoryId =
+      filters.category === undefined || filters.category === null
+        ? undefined
+        : Number(filters.category);
+
+    if (nextCategoryId !== undefined && nextCategoryId !== initialCategoryId) {
+      changeCategory(nextCategoryId || 0);
     } else {
-      updateFilters(filters);
+      updateFilters({
+        ...filters,
+        brand: filters.brand?.map((value) => Number(value)).filter((value) => !Number.isNaN(value)),
+      });
     }
   };
 
