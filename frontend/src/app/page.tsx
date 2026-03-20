@@ -13,6 +13,7 @@ import {
     getMostShoppedCollections,
     getStoreBanners,
 } from '@/lib/homepage-data';
+import { recordSsrRenderTime } from '@/lib/metrics';
 import { SITE_CONFIG, DEFAULT_OG, DEFAULT_TWITTER } from '@/lib/meta';
 
 export const metadata: Metadata = {
@@ -33,6 +34,7 @@ const unwrapSettled = <T,>(result: PromiseSettledResult<T>, fallback: T): T =>
     result.status === 'fulfilled' ? result.value : fallback;
 
 export default async function Home() {
+    const startedAt = Date.now();
     const results = await Promise.allSettled([
         getStoreBanners('HERO'),
         getStoreBanners('DEALS'),
@@ -52,6 +54,7 @@ export default async function Home() {
     const mostShoppedCollections = unwrapSettled(results[5], []);
     const homepageCollections = unwrapSettled(results[6], []);
     const featuredBlogs = unwrapSettled(results[7], []);
+    recordSsrRenderTime('/', Date.now() - startedAt);
 
     return (
         <div className="bg-white">

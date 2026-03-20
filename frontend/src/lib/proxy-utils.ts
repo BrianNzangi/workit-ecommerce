@@ -1,6 +1,7 @@
 import { getCachedData, setCachedData } from './redis';
 import { rateLimit } from './rate-limit';
 import { headers } from 'next/headers';
+import { observeApiRequestDuration } from './metrics';
 
 function getBackendUrl() {
     // We use bracket notation to prevent Next.js from inlining these values at build time
@@ -15,6 +16,8 @@ function getBackendUrl() {
 
 export async function proxyFetch(path: string, options: RequestInit = {}) {
     const isProduction = process.env.NODE_ENV === 'production';
+    const startedAt = Date.now();
+    const method = options.method?.toUpperCase() || 'GET';
 
     // 1. Rate Limiting (Protects the backend from abuse)
     try {
@@ -61,6 +64,13 @@ export async function proxyFetch(path: string, options: RequestInit = {}) {
 
     const backendUrl = getBackendUrl();
     const url = isExternalUrl ? path : `${backendUrl}${path}`;
+    const routeLabel = (() => {
+        try {
+            return isExternalUrl ? new URL(path).pathname || '/' : path.split('?')[0] || '/';
+        } catch {
+            return path.split('?')[0] || '/';
+        }
+    })();
 
     const env = process.env as Record<string, string | undefined>;
     const defaultHeaders: Record<string, string> = {
@@ -79,25 +89,31 @@ export async function proxyFetch(path: string, options: RequestInit = {}) {
         // next/headers might throw if called outside of request context
     }
 
-    const response = await fetch(url, {
-        ...options,
-        headers: {
-            ...defaultHeaders,
-            ...options.headers,
-        },
-    });
+    try {
+        const response = await fetch(url, {
+            ...options,
+            headers: {
+                ...defaultHeaders,
+                ...options.headers,
+            },
+        });
 
-    // 3. If it's a successful GET response, cache it in Redis
-    if (isGet && response.ok && canUseProxyCache) {
-        const clonedResponse = response.clone();
-        try {
-            const data = await clonedResponse.json();
-            const ttl = (options as any).next?.revalidate || 300;
-            await setCachedData(cacheKey, data, ttl);
-        } catch (e) {
-            // Not JSON or other error, skip caching
+        // 3. If it's a successful GET response, cache it in Redis
+        if (isGet && response.ok && canUseProxyCache) {
+            const clonedResponse = response.clone();
+            try {
+                const data = await clonedResponse.json();
+                const ttl = (options as any).next?.revalidate || 300;
+                await setCachedData(cacheKey, data, ttl);
+            } catch (e) {
+                // Not JSON or other error, skip caching
+            }
         }
-    }
 
-    return response;
+        observeApiRequestDuration(routeLabel, method, response.status, Date.now() - startedAt);
+        return response;
+    } catch (error) {
+        observeApiRequestDuration(routeLabel, method, 500, Date.now() - startedAt);
+        throw error;
+    }
 }

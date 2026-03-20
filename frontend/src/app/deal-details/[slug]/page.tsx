@@ -4,6 +4,7 @@ import ProductPage from '@/components/product/ProductPage';
 import { Category } from '@/types/collection';
 import type { Product } from '@/types/product';
 import { SITE_CONFIG } from '@/lib/meta';
+import { recordSsrRenderTime } from '@/lib/metrics';
 import { proxyFetch } from '@/lib/proxy-utils';
 import { getImageUrl } from '@/lib/image-utils';
 import { normalizeProduct, normalizeProducts } from '@/lib/product-normalization';
@@ -95,6 +96,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ProductDetailPage({ params }: Props) {
+  const startedAt = Date.now();
   const { slug } = await params;
 
   try {
@@ -109,6 +111,7 @@ export default async function ProductDetailPage({ params }: Props) {
 
     if (!productResponse.ok) {
       console.error(`[ProductDetailPage] Backend error ${productResponse.status} for slug: ${slug}`);
+      recordSsrRenderTime('/deal-details/[slug]', Date.now() - startedAt);
       return (
         <div className="container mx-auto px-4 py-10">
           <div className="text-center">
@@ -222,6 +225,7 @@ export default async function ProductDetailPage({ params }: Props) {
       console.error('Error fetching also viewed items:', error);
     }
 
+    recordSsrRenderTime('/deal-details/[slug]', Date.now() - startedAt);
     return (
       <div className="min-h-screen">
         <ProductPage
@@ -234,6 +238,7 @@ export default async function ProductDetailPage({ params }: Props) {
     );
   } catch (error) {
     console.error('Error fetching product:', error);
+    recordSsrRenderTime('/deal-details/[slug]', Date.now() - startedAt);
     return (
       <div className="container mx-auto px-4 py-10">
         <div className="text-center">

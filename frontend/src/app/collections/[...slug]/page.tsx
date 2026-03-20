@@ -7,6 +7,7 @@ import { SITE_CONFIG } from '@/lib/meta';
 import { fetchCollections } from '@/lib/collections-server';
 import { proxyFetch } from '@/lib/proxy-utils';
 import { getFirstBanner } from '@/lib/homepage-data';
+import { recordSsrRenderTime } from '@/lib/metrics';
 import { normalizeProducts } from '@/lib/product-normalization';
 
 interface Props {
@@ -92,6 +93,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function CollectionPage({ params }: Props) {
+  const startedAt = Date.now();
   const resolvedParams = await params
   const fullSlug = Array.isArray(resolvedParams.slug) ? resolvedParams.slug.join('/') : ''
   const lastSlug = resolvedParams.slug.at(-1) || '';
@@ -151,6 +153,7 @@ export default async function CollectionPage({ params }: Props) {
 
   // For now, we'll use empty brands array since there's no brands API route
   const brands: Brand[] = []
+  recordSsrRenderTime('/collections/[...slug]', Date.now() - startedAt);
 
   return (
     <div className="bg-white min-h-screen">
