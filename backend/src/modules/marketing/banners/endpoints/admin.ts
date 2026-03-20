@@ -20,6 +20,7 @@ export const bannersAdminRoutes: FastifyPluginAsync = async (fastify) => {
             with: {
                 collection: true,
                 product: true,
+                campaign: true,
                 desktopImage: true,
                 mobileImage: true,
             },
@@ -43,6 +44,7 @@ export const bannersAdminRoutes: FastifyPluginAsync = async (fastify) => {
             mobileImageId: data.mobileImageId || null,
             collectionId: data.collectionId || null,
             productId: data.productId || null,
+            campaignId: data.campaignId || null,
             updatedAt: new Date(),
         };
         // Remove 'name' if it exists to avoid conflicts if any
@@ -63,6 +65,7 @@ export const bannersAdminRoutes: FastifyPluginAsync = async (fastify) => {
             with: {
                 collection: true,
                 product: true,
+                campaign: true,
                 desktopImage: true,
                 mobileImage: true,
             },
@@ -80,6 +83,7 @@ export const bannersAdminRoutes: FastifyPluginAsync = async (fastify) => {
             with: {
                 collection: true,
                 product: true,
+                campaign: true,
                 desktopImage: true,
                 mobileImage: true,
             },
@@ -101,6 +105,7 @@ export const bannersAdminRoutes: FastifyPluginAsync = async (fastify) => {
             mobileImageId: data.mobileImageId || null,
             collectionId: data.collectionId || null,
             productId: data.productId || null,
+            campaignId: data.campaignId || null,
             updatedAt: new Date(),
         };
         delete values.name;

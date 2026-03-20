@@ -102,7 +102,7 @@ function sortBanners(banners: StoreBanner[], position?: string) {
 
 export async function getStoreBanners(
     position?: string,
-    options: { collectionSlug?: string } = {},
+    options: { collectionSlug?: string; campaignSlug?: string } = {},
 ): Promise<StoreBanner[]> {
     const params = new URLSearchParams();
 
@@ -112,6 +112,10 @@ export async function getStoreBanners(
 
     if (options.collectionSlug) {
         params.set('collection', options.collectionSlug);
+    }
+
+    if (options.campaignSlug) {
+        params.set('campaign', options.campaignSlug);
     }
 
     params.set('enabled', 'true');
@@ -133,7 +137,7 @@ export async function getStoreBanners(
 
 export async function getFirstBanner(
     position: string,
-    options: { collectionSlug?: string } = {},
+    options: { collectionSlug?: string; campaignSlug?: string } = {},
 ): Promise<StoreBanner | null> {
     const banners = await getStoreBanners(position, options);
     return banners[0] || null;

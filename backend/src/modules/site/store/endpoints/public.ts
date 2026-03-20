@@ -9,6 +9,7 @@ const productsQuerySchema = z.object({
     limit: z.coerce.number().default(50),
     offset: z.coerce.number().default(0),
     collection: z.string().optional(),
+    campaign: z.string().optional(),
     brand: z.string().optional(),
     q: z.string().optional(),
     shippingMethodId: z.string().optional(),
@@ -24,6 +25,8 @@ const bannersQuerySchema = z.object({
     enabled: z.coerce.boolean().optional(),
     collectionId: z.string().optional(),
     collection: z.string().optional(),
+    campaignId: z.string().optional(),
+    campaign: z.string().optional(),
 });
 
 export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
@@ -67,6 +70,7 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
             limit,
             offset,
             collection,
+            campaign,
             brand,
             q,
             shippingMethodId,
@@ -121,6 +125,53 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
 
                 if (productIds.length > 0) {
                     whereClauses.push(inArray(schema.products.id, productIds));
+                } else {
+                    whereClauses.push(eq(schema.products.id, "___none___"));
+                }
+            } else {
+                whereClauses.push(eq(schema.products.id, "___none___"));
+            }
+        }
+        if (campaign) {
+            const matchedCampaign = await db.query.campaigns.findFirst({
+                where: or(
+                    eq(schema.campaigns.id, campaign),
+                    eq(schema.campaigns.slug, campaign)
+                ),
+                columns: {
+                    id: true,
+                    productIds: true,
+                },
+            });
+
+            if (matchedCampaign) {
+                const relatedCampaignProducts = await db.query.campaignProducts.findMany({
+                    where: eq(schema.campaignProducts.campaignId, matchedCampaign.id),
+                    columns: { productId: true },
+                    orderBy: [asc(schema.campaignProducts.sortOrder)],
+                });
+
+                const normalizedCampaignProductIds = relatedCampaignProducts.length > 0
+                    ? relatedCampaignProducts.map((entry: any) => entry.productId)
+                    : (() => {
+                        const rawProductIds = matchedCampaign.productIds;
+                        if (!rawProductIds) return [];
+
+                        try {
+                            const parsed = JSON.parse(String(rawProductIds));
+                            return Array.isArray(parsed)
+                                ? parsed.map((item) => String(item).trim()).filter(Boolean)
+                                : [];
+                        } catch {
+                            return String(rawProductIds)
+                                .split(',')
+                                .map((item) => item.trim())
+                                .filter(Boolean);
+                        }
+                    })();
+
+                if (normalizedCampaignProductIds.length > 0) {
+                    whereClauses.push(inArray(schema.products.id, normalizedCampaignProductIds));
                 } else {
                     whereClauses.push(eq(schema.products.id, "___none___"));
                 }
@@ -372,7 +423,7 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
         },
         preHandler: [fastify.publicRateLimit],
     }, async (request, reply) => {
-        const { position, enabled, collectionId, collection } = request.query as z.infer<typeof bannersQuerySchema>;
+        const { position, enabled, collectionId, collection, campaignId, campaign } = request.query as z.infer<typeof bannersQuerySchema>;
 
         const cacheKey = buildCacheKey("store:banners:list", request.query as any);
         const cached = await fastify.cache.get<{ banners: any[] }>(cacheKey);
@@ -412,6 +463,27 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
             whereClauses.push(inArray(schema.banners.collectionId, collectionIds));
         }
 
+        let resolvedCampaignId = campaignId;
+        if (!resolvedCampaignId && campaign) {
+            const matchedCampaign = await db.query.campaigns.findFirst({
+                where: or(
+                    eq(schema.campaigns.id, campaign),
+                    eq(schema.campaigns.slug, campaign)
+                ),
+                columns: { id: true }
+            });
+
+            if (!matchedCampaign) {
+                return { banners: [] };
+            }
+
+            resolvedCampaignId = matchedCampaign.id;
+        }
+
+        if (resolvedCampaignId) {
+            whereClauses.push(eq(schema.banners.campaignId, resolvedCampaignId));
+        }
+
         const bannerWhereClause = whereClauses.length === 1
             ? whereClauses[0]
             : and(...whereClauses);
@@ -424,6 +496,7 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
                 mobileImage: true,
                 collection: true,
                 product: true,
+                campaign: true,
             }
         });
         const payload = { banners: results };

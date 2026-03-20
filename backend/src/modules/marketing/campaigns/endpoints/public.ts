@@ -1,5 +1,5 @@
 import { FastifyPluginAsync } from "fastify";
-import { db, schema, eq, desc, inArray, asc } from "../../../../lib/db.js";
+import { db, schema, eq, desc, inArray, asc, and, or } from "../../../../lib/db.js";
 
 const parseIdArray = (value: string | string[] | null | undefined) => {
     if (!value) return [] as string[];
@@ -96,14 +96,20 @@ export const campaignsPublicRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Show Campaign
     // Show Campaign
-    fastify.get("/:id", {
+    fastify.get("/:idOrSlug", {
         schema: {
             tags: ["Marketing"]
         }
     }, async (request, reply) => {
-        const { id } = request.params as any;
+        const { idOrSlug } = request.params as any;
         const campaign = await db.query.campaigns.findFirst({
-            where: eq(schema.campaigns.id, id),
+            where: and(
+                eq(schema.campaigns.status, 'ACTIVE'),
+                or(
+                    eq(schema.campaigns.id, idOrSlug),
+                    eq(schema.campaigns.slug, idOrSlug)
+                )
+            ) as any,
         });
         if (!campaign) return reply.status(404).send({ message: "Campaign not found" });
 

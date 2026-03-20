@@ -3,11 +3,11 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/hooks/use-toast';
-import { BannerService, CollectionService, Collection, Asset } from '@/lib/services';
+import { BannerService, CampaignService, CollectionService, Collection, Asset, Campaign } from '@/lib/services';
 import { BannerBasicInfo } from './BannerBasicInfo';
 import { BannerDisplaySettings } from './BannerDisplaySettings';
 import { BannerImages } from './BannerImages';
-import { BannerFormMode, BannerFormData, BannerLinkedProduct } from './types';
+import { BannerFormMode, BannerFormData, BannerLinkedCampaign, BannerLinkedProduct } from './types';
 import { BannerFormHeader } from './BannerFormHeader';
 import { BannerFormError } from './BannerFormError';
 import { BannerSaveCard } from './BannerSaveCard';
@@ -20,6 +20,7 @@ const initialFormData: BannerFormData = {
     position: 'HERO',
     collectionId: '',
     productId: '',
+    campaignId: '',
     enabled: true,
     sortOrder: 0,
     desktopImageId: '',
@@ -38,12 +39,15 @@ export function BannerForm({ mode = 'create', bannerId }: BannerFormProps) {
     const [loading, setLoading] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(isEdit);
     const [loadingCollections, setLoadingCollections] = useState(false);
+    const [loadingCampaigns, setLoadingCampaigns] = useState(false);
     const [loadingAssets, setLoadingAssets] = useState(false);
     const [error, setError] = useState('');
     const [collections, setCollections] = useState<Collection[]>([]);
+    const [campaigns, setCampaigns] = useState<Campaign[]>([]);
     const [selectedDesktopAsset, setSelectedDesktopAsset] = useState<Asset | null>(null);
     const [selectedMobileAsset, setSelectedMobileAsset] = useState<Asset | null>(null);
     const [selectedProduct, setSelectedProduct] = useState<BannerLinkedProduct | null>(null);
+    const [selectedCampaign, setSelectedCampaign] = useState<BannerLinkedCampaign | null>(null);
     const [formData, setFormData] = useState<BannerFormData>(initialFormData);
 
     const successTitle = useMemo(
@@ -64,6 +68,19 @@ export function BannerForm({ mode = 'create', bannerId }: BannerFormProps) {
         }
     };
 
+    const loadCampaigns = async () => {
+        setLoadingCampaigns(true);
+        try {
+            const campaignService = new CampaignService();
+            const data = await campaignService.getCampaigns();
+            setCampaigns(data || []);
+        } catch (campaignError) {
+            console.error('Error loading campaigns:', campaignError);
+        } finally {
+            setLoadingCampaigns(false);
+        }
+    };
+
     const loadBanner = async (id: string) => {
         try {
             const bannerService = new BannerService();
@@ -80,6 +97,7 @@ export function BannerForm({ mode = 'create', bannerId }: BannerFormProps) {
                 position: banner.position || 'HERO',
                 collectionId: banner.collectionId || '',
                 productId: banner.productId || '',
+                campaignId: banner.campaignId || '',
                 enabled: banner.enabled ?? true,
                 sortOrder: banner.sortOrder ?? 0,
                 desktopImageId: banner.desktopImageId || '',
@@ -98,6 +116,16 @@ export function BannerForm({ mode = 'create', bannerId }: BannerFormProps) {
                     }
                     : null
             );
+            setSelectedCampaign(
+                banner.campaign
+                    ? {
+                        id: banner.campaign.id,
+                        name: banner.campaign.name,
+                        slug: banner.campaign.slug,
+                        status: banner.campaign.status,
+                    }
+                    : null
+            );
         } catch (bannerError: any) {
             console.error('Error loading banner:', bannerError);
             setError(bannerError?.message || 'Failed to load banner.');
@@ -109,7 +137,7 @@ export function BannerForm({ mode = 'create', bannerId }: BannerFormProps) {
             setError('');
 
             if (!isEdit) {
-                await loadCollections();
+                await Promise.all([loadCollections(), loadCampaigns()]);
                 return;
             }
 
@@ -120,7 +148,7 @@ export function BannerForm({ mode = 'create', bannerId }: BannerFormProps) {
             }
 
             setFetchLoading(true);
-            await Promise.all([loadCollections(), loadBanner(bannerId)]);
+            await Promise.all([loadCollections(), loadCampaigns(), loadBanner(bannerId)]);
             setFetchLoading(false);
         };
 
@@ -143,7 +171,24 @@ export function BannerForm({ mode = 'create', bannerId }: BannerFormProps) {
 
     const handleProductChange = (product: BannerLinkedProduct | null) => {
         setSelectedProduct(product);
-        setFormData((previous) => ({ ...previous, productId: product?.id || '' }));
+        setSelectedCampaign(null);
+        setFormData((previous) => ({
+            ...previous,
+            productId: product?.id || '',
+            collectionId: product ? '' : previous.collectionId,
+            campaignId: '',
+        }));
+    };
+
+    const handleCampaignChange = (campaign: BannerLinkedCampaign | null) => {
+        setSelectedCampaign(campaign);
+        setSelectedProduct(null);
+        setFormData((previous) => ({
+            ...previous,
+            campaignId: campaign?.id || '',
+            productId: '',
+            collectionId: campaign ? '' : previous.collectionId,
+        }));
     };
 
     const validate = () => {
@@ -172,6 +217,7 @@ export function BannerForm({ mode = 'create', bannerId }: BannerFormProps) {
                 slug,
                 collectionId: formData.collectionId || '',
                 productId: formData.productId || '',
+                campaignId: formData.campaignId || '',
                 desktopImageId: formData.desktopImageId || '',
                 mobileImageId: formData.mobileImageId || '',
             };
@@ -218,9 +264,13 @@ export function BannerForm({ mode = 'create', bannerId }: BannerFormProps) {
                                 formData={formData}
                                 onChange={handleChange}
                                 collections={collections}
+                                campaigns={campaigns}
                                 selectedProduct={selectedProduct}
+                                selectedCampaign={selectedCampaign}
                                 onProductChange={handleProductChange}
+                                onCampaignChange={handleCampaignChange}
                                 loadingCollections={loadingCollections}
+                                loadingCampaigns={loadingCampaigns}
                                 disabled={loading}
                             />
                             <BannerImages

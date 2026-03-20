@@ -23,6 +23,15 @@ interface CollectionPagination {
   hasMore: boolean;
 }
 
+interface PublicCampaign {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  status?: string;
+  featuredProducts?: any[];
+}
+
 export const revalidate = 300;
 
 const flattenCollections = (colls: ApiCollection[]): ApiCollection[] => {
@@ -81,6 +90,43 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         },
       };
     }
+
+    const campaignResponse = await proxyFetch(`/marketing/campaigns/${lastSlug}`, {
+      next: { revalidate },
+    });
+
+    if (campaignResponse.ok) {
+      const campaign = (await campaignResponse.json()) as PublicCampaign;
+      const title = `${campaign.name} | ${SITE_CONFIG.name}`;
+      const description = campaign.description
+        ? campaign.description.replace(/<[^>]*>/g, '').trim()
+        : `Explore products in the ${campaign.name} campaign at Workit.`;
+
+      return {
+        title,
+        description,
+        openGraph: {
+          title,
+          description,
+          url: `${SITE_CONFIG.url}/collections/${lastSlug}`,
+          siteName: SITE_CONFIG.name,
+          type: "website",
+          images: [
+            {
+              url: `${SITE_CONFIG.url}${SITE_CONFIG.logo}`,
+              width: 1200,
+              height: 630,
+              alt: title,
+            },
+          ],
+        },
+        twitter: {
+          card: "summary_large_image",
+          title,
+          description,
+        },
+      };
+    }
   } catch (error) {
     console.error('Failed to fetch collections for metadata:', error);
   }
@@ -111,9 +157,34 @@ export default async function CollectionPage({ params }: Props) {
 
   const allCollections = flattenCollections(collections);
   const collection = allCollections.find((c) => c.slug === lastSlug) || null;
+  let campaign: PublicCampaign | null = null;
   const legacyCollections = collections as unknown as Category[];
-  const legacyCollection = collection as unknown as Category | null;
+  let legacyCollection = collection as unknown as Category | null;
   let collectionBanner = null;
+
+  if (!collection) {
+    try {
+      const campaignResponse = await proxyFetch(`/marketing/campaigns/${lastSlug}`, {
+        next: { revalidate },
+      });
+
+      if (campaignResponse.ok) {
+        const resolvedCampaign = await campaignResponse.json() as PublicCampaign;
+        campaign = resolvedCampaign;
+        legacyCollection = {
+          id: resolvedCampaign.id as any,
+          name: resolvedCampaign.name,
+          slug: resolvedCampaign.slug,
+          parent: 0,
+          count: 0,
+          description: resolvedCampaign.description || undefined,
+          children: [],
+        };
+      }
+    } catch (error) {
+      console.error('Failed to fetch campaign:', error);
+    }
+  }
 
   let products: Product[] = []
   let initialPagination: CollectionPagination = {
@@ -124,18 +195,25 @@ export default async function CollectionPage({ params }: Props) {
     totalPages: 1,
     hasMore: false,
   }
-  if (collection) {
+  if (collection || campaign) {
     try {
       const params = new URLSearchParams({
-        collection: collection.slug,
         limit: '20',
         offset: '0',
       });
+      if (collection) {
+        params.set('collection', collection.slug);
+      }
+      if (campaign) {
+        params.set('campaign', campaign.slug);
+      }
       const [productsRes, banner] = await Promise.all([
         proxyFetch(`/store/products?${params.toString()}`, {
           next: { revalidate },
         }),
-        getFirstBanner('COLLECTION_TOP', { collectionSlug: collection.slug }),
+        getFirstBanner('COLLECTION_TOP', collection
+          ? { collectionSlug: collection.slug }
+          : { campaignSlug: campaign?.slug }),
       ]);
       collectionBanner = banner;
 
@@ -164,7 +242,8 @@ export default async function CollectionPage({ params }: Props) {
         products={products}
         initialPagination={initialPagination}
         brands={brands}
-        collectionBanner={collectionBanner}
+      collectionBanner={collectionBanner}
+      campaignSlug={campaign?.slug}
       />
     </div>
   )

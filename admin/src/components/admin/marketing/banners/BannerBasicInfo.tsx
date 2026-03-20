@@ -1,8 +1,8 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Check, ChevronDown, Link2, Package } from 'lucide-react';
-import { Collection } from '@/lib/services';
+import { Check, ChevronDown, Link2, Megaphone, Package } from 'lucide-react';
+import { Campaign, Collection } from '@/lib/services';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,7 +18,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/shared/utils/cn';
-import { BannerLinkedProduct } from './types';
+import { BannerLinkedCampaign, BannerLinkedProduct } from './types';
 import { BannerProductPicker } from './BannerProductPicker';
 import { findCollectionPath, getRootCollections } from './banner.utils';
 
@@ -28,15 +28,20 @@ interface BannerFormData {
     slug: string;
     collectionId: string;
     productId: string;
+    campaignId: string;
 }
 
 interface BannerBasicInfoProps {
     formData: BannerFormData;
     onChange: (data: Partial<BannerFormData>) => void;
     collections: Collection[];
+    campaigns: Campaign[];
     selectedProduct: BannerLinkedProduct | null;
+    selectedCampaign: BannerLinkedCampaign | null;
     onProductChange: (product: BannerLinkedProduct | null) => void;
+    onCampaignChange: (campaign: BannerLinkedCampaign | null) => void;
     loadingCollections: boolean;
+    loadingCampaigns: boolean;
     disabled?: boolean;
 }
 
@@ -44,9 +49,13 @@ export function BannerBasicInfo({
     formData,
     onChange,
     collections,
+    campaigns,
     selectedProduct,
+    selectedCampaign,
     onProductChange,
+    onCampaignChange,
     loadingCollections,
+    loadingCampaigns,
     disabled,
 }: BannerBasicInfoProps) {
     const rootCollections = useMemo(() => getRootCollections(collections), [collections]);
@@ -55,11 +64,15 @@ export function BannerBasicInfo({
         : [];
     const selectedCollectionLabel = selectedCollectionPath.map((item) => item.name).join(' / ');
 
+    const selectedCampaignLabel = selectedCampaign
+        ? `${selectedCampaign.name}${selectedCampaign.status ? ` (${selectedCampaign.status})` : ''}`
+        : '';
+
     const renderLevel3Items = (items: Collection[]) =>
         items.map((collection) => (
             <DropdownMenuItem
                 key={collection.id}
-                onClick={() => onChange({ collectionId: collection.id })}
+                onClick={() => onChange({ collectionId: collection.id, campaignId: '', productId: '' })}
                 className="flex items-center justify-between gap-3"
             >
                 <span>{collection.name}</span>
@@ -101,7 +114,7 @@ export function BannerBasicInfo({
                 return (
                     <DropdownMenuItem
                         key={collection.id}
-                        onClick={() => onChange({ collectionId: collection.id })}
+                        onClick={() => onChange({ collectionId: collection.id, campaignId: '', productId: '' })}
                         className="flex items-center justify-between gap-3"
                     >
                         <span>{collection.name}</span>
@@ -119,7 +132,7 @@ export function BannerBasicInfo({
                     </DropdownMenuSubTrigger>
                     <DropdownMenuSubContent className="min-w-60 rounded-lg border-gray-200">
                         <DropdownMenuItem
-                            onClick={() => onChange({ collectionId: collection.id })}
+                            onClick={() => onChange({ collectionId: collection.id, campaignId: '', productId: '' })}
                             className="flex items-center justify-between gap-3 font-medium"
                         >
                             <span>Use {collection.name}</span>
@@ -140,7 +153,7 @@ export function BannerBasicInfo({
                     Basic Information
                 </CardTitle>
                 <CardDescription className="font-medium text-secondary-500">
-                    Name, slug, and optional collection association.
+                    Name, slug, and optional collection, product, or campaign association.
                 </CardDescription>
             </CardHeader>
 
@@ -182,7 +195,7 @@ export function BannerBasicInfo({
                     />
                 </div>
 
-                <div className="grid gap-5 xl:grid-cols-[1.2fr_0.8fr] xl:items-center">
+                <div className="grid gap-5 xl:grid-cols-3 xl:items-start">
                     <div className="space-y-3 self-center">
                         <Label className="inline-flex items-center gap-2">
                             <Link2 className="h-4 w-4 text-secondary-400" />
@@ -235,6 +248,66 @@ export function BannerBasicInfo({
                             onChange={onProductChange}
                             disabled={disabled}
                         />
+                    </div>
+
+                    <div className="space-y-3 self-center">
+                        <Label className="inline-flex items-center gap-2">
+                            <Megaphone className="h-4 w-4 text-secondary-400" />
+                            Campaign Target
+                        </Label>
+
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild disabled={disabled || loadingCampaigns}>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="h-10 w-full justify-between border-gray-200 px-3 text-left font-normal text-secondary-900 hover:bg-white"
+                                >
+                                    <span className={cn('truncate', !selectedCampaignLabel && 'text-secondary-500')}>
+                                        {selectedCampaignLabel || 'Select campaign target'}
+                                    </span>
+                                    <ChevronDown className="h-4 w-4 text-secondary-400" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                                align="start"
+                                className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-72 rounded-lg border-gray-200"
+                            >
+                                <DropdownMenuItem
+                                    onClick={() => onCampaignChange(null)}
+                                    className="flex items-center justify-between gap-3"
+                                >
+                                    <span>No Campaign</span>
+                                    {!formData.campaignId ? (
+                                        <Check className="h-4 w-4 text-primary-700" />
+                                    ) : null}
+                                </DropdownMenuItem>
+                                {campaigns.map((campaign) => (
+                                    <DropdownMenuItem
+                                        key={campaign.id}
+                                        onClick={() => onCampaignChange({
+                                            id: campaign.id,
+                                            name: campaign.name,
+                                            slug: campaign.slug,
+                                            status: campaign.status,
+                                        })}
+                                        className="flex items-center justify-between gap-3"
+                                    >
+                                        <span className="truncate">
+                                            {campaign.name}
+                                            {campaign.status ? ` (${campaign.status})` : ''}
+                                        </span>
+                                        {formData.campaignId === campaign.id ? (
+                                            <Check className="h-4 w-4 text-primary-700" />
+                                        ) : null}
+                                    </DropdownMenuItem>
+                                ))}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        {loadingCampaigns ? (
+                            <p className="text-xs font-medium text-secondary-500">Loading campaigns...</p>
+                        ) : null}
                     </div>
                 </div>
             </CardContent>

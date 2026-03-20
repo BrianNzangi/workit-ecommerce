@@ -31,6 +31,7 @@ interface CollectionClientProps {
   initialPagination: CollectionPagination;
   brands: Brand[];
   collectionBanner?: StoreBanner | null;
+  campaignSlug?: string | null;
 }
 
 export default function CollectionClient({
@@ -41,9 +42,11 @@ export default function CollectionClient({
   initialPagination,
   brands,
   collectionBanner,
+  campaignSlug,
 }: CollectionClientProps) {
   const perPage = 20;
   const currentCollectionSlug = category?.slug || fullSlug.split('/').pop() || fullSlug;
+  const listingQueryKey = campaignSlug ? 'campaign' : 'collection';
   const [currentPage, setCurrentPage] = useState(initialPagination.currentPage || 1);
   const [sortBy, setSortBy] = useState('popularity');
   const [serverProducts, setServerProducts] = useState<Product[]>(products);
@@ -96,11 +99,11 @@ export default function CollectionClient({
       setLoadingProducts(true);
       try {
         const params = new URLSearchParams({
-          collection: selectedCategorySlug,
           limit: String(perPage),
           offset: String((currentPage - 1) * perPage),
           sortBy,
         });
+        params.set(listingQueryKey, campaignSlug || selectedCategorySlug);
 
         if (filterState.brand?.length) {
           params.set('brand', String(filterState.brand[0]));
@@ -170,6 +173,8 @@ export default function CollectionClient({
     currentPage,
     perPage,
     selectedCategorySlug,
+    campaignSlug,
+    listingQueryKey,
     filterState.brand,
     filterState.inStock,
     filterState.maxPrice,
@@ -212,7 +217,7 @@ export default function CollectionClient({
     }
   }, [currentPage, safeCurrentPage]);
 
-  if (!category && categories.length > 0)
+  if (!category && !campaignSlug && categories.length > 0)
     return (
       <div className="container mx-auto px-4 py-10 font-sans text-center">
         <h1 className="text-3xl font-bold mb-4">Category Not Found</h1>
@@ -243,7 +248,7 @@ export default function CollectionClient({
 
         <CollectionHeaderBanner
           title={category?.name || fullSlug}
-          collectionSlug={currentCollectionSlug}
+          collectionSlug={campaignSlug || currentCollectionSlug}
           banner={collectionBanner}
         />
 

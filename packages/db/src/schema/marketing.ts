@@ -16,6 +16,7 @@ export const banners = pgTable("Banner", {
     mobileImageId: text("mobileImageId").references(() => assets.id),
     collectionId: text("collectionId").references(() => collections.id, { onDelete: 'set null' }),
     productId: text("productId").references(() => products.id, { onDelete: 'set null' }),
+    campaignId: text("campaignId").references(() => campaigns.id, { onDelete: 'set null' }),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });

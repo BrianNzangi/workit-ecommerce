@@ -14,6 +14,8 @@ export const bannersPublicRoutes: FastifyPluginAsync = async (fastify) => {
             orderBy: [desc(schema.banners.sortOrder)],
             with: {
                 collection: true,
+                product: true,
+                campaign: true,
                 desktopImage: true,
                 mobileImage: true,
             },
@@ -37,6 +39,8 @@ export const bannersPublicRoutes: FastifyPluginAsync = async (fastify) => {
             orderBy: [desc(schema.banners.sortOrder)],
             with: {
                 collection: true,
+                product: true,
+                campaign: true,
                 desktopImage: true,
                 mobileImage: true,
             },
@@ -56,6 +60,8 @@ export const bannersPublicRoutes: FastifyPluginAsync = async (fastify) => {
             where: and(eq(schema.banners.id, id), eq(schema.banners.enabled, true)),
             with: {
                 collection: true,
+                product: true,
+                campaign: true,
                 desktopImage: true,
                 mobileImage: true,
             },

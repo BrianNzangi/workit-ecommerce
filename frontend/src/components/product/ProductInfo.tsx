@@ -130,13 +130,13 @@ export default function ProductInfo({
       <div className="flex flex-col gap-5 rounded-lg bg-white px-2 py-2 shadow-md md:px-5 md:py-5">
         {promotionBadge && (
           <div className="flex">
-            <span className="inline-flex rounded-sm bg-primary-100 px-2 py-2 text-xs font-bold leading-none text-primary-900">
+            <span className="inline-flex rounded-sm bg-primary-100 px-2 py-2 text-base font-bold leading-none text-primary-900">
               {promotionBadge}
             </span>
           </div>
         )}
 
-        <h1 className="text-xl font-bold text-secondary-900 md:text-[1.75rem]">
+        <h1 className="text-xl font-semibold text-secondary-900 md:text-2xl">
           {product.name}
         </h1>
 

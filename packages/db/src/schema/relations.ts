@@ -85,6 +85,10 @@ export const bannersRelations = relations(marketing.banners, ({ one }) => ({
         fields: [marketing.banners.productId],
         references: [catalog.products.id],
     }),
+    campaign: one(marketing.campaigns, {
+        fields: [marketing.banners.campaignId],
+        references: [marketing.campaigns.id],
+    }),
 }));
 
 export const blogsRelations = relations(marketing.blogs, ({ one }) => ({
@@ -101,6 +105,7 @@ export const homepageCollectionsRelations = relations(marketing.homepageCollecti
 export const campaignsRelations = relations(marketing.campaigns, ({ many }) => ({
     campaignProducts: many(marketing.campaignProducts),
     redemptions: many(marketing.campaignRedemptions),
+    banners: many(marketing.banners),
 }));
 
 export const campaignProductsRelations = relations(marketing.campaignProducts, ({ one }) => ({
