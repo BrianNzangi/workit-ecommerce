@@ -47,7 +47,7 @@ export default function CollectionClient({
   const [currentPage, setCurrentPage] = useState(initialPagination.currentPage || 1);
   const [sortBy, setSortBy] = useState('popularity');
   const [serverProducts, setServerProducts] = useState<Product[]>(products);
-  const [loadingProducts, setLoadingProducts] = useState(false);
+  const [loadingProducts, setLoadingProducts] = useState(products.length === 0);
   const [pagination, setPagination] = useState<CollectionPagination>(initialPagination);
   const [filterState, setFilterState] = useState<{
     category?: string | number | null;
@@ -83,6 +83,7 @@ export default function CollectionClient({
 
   useEffect(() => {
     setServerProducts(products);
+    setLoadingProducts(products.length === 0);
   }, [products]);
 
   useEffect(() => {
@@ -309,7 +310,7 @@ export default function CollectionClient({
           <section className="w-full">
             {loadingProducts ? (
               <div className="rounded-xl border border-gray-100 bg-white p-16 text-center shadow-sm">
-                <p className="text-gray-500">Loading products...</p>
+                <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-primary-900" />
               </div>
             ) : serverProducts.length > 0 ? (
               <div className="space-y-10">

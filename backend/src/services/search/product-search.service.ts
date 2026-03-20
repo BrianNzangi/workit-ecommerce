@@ -19,6 +19,57 @@ function orderByIds<T extends { id: string }>(ids: string[], products: T[]): T[]
         .filter((product): product is T => Boolean(product));
 }
 
+function serializeStoreProductListItem(product: any) {
+    const firstAsset = Array.isArray(product?.assets)
+        ? product.assets.find((asset: any) => asset?.featured) || product.assets[0]
+        : null;
+    const imageUrl = firstAsset?.asset?.preview || firstAsset?.asset?.source || null;
+    const stockOnHand = product.stockOnHand ?? 0;
+
+    return {
+        id: product.id,
+        name: product.name,
+        slug: product.slug,
+        salePrice: product.salePrice ?? null,
+        originalPrice: product.originalPrice ?? null,
+        stockOnHand,
+        condition: product.condition ?? null,
+        createdAt: product.createdAt ?? null,
+        updatedAt: product.updatedAt ?? null,
+        canBuy: stockOnHand > 0,
+        brand: product.brand
+            ? {
+                id: product.brand.id,
+                name: product.brand.name,
+                slug: product.brand.slug,
+            }
+            : null,
+        image: imageUrl,
+        images: imageUrl
+            ? [{
+                id: firstAsset?.asset?.id || firstAsset?.id || product.id,
+                url: imageUrl,
+                featured: Boolean(firstAsset?.featured),
+            }]
+            : [],
+        shippingMethod: product.shippingMethod
+            ? {
+                id: product.shippingMethod.id,
+                code: product.shippingMethod.code,
+                name: product.shippingMethod.name,
+                description: product.shippingMethod.description ?? undefined,
+                isExpress: Boolean(product.shippingMethod.isExpress),
+            }
+            : null,
+        campaigns: product.campaigns || [],
+        activePromotion: product.activePromotion || null,
+        campaignTypes: product.campaignTypes || [],
+        campaignType: product.campaignType || null,
+        discountTypes: product.discountTypes || [],
+        discountType: product.discountType || null,
+    };
+}
+
 
 export class ProductSearchService {
     async searchStoreProducts(query: string, limit = 20): Promise<any[]> {
@@ -154,14 +205,84 @@ export class ProductSearchService {
                 )!
             ),
             limit,
+            columns: {
+                id: true,
+                name: true,
+                slug: true,
+                salePrice: true,
+                originalPrice: true,
+                stockOnHand: true,
+                condition: true,
+                createdAt: true,
+                updatedAt: true,
+            },
             with: {
-                assets: { with: { asset: true } },
-                collections: { with: { collection: true } },
-                brand: true,
-                campaignProducts: { with: { campaign: true } },
+                assets: {
+                    columns: {
+                        id: true,
+                        productId: true,
+                        assetId: true,
+                        sortOrder: true,
+                        featured: true,
+                    },
+                    with: {
+                        asset: {
+                            columns: {
+                                id: true,
+                                name: true,
+                                source: true,
+                                preview: true,
+                            },
+                        },
+                    },
+                },
+                brand: {
+                    columns: {
+                        id: true,
+                        name: true,
+                        slug: true,
+                    },
+                },
+                shippingMethod: {
+                    columns: {
+                        id: true,
+                        code: true,
+                        name: true,
+                        description: true,
+                        isExpress: true,
+                    },
+                },
+                campaignProducts: {
+                    columns: {
+                        id: true,
+                        campaignId: true,
+                        productId: true,
+                        sortOrder: true,
+                    },
+                    with: {
+                        campaign: {
+                            columns: {
+                                id: true,
+                                name: true,
+                                slug: true,
+                                type: true,
+                                status: true,
+                                startDate: true,
+                                endDate: true,
+                                discountType: true,
+                                discountValue: true,
+                                couponCode: true,
+                                minPurchaseAmount: true,
+                                maxDiscountAmount: true,
+                                usageLimit: true,
+                                usagePerCustomer: true,
+                            },
+                        },
+                    },
+                },
             },
         });
-        return enrichProductsWithCampaigns(results, { onlyActive: true });
+        return enrichProductsWithCampaigns(results, { onlyActive: true }).map(serializeStoreProductListItem);
     }
 
     private async fallbackAdminSearch(searchTerm: string, limit: number): Promise<any[]> {
@@ -190,14 +311,85 @@ export class ProductSearchService {
                 eq(schema.products.enabled, true),
                 inArray(schema.products.id, productIds)
             ),
+            columns: {
+                id: true,
+                name: true,
+                slug: true,
+                salePrice: true,
+                originalPrice: true,
+                stockOnHand: true,
+                condition: true,
+                createdAt: true,
+                updatedAt: true,
+            },
             with: {
-                assets: { with: { asset: true } },
-                collections: { with: { collection: true } },
-                brand: true,
-                campaignProducts: { with: { campaign: true } },
+                assets: {
+                    columns: {
+                        id: true,
+                        productId: true,
+                        assetId: true,
+                        sortOrder: true,
+                        featured: true,
+                    },
+                    with: {
+                        asset: {
+                            columns: {
+                                id: true,
+                                name: true,
+                                source: true,
+                                preview: true,
+                            },
+                        },
+                    },
+                },
+                brand: {
+                    columns: {
+                        id: true,
+                        name: true,
+                        slug: true,
+                    },
+                },
+                shippingMethod: {
+                    columns: {
+                        id: true,
+                        code: true,
+                        name: true,
+                        description: true,
+                        isExpress: true,
+                    },
+                },
+                campaignProducts: {
+                    columns: {
+                        id: true,
+                        campaignId: true,
+                        productId: true,
+                        sortOrder: true,
+                    },
+                    with: {
+                        campaign: {
+                            columns: {
+                                id: true,
+                                name: true,
+                                slug: true,
+                                type: true,
+                                status: true,
+                                startDate: true,
+                                endDate: true,
+                                discountType: true,
+                                discountValue: true,
+                                couponCode: true,
+                                minPurchaseAmount: true,
+                                maxDiscountAmount: true,
+                                usageLimit: true,
+                                usagePerCustomer: true,
+                            },
+                        },
+                    },
+                },
             },
         });
-        return enrichProductsWithCampaigns(orderByIds(productIds, products), { onlyActive: true });
+        return enrichProductsWithCampaigns(orderByIds(productIds, products), { onlyActive: true })
+            .map(serializeStoreProductListItem);
     }
 
     private async findAdminProductsByIds(productIds: string[]): Promise<any[]> {

@@ -56,18 +56,13 @@ export async function GET(req: Request) {
 
     // Transform to match frontend expectations
     const transformedCollections = homepageCollections.map((collection: any) => {
-      // Backend returns products as an array of join objects: { product: { ... } }
-      const products = (collection.products || []).map((p: any) => p.product).filter(Boolean);
-
-      console.log(`Collection ${collection.title || collection.name}: Found ${products.length} products`);
-
       return {
         ...collection,
-        products: normalizeProducts(products)
+        products: normalizeProducts(
+          (collection.products || []).map((p: any) => p?.product || p).filter(Boolean)
+        ).slice(0, 12)
       };
     });
-
-    console.log(`Returning ${transformedCollections.length} transformed collections`);
 
     // Return the transformed data
     return NextResponse.json({

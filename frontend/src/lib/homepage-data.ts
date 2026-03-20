@@ -48,7 +48,6 @@ export interface HomepageCollectionData {
     subtitle?: string;
     description?: string;
     sortOrder: number;
-    status: 'active' | 'draft' | 'archived';
     products: HomepageProduct[];
     createdAt: string;
     updatedAt: string;
@@ -242,7 +241,7 @@ export async function getHomepageCollections(
     return homepageCollections.map((collection: any) => ({
         ...collection,
         products: normalizeProducts(
-            (collection.products || []).map((product: any) => product.product).filter(Boolean)
-        ),
+            (collection.products || []).map((product: any) => product?.product || product).filter(Boolean)
+        ).slice(0, 12),
     }));
 }

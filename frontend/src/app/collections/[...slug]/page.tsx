@@ -181,35 +181,6 @@ export default async function CollectionPage({ params }: Props) {
     totalPages: 1,
     hasMore: false,
   }
-  if (collection || campaign) {
-    try {
-      const params = new URLSearchParams({
-        limit: '20',
-        offset: '0',
-      });
-      if (collection) {
-        params.set('collection', collection.slug);
-      }
-      if (campaign) {
-        params.set('campaign', campaign.slug);
-      }
-      const productsRes = await proxyFetch(`/store/products?${params.toString()}`, {
-        cache: 'force-cache',
-        next: { revalidate },
-        useRequestContext: false,
-      });
-
-      if (productsRes.ok) {
-        const data = await productsRes.json()
-        products = normalizeProducts(data.products || [])
-        initialPagination = data.pagination || initialPagination
-      } else {
-        console.error('Failed to fetch products, status:', productsRes.status);
-      }
-    } catch (error) {
-      console.error('Failed to fetch products:', error)
-    }
-  }
 
   // For now, we'll use empty brands array since there's no brands API route
   const brands: Brand[] = []

@@ -58,6 +58,57 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
         return ids;
     };
 
+    const serializeProductListItem = (product: any) => {
+        const firstAsset = Array.isArray(product?.assets)
+            ? product.assets.find((asset: any) => asset?.featured) || product.assets[0]
+            : null;
+        const imageUrl = firstAsset?.asset?.preview || firstAsset?.asset?.source || null;
+        const stockOnHand = product.stockOnHand ?? 0;
+
+        return {
+            id: product.id,
+            name: product.name,
+            slug: product.slug,
+            salePrice: product.salePrice ?? null,
+            originalPrice: product.originalPrice ?? null,
+            stockOnHand,
+            condition: product.condition ?? null,
+            createdAt: product.createdAt ?? null,
+            updatedAt: product.updatedAt ?? null,
+            canBuy: stockOnHand > 0,
+            brand: product.brand
+                ? {
+                    id: product.brand.id,
+                    name: product.brand.name,
+                    slug: product.brand.slug,
+                }
+                : null,
+            image: imageUrl,
+            images: imageUrl
+                ? [{
+                    id: firstAsset?.asset?.id || firstAsset?.id || product.id,
+                    url: imageUrl,
+                    featured: Boolean(firstAsset?.featured),
+                }]
+                : [],
+            shippingMethod: product.shippingMethod
+                ? {
+                    id: product.shippingMethod.id,
+                    code: product.shippingMethod.code,
+                    name: product.shippingMethod.name,
+                    description: product.shippingMethod.description ?? undefined,
+                    isExpress: Boolean(product.shippingMethod.isExpress),
+                }
+                : null,
+            campaigns: product.campaigns || [],
+            activePromotion: product.activePromotion || null,
+            campaignTypes: product.campaignTypes || [],
+            campaignType: product.campaignType || null,
+            discountTypes: product.discountTypes || [],
+            discountType: product.discountType || null,
+        };
+    };
+
     // Products
     fastify.get("/products", {
         schema: {
@@ -228,6 +279,17 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
             limit: parsedLimit,
             offset: parsedOffset,
             orderBy,
+            columns: {
+                id: true,
+                name: true,
+                slug: true,
+                salePrice: true,
+                originalPrice: true,
+                stockOnHand: true,
+                condition: true,
+                createdAt: true,
+                updatedAt: true,
+            },
             with: {
                 assets: {
                     columns: {
@@ -248,29 +310,20 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
                         },
                     },
                 },
-                collections: {
-                    columns: {
-                        id: true,
-                        productId: true,
-                        collectionId: true,
-                        sortOrder: true,
-                    },
-                    with: {
-                        collection: {
-                            columns: {
-                                id: true,
-                                name: true,
-                                slug: true,
-                                parentId: true,
-                            },
-                        },
-                    },
-                },
                 brand: {
                     columns: {
                         id: true,
                         name: true,
                         slug: true,
+                    },
+                },
+                shippingMethod: {
+                    columns: {
+                        id: true,
+                        code: true,
+                        name: true,
+                        description: true,
+                        isExpress: true,
                     },
                 },
                 campaignProducts: {
@@ -303,8 +356,9 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
                 },
             }
         });
+        const normalizedResults = enrichProductsWithCampaigns(results, { onlyActive: true });
         const payload = {
-            products: enrichProductsWithCampaigns(results, { onlyActive: true }),
+            products: normalizedResults.map(serializeProductListItem),
             pagination: {
                 total,
                 limit: parsedLimit,
@@ -592,13 +646,87 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
 
         const results = await db.query.homepageCollections.findMany({
             where: eq(schema.homepageCollections.enabled, true),
+            orderBy: [asc(schema.homepageCollections.sortOrder)],
             with: {
                 products: {
+                    orderBy: [asc(schema.homepageCollectionProducts.sortOrder)],
                     with: {
                         product: {
+                            columns: {
+                                id: true,
+                                name: true,
+                                slug: true,
+                                salePrice: true,
+                                originalPrice: true,
+                                stockOnHand: true,
+                                condition: true,
+                                createdAt: true,
+                                updatedAt: true,
+                            },
                             with: {
-                                assets: { with: { asset: true } },
-                                campaignProducts: { with: { campaign: true } },
+                                assets: {
+                                    columns: {
+                                        id: true,
+                                        productId: true,
+                                        assetId: true,
+                                        sortOrder: true,
+                                        featured: true,
+                                    },
+                                    with: {
+                                        asset: {
+                                            columns: {
+                                                id: true,
+                                                name: true,
+                                                source: true,
+                                                preview: true,
+                                            },
+                                        },
+                                    },
+                                },
+                                brand: {
+                                    columns: {
+                                        id: true,
+                                        name: true,
+                                        slug: true,
+                                    },
+                                },
+                                shippingMethod: {
+                                    columns: {
+                                        id: true,
+                                        code: true,
+                                        name: true,
+                                        description: true,
+                                        isExpress: true,
+                                    },
+                                },
+                                campaignProducts: {
+                                    columns: {
+                                        id: true,
+                                        campaignId: true,
+                                        productId: true,
+                                        sortOrder: true,
+                                    },
+                                    with: {
+                                        campaign: {
+                                            columns: {
+                                                id: true,
+                                                name: true,
+                                                slug: true,
+                                                type: true,
+                                                status: true,
+                                                startDate: true,
+                                                endDate: true,
+                                                discountType: true,
+                                                discountValue: true,
+                                                couponCode: true,
+                                                minPurchaseAmount: true,
+                                                maxDiscountAmount: true,
+                                                usageLimit: true,
+                                                usagePerCustomer: true,
+                                            },
+                                        },
+                                    },
+                                },
                             },
                         },
                     },
@@ -607,13 +735,20 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
         });
         const payload = {
             collections: results.map((collection: any) => ({
-                ...collection,
-                products: (collection.products || []).map((entry: any) => ({
-                    ...entry,
-                    product: entry.product
-                        ? enrichProductCampaigns(entry.product, { onlyActive: true })
-                        : entry.product,
-                })),
+                id: collection.id,
+                title: collection.title,
+                slug: collection.slug,
+                enabled: collection.enabled,
+                sortOrder: collection.sortOrder,
+                createdAt: collection.createdAt,
+                updatedAt: collection.updatedAt,
+                products: (collection.products || [])
+                    .slice(0, 12)
+                    .map((entry: any) => entry.product)
+                    .filter(Boolean)
+                    .map((product: any) =>
+                        serializeProductListItem(enrichProductCampaigns(product, { onlyActive: true }))
+                    ),
             })),
         };
         await fastify.cache.set(cacheKey, payload, TTL.homepageCollections, ["homepage-collections", "products", "campaigns"]);
