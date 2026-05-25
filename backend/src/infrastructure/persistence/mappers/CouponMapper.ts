@@ -41,7 +41,7 @@ export class CouponMapper {
     return Coupon.create({
       id: raw.id,
       title: raw.title,
-      code: raw.code,
+      code: raw.code || undefined,
       bannerImageId: raw.bannerImageId || undefined,
       couponAmount: Money.create(raw.couponAmount, 'KES'),
       minAmount: Money.create(raw.minAmount, 'KES'),
