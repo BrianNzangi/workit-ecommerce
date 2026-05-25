@@ -3,7 +3,12 @@ import postgres from "postgres";
 import { eq } from "drizzle-orm";
 import * as schema from "./index.js";
 import dotenv from "dotenv";
+import { resolve, dirname } from "path";
+import { fileURLToPath } from "url";
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: resolve(__dirname, "../../.env") });
+dotenv.config({ path: resolve(__dirname, "../.env") });
 dotenv.config();
 
 const connectionString = process.env.DATABASE_URL;
