@@ -51,13 +51,13 @@ const DrawerContent = React.forwardRef<
       className={cn(
         side === "bottom" && "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-sm bg-background",
         side === "top" && "fixed inset-x-0 top-0 z-50 mb-24 flex h-auto flex-col rounded-b-sm bg-background",
-        side === "left" && "fixed inset-y-0 left-0 z-50 mr-24 h-full w-[480px] max-w-full flex flex-col bg-background border-r border-gray-100",
-        side === "right" && "fixed inset-y-0 right-0 z-50 ml-24 h-full w-[480px] max-w-full flex flex-col bg-background border-l border-gray-100",
+        side === "left" && "fixed inset-y-0 left-0 z-50 mr-24 h-full w-120 max-w-full flex flex-col bg-background border-r border-gray-100",
+        side === "right" && "fixed inset-y-0 right-0 z-50 ml-24 h-full w-120 max-w-full flex flex-col bg-background border-l border-gray-100",
         className
       )}
       {...props}
     >
-      {side === "bottom" && <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />}
+      {side === "bottom" && <div className="mx-auto mt-4 h-2 w-25 rounded-full bg-muted" />}
       {children}
     </DrawerPrimitive.Content>
   </DrawerPortal>

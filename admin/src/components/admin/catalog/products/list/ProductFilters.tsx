@@ -98,7 +98,7 @@ export function ProductFilters({
                         )}
                     </Button>
                 </DrawerTrigger>
-                <DrawerContent side="right" className="w-[480px] max-w-[90vw]">
+                <DrawerContent side="right" className="w-120 max-w-[90vw]">
                     <DrawerHeader className="text-left">
                         <DrawerTitle>Filter Products</DrawerTitle>
                         <DrawerDescription>Refine your product catalog view</DrawerDescription>

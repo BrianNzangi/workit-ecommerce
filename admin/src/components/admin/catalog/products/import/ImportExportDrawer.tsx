@@ -192,7 +192,7 @@ export function ImportExportDrawer({ isOpen, onClose, onImportSuccess }: ImportE
 
     return (
         <Drawer open={isOpen} onOpenChange={(open) => !open && handleClose()} direction="right">
-            <DrawerContent side="right" className="w-[560px] max-w-[95vw]">
+            <DrawerContent side="right" className="w-140 max-w-[95vw]">
                 <DrawerHeader className="text-left">
                     <DrawerTitle>Import & Export Products</DrawerTitle>
                     <DrawerDescription>
@@ -238,7 +238,7 @@ export function ImportExportDrawer({ isOpen, onClose, onImportSuccess }: ImportE
                                             if (parseError) setParseError(null);
                                         }}
                                         placeholder='[{ "name": "Product", "slug": "product", ... }]'
-                                        className="font-mono text-xs min-h-[200px] resize-y"
+                                        className="font-mono text-xs min-h-50 resize-y"
                                         rows={10}
                                     />
                                     {parseError && (

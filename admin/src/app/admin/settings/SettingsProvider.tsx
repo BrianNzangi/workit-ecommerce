@@ -320,7 +320,7 @@ export function SettingsActionBar() {
                     <Button
                         onClick={handleSave}
                         disabled={saving}
-                        className="bg-primary-800 hover:bg-primary-900 text-white min-w-[120px] h-9"
+                        className="bg-primary-800 hover:bg-primary-900 text-white min-w-30 h-9"
                     >
                         {saving ? (
                             <>

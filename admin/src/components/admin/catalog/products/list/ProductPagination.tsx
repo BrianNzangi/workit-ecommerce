@@ -38,7 +38,7 @@ export function ProductPagination({
                     value={itemsPerPage.toString()}
                     onValueChange={(val) => onItemsPerPageChange(Number(val))}
                 >
-                    <SelectTrigger className="h-8 w-[70px]">
+                    <SelectTrigger className="h-8 w-17.5">
                         <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
