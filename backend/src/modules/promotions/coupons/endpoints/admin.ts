@@ -39,7 +39,7 @@ export const couponsAdminRoutes: FastifyPluginAsync = async (fastify) => {
         const totalUserUsed = await db.$count(schema.coupons, eq(schema.coupons.userLimit, 0));
 
         return {
-            coupons: coupons.map(c => ({
+            coupons: coupons.map((c: any) => ({
                 ...c,
                 productIds: c.products?.map((p: any) => p.productId) || [],
                 productsCount: c.products?.length || 0

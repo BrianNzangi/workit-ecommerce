@@ -29,11 +29,13 @@ export class FeaturedDealRepository implements IFeaturedDealRepository {
     let whereClause;
     if (status && search) {
       whereClause = and(
-        eq(schema.featuredDeals.status, status),
+        eq(schema.featuredDeals.status, status as any)
+,
         ilike(schema.featuredDeals.title, `%${search}%`)
       );
     } else if (status) {
-      whereClause = eq(schema.featuredDeals.status, status);
+      whereClause = eq(schema.featuredDeals.status, status as any)
+;
     } else if (search) {
       whereClause = ilike(schema.featuredDeals.title, `%${search}%`);
     }
@@ -45,7 +47,7 @@ export class FeaturedDealRepository implements IFeaturedDealRepository {
       orderBy: [desc(schema.featuredDeals.createdAt)],
     });
 
-    return featuredDealsData.map((f) => this.mapper.toDomain(f as any));
+    return featuredDealsData.map((f: any) => this.mapper.toDomain(f));
   }
 
   async count(options?: { status?: string; search?: string }): Promise<number> {
@@ -54,11 +56,13 @@ export class FeaturedDealRepository implements IFeaturedDealRepository {
     let whereClause;
     if (status && search) {
       whereClause = and(
-        eq(schema.featuredDeals.status, status),
+        eq(schema.featuredDeals.status, status as any)
+,
         ilike(schema.featuredDeals.title, `%${search}%`)
       );
     } else if (status) {
-      whereClause = eq(schema.featuredDeals.status, status);
+      whereClause = eq(schema.featuredDeals.status, status as any)
+;
     } else if (search) {
       whereClause = ilike(schema.featuredDeals.title, `%${search}%`);
     }

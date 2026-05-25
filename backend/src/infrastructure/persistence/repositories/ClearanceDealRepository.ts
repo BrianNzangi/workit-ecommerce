@@ -28,9 +28,11 @@ export class ClearanceDealRepository implements IClearanceDealRepository {
     const { status, search, deal, limit = 50, offset = 0 } = options || {};
 
     const conditions = [];
-    if (status) conditions.push(eq(schema.clearanceDeals.status, status));
+    if (status) conditions.push(eq(schema.clearanceDeals.status, status as any)
+);
     if (search) conditions.push(ilike(schema.clearanceDeals.title, `%${search}%`));
-    if (deal) conditions.push(eq(schema.clearanceDeals.deal, deal));
+    if (deal) conditions.push(eq(schema.clearanceDeals.deal, deal as any)
+);
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
@@ -41,16 +43,18 @@ export class ClearanceDealRepository implements IClearanceDealRepository {
       orderBy: [desc(schema.clearanceDeals.createdAt)],
     });
 
-    return clearanceDealsData.map((c) => this.mapper.toDomain(c as any));
+    return clearanceDealsData.map((c: any) => this.mapper.toDomain(c));
   }
 
   async count(options?: { status?: string; search?: string; deal?: string }): Promise<number> {
     const { status, search, deal } = options || {};
 
     const conditions = [];
-    if (status) conditions.push(eq(schema.clearanceDeals.status, status));
+    if (status) conditions.push(eq(schema.clearanceDeals.status, status as any)
+);
     if (search) conditions.push(ilike(schema.clearanceDeals.title, `%${search}%`));
-    if (deal) conditions.push(eq(schema.clearanceDeals.deal, deal));
+    if (deal) conditions.push(eq(schema.clearanceDeals.deal, deal as any)
+);
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 

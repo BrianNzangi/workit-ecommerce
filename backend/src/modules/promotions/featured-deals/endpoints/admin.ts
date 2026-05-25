@@ -32,7 +32,7 @@ export const featuredDealsAdminRoutes: FastifyPluginAsync = async (fastify) => {
         });
 
         return {
-            featuredDeals: featuredDeals.map(f => ({
+            featuredDeals: featuredDeals.map((f: any) => ({
                 ...f,
                 productName: f.product?.name || null
             })),

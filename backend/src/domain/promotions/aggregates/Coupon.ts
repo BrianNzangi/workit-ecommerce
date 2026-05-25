@@ -1,10 +1,7 @@
 import { AggregateRoot } from '../../shared/AggregateRoot.js';
 import { Entity } from '../../shared/Entity.js';
 import { Money } from '../../order-management/value-objects/Money.js';
-
-export type PromotionStatus = 'ACTIVE' | 'INACTIVE' | 'EXPIRED' | 'DRAFT';
-export type DealType = 'PERCENTAGE' | 'FIXED_AMOUNT' | 'BOGO' | 'FREE_SHIPPING';
-export type ClearanceDealSource = 'FLASH_SALE' | 'FEATURED_DEAL';
+import type { PromotionStatus, DealType, ClearanceDealSource } from './types.js';
 
 export interface CouponProductProps {
   id: string;

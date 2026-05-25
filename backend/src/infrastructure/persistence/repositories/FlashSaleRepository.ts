@@ -32,11 +32,13 @@ export class FlashSaleRepository implements IFlashSaleRepository {
     let whereClause;
     if (status && search) {
       whereClause = and(
-        eq(schema.flashSales.status, status),
+        eq(schema.flashSales.status, status as any)
+,
         ilike(schema.flashSales.title, `%${search}%`)
       );
     } else if (status) {
-      whereClause = eq(schema.flashSales.status, status);
+      whereClause = eq(schema.flashSales.status, status as any)
+;
     } else if (search) {
       whereClause = ilike(schema.flashSales.title, `%${search}%`);
     }
@@ -51,7 +53,7 @@ export class FlashSaleRepository implements IFlashSaleRepository {
       },
     });
 
-    return flashSalesData.map((f) => this.mapper.toDomain(f as any));
+    return flashSalesData.map((f: any) => this.mapper.toDomain(f));
   }
 
   async count(options?: { status?: string; search?: string }): Promise<number> {
@@ -60,11 +62,13 @@ export class FlashSaleRepository implements IFlashSaleRepository {
     let whereClause;
     if (status && search) {
       whereClause = and(
-        eq(schema.flashSales.status, status),
+        eq(schema.flashSales.status, status as any)
+,
         ilike(schema.flashSales.title, `%${search}%`)
       );
     } else if (status) {
-      whereClause = eq(schema.flashSales.status, status);
+      whereClause = eq(schema.flashSales.status, status as any)
+;
     } else if (search) {
       whereClause = ilike(schema.flashSales.title, `%${search}%`);
     }

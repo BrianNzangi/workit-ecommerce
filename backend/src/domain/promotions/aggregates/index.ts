@@ -1,3 +1,4 @@
+export type { PromotionStatus, DealType, ClearanceDealSource } from './types.js';
 export * from './Coupon.js';
 export * from './FlashSale.js';
 export * from './FeaturedDeal.js';

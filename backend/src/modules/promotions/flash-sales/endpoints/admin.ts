@@ -32,7 +32,7 @@ export const flashSalesAdminRoutes: FastifyPluginAsync = async (fastify) => {
         });
 
         return {
-            flashSales: flashSales.map(f => ({
+            flashSales: flashSales.map((f: any) => ({
                 ...f,
                 productIds: f.products?.map((p: any) => p.productId) || [],
                 productsCount: f.products?.length || 0

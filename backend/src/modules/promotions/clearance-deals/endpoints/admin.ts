@@ -27,7 +27,7 @@ export const clearanceDealsAdminRoutes: FastifyPluginAsync = async (fastify) => 
         });
 
         return {
-            clearanceDeals: clearanceDeals.map(c => ({
+            clearanceDeals: clearanceDeals.map((c: any) => ({
                 ...c,
                 productName: c.product?.name || null
             })),

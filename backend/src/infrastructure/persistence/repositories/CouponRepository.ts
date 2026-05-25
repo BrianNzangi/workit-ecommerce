@@ -47,11 +47,11 @@ export class CouponRepository implements ICouponRepository {
     let whereClause;
     if (status && search) {
       whereClause = and(
-        eq(schema.coupons.status, status),
+        eq(schema.coupons.status, status as any),
         ilike(schema.coupons.title, `%${search}%`)
       );
     } else if (status) {
-      whereClause = eq(schema.coupons.status, status);
+      whereClause = eq(schema.coupons.status, status as any);
     } else if (search) {
       whereClause = ilike(schema.coupons.title, `%${search}%`);
     }
@@ -66,7 +66,7 @@ export class CouponRepository implements ICouponRepository {
       },
     });
 
-    return couponsData.map((c) => this.mapper.toDomain(c as any));
+    return couponsData.map((c: any) => this.mapper.toDomain(c));
   }
 
   async count(options?: { status?: string; search?: string }): Promise<number> {
@@ -75,11 +75,11 @@ export class CouponRepository implements ICouponRepository {
     let whereClause;
     if (status && search) {
       whereClause = and(
-        eq(schema.coupons.status, status),
+        eq(schema.coupons.status, status as any),
         ilike(schema.coupons.title, `%${search}%`)
       );
     } else if (status) {
-      whereClause = eq(schema.coupons.status, status);
+      whereClause = eq(schema.coupons.status, status as any);
     } else if (search) {
       whereClause = ilike(schema.coupons.title, `%${search}%`);
     }
@@ -96,7 +96,7 @@ export class CouponRepository implements ICouponRepository {
     const result = await db
       .select({ count: db.$count(schema.coupons) })
       .from(schema.coupons)
-      .where(eq(schema.coupons.status, status));
+      .where(eq(schema.coupons.status, status as any));
 
     return result[0]?.count || 0;
   }

@@ -1,7 +1,6 @@
 import { AggregateRoot } from '../../shared/AggregateRoot.js';
 import { Entity } from '../../shared/Entity.js';
-
-export type PromotionStatus = 'ACTIVE' | 'INACTIVE' | 'EXPIRED' | 'DRAFT';
+import type { PromotionStatus } from './types.js';
 
 export interface FlashSaleProductProps {
   id: string;

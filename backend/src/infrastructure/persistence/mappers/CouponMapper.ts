@@ -5,7 +5,7 @@ import { db, schema } from '@workit/db';
 export interface CouponRecord {
   id: string;
   title: string;
-  code: string;
+  code: string | null;
   bannerImageId: string | null;
   couponAmount: number;
   minAmount: number;
@@ -58,7 +58,7 @@ export class CouponMapper {
     return {
       id: coupon.id,
       title: coupon.title,
-      code: coupon.code,
+      code: coupon.code || null,
       bannerImageId: coupon.bannerImageId || null,
       couponAmount: coupon.couponAmount.amount,
       minAmount: coupon.minAmount.amount,

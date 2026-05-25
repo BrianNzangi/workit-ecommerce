@@ -1,7 +1,5 @@
 import { AggregateRoot } from '../../shared/AggregateRoot.js';
-
-export type PromotionStatus = 'ACTIVE' | 'INACTIVE' | 'EXPIRED' | 'DRAFT';
-export type ClearanceDealSource = 'FLASH_SALE' | 'FEATURED_DEAL';
+import type { PromotionStatus, ClearanceDealSource } from './types.js';
 
 export interface ClearanceDealProps {
   productId: string;
