@@ -33,10 +33,6 @@ jobs:
               - 'admin/**'
               - 'packages/**'
               - 'Dockerfile.admin'
-            studio:
-              - 'packages/db/**'
-              - 'Dockerfile.studio'
-
   # 2. BUILD ONLY THE SERVICES THAT CHANGED
   build-and-push:
     needs: detect-changes
@@ -101,5 +97,3 @@ jobs:
             "backend") curl -X POST "${{ secrets.DOKPLOY_BACKEND_WEBHOOK }}" ;;
             "frontend") curl -X POST "${{ secrets.DOKPLOY_FRONTEND_WEBHOOK }}" ;;
             "admin") curl -X POST "${{ secrets.DOKPLOY_ADMIN_WEBHOOK }}" ;;
-            "studio") curl -X POST "${{ secrets.DOKPLOY_STUDIO_WEBHOOK }}" ;;
-          esac
