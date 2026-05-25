@@ -1,5 +1,6 @@
 export * from './types';
 export * from './CustomersPageHeader';
+export * from './CustomersTabs';
 export * from './CustomersToolbar';
 export * from './CustomersLoadingState';
 export * from './CustomersErrorState';

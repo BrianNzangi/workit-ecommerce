@@ -16,6 +16,66 @@ function getMediaBaseUrl(): string | null {
     return mediaUrl.replace(/\/$/, '');
 }
 
+function normalizeRelativeAssetPath(url: string): string {
+    if (url.startsWith('/uploads/')) {
+        return url;
+    }
+
+    if (url.startsWith('uploads/')) {
+        return `/${url}`;
+    }
+
+    if (!url.startsWith('/')) {
+        return `/uploads/${url}`;
+    }
+
+    return url;
+}
+
+function joinMediaUrl(mediaBaseUrl: string, relativePath: string): string {
+    try {
+        const parsed = new URL(mediaBaseUrl);
+        const pathname = parsed.pathname.replace(/\/+$/, '');
+        const origin = parsed.origin;
+
+        // Support both:
+        // - NEXT_PUBLIC_MEDIA_URL=https://media.workit.co.ke
+        // - NEXT_PUBLIC_MEDIA_URL=https://media.workit.co.ke/uploads
+        if (!pathname || pathname === '/') {
+            return `${origin}${relativePath}`;
+        }
+
+        if (pathname === '/uploads' && relativePath.startsWith('/uploads/')) {
+            return `${origin}${relativePath}`;
+        }
+
+        return `${mediaBaseUrl}${relativePath}`;
+    } catch {
+        return `${mediaBaseUrl}${relativePath}`;
+    }
+}
+
+function getLocalUploadsProxyPath(url: string): string | null {
+    try {
+        const parsed = new URL(url);
+        if (!parsed.pathname.startsWith('/uploads/')) {
+            return null;
+        }
+
+        const isLocalAdmin =
+            typeof window !== 'undefined' &&
+            (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+        if (!isLocalAdmin) {
+            return null;
+        }
+
+        return `${parsed.pathname}${parsed.search}`;
+    } catch {
+        return null;
+    }
+}
+
 
 /**
  * Normalize image URL for use in Next.js application
@@ -35,8 +95,12 @@ export function getImageUrl(url: string | undefined | null): string {
         return '';
     }
 
-    // If it's a full URL (http/https), return as-is
+    // If it's a full URL (http/https), prefer local /uploads proxy in local dev
     if (url.startsWith('http://') || url.startsWith('https://')) {
+        const localProxyPath = getLocalUploadsProxyPath(url);
+        if (localProxyPath) {
+            return localProxyPath;
+        }
         return url;
     }
 
@@ -66,25 +130,9 @@ export function getImageUrl(url: string | undefined | null): string {
     // Remove trailing slash from backendUrl if present
     const cleanBaseUrl = backendUrl.endsWith('/') ? backendUrl.slice(0, -1) : backendUrl;
 
-    // Handle local paths
-    let relativePath = url;
+    const relativePath = normalizeRelativeAssetPath(url);
 
-    // If it already starts with /uploads/, use it as is
-    if (url.startsWith('/uploads/')) {
-        relativePath = url;
-    }
-    // If it starts with uploads/ (no leading slash), add the slash
-    else if (url.startsWith('uploads/')) {
-        relativePath = `/${url}`;
-    }
-    // If it's just a filename (the new format), prepend /uploads/
-    else if (!url.startsWith('/')) {
-        relativePath = `/uploads/${url}`;
-    }
-    // For any other relative path starting with /, assume it might be an upload or other static asset
-    else {
-        relativePath = url;
-    }
-
-    return mediaBaseUrl ? `${mediaBaseUrl}${relativePath}` : `${cleanBaseUrl}${relativePath}`;
+    return mediaBaseUrl
+        ? joinMediaUrl(mediaBaseUrl, relativePath)
+        : `${cleanBaseUrl}${relativePath}`;
 }

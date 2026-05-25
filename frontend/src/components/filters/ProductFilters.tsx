@@ -1,6 +1,7 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ChevronDown, SlidersHorizontal, Plus, Minus, X, Tag as TagIcon, LayoutGrid, DollarSign } from 'lucide-react';
 import he from 'he';
+import { useFilterData } from '@/hooks/useCollections';
 
 interface ProductFiltersProps {
   selectedCategory: string | number | null;
@@ -50,12 +51,11 @@ export default function ProductFilters({
   onSortChange,
   onFilterChange
 }: ProductFiltersProps) {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [tags, setTags] = useState<Tag[]>([]);
-  const [brands, setBrands] = useState<Brand[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: filterData, isLoading: loading } = useFilterData(collectionSlug);
+  const categories = filterData?.categories || [];
+  const brands = filterData?.brands || [];
+  const tags = filterData?.tags || [];
 
-  // Filter states
   const [selectedTags, setSelectedTags] = useState<Array<string | number>>([]);
   const [selectedBrands, setSelectedBrands] = useState<Array<string | number>>([]);
   const [priceRange, setPriceRange] = useState<{ min?: number; max?: number }>({});
@@ -63,67 +63,12 @@ export default function ProductFilters({
   const [inStock, setInStock] = useState(false);
   const [shippingMethodId, setShippingMethodId] = useState<string | undefined>(undefined);
 
-  // UI states
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const toggleDropdown = (key: string) => {
     setActiveDropdown(prev => (prev === key ? null : key));
   };
-
-  // Fetch categories, tags, and brands
-  useEffect(() => {
-    const fetchFilters = async () => {
-      try {
-        const categoriesRes = await fetch('/api/collections?includeChildren=true');
-        let categoriesData: Category[] = [];
-        if (categoriesRes.ok) {
-          const rawCategories = await categoriesRes.json();
-          const flattenCategories = (cats: any[]): Category[] => {
-            const flattened: Category[] = [];
-            cats.forEach((cat) => {
-              flattened.push({
-                id: cat.id,
-                name: cat.name,
-                slug: cat.slug,
-                count: cat._count?.products || 0,
-                parentId: cat.parentId,
-                children: cat.children ? flattenCategories(cat.children) : []
-              });
-            });
-            return flattened;
-          };
-          categoriesData = flattenCategories(rawCategories).filter(cat => !cat.parentId);
-        }
-        setCategories(categoriesData);
-
-        const brandsUrl = collectionSlug
-          ? `/api/brands?collection=${collectionSlug}`
-          : '/api/brands';
-
-        const brandsRes = await fetch(brandsUrl);
-        let brandsData: Brand[] = [];
-        if (brandsRes.ok) {
-          const brands = await brandsRes.json();
-          brandsData = brands
-            .map((brand: any) => ({
-              id: brand.id,
-              name: brand.name,
-              slug: brand.slug,
-              count: brand.count || 0
-            }))
-            .filter((brand: Brand) => brand.count > 0);
-        }
-        setBrands(brandsData);
-        setTags([]);
-      } catch (error) {
-        console.error('Failed to fetch filters:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchFilters();
-  }, [selectedCategory, collectionSlug]);
 
   useEffect(() => {
     onFilterChange({

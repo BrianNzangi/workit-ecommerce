@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { proxyFetch } from '@/lib/proxy-utils';
-import { normalizeProduct } from '@/lib/product-normalization';
+import { proxyFetch } from '@/lib/utils/proxy-utils';
+import { normalizeProduct } from '@/lib/product/product-normalization';
 
 export async function GET(
     request: NextRequest,

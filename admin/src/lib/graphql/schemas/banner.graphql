@@ -62,4 +62,6 @@ extend type Query {
 extend type Mutation {
   createBanner(input: CreateBannerInput!): Banner!
   updateBanner(id: ID!, input: UpdateBannerInput!): Banner!
+  deleteBanner(id: ID!): Boolean!
+  bulkDeleteBanners(ids: [ID!]!): Boolean!
 }

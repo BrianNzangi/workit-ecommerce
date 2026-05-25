@@ -1,0 +1,82 @@
+import { Callout } from 'nextra/components'
+
+# Database And Schema
+
+Workit uses **PostgreSQL** with **Drizzle ORM** for type-safe database access. The schema is defined in `packages/db`.
+
+## Schema Overview
+
+### Core Tables
+
+| Table | Description |
+|-------|-------------|
+| `users` | Admin users and customers, differentiated by `role` |
+| `sessions` | Better Auth sessions |
+| `products` | Product catalog |
+| `product_assets` | Product image associations |
+| `product_collections` | Product to collection relationships |
+| `brands` | Product brands |
+| `collections` | Product collections with nesting support |
+| `assets` | Media files |
+| `carts` | Shopping carts for customers or guests |
+| `cart_lines` | Cart line items |
+| `orders` | Customer orders |
+| `order_lines` | Order line items |
+| `payments` | Payment records |
+| `addresses` | Customer shipping and billing addresses |
+| `shipping_methods` | Shipping options |
+| `shipping_zones` | Geographic zones per shipping method |
+| `shipping_cities` | City-level pricing within zones |
+| `campaigns` | Discount campaigns |
+| `campaign_products` | Campaign to product relationships |
+| `campaign_redemptions` | Per-customer campaign usage tracking |
+| `banners` | Homepage banners |
+| `blogs` | Blog posts |
+| `homepage_collections` | Homepage featured sections |
+| `homepage_collection_products` | Products within homepage sections |
+| `settings` | Key-value store configuration |
+
+### Order State Machine
+
+```text
+CREATED -> PAYMENT_SETTLED -> FULFILLED
+    \-----------------------------> CANCELLED
+```
+
+### User Roles
+
+```text
+SUPER_ADMIN > ADMIN > EDITOR > CUSTOMER
+```
+
+## Database Commands
+
+### Push schema in development
+
+```bash
+pnpm db:push
+pnpm --filter @workit/backend db:push
+```
+
+### Open Drizzle Studio
+
+```bash
+pnpm --filter @workit/db studio
+```
+
+<Callout type="warning">
+  `DB_AUTO_PUSH=true` is the default in development. Set `DB_AUTO_PUSH=false` in `backend/.env` when you want manual control.
+</Callout>
+
+## Migrations
+
+For production, apply schema changes intentionally:
+
+```bash
+pnpm --filter @workit/db generate
+pnpm --filter @workit/db migrate
+```
+
+## Connection Pooling
+
+The backend uses a shared database connection layer from `packages/db`. In production, prefer a pooled `DATABASE_URL` such as PgBouncer or a managed provider pooler.

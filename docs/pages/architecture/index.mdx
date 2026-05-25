@@ -1,0 +1,72 @@
+import { Callout } from 'nextra/components'
+
+# Architecture Overview
+
+Workit is a monorepo with three deployable apps sharing common packages.
+
+## System Diagram
+
+```text
+Client Layer
+  Storefront (Next.js)          Admin Dashboard (Next.js)
+          |                              |
+          +--------------+---------------+
+                         |
+                    Backend API
+               Fastify 5 + TypeScript
+                         |
+        +----------------+----------------+
+        |                |                |
+    PostgreSQL      Redis (optional)   R2 / S3
+     Drizzle          Cache / limits    Storage
+```
+
+## Module Structure
+
+The backend is organized into domain modules:
+
+| Module | Prefix | Description |
+|--------|--------|-------------|
+| `analytics` | `/analytics` | Sales and performance metrics |
+| `auth` | `/auth`, `/api/auth` | Admin and storefront authentication |
+| `catalog/products` | `/catalog/products` | Product management |
+| `catalog/brands` | `/catalog/brands` | Brand management |
+| `catalog/collections` | `/catalog/collections` | Collection management |
+| `catalog/assets` | `/catalog/assets` | Media asset management |
+| `fulfillment/orders` | `/fulfillment/orders` | Order management |
+| `fulfillment/shipping` | `/fulfillment/shipping` | Shipping methods and zones |
+| `identity/customers` | `/identity/customers` | Customer management |
+| `identity/users` | `/identity/users` | Admin user management |
+| `marketing/campaigns` | `/marketing/campaigns` | Discount campaigns |
+| `marketing/banners` | `/marketing/banners` | Homepage banners |
+| `marketing/blog` | `/marketing/blog` | Blog posts |
+| `marketing/homepage` | `/marketing/homepage` | Homepage sections |
+| `site/settings` | `/site/settings` | Store configuration |
+| `cart` | `/cart`, `/api/cart` | Shopping cart |
+| `checkout` | `/checkout`, `/api/checkout` | Checkout and payments |
+
+## Key Design Decisions
+
+### Dual Auth System
+
+The platform uses two Better Auth entry paths:
+
+- **Admin auth** at `/auth/*` for admin panel users with role-based permissions
+- **Storefront auth** at `/api/auth/*` for customer accounts
+
+### Guest Cart Support
+
+Cart operations support both authenticated customers and guest users via the `x-guest-id` header. On checkout, guest carts can be merged into the customer's account.
+
+### Caching Strategy
+
+Redis is used when `REDIS_URL` is configured:
+
+- Product catalog caching
+- Collection and brand caching
+- Banner and homepage caching
+- Rate limiting counters
+
+<Callout>
+  `backend` is the active backend. `backend-old` remains in the repo as a reference while the final cleanup continues.
+</Callout>

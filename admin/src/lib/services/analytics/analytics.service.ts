@@ -69,10 +69,20 @@ export class AnalyticsService extends BaseService {
     }
 
     async getLowStockAlerts(threshold?: number): Promise<any[]> {
-        return []; // To be implemented in backend
+        try {
+            const stats = await this.adminClient.analytics.getWeeklyStats();
+            return stats.lowStockAlerts || [];
+        } catch {
+            return [];
+        }
     }
 
-    async getTopSellingProducts(startDate?: Date, endDate?: Date, limit?: number): Promise<any[]> {
-        return []; // To be implemented in backend
+    async getTopSellingProducts(_startDate?: Date, _endDate?: Date, limit?: number): Promise<any[]> {
+        try {
+            const stats = await this.adminClient.analytics.getSalesStats();
+            return (stats.topProducts || []).slice(0, limit || 10);
+        } catch {
+            return [];
+        }
     }
 }

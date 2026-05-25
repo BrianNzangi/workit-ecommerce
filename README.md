@@ -12,7 +12,7 @@ This repo contains the full Workit stack:
 
 - `Node.js 20+`
 - `pnpm 10+`
-- Docker Desktop if you want local Postgres/MinIO
+- Docker Desktop if you want local Postgres and containerized services
 
 ## Install
 
@@ -42,9 +42,9 @@ Notes:
 - backend dev will auto-push the DB schema in development by default
 - to disable that locally, set `DB_AUTO_PUSH=false` in `backend/.env`
 
-### Option 2: Docker for infra/backend, local for UI
+### Option 2: Docker for Postgres/backend, local for UI
 
-Use this when you want Postgres, MinIO, backend, and Drizzle Studio in containers:
+Use this when you want Postgres, backend, and Drizzle Studio in containers while media stays on R2:
 
 ```bash
 docker compose up --build
@@ -55,6 +55,7 @@ Then run UI apps locally as needed:
 ```bash
 pnpm --filter @workit/frontend dev
 pnpm --filter @workit/admin dev
+pnpm --filter @workit/backend dev
 ```
 
 Useful local endpoints:
@@ -62,9 +63,8 @@ Useful local endpoints:
 - backend: `http://localhost:3001`
 - admin: `http://localhost:3002`
 - storefront: `http://localhost:3000`
-- MinIO API: `http://localhost:9000`
-- MinIO console: `http://localhost:9001`
 - Drizzle Studio: `http://localhost:4983`
+- Docs: `http://localhost:3003`
 
 ## Database Commands
 
@@ -145,7 +145,7 @@ Only do that if you have reviewed `packages/db/src/seed.ts` and confirmed it is 
 
 ## Media / CDN
 
-Uploads are stored in MinIO and served by the backend at:
+Uploads are stored in S3-compatible object storage such as Cloudflare R2 and served at:
 
 - `/uploads/:filename`
 
@@ -153,7 +153,63 @@ For production CDN/media routing:
 
 - `NEXT_PUBLIC_MEDIA_URL=https://media.workit.co.ke`
 
+Recommended backend storage env values for R2:
+
+```bash
+S3_ENDPOINT=https://6f7354fca326fc3c6e71124a139c5bf9.r2.cloudflarestorage.com
+S3_BUCKET=workit
+S3_REGION=auto
+S3_ACCESS_KEY=<R2_ACCESS_KEY_ID>
+S3_SECRET_KEY=<R2_SECRET_ACCESS_KEY>
+S3_FORCE_PATH_STYLE=false
+S3_AUTO_CREATE_BUCKET=false
+PUBLIC_MEDIA_URL=https://media.workit.co.ke/uploads
+```
+
 When that env var is set, frontend/admin image helpers will prefer the dedicated media host.
+
+### R2 bucket CORS for direct browser uploads
+
+If admin uploads use presigned URLs from `http://localhost:3002`, the R2 bucket must allow cross-origin `PUT` requests from your local admin origin.
+
+Recommended CORS policy for the `workit` bucket:
+
+```json
+[
+  {
+    "AllowedOrigins": [
+      "http://localhost:3002",
+      "http://127.0.0.1:3002",
+      "https://admin.workit.co.ke"
+    ],
+    "AllowedMethods": [
+      "GET",
+      "HEAD",
+      "PUT",
+      "OPTIONS"
+    ],
+    "AllowedHeaders": [
+      "*"
+    ],
+    "ExposeHeaders": [
+      "ETag"
+    ],
+    "MaxAgeSeconds": 3600
+  }
+]
+```
+
+Apply that in Cloudflare R2 for the bucket used by:
+
+- `S3_ENDPOINT`
+- `S3_BUCKET`
+
+If direct upload still fails after saving the rule, check these points:
+
+- the origin exactly matches the admin app URL, including protocol and port
+- the bucket CORS includes `PUT` and `OPTIONS`
+- `AllowedHeaders` permits `Content-Type` and signed `x-amz-*` headers
+- the presigned upload URL opens on a public R2 hostname reachable from your browser
 
 ## Sitemap And IndexNow
 

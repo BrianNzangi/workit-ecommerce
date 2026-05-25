@@ -2,10 +2,9 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { MoveRight } from 'lucide-react';
 import he from 'he';
 import Image from 'next/image';
-import { getImageUrl, shouldBypassImageOptimization } from '@/lib/image-utils';
+import { getImageUrl } from '@/lib/image/image-utils';
 
 interface MostShoppedCardProps {
     name: string;
@@ -17,7 +16,6 @@ export default function MostShoppedCard({ name, slug, image }: MostShoppedCardPr
     const router = useRouter();
     const collectionHref = `/collections/${slug}`;
     const imageUrl = getImageUrl(image);
-    const shouldBypassOptimization = shouldBypassImageOptimization(imageUrl);
 
     const prefetchCollection = () => {
         router.prefetch(collectionHref);
@@ -26,38 +24,32 @@ export default function MostShoppedCard({ name, slug, image }: MostShoppedCardPr
     return (
         <Link
             href={collectionHref}
-            className="block group mx-auto w-[120px]"
+            className="block"
             onMouseEnter={prefetchCollection}
             onFocus={prefetchCollection}
             onTouchStart={prefetchCollection}
         >
-            <div className="flex flex-col items-center">
-                <div className="relative z-10 space-y-2 w-full text-center">
-                    <div className="relative w-[120px] h-[120px] bg-white border border-gray-200 rounded-lg overflow-hidden mx-auto">
-                        {image ? (
-                            <Image
-                                src={imageUrl}
-                                alt={name}
-                                fill
-                                className="object-cover"
-                                sizes="120px"
-                                unoptimized={shouldBypassOptimization}
-                            />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center p-2">
-                                <span className="text-gray-300 text-[10px] font-bold text-center uppercase tracking-tighter">
-                                    {he.decode(name)}
-                                </span>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="space-y-1">
-                        <h3 className="text-xs md:text-sm font-medium text-gray-900 group-hover:text-primary-900 transition-colors line-clamp-2">
-                            {he.decode(name)}
-                        </h3>
-                    </div>
+            <div className="space-y-2">
+                <div className="relative aspect-square bg-[#F5F5F5] rounded-md">
+                    {image ? (
+                        <Image
+                            src={imageUrl}
+                            alt={name}
+                            fill
+                            className="object-cover rounded-md"
+                            sizes="(max-width: 640px) 25vw, (max-width: 1024px) 20vw, 13vw"
+                        />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-md">
+                            <span className="text-gray-300 text-[10px] font-bold text-center uppercase tracking-tighter leading-tight line-clamp-3">
+                                {he.decode(name)}
+                            </span>
+                        </div>
+                    )}
                 </div>
+                <h3 className="text-md font-medium text-gray-900 text-center line-clamp-1">
+                    {he.decode(name)}
+                </h3>
             </div>
         </Link>
     );

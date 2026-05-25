@@ -2,32 +2,22 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import {
-    ChevronDown,
-    ChevronRight,
-    Edit,
-    Eye,
-    EyeOff,
-    Image as ImageIcon,
-    MoreHorizontal,
-    Search,
-    Trash2,
-} from 'lucide-react';
+import { Edit, Eye, EyeOff, Image as ImageIcon, MoreHorizontal, Trash2, Pencil, Copy } from 'lucide-react';
 import { BannerService, Banner } from '@/lib/services';
 import { toast } from '@/hooks/use-toast';
 import { getImageUrl } from '@/lib/shared/images';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/Badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Pagination } from '@/components/ui/Pagination';
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -42,50 +32,50 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { POSITION_LABELS, POSITION_ORDER } from './banner.constants';
+import { POSITION_LABELS } from '@/lib/banner/constants';
 
-interface GroupedBanners {
-    [key: string]: Banner[];
-}
+const ITEMS_PER_PAGE = 10;
 
 function BannersLoadingState() {
     return (
-        <Card className="border-gray-200 shadow-xs">
-            <CardContent className="flex min-h-70 items-center justify-center">
-                <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary-200 border-b-primary-900" />
-            </CardContent>
-        </Card>
+        <div className="rounded bg-white">
+            <div className="flex items-center justify-center py-16">
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-b-primary-900" />
+            </div>
+        </div>
     );
 }
 
 function BannersErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
     return (
-        <Card className="border-red-200 bg-red-50 shadow-none">
-            <CardContent className="flex flex-col items-start gap-3 p-4">
-                <p className="text-sm font-semibold text-red-700">{message}</p>
-                <Button onClick={onRetry} size="sm" className="bg-primary-900 text-white hover:bg-primary-800">
+        <div className="rounded bg-red-50 py-12">
+            <div className="flex flex-col items-center text-center">
+                <p className="mb-4 text-sm font-medium text-red-700">{message}</p>
+                <Button onClick={onRetry} size="sm" variant="outline" className="rounded border-red-300 text-red-700 hover:bg-red-100">
                     Retry
                 </Button>
-            </CardContent>
-        </Card>
+            </div>
+        </div>
     );
 }
 
 function BannersEmptyState({ searchTerm }: { searchTerm: string }) {
     return (
-        <Card className="border-gray-200 shadow-xs">
-            <CardContent className="flex min-h-70 flex-col items-center justify-center text-center">
-                <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-primary-50 text-primary-900">
-                    <ImageIcon className="h-6 w-6" />
+        <div className="rounded bg-white py-16">
+            <div className="flex flex-col items-center text-center">
+                <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-50">
+                    <ImageIcon className="h-6 w-6 text-gray-300" />
                 </div>
-                <h3 className="text-base font-black tracking-tight text-secondary-900">No banners found</h3>
-                <p className="mt-1 text-sm font-medium text-secondary-500">
+                <h3 className="text-base font-semibold text-gray-900">
+                    {searchTerm ? 'No results found' : 'No banners yet'}
+                </h3>
+                <p className="mt-1 max-w-sm text-sm text-gray-500">
                     {searchTerm
-                        ? `No results for "${searchTerm}".`
+                        ? `No banners match "${searchTerm}".`
                         : 'Create a banner to start managing storefront placements.'}
                 </p>
-            </CardContent>
-        </Card>
+            </div>
+        </div>
     );
 }
 
@@ -94,7 +84,9 @@ export function BannersList() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
-    const [expandedPositions, setExpandedPositions] = useState<Set<string>>(new Set());
+    const [positionFilter, setPositionFilter] = useState('all');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [selectedBanners, setSelectedBanners] = useState<Set<string>>(new Set());
     const [deleteTarget, setDeleteTarget] = useState<Banner | null>(null);
     const [deleting, setDeleting] = useState(false);
 
@@ -118,46 +110,51 @@ export function BannersList() {
     }, []);
 
     const filteredBanners = useMemo(() => {
+        let result = banners;
+
         const normalized = searchTerm.trim().toLowerCase();
-        if (!normalized) return banners;
-        return banners.filter((banner) =>
-            banner.name.toLowerCase().includes(normalized) ||
-            banner.slug.toLowerCase().includes(normalized)
-        );
-    }, [banners, searchTerm]);
+        if (normalized) {
+            result = result.filter((banner) =>
+                banner.name.toLowerCase().includes(normalized) ||
+                banner.slug.toLowerCase().includes(normalized)
+            );
+        }
 
-    const groupedBanners = useMemo(() => {
-        const grouped = filteredBanners.reduce((accumulator, banner) => {
-            if (!accumulator[banner.position]) {
-                accumulator[banner.position] = [];
-            }
-            accumulator[banner.position].push(banner);
-            return accumulator;
-        }, {} as GroupedBanners);
+        if (positionFilter !== 'all') {
+            result = result.filter((banner) => banner.position === positionFilter);
+        }
 
-        Object.keys(grouped).forEach((position) => {
-            grouped[position].sort((a, b) => a.sortOrder - b.sortOrder);
+        return result.sort((a, b) => {
+            if (a.position !== b.position) return a.position.localeCompare(b.position);
+            return a.sortOrder - b.sortOrder;
         });
+    }, [banners, searchTerm, positionFilter]);
 
-        return grouped;
-    }, [filteredBanners]);
+    const totalPages = Math.ceil(filteredBanners.length / ITEMS_PER_PAGE);
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const paginatedBanners = filteredBanners.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
-    const orderedPositions = useMemo(() => {
-        const known = POSITION_ORDER.filter((position) => groupedBanners[position]);
-        const unknown = Object.keys(groupedBanners).filter((position) => !POSITION_ORDER.includes(position));
-        return [...known, ...unknown];
-    }, [groupedBanners]);
+    const uniquePositions = useMemo(() => {
+        const positions = new Set(banners.map((b) => b.position));
+        return Array.from(positions).sort();
+    }, [banners]);
 
-    const togglePosition = (position: string) => {
-        setExpandedPositions((previous) => {
-            const next = new Set(previous);
-            if (next.has(position)) {
-                next.delete(position);
-            } else {
-                next.add(position);
-            }
-            return next;
-        });
+    const toggleSelectAll = () => {
+        if (selectedBanners.size === paginatedBanners.length) {
+            setSelectedBanners(new Set());
+        } else {
+            setSelectedBanners(new Set(paginatedBanners.map((b) => b.id)));
+        }
+    };
+
+    const toggleSelect = (bannerId: string) => {
+        const newSelected = new Set(selectedBanners);
+        if (newSelected.has(bannerId)) {
+            newSelected.delete(bannerId);
+        } else {
+            newSelected.add(bannerId);
+        }
+        setSelectedBanners(newSelected);
     };
 
     const toggleStatus = async (banner: Banner) => {
@@ -216,181 +213,220 @@ export function BannersList() {
     }
 
     return (
-        <div className="space-y-4">
-            <Card className="border-gray-200 shadow-xs">
-                <CardHeader className="p-4">
-                    <div className="relative">
-                        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary-400" />
-                        <Input
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            placeholder="Search banners by name or slug..."
-                            className="border-gray-200 pl-9 focus-visible:ring-primary-200"
-                        />
-                    </div>
-                </CardHeader>
-            </Card>
+        <div>
+            <div className="mb-4 flex items-center gap-3">
+                <Select value={positionFilter} onValueChange={setPositionFilter}>
+                    <SelectTrigger className="w-[140px] rounded bg-gray-50">
+                        <SelectValue placeholder="Filter" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Positions</SelectItem>
+                        {uniquePositions.map((position) => (
+                            <SelectItem key={position} value={position}>
+                                {POSITION_LABELS[position] || position}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+
+                <div className="relative flex-1 max-w-sm">
+                    <Input
+                        placeholder="Search..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="rounded bg-gray-50 pl-3 ring-1 ring-transparent transition-all focus:bg-white focus:ring-primary-900"
+                    />
+                </div>
+
+                <div className="ml-auto flex items-center gap-1">
+                    <Button variant="ghost" size="icon" className="h-9 w-9 text-gray-400 hover:text-gray-600">
+                        <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-9 w-9 text-gray-400 hover:text-gray-600">
+                        <Copy className="h-4 w-4" />
+                    </Button>
+                </div>
+            </div>
 
             {filteredBanners.length === 0 ? (
                 <BannersEmptyState searchTerm={searchTerm} />
             ) : (
-                <div className="space-y-4">
-                    {orderedPositions.map((position) => {
-                        const positionBanners = groupedBanners[position];
-                        const isExpanded = expandedPositions.has(position);
-                        const hasMultiple = positionBanners.length > 1;
-                        const displayed = isExpanded ? positionBanners : [positionBanners[0]];
-
-                        return (
-                            <Card key={position} className="overflow-hidden border-gray-200 shadow-xs">
-                                <CardHeader className="flex flex-row items-center justify-between border-b border-gray-200 bg-gray-50 px-5 py-3">
-                                    <div className="flex items-center gap-2.5">
-                                        <h3 className="text-xs font-black uppercase tracking-widest text-secondary-500">
-                                            {POSITION_LABELS[position] || position}
-                                        </h3>
-                                        <Badge variant="info" className="text-[10px] font-black uppercase tracking-wider">
-                                            {positionBanners.length} {positionBanners.length === 1 ? 'banner' : 'banners'}
-                                        </Badge>
-                                    </div>
-
-                                    {hasMultiple ? (
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => togglePosition(position)}
-                                            className="h-8 gap-1 text-primary-900 hover:bg-primary-50 hover:text-primary-900"
-                                        >
-                                            {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                                            {isExpanded
-                                                ? 'Show less'
-                                                : `Show ${positionBanners.length - 1} more`}
-                                        </Button>
-                                    ) : null}
-                                </CardHeader>
-
-                                <CardContent className="p-0">
-                                    <Table>
-                                        <TableHeader className="bg-gray-50/60">
-                                            <TableRow>
-                                                <TableHead className="px-5 py-3 text-xs font-black uppercase tracking-widest text-gray-400">
-                                                    Image
-                                                </TableHead>
-                                                <TableHead className="px-5 py-3 text-xs font-black uppercase tracking-widest text-gray-400">
-                                                    Banner
-                                                </TableHead>
-                                                <TableHead className="px-5 py-3 text-xs font-black uppercase tracking-widest text-gray-400">
-                                                    Collection
-                                                </TableHead>
-                                                <TableHead className="px-5 py-3 text-xs font-black uppercase tracking-widest text-gray-400">
-                                                    Status
-                                                </TableHead>
-                                                <TableHead className="px-5 py-3 text-xs font-black uppercase tracking-widest text-gray-400">
-                                                    Sort
-                                                </TableHead>
-                                                <TableHead className="px-5 py-3 text-right text-xs font-black uppercase tracking-widest text-gray-400">
-                                                    Actions
-                                                </TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {displayed.map((banner) => (
-                                                <TableRow key={banner.id}>
-                                                    <TableCell className="px-5 py-4">
-                                                        <div className="flex h-12 w-20 items-center justify-center overflow-hidden rounded-xs border border-gray-200 bg-gray-100">
-                                                            {banner.desktopImage ? (
-                                                                <img
-                                                                    src={getImageUrl(banner.desktopImage.preview || banner.desktopImage.source || '')}
-                                                                    alt={banner.name}
-                                                                    className="h-full w-full object-contain"
-                                                                />
-                                                            ) : (
-                                                                <ImageIcon className="h-5 w-5 text-secondary-400" />
-                                                            )}
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell className="px-5 py-4">
-                                                        <p className="text-sm font-black text-secondary-900">{banner.name}</p>
-                                                        <p className="text-xs font-semibold text-secondary-400">{banner.slug}</p>
-                                                    </TableCell>
-                                                    <TableCell className="px-5 py-4">
-                                                        {banner.collection ? (
-                                                            <Link
-                                                                href={`/admin/collections/${banner.collection.id}/edit`}
-                                                                className="text-sm font-semibold text-primary-900 hover:underline"
-                                                            >
-                                                                {banner.collection.name}
-                                                            </Link>
-                                                        ) : (
-                                                            <span className="text-sm font-medium text-secondary-400">-</span>
-                                                        )}
-                                                    </TableCell>
-                                                    <TableCell className="px-5 py-4">
-                                                        <Button
-                                                            type="button"
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() => toggleStatus(banner)}
-                                                            className={banner.enabled
-                                                                ? 'h-7 border-primary-200 bg-primary-50 text-primary-900 hover:bg-primary-100'
-                                                                : 'h-7 border-gray-200 bg-gray-50 text-secondary-600 hover:bg-gray-100'}
-                                                        >
-                                                            {banner.enabled ? 'Active' : 'Disabled'}
+                <div className="rounded bg-white">
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead>
+                                <tr className="border-b border-gray-100">
+                                    <th className="w-12 px-4 py-3">
+                                        <Checkbox
+                                            checked={selectedBanners.size === paginatedBanners.length && paginatedBanners.length > 0}
+                                            onCheckedChange={toggleSelectAll}
+                                        />
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                                        Image
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                                        Banner
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                                        Position
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                                        Linked To
+                                    </th>
+                                    <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500">
+                                        Status
+                                    </th>
+                                    <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500">
+                                        Sort
+                                    </th>
+                                    <th className="w-32 px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
+                                        Actions
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {paginatedBanners.map((banner) => (
+                                    <tr key={banner.id} className="border-b border-gray-50 transition-colors hover:bg-gray-50/50">
+                                        <td className="px-4 py-3">
+                                            <Checkbox
+                                                checked={selectedBanners.has(banner.id)}
+                                                onCheckedChange={() => toggleSelect(banner.id)}
+                                            />
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <div className="flex h-10 w-16 items-center justify-center overflow-hidden rounded bg-gray-50">
+                                                {banner.desktopImage ? (
+                                                    <img
+                                                        src={getImageUrl(banner.desktopImage.preview || banner.desktopImage.source || '')}
+                                                        alt={banner.name}
+                                                        className="h-full w-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <ImageIcon className="h-4 w-4 text-gray-300" />
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <div>
+                                                <p className="text-sm font-medium text-gray-900">{banner.name}</p>
+                                                <p className="text-xs text-gray-400">{banner.slug}</p>
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <Badge variant="secondary" className="rounded bg-gray-100 text-gray-600">
+                                                {POSITION_LABELS[banner.position] || banner.position}
+                                            </Badge>
+                                        </td>
+                                        <td className="px-4 py-3 text-sm text-gray-600">
+                                            {banner.collection ? (
+                                                <Link
+                                                    href={`/admin/collections/${banner.collection.id}/edit`}
+                                                    className="text-primary-700 hover:underline"
+                                                >
+                                                    {banner.collection.name}
+                                                </Link>
+                                            ) : banner.product ? (
+                                                <Link
+                                                    href={`/admin/products/${banner.product.id}/edit`}
+                                                    className="text-primary-700 hover:underline"
+                                                >
+                                                    {banner.product.name}
+                                                </Link>
+                                            ) : banner.campaign ? (
+                                                <Link
+                                                    href={`/admin/marketing/campaigns/${banner.campaign.id}/edit`}
+                                                    className="text-primary-700 hover:underline"
+                                                >
+                                                    {banner.campaign.name}
+                                                </Link>
+                                            ) : (
+                                                <span className="text-gray-400">-</span>
+                                            )}
+                                        </td>
+                                        <td className="px-4 py-3 text-center">
+                                            <button
+                                                type="button"
+                                                onClick={() => toggleStatus(banner)}
+                                                className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium transition-colors ${
+                                                    banner.enabled
+                                                        ? 'bg-green-50 text-green-700 hover:bg-green-100'
+                                                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                                }`}
+                                            >
+                                                {banner.enabled ? (
+                                                    <>
+                                                        <Eye className="h-3 w-3" />
+                                                        Active
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <EyeOff className="h-3 w-3" />
+                                                        Disabled
+                                                    </>
+                                                )}
+                                            </button>
+                                        </td>
+                                        <td className="px-4 py-3 text-center text-sm text-gray-700">
+                                            {banner.sortOrder}
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <div className="flex items-center justify-end gap-1">
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-gray-600">
+                                                            <MoreHorizontal className="h-4 w-4" />
                                                         </Button>
-                                                    </TableCell>
-                                                    <TableCell className="px-5 py-4 text-sm font-semibold text-secondary-700">
-                                                        {banner.sortOrder}
-                                                    </TableCell>
-                                                    <TableCell className="px-5 py-4 text-right">
-                                                        <DropdownMenu>
-                                                            <DropdownMenuTrigger asChild>
-                                                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                                    <MoreHorizontal className="h-4 w-4" />
-                                                                </Button>
-                                                            </DropdownMenuTrigger>
-                                                            <DropdownMenuContent align="end" className="w-44">
-                                                                <DropdownMenuItem asChild>
-                                                                    <Link href={`/admin/marketing/banners/${banner.id}/edit`}>
-                                                                        <Edit className="h-4 w-4" />
-                                                                        Edit Banner
-                                                                    </Link>
-                                                                </DropdownMenuItem>
-                                                                <DropdownMenuItem onClick={() => toggleStatus(banner)}>
-                                                                    {banner.enabled ? (
-                                                                        <>
-                                                                            <EyeOff className="h-4 w-4" />
-                                                                            Disable
-                                                                        </>
-                                                                    ) : (
-                                                                        <>
-                                                                            <Eye className="h-4 w-4" />
-                                                                            Enable
-                                                                        </>
-                                                                    )}
-                                                                </DropdownMenuItem>
-                                                                <DropdownMenuItem
-                                                                    className="text-red-700 focus:bg-red-50 focus:text-red-700"
-                                                                    onClick={() => setDeleteTarget(banner)}
-                                                                >
-                                                                    <Trash2 className="h-4 w-4" />
-                                                                    Delete Banner
-                                                                </DropdownMenuItem>
-                                                            </DropdownMenuContent>
-                                                        </DropdownMenu>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </CardContent>
-                            </Card>
-                        );
-                    })}
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end" className="w-44">
+                                                        <DropdownMenuItem asChild>
+                                                            <Link href={`/admin/marketing/banners/${banner.id}/edit`}>
+                                                                <Edit className="h-4 w-4" />
+                                                                Edit Banner
+                                                            </Link>
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem onClick={() => toggleStatus(banner)}>
+                                                            {banner.enabled ? (
+                                                                <>
+                                                                    <EyeOff className="h-4 w-4" />
+                                                                    Disable
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <Eye className="h-4 w-4" />
+                                                                    Enable
+                                                                </>
+                                                            )}
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem
+                                                            className="text-red-700 focus:bg-red-50 focus:text-red-700"
+                                                            onClick={() => setDeleteTarget(banner)}
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                            Delete Banner
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        totalItems={filteredBanners.length}
+                        itemsPerPage={ITEMS_PER_PAGE}
+                        onPageChange={setCurrentPage}
+                    />
                 </div>
             )}
 
             <Dialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
-                <DialogContent className="max-w-md">
+                <DialogContent className="max-w-md rounded">
                     <DialogHeader>
                         <DialogTitle>Delete banner?</DialogTitle>
                         <DialogDescription>
@@ -400,13 +436,13 @@ export function BannersList() {
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter className="gap-2">
-                        <Button variant="outline" onClick={() => setDeleteTarget(null)} disabled={deleting}>
+                        <Button variant="outline" onClick={() => setDeleteTarget(null)} disabled={deleting} className="rounded">
                             Cancel
                         </Button>
                         <Button
                             onClick={handleDelete}
                             disabled={deleting}
-                            className="bg-red-600 text-white hover:bg-red-700"
+                            className="rounded bg-red-600 text-white hover:bg-red-700"
                         >
                             {deleting ? 'Deleting...' : 'Delete'}
                         </Button>

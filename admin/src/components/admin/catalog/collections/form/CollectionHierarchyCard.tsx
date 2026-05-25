@@ -1,6 +1,5 @@
 import { FolderTree, Layers, LayoutGrid, ListTree } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import {
     Select,
@@ -27,9 +26,9 @@ const levelOptions: Array<{
     description: string;
     icon: typeof Layers;
 }> = [
-        { id: '1', label: 'Level 1', description: 'Category', icon: Layers },
-        { id: '2', label: 'Level 2', description: 'Group', icon: LayoutGrid },
-        { id: '3', label: 'Level 3', description: 'Sub', icon: ListTree },
+        { id: '1', label: 'Category', description: 'Top level', icon: Layers },
+        { id: '2', label: 'Group', description: 'Sub-category', icon: LayoutGrid },
+        { id: '3', label: 'Sub-group', description: 'Deep level', icon: ListTree },
     ];
 
 export function CollectionHierarchyCard({
@@ -44,89 +43,74 @@ export function CollectionHierarchyCard({
     const parentL1 = collections.find((collection) => collection.id === selectedL1);
 
     return (
-        <Card className="border-orange-200 bg-orange-50/60 shadow-xs">
-            <CardHeader>
-                <CardTitle className="text-base text-orange-900">Hierarchy Level *</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <div className="grid grid-cols-3 gap-3">
-                    {levelOptions.map((option) => {
-                        const active = level === option.id;
-                        return (
-                            <Button
-                                key={option.id}
-                                type="button"
-                                variant={active ? 'default' : 'outline'}
-                                onClick={() => onLevelChange(option.id)}
-                                className={`h-auto flex-col gap-1 py-3 ${active ? 'bg-primary-900 text-white hover:bg-primary-800' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
-                            >
-                                <option.icon className="h-4 w-4" />
-                                <span className="text-xs font-bold">{option.label}</span>
-                                <span className="text-[10px] uppercase opacity-70">{option.description}</span>
-                            </Button>
-                        );
-                    })}
-                </div>
+        <div className="bg-white p-5">
+            <h3 className="text-sm font-semibold text-gray-900 mb-4">Hierarchy Level</h3>
 
-                <p className="text-[11px] italic text-orange-700/80">
-                    {level === '1' && "Root category (e.g. 'Men'). No parent needed."}
-                    {level === '2' && "Navigation header (e.g. 'Clothing'). Requires L1 parent."}
-                    {level === '3' && "Direct link to products (e.g. 'T-Shirts'). Requires L2 parent."}
-                </p>
+            <div className="grid grid-cols-3 gap-2 mb-4">
+                {levelOptions.map((option) => {
+                    const active = level === option.id;
+                    const Icon = option.icon;
+                    return (
+                        <Button
+                            key={option.id}
+                            type="button"
+                            variant={active ? 'default' : 'outline'}
+                            onClick={() => onLevelChange(option.id)}
+                            className={`h-auto flex-col gap-1 py-2.5 ${active ? 'bg-primary-900 hover:bg-primary-800' : ''}`}
+                        >
+                            <Icon className="w-4 h-4" />
+                            <span className="text-xs font-medium">{option.label}</span>
+                        </Button>
+                    );
+                })}
+            </div>
 
-                {level !== '1' ? (
-                    <div className="space-y-4 border-t border-orange-200 pt-4">
+            {level !== '1' && (
+                <div className="space-y-4 pt-4">
+                    <div className="space-y-2">
+                        <Label className="text-xs text-gray-500">
+                            {level === '2' ? 'Parent Category' : 'Target Category'}
+                        </Label>
+                        <Select
+                            value={selectedL1 || undefined}
+                            onValueChange={onSelectedL1Change}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select category" />
+                            </SelectTrigger>
+                            <SelectContent className="[&_[data-highlighted]]:bg-primary-900 [&_[data-highlighted]]:text-primary-50">
+                                {collections.map((collection) => (
+                                    <SelectItem key={collection.id} value={collection.id}>
+                                        {collection.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    {level === '3' && selectedL1 && (
                         <div className="space-y-2">
-                            <Label className="flex items-center gap-2 text-gray-700">
-                                <FolderTree className="h-4 w-4 text-gray-400" />
-                                {level === '2' ? 'Select Parent Category (L1) *' : 'Select Target Category (L1) *'}
-                            </Label>
+                            <Label className="text-xs text-gray-500">Parent Group</Label>
                             <Select
-                                value={selectedL1 || undefined}
-                                onValueChange={onSelectedL1Change}
+                                value={parentId || undefined}
+                                onValueChange={onParentIdChange}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Choose Category" />
+                                    <SelectValue placeholder="Select group" />
                                 </SelectTrigger>
-                                <SelectContent>
-                                    {collections.map((collection) => (
-                                        <SelectItem key={collection.id} value={collection.id}>
-                                            {collection.name}
+                                <SelectContent className="[&_[data-highlighted]]:bg-primary-900 [&_[data-highlighted]]:text-primary-50">
+                                    {parentL1?.children?.map((group) => (
+                                        <SelectItem key={group.id} value={group.id}>
+                                            {group.name}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
+                            <p className="text-xs text-gray-400">Inside "{parentL1?.name}"</p>
                         </div>
-
-                        {level === '3' && selectedL1 ? (
-                            <div className="space-y-2">
-                                <Label className="flex items-center gap-2 text-gray-700">
-                                    <FolderTree className="h-4 w-4 text-gray-400" />
-                                    Select Parent Group (L2) *
-                                </Label>
-                                <Select
-                                    value={parentId || undefined}
-                                    onValueChange={onParentIdChange}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Choose Group" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {parentL1?.children?.map((group) => (
-                                            <SelectItem key={group.id} value={group.id}>
-                                                {group.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <p className="text-[11px] italic text-gray-500">
-                                    Showing groups inside "{parentL1?.name || ''}"
-                                </p>
-                            </div>
-                        ) : null}
-                    </div>
-                ) : null}
-            </CardContent>
-        </Card>
+                    )}
+                </div>
+            )}
+        </div>
     );
 }

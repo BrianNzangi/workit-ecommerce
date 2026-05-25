@@ -8,17 +8,26 @@ export default function AbandonedCheckoutsPage() {
     return (
         <ProtectedRoute>
             <AdminLayout>
-                <div className="mb-6">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-2">Abandoned Checkouts</h1>
-                    <p className="text-gray-600">View and recover abandoned customer checkouts</p>
+                <div className="mb-8">
+                    <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-50 text-amber-700">
+                            <ShoppingCart className="h-5 w-5" />
+                        </div>
+                        <div>
+                            <h1 className="text-2xl font-bold tracking-tight text-gray-900">Abandoned Checkouts</h1>
+                            <p className="text-sm text-gray-500">View and recover abandoned customer checkouts</p>
+                        </div>
+                    </div>
                 </div>
 
-                <div className="bg-white rounded-xs shadow-xs border border-gray-200 p-8">
-                    <div className="text-center py-12">
-                        <ShoppingCart className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">No abandoned checkouts</h3>
-                        <p className="text-gray-600">
-                            Abandoned checkouts will appear here when customers leave items in their cart
+                <div className="rounded-xl bg-white py-16 shadow-sm">
+                    <div className="flex flex-col items-center text-center">
+                        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-50">
+                            <ShoppingCart className="h-6 w-6 text-gray-300" />
+                        </div>
+                        <h3 className="text-base font-semibold text-gray-900">No abandoned checkouts</h3>
+                        <p className="mt-1 max-w-sm text-sm text-gray-500">
+                            Abandoned checkouts will appear here when customers leave items in their cart without completing purchase.
                         </p>
                     </div>
                 </div>

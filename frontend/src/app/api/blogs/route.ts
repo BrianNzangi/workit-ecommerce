@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { proxyFetch } from '@/lib/proxy-utils';
-import { getImageUrl } from '@/lib/image-utils';
+import { proxyFetch } from '@/lib/utils/proxy-utils';
+import { getImageUrl } from '@/lib/image/image-utils';
 import { Blog } from '@/types/blog';
 
 interface BackendBlog {

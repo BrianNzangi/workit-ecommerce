@@ -1,4 +1,6 @@
 import { requireAuth } from '@/lib/middleware/auth.middleware';
+import { mapHttpError } from '@/lib/graphql/errors';
+import { ProductService } from '@/lib/services/products/product.service';
 import type { GraphQLContext } from '../../context';
 
 export const variantMutations = {
@@ -8,7 +10,12 @@ export const variantMutations = {
         context: GraphQLContext
     ) => {
         requireAuth(context.auth);
-        throw new Error('Not implemented');
+        try {
+            const productService = new ProductService();
+            return await productService.addVariant(input.productId, input);
+        } catch (e) {
+            throw mapHttpError(e);
+        }
     },
 
     updateVariant: async (
@@ -17,7 +24,12 @@ export const variantMutations = {
         context: GraphQLContext
     ) => {
         requireAuth(context.auth);
-        throw new Error('Not implemented');
+        try {
+            const productService = new ProductService();
+            return await productService.updateVariant(id, input);
+        } catch (e) {
+            throw mapHttpError(e);
+        }
     },
 
     updateVariantStock: async (
@@ -26,6 +38,11 @@ export const variantMutations = {
         context: GraphQLContext
     ) => {
         requireAuth(context.auth);
-        throw new Error('Not implemented');
+        try {
+            const productService = new ProductService();
+            return await productService.updateVariantStock(id, stockOnHand);
+        } catch (e) {
+            throw mapHttpError(e);
+        }
     },
 };

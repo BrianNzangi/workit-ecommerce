@@ -1,14 +1,33 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import Link from 'next/link';
-import { ProtectedRoute } from '@/components/login/ProtectedRoute';
-import { AdminLayout } from '@/components/admin/layout/AdminLayout';
-import { ArrowLeft, Search, Trash2, Plus, Image as ImageIcon, X } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
-import { HomepageCollectionService } from '@/lib/services';
-import { getImageUrl } from '@/lib/shared/images/image-utils';
+import { useState, useEffect, useCallback } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { ProtectedRoute } from "@/components/login/ProtectedRoute";
+import { AdminLayout } from "@/components/admin/layout/AdminLayout";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { ArrowLeft, Search, X, Trash2, ImageIcon, AlertCircle } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+import { HomepageCollectionService } from "@/lib/services";
+import { getImageUrl } from "@/lib/shared/images/image-utils";
+import { Skeleton } from "@/components/ui/skeleton";
+
+type SelectedProduct = {
+    id: string;
+    name: string;
+    image?: string;
+    sku?: string;
+    salePrice?: number;
+};
 
 export default function EditHomepageCollectionPage() {
     const router = useRouter();
@@ -17,118 +36,108 @@ export default function EditHomepageCollectionPage() {
 
     const [loading, setLoading] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(true);
-    const [error, setError] = useState('');
-    const [formData, setFormData] = useState({
-        title: '',
-        slug: '',
-        enabled: true,
+    const [error, setError] = useState("");
+    const [form, setForm] = useState({
+        title: "",
+        slug: "",
         sortOrder: 0,
+        enabled: true,
     });
-    const [products, setProducts] = useState<any[]>([]);
-    const [productSearch, setProductSearch] = useState('');
-    const [searchResults, setSearchResults] = useState<any[]>([]);
-    const [searching, setSearching] = useState(false);
+    const [products, setProducts] = useState<SelectedProduct[]>([]);
+    const [productSearch, setProductSearch] = useState("");
+    const [productSuggestions, setProductSuggestions] = useState<any[]>([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
 
-    useEffect(() => {
-        fetchCollection();
-    }, [collectionId]);
-
-    const fetchCollection = async () => {
+    const fetchCollection = useCallback(async () => {
         try {
             const service = new HomepageCollectionService();
             const data = await service.getHomepageCollection(collectionId);
-
-            setFormData({
-                title: data.title || '',
-                slug: data.slug || '',
-                enabled: data.enabled ?? true,
+            setForm({
+                title: data.title || "",
+                slug: data.slug || "",
                 sortOrder: data.sortOrder ?? 0,
+                enabled: data.enabled ?? true,
             });
-            // Extract products from the returned relation
             if (data.products) {
-                setProducts(data.products.map((p: any) => p.product).filter(Boolean));
+                setProducts(
+                    data.products.map((p: any) => ({
+                        id: p.product?.id,
+                        name: p.product?.name || "",
+                        image: p.product?.assets?.[0]?.asset?.source,
+                        sku: p.product?.sku,
+                        salePrice: p.product?.salePrice,
+                    })).filter((p: any) => p.id)
+                );
             }
-        } catch (error: any) {
-            console.error('Error fetching collection:', error);
-            setError(error.message || 'Failed to load collection');
+        } catch (err: any) {
+            setError(err.message || "Failed to load collection");
         } finally {
             setFetchLoading(false);
         }
-    };
+    }, [collectionId]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
+    useEffect(() => {
+        fetchCollection();
+    }, [fetchCollection]);
 
-        // Auto-generate slug from title
-        if (name === 'title') {
-            const slug = value
-                .toLowerCase()
-                .replace(/[^a-z0-9]+/g, '-')
-                .replace(/(^-|-$)/g, '');
-            setFormData((prev) => ({ ...prev, slug }));
+    const searchProducts = async (query: string) => {
+        if (!query) {
+            setProductSuggestions([]);
+            setShowSuggestions(false);
+            return;
         }
-    };
-
-    const handleSearch = async () => {
-        if (!productSearch.trim()) return;
-        setSearching(true);
         try {
-            const response = await fetch(`/api/admin/products/search?q=${encodeURIComponent(productSearch)}`);
-            if (response.ok) {
-                const data = await response.json();
-                setSearchResults(data.products || []);
+            const res = await fetch(`/api/admin/products/search?q=${encodeURIComponent(query)}`);
+            if (res.ok) {
+                const data = await res.json();
+                setProductSuggestions(data.products || []);
+                setShowSuggestions(true);
             }
-        } catch (error) {
-            console.error('Search error:', error);
-        } finally {
-            setSearching(false);
+        } catch {
+            // silent
         }
     };
 
     const addProduct = (product: any) => {
-        if (products.some(p => p.id === product.id)) {
-            toast({
-                title: 'Product already added',
-                description: 'This product is already in the collection.',
-                variant: 'error'
-            });
+        if (products.some((p) => p.id === product.id)) {
+            toast({ title: "Product already added", variant: "error" });
             return;
         }
-        setProducts([...products, product]);
-        setSearchResults([]);
-        setProductSearch('');
+        setProducts((prev) => [
+            ...prev,
+            {
+                id: product.id,
+                name: product.name,
+                image: product.assets?.[0]?.asset?.source,
+                sku: product.sku,
+                salePrice: product.salePrice,
+            },
+        ]);
+        setProductSearch("");
+        setProductSuggestions([]);
+        setShowSuggestions(false);
     };
 
     const removeProduct = (productId: string) => {
-        setProducts(products.filter(p => p.id !== productId));
+        setProducts((prev) => prev.filter((p) => p.id !== productId));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-
         try {
             const service = new HomepageCollectionService();
             await service.updateHomepageCollection(collectionId, {
-                ...formData,
-                sortOrder: parseInt((formData.sortOrder ?? 0).toString()),
-                productIds: products.map(p => p.id)
+                title: form.title,
+                slug: form.slug,
+                enabled: form.enabled,
+                sortOrder: form.sortOrder,
+                productIds: products.map((p) => p.id),
             });
-
-            toast({
-                title: 'Collection updated',
-                description: 'Homepage collection has been updated successfully.',
-                variant: 'success',
-            });
-            router.push('/admin/homepage-collections');
-        } catch (error: any) {
-            console.error('Error updating collection:', error);
-            toast({
-                title: 'Update failed',
-                description: error.message || 'Failed to update homepage collection',
-                variant: 'error',
-            });
+            toast({ title: "Collection updated", description: "Homepage collection has been updated.", variant: "success" });
+            router.push("/admin/homepage-collections");
+        } catch (err: any) {
+            toast({ title: "Update failed", description: err.message || "Something went wrong", variant: "error" });
         } finally {
             setLoading(false);
         }
@@ -138,8 +147,21 @@ export default function EditHomepageCollectionPage() {
         return (
             <ProtectedRoute>
                 <AdminLayout>
-                    <div className="bg-white rounded-xs shadow-xs border border-gray-200 p-8">
-                        <p className="text-center text-gray-500">Loading collection...</p>
+                    <div className="p-6 space-y-6">
+                        <div className="flex items-center gap-3">
+                            <Skeleton className="h-8 w-8" />
+                            <Skeleton className="h-6 w-48" />
+                        </div>
+                        <Card className="rounded-sm shadow-none">
+                            <CardContent className="p-6 space-y-4">
+                                <Skeleton className="h-4 w-24" />
+                                <div className="grid grid-cols-2 gap-4">
+                                    <Skeleton className="h-10" />
+                                    <Skeleton className="h-10" />
+                                    <Skeleton className="h-10" />
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
                 </AdminLayout>
             </ProtectedRoute>
@@ -150,18 +172,18 @@ export default function EditHomepageCollectionPage() {
         return (
             <ProtectedRoute>
                 <AdminLayout>
-                    <div className="bg-white rounded-xs shadow-xs border border-gray-200 p-8">
-                        <div className="text-center py-12">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Error</h3>
-                            <p className="text-gray-600 mb-4">{error}</p>
-                            <Link
-                                href="/admin/homepage-collections"
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-[#FF5023] hover:bg-[#E04520] text-white rounded-xs transition-colors"
-                            >
-                                <ArrowLeft className="w-4 h-4" />
-                                Back to Collections
-                            </Link>
-                        </div>
+                    <div className="p-6">
+                        <Card className="rounded-sm shadow-none border-destructive/50">
+                            <CardContent className="p-6 flex flex-col items-center gap-3 py-12">
+                                <AlertCircle className="w-10 h-10 text-destructive" />
+                                <h3 className="text-lg font-semibold text-destructive">Error</h3>
+                                <p className="text-sm text-muted-foreground">{error}</p>
+                                <Button variant="outline" className="rounded-sm" onClick={() => router.push("/admin/homepage-collections")}>
+                                    <ArrowLeft className="w-4 h-4 mr-2" />
+                                    Back to Collections
+                                </Button>
+                            </CardContent>
+                        </Card>
                     </div>
                 </AdminLayout>
             </ProtectedRoute>
@@ -171,214 +193,213 @@ export default function EditHomepageCollectionPage() {
     return (
         <ProtectedRoute>
             <AdminLayout>
-                <div className="mb-6">
-                    <Link
-                        href="/admin/homepage-collections"
-                        className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
-                    >
-                        <ArrowLeft className="w-4 h-4" />
-                        Back to Homepage Collections
-                    </Link>
-                    <h1 className="text-2xl font-bold text-gray-900">Edit Homepage Collection</h1>
-                </div>
-
-                <div className="flex flex-col lg:flex-row gap-6">
-                    <form onSubmit={handleSubmit} className="flex-1 max-w-2xl">
-                        <div className="bg-white rounded-xs shadow-xs border border-gray-200 p-6">
-                            <div className="space-y-4">
-                                <div>
-                                    <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-                                        Title *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="title"
-                                        name="title"
-                                        value={formData.title}
-                                        onChange={handleChange}
-                                        required
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-xs focus:ring-2 focus:ring-[#FF5023] focus:border-transparent"
-                                        placeholder="e.g., Featured Products"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label htmlFor="slug" className="block text-sm font-medium text-gray-700 mb-2">
-                                        URL Slug *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="slug"
-                                        name="slug"
-                                        value={formData.slug}
-                                        onChange={handleChange}
-                                        required
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-xs focus:ring-2 focus:ring-[#FF5023] focus:border-transparent"
-                                        placeholder="featured-products"
-                                    />
-                                    <p className="mt-1 text-xs text-gray-500">Auto-generated from title</p>
-                                </div>
-
-                                <div>
-                                    <label htmlFor="sortOrder" className="block text-sm font-medium text-gray-700 mb-2">
-                                        Sort Order
-                                    </label>
-                                    <input
-                                        type="number"
-                                        id="sortOrder"
-                                        name="sortOrder"
-                                        value={formData.sortOrder}
-                                        onChange={handleChange}
-                                        min="0"
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-xs focus:ring-2 focus:ring-[#FF5023] focus:border-transparent"
-                                    />
-                                    <p className="mt-1 text-xs text-gray-500">Lower numbers appear first</p>
-                                </div>
-
-                                <div>
-                                    <label htmlFor="enabled" className="block text-sm font-medium text-gray-700 mb-2">
-                                        Status
-                                    </label>
-                                    <select
-                                        id="enabled"
-                                        name="enabled"
-                                        value={String(formData.enabled ?? true)}
-                                        onChange={(e) => setFormData(prev => ({ ...prev, enabled: e.target.value === 'true' }))}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-xs focus:ring-2 focus:ring-[#FF5023] focus:border-transparent"
-                                    >
-                                        <option value="true">Active</option>
-                                        <option value="false">Inactive</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div className="mt-6 flex gap-3">
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    className="px-6 py-2 bg-[#FF5023] hover:bg-[#E04520] text-white rounded-xs transition-colors shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    {loading ? 'Updating...' : 'Update Collection'}
-                                </button>
-                                <Link
-                                    href="/admin/homepage-collections"
-                                    className="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xs transition-colors"
-                                >
-                                    Cancel
-                                </Link>
-                            </div>
+                <div className="p-6">
+                    {/* Header */}
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-3">
+                            <Button variant="ghost" size="icon" onClick={() => router.push("/admin/homepage-collections")}>
+                                <ArrowLeft className="w-4 h-4" />
+                            </Button>
+                            <h1 className="text-lg font-semibold">Edit Homepage Collection</h1>
                         </div>
-                    </form>
+                        <Select value={String(form.enabled)} onValueChange={(v) => setForm({ ...form, enabled: v === "true" })}>
+                            <SelectTrigger className="w-28 rounded-sm h-8 bg-muted">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-sm">
+                                <SelectItem value="true">Active</SelectItem>
+                                <SelectItem value="false">Inactive</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
 
-                    <div className="flex-1 max-w-2xl space-y-6">
-                        {/* Product Management Section */}
-                        <div className="bg-white rounded-xs shadow-xs border border-gray-200 p-6">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4">Collection Products</h2>
-
-                            {/* Search Box */}
-                            <div className="mb-6">
-                                <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                    <input
-                                        type="text"
-                                        value={productSearch}
-                                        onChange={(e) => setProductSearch(e.target.value)}
-                                        onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleSearch())}
-                                        placeholder="Search for products to add..."
-                                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xs focus:ring-2 focus:ring-[#FF5023] focus:border-transparent"
-                                    />
-                                    {productSearch && (
-                                        <button
-                                            onClick={() => { setProductSearch(''); setSearchResults([]); }}
-                                            className="absolute right-3 top-1/2 -translate-y-1/2"
-                                        >
-                                            <X className="w-4 h-4 text-gray-400 hover:text-gray-600" />
-                                        </button>
-                                    )}
+                    <form onSubmit={handleSubmit}>
+                        {/* Basic Information */}
+                        <Card className="rounded-sm shadow-none mb-6">
+                            <CardContent className="p-6">
+                                <h2 className="text-sm font-semibold mb-4">Basic Information</h2>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>Title</Label>
+                                        <Input
+                                            placeholder="e.g. Featured Products"
+                                            value={form.title}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                setForm((prev) => ({
+                                                    ...prev,
+                                                    title: val,
+                                                    slug: val
+                                                        .toLowerCase()
+                                                        .replace(/[^a-z0-9]+/g, "-")
+                                                        .replace(/(^-|-$)/g, ""),
+                                                }));
+                                            }}
+                                            className="rounded-sm"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>URL Slug</Label>
+                                        <Input
+                                            placeholder="featured-products"
+                                            value={form.slug}
+                                            onChange={(e) => setForm({ ...form, slug: e.target.value })}
+                                            className="rounded-sm"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>Sort Order</Label>
+                                        <Input
+                                            type="number"
+                                            min="0"
+                                            placeholder="0"
+                                            value={form.sortOrder}
+                                            onChange={(e) => setForm({ ...form, sortOrder: parseInt(e.target.value) || 0 })}
+                                            className="rounded-sm"
+                                        />
+                                    </div>
                                 </div>
+                            </CardContent>
+                        </Card>
 
-                                {searchResults.length > 0 && (
-                                    <div className="absolute z-10 mt-1 w-full max-w-md bg-white border border-gray-200 rounded-xs shadow-lg max-h-64 overflow-y-auto">
-                                        {searchResults.map((product) => (
-                                            <div
-                                                key={product.id}
-                                                className="flex items-center justify-between p-3 hover:bg-gray-50 border-b border-gray-100 last:border-0 cursor-pointer"
-                                                onClick={() => addProduct(product)}
+                        {/* Products */}
+                        <Card className="rounded-sm shadow-none mb-6">
+                            <CardContent className="p-6">
+                                <h2 className="text-sm font-semibold mb-4">Collection Products</h2>
+
+                                {/* Product Search */}
+                                <div className="relative mb-4">
+                                    <div className="relative">
+                                        <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
+                                        <Input
+                                            placeholder="Search products to add..."
+                                            value={productSearch}
+                                            onChange={(e) => {
+                                                setProductSearch(e.target.value);
+                                                searchProducts(e.target.value);
+                                            }}
+                                            className="rounded-sm pl-9"
+                                        />
+                                        {productSearch && (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setProductSearch("");
+                                                    setProductSuggestions([]);
+                                                    setShowSuggestions(false);
+                                                }}
+                                                className="absolute right-3 top-2.5"
                                             >
-                                                <div className="flex items-center gap-3">
+                                                <X className="w-4 h-4 text-muted-foreground" />
+                                            </button>
+                                        )}
+                                    </div>
+                                    {showSuggestions && productSuggestions.length > 0 && (
+                                        <div className="absolute z-10 w-full mt-1 bg-popover border rounded-sm shadow-lg max-h-48 overflow-auto">
+                                            {productSuggestions.map((product: any) => (
+                                                <button
+                                                    key={product.id}
+                                                    type="button"
+                                                    onClick={() => addProduct(product)}
+                                                    className="w-full px-4 py-2 text-left text-sm hover:bg-accent transition-colors flex items-center gap-2"
+                                                >
                                                     {product.assets?.[0]?.asset?.source ? (
                                                         <img
                                                             src={getImageUrl(product.assets[0].asset.source)}
                                                             alt=""
-                                                            className="w-10 h-10 object-cover rounded-[2px]"
+                                                            className="w-6 h-6 rounded-sm object-cover"
                                                         />
                                                     ) : (
-                                                        <div className="w-10 h-10 bg-gray-100 flex items-center justify-center rounded-[2px]">
-                                                            <ImageIcon className="w-5 h-5 text-gray-400" />
+                                                        <div className="w-6 h-6 rounded-sm bg-muted flex items-center justify-center">
+                                                            <ImageIcon className="w-3 h-3 text-muted-foreground" />
                                                         </div>
                                                     )}
-                                                    <div>
-                                                        <p className="text-sm font-medium text-gray-900">{product.name}</p>
-                                                        <p className="text-xs text-gray-500">SKU: {product.sku || 'N/A'}</p>
-                                                    </div>
-                                                </div>
-                                                <button className="p-1 hover:bg-green-50 text-green-600 rounded">
-                                                    <Plus className="w-4 h-4" />
+                                                    <span>{product.name}</span>
                                                 </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                                {searching && (
-                                    <div className="mt-2 text-center py-2">
-                                        <p className="text-sm text-gray-500 animate-pulse">Searching...</p>
-                                    </div>
-                                )}
-                            </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
 
-                            {/* Current Products List */}
-                            <div className="space-y-3">
+                                {/* Products Table */}
                                 {products.length === 0 ? (
-                                    <div className="text-center py-12 border-2 border-dashed border-gray-100 rounded-xs">
-                                        <p className="text-gray-500 text-sm">No products in this collection</p>
-                                        <p className="text-xs text-gray-400 mt-1">Search and add products to showcase them.</p>
+                                    <div className="text-center py-12 border-2 border-dashed rounded-sm">
+                                        <p className="text-sm text-muted-foreground">No products in this collection</p>
+                                        <p className="text-xs text-muted-foreground mt-1">Search and add products to showcase them.</p>
                                     </div>
                                 ) : (
-                                    products.map((product, index) => (
-                                        <div
-                                            key={product.id}
-                                            className="flex items-center justify-between p-3 border border-gray-100 rounded-xs bg-gray-50/50 hover:border-gray-200 transition-colors"
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <span className="text-xs font-bold text-gray-300 w-4">{index + 1}</span>
-                                                {product.assets?.[0]?.asset?.source ? (
-                                                    <img
-                                                        src={getImageUrl(product.assets[0].asset.source)}
-                                                        alt=""
-                                                        className="w-10 h-10 object-cover rounded-[2px] border border-gray-200"
-                                                    />
-                                                ) : (
-                                                    <div className="w-10 h-10 bg-gray-100 flex items-center justify-center rounded-[2px]">
-                                                        <ImageIcon className="w-5 h-5 text-gray-400" />
-                                                    </div>
-                                                )}
-                                                <div>
-                                                    <p className="text-sm font-medium text-gray-900">{product.name}</p>
-                                                    <p className="text-xs text-gray-500">KES {parseFloat(product.salePrice).toLocaleString()}</p>
-                                                </div>
-                                            </div>
-                                            <button
-                                                onClick={() => removeProduct(product.id)}
-                                                className="p-2 hover:bg-red-50 text-red-500 rounded-xs transition-colors"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    ))
+                                    <div className="rounded-sm overflow-hidden border">
+                                        <table className="w-full text-sm">
+                                            <thead className="bg-muted/50 border-b">
+                                                <tr>
+                                                    <th className="text-left px-4 py-3 font-medium text-muted-foreground w-8">#</th>
+                                                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Product</th>
+                                                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">SKU</th>
+                                                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Price</th>
+                                                    <th className="text-right px-4 py-3 font-medium text-muted-foreground w-20">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {products.map((product, index) => (
+                                                    <tr key={product.id} className="border-b last:border-0 hover:bg-muted/30">
+                                                        <td className="px-4 py-3 text-muted-foreground">{index + 1}</td>
+                                                        <td className="px-4 py-3">
+                                                            <div className="flex items-center gap-3">
+                                                                {product.image ? (
+                                                                    <img
+                                                                        src={getImageUrl(product.image)}
+                                                                        alt=""
+                                                                        className="w-8 h-8 rounded-sm object-cover border"
+                                                                    />
+                                                                ) : (
+                                                                    <div className="w-8 h-8 rounded-sm bg-muted flex items-center justify-center">
+                                                                        <ImageIcon className="w-4 h-4 text-muted-foreground" />
+                                                                    </div>
+                                                                )}
+                                                                <span className="font-medium">{product.name}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-4 py-3 text-muted-foreground">{product.sku || "—"}</td>
+                                                        <td className="px-4 py-3">
+                                                            {product.salePrice ? `KES ${Number(product.salePrice).toLocaleString()}` : "—"}
+                                                        </td>
+                                                        <td className="px-4 py-3 text-right">
+                                                            <Button
+                                                                type="button"
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                onClick={() => removeProduct(product.id)}
+                                                                className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </Button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 )}
-                            </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Actions */}
+                        <div className="flex justify-end gap-3">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => router.push("/admin/homepage-collections")}
+                                className="rounded-sm"
+                            >
+                                Cancel
+                            </Button>
+                            <Button type="submit" disabled={loading} className="rounded-sm">
+                                {loading ? "Saving..." : "Update Collection"}
+                            </Button>
                         </div>
-                    </div>
+                    </form>
                 </div>
             </AdminLayout>
         </ProtectedRoute>

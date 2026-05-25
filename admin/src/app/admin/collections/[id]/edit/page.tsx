@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ProtectedRoute } from '@/components/login/ProtectedRoute';
 import { AdminLayout } from '@/components/admin/layout/AdminLayout';
-import { Card, CardContent } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import { getImageUrl } from '@/lib/shared/images';
 import {
@@ -15,16 +14,17 @@ import {
     CollectionFormHeader,
     CollectionHierarchyCard,
     CollectionLevel,
-    CollectionSaveCard,
     CollectionTreeNode,
 } from '@/components/admin/catalog/collections/form';
 import { uploadAdminAsset } from '@/lib/shared/images/admin-asset-upload';
+import { CSRF_COOKIE_NAME, CSRF_HEADER_NAME, ensureCsrfToken, getCookieValue, getSessionUrl } from '@/lib/auth/csrf';
 
 interface CollectionDetail extends CollectionTreeNode {
     parentId?: string | null;
     description?: string | null;
     enabled?: boolean;
     showInMostShopped?: boolean;
+    showInMenuHeader?: boolean;
     sortOrder?: number;
     mostShoppedSortOrder?: number;
     assetId?: string | null;
@@ -40,6 +40,7 @@ const initialFormData: CollectionFormData = {
     parentId: '',
     enabled: true,
     showInMostShopped: false,
+    showInMenuHeader: false,
     sortOrder: 0,
     mostShoppedSortOrder: 0,
     assetId: '',
@@ -60,6 +61,12 @@ export default function EditCollectionPage() {
     const [formData, setFormData] = useState<CollectionFormData>(initialFormData);
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string>('');
+
+    const authBaseURL = typeof window !== 'undefined' ? window.location.origin : '';
+    const authSessionUrl = getSessionUrl(
+        process.env.NEXT_PUBLIC_AUTH_BASE_PATH?.trim() || '/api/auth',
+        process.env.NEXT_PUBLIC_AUTH_BASE_URL?.trim() || authBaseURL,
+    );
 
     useEffect(() => {
         const loadPageData = async () => {
@@ -135,6 +142,7 @@ export default function EditCollectionPage() {
                 parentId: data.parentId || '',
                 enabled: data.enabled ?? true,
                 showInMostShopped: data.showInMostShopped ?? false,
+                showInMenuHeader: data.showInMenuHeader ?? false,
                 sortOrder: data.sortOrder ?? 0,
                 mostShoppedSortOrder: data.mostShoppedSortOrder ?? 0,
                 assetId: data.assetId || '',
@@ -170,16 +178,34 @@ export default function EditCollectionPage() {
         }
     };
 
+    const getNextSortOrder = (lvl: CollectionLevel, parentId?: string): number => {
+        if (lvl === '1') {
+            return collections.length + 1;
+        }
+        if (lvl === '2' && selectedL1) {
+            const parent = collections.find(c => c.id === selectedL1);
+            return (parent?.children?.length || 0) + 1;
+        }
+        if (lvl === '3' && selectedL1 && parentId) {
+            const l1 = collections.find(c => c.id === selectedL1);
+            const l2 = l1?.children?.find(c => c.id === parentId);
+            return (l2?.children?.length || 0) + 1;
+        }
+        return 1;
+    };
+
     const handleLevelChange = (nextLevel: CollectionLevel) => {
         setLevel(nextLevel);
         setSelectedL1('');
         handleFieldChange('parentId', '');
+        handleFieldChange('sortOrder', getNextSortOrder(nextLevel));
     };
 
     const handleSelectedL1Change = (value: string) => {
         setSelectedL1(value);
         if (level === '2') {
             handleFieldChange('parentId', value);
+            handleFieldChange('sortOrder', getNextSortOrder(level, value));
             return;
         }
         handleFieldChange('parentId', '');
@@ -187,6 +213,7 @@ export default function EditCollectionPage() {
 
     const handleParentIdChange = (value: string) => {
         handleFieldChange('parentId', value);
+        handleFieldChange('sortOrder', getNextSortOrder(level, value));
     };
 
     const handleImageChange = (file: File | null) => {
@@ -232,11 +259,11 @@ export default function EditCollectionPage() {
 
     const validateHierarchy = (): string | null => {
         if (level === '2' && !selectedL1) {
-            return 'Please select a Level 1 parent category.';
+            return 'Please select a parent category.';
         }
         if (level === '3') {
-            if (!selectedL1) return 'Please select a Level 1 category first.';
-            if (!formData.parentId) return 'Please select a Level 2 parent group.';
+            if (!selectedL1) return 'Please select a target category first.';
+            if (!formData.parentId) return 'Please select a parent group.';
         }
         return null;
     };
@@ -257,11 +284,15 @@ export default function EditCollectionPage() {
                 assetId = (await uploadImage()) || '';
             }
 
+            const csrfToken = (await ensureCsrfToken(authSessionUrl)) || getCookieValue(CSRF_COOKIE_NAME);
+            const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+            if (csrfToken) {
+                headers[CSRF_HEADER_NAME] = csrfToken;
+            }
+
             const response = await fetch(`/api/admin/collections/${collectionId}`, {
                 method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers,
                 body: JSON.stringify({
                     ...formData,
                     assetId: assetId || null,
@@ -299,11 +330,9 @@ export default function EditCollectionPage() {
         return (
             <ProtectedRoute>
                 <AdminLayout>
-                    <Card className="border-gray-200 shadow-xs">
-                        <CardContent className="flex min-h-70 items-center justify-center">
-                            <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary-200 border-b-primary-900" />
-                        </CardContent>
-                    </Card>
+                    <div className="flex min-h-70 items-center justify-center">
+                        <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary-200 border-b-primary-900" />
+                    </div>
                 </AdminLayout>
             </ProtectedRoute>
         );
@@ -312,16 +341,18 @@ export default function EditCollectionPage() {
     return (
         <ProtectedRoute>
             <AdminLayout>
-                <CollectionFormHeader
-                    title="Edit Collection"
-                    description="Update collection structure, media, and display settings."
-                />
+                <form onSubmit={handleSubmit}>
+                    <CollectionFormHeader
+                        title="Edit Collection"
+                        onSave={() => {}}
+                        loading={loading}
+                        uploading={uploading}
+                    />
 
-                <form onSubmit={handleSubmit} className="w-full">
                     <CollectionFormError message={error} />
 
-                    <div className="grid w-full grid-cols-1 items-start gap-6 xl:grid-cols-12">
-                        <div className="min-w-0 space-y-6 xl:col-span-8">
+                    <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+                        <div className="xl:col-span-2">
                             <CollectionBasicInfoCard
                                 formData={formData}
                                 imagePreview={imagePreview}
@@ -331,7 +362,7 @@ export default function EditCollectionPage() {
                             />
                         </div>
 
-                        <div className="space-y-6 xl:col-span-4 xl:sticky xl:top-6">
+                        <div className="space-y-6 xl:sticky xl:top-6">
                             <CollectionHierarchyCard
                                 level={level}
                                 collections={collections}
@@ -345,12 +376,7 @@ export default function EditCollectionPage() {
                             <CollectionDisplaySettingsCard
                                 formData={formData}
                                 onFieldChange={handleFieldChange}
-                            />
-
-                            <CollectionSaveCard
-                                loading={loading}
-                                uploading={uploading}
-                                submitLabel="Update Collection"
+                                level={level}
                             />
                         </div>
                     </div>

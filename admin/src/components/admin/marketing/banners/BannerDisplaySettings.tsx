@@ -11,7 +11,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { POSITION_OPTIONS } from './banner.constants';
+import { POSITION_OPTIONS } from '@/lib/banner/constants';
 
 interface BannerDisplaySettings {
     position: string;

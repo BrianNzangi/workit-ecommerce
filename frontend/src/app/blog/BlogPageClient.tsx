@@ -1,22 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Blog } from '@/types/blog';
+import { useBlogs } from '@/hooks/useBlogs';
 import BlogCard from '@/components/blog/BlogCard';
 
 export default function BlogPageClient() {
-  const [blogs, setBlogs] = useState<Blog[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch('/api/blogs')
-      .then(res => res.json())
-      .then((data: Blog[]) => {
-        setBlogs(data);
-      })
-      .catch(err => console.error('Failed to fetch blogs:', err))
-      .finally(() => setLoading(false));
-  }, []);
+  const { data: blogs = [], isLoading: loading } = useBlogs();
 
   // Function to render a horizontal banner
   const renderBanner = (index: number) => (

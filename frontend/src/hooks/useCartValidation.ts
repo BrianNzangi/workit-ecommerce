@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useCartStore } from '@/store/cartStore';
-import { validateCart, removeInvalidItems, validateCartItemsLocally, getInvalidItemsMessage } from '@/lib/cart-validation';
+import { validateCart, removeInvalidItems, validateCartItemsLocally, getInvalidItemsMessage } from '@/lib/cart/cart-validation';
 
 export function useCartValidation() {
     const { items, removeItem } = useCartStore();

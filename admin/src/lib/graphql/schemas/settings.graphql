@@ -1,0 +1,17 @@
+scalar JSON
+
+type SiteSettings {
+  data: JSON!
+}
+
+input SiteSettingsInput {
+  data: JSON!
+}
+
+extend type Query {
+  siteSettings: SiteSettings!
+}
+
+extend type Mutation {
+  updateSiteSettings(input: SiteSettingsInput!): SiteSettings!
+}

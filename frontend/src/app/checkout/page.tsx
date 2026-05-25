@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { auth } from "@/lib/auth";
+import { auth } from "@/lib/auth/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import CheckoutClient from "@/components/checkout/CheckoutClient"

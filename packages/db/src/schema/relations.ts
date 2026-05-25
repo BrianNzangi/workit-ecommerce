@@ -4,6 +4,7 @@ import * as marketing from "./marketing.js";
 import * as identity from "./identity.js";
 import * as fulfillment from "./fulfillment.js";
 import * as cart from "./cart.js";
+import * as promotions from "./promotions.js";
 
 // Catalog Relations
 export const productsRelations = relations(catalog.products, ({ many, one }) => ({
@@ -11,6 +12,10 @@ export const productsRelations = relations(catalog.products, ({ many, one }) => 
     collections: many(catalog.productCollections),
     homepageCollections: many(marketing.homepageCollectionProducts),
     campaignProducts: many(marketing.campaignProducts),
+    couponProducts: many(promotions.couponProducts),
+    flashSaleProducts: many(promotions.flashSaleProducts),
+    featuredDeals: many(promotions.featuredDeals),
+    clearanceDeals: many(promotions.clearanceDeals),
     brand: one(catalog.brands, {
         fields: [catalog.products.brandId],
         references: [catalog.brands.id],
@@ -27,6 +32,7 @@ export const assetsRelations = relations(catalog.assets, ({ many }) => ({
     bannersDesktop: many(marketing.banners, { relationName: "desktopImage" }),
     bannersMobile: many(marketing.banners, { relationName: "mobileImage" }),
     blogs: many(marketing.blogs),
+    couponBanners: many(promotions.coupons),
 }));
 
 export const productAssetsRelations = relations(catalog.productAssets, ({ one }) => ({
@@ -52,6 +58,7 @@ export const collectionsRelations = relations(catalog.collections, ({ many, one 
         fields: [catalog.collections.assetId],
         references: [catalog.assets.id],
     }),
+    brandCollections: many(catalog.brandCollections),
 }));
 
 export const productCollectionsRelations = relations(catalog.productCollections, ({ one }) => ({
@@ -67,6 +74,18 @@ export const productCollectionsRelations = relations(catalog.productCollections,
 
 export const brandsRelations = relations(catalog.brands, ({ many }) => ({
     products: many(catalog.products),
+    brandCollections: many(catalog.brandCollections),
+}));
+
+export const brandCollectionsRelations = relations(catalog.brandCollections, ({ one }) => ({
+    brand: one(catalog.brands, {
+        fields: [catalog.brandCollections.brandId],
+        references: [catalog.brands.id],
+    }),
+    collection: one(catalog.collections, {
+        fields: [catalog.brandCollections.collectionId],
+        references: [catalog.collections.id],
+    }),
 }));
 
 // Marketing Relations
@@ -156,6 +175,14 @@ export const usersRelations = relations(identity.users, ({ many }) => ({
     orders: many(fulfillment.orders),
     carts: many(cart.carts),
     campaignRedemptions: many(marketing.campaignRedemptions),
+    addresses: many(identity.addresses),
+}));
+
+export const addressesRelations = relations(identity.addresses, ({ one }) => ({
+    customer: one(identity.users, {
+        fields: [identity.addresses.customerId],
+        references: [identity.users.id],
+    }),
 }));
 
 export const sessionRelations = relations(identity.session, ({ one }) => ({
@@ -250,6 +277,55 @@ export const cartLinesRelations = relations(cart.cartLines, ({ one }) => ({
     }),
     product: one(catalog.products, {
         fields: [cart.cartLines.productId],
+        references: [catalog.products.id],
+    }),
+}));
+
+// Promotion Relations
+export const couponsRelations = relations(promotions.coupons, ({ one, many }) => ({
+    bannerImage: one(catalog.assets, {
+        fields: [promotions.coupons.bannerImageId],
+        references: [catalog.assets.id],
+    }),
+    products: many(promotions.couponProducts),
+}));
+
+export const couponProductsRelations = relations(promotions.couponProducts, ({ one }) => ({
+    coupon: one(promotions.coupons, {
+        fields: [promotions.couponProducts.couponId],
+        references: [promotions.coupons.id],
+    }),
+    product: one(catalog.products, {
+        fields: [promotions.couponProducts.productId],
+        references: [catalog.products.id],
+    }),
+}));
+
+export const flashSalesRelations = relations(promotions.flashSales, ({ many }) => ({
+    products: many(promotions.flashSaleProducts),
+}));
+
+export const flashSaleProductsRelations = relations(promotions.flashSaleProducts, ({ one }) => ({
+    flashSale: one(promotions.flashSales, {
+        fields: [promotions.flashSaleProducts.flashSaleId],
+        references: [promotions.flashSales.id],
+    }),
+    product: one(catalog.products, {
+        fields: [promotions.flashSaleProducts.productId],
+        references: [catalog.products.id],
+    }),
+}));
+
+export const featuredDealsRelations = relations(promotions.featuredDeals, ({ one }) => ({
+    product: one(catalog.products, {
+        fields: [promotions.featuredDeals.productId],
+        references: [catalog.products.id],
+    }),
+}));
+
+export const clearanceDealsRelations = relations(promotions.clearanceDeals, ({ one }) => ({
+    product: one(catalog.products, {
+        fields: [promotions.clearanceDeals.productId],
         references: [catalog.products.id],
     }),
 }));

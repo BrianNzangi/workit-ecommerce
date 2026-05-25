@@ -71,9 +71,10 @@ export function OrdersList() {
 
     const fetchOrders = async () => {
         try {
-            const response = await fetch('/api/admin/orders');
+            const response = await fetch('/api/admin/orders', {
+                credentials: 'include',
+            });
             const text = await response.text();
-            console.log('[OrdersList] Raw response:', text);
 
             let result;
             try {
@@ -239,7 +240,7 @@ export function OrdersList() {
               width: 1080px;
               background: #ffffff;
               color: #111827;
-              font-family: "IBM Plex Sans", Arial, sans-serif;
+              font-family: "Hanken Grotesk", Arial, sans-serif;
               border: 1px solid #e5e7eb;
               border-radius: 2px;
               box-sizing: border-box;
@@ -489,7 +490,9 @@ export function OrdersList() {
 
             let order = invoiceCacheRef.current.get(orderId);
             if (!order) {
-                const response = await fetch(`/api/admin/orders/${orderId}`);
+                const response = await fetch(`/api/admin/orders/${orderId}`, {
+                    credentials: 'include',
+                });
                 const result = await response.json();
                 if (!result?.success || !result?.order) {
                     throw new Error(result?.error || 'Failed to fetch invoice details.');

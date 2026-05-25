@@ -29,37 +29,26 @@ export class OrderService extends BaseService {
     }
 
     /**
-     * Get a list of orders
+     * Get a list of orders — filter params are forwarded to the backend, no client-side filtering
      */
     async getOrders(options: OrderListOptions = {}): Promise<Order[]> {
         const response: any = await this.adminClient.orders.list(options);
-        // Frontend filtering for now since backend list doesn't take params yet
-        let results = Array.isArray(response) ? response : (response.orders || []);
-        if (options.state) {
-            results = results.filter((o: Order) => o.state === options.state);
-        }
-        return results;
+        return Array.isArray(response) ? response : (response.orders || []);
     }
 
     /**
-     * Search orders (Filtered locally for now as search is not in backend yet)
+     * Search orders by term — delegates to backend via q param
      */
     async searchOrders(searchTerm: string): Promise<Order[]> {
-        const response: any = await this.adminClient.orders.list();
-        const results = Array.isArray(response) ? response : (response.orders || []);
-        const term = searchTerm.toLowerCase();
-        return results.filter((o: Order) =>
-            o.code.toLowerCase().includes(term) ||
-            o.customer?.email?.toLowerCase().includes(term) ||
-            (o.customer as any)?.name?.toLowerCase().includes(term)
-        );
+        const response: any = await this.adminClient.orders.list({ q: searchTerm });
+        return Array.isArray(response) ? response : (response.orders || []);
     }
 
     /**
-     * Get inventory items (Staging for low stock alerts)
+     * Get inventory items with optional low-stock threshold
      */
     async getInventory(options: { lowStockThreshold?: number } = {}): Promise<any[]> {
-        // This should ideally call a backend endpoint
-        return [];
+        const response: any = await this.adminClient.products.inventory(options);
+        return Array.isArray(response) ? response : (response.products || []);
     }
 }

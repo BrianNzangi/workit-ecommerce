@@ -3,9 +3,27 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Upload, X } from 'lucide-react';
-import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { MultiSelect } from '@/components/ui/MultiSelect';
+import { toast } from '@/hooks/use-toast';
 import { getImageUrl } from '@/lib/shared/images';
 import { uploadAdminAsset } from '@/lib/shared/images/admin-asset-upload';
+import {
+    CSRF_COOKIE_NAME,
+    CSRF_HEADER_NAME,
+    ensureCsrfToken,
+    getCookieValue,
+    getSessionUrl,
+} from '@/lib/auth/csrf';
+
+const AUTH_SESSION_URL = getSessionUrl(
+    process.env.NEXT_PUBLIC_AUTH_PATH || '/api/auth',
+    process.env.NEXT_PUBLIC_AUTH_BASE_URL || '',
+);
 
 interface BrandFormProps {
     brandId?: string;
@@ -26,14 +44,36 @@ export function BrandForm({ brandId, mode }: BrandFormProps) {
         enabled: true,
     });
 
+    const [collectionIds, setCollectionIds] = useState<string[]>([]);
+    const [collectionOptions, setCollectionOptions] = useState<{ value: string; label: string }[]>([]);
+
     const [logoFile, setLogoFile] = useState<File | null>(null);
-    const [logoPreview, setLogoPreview] = useState<string>('');
+    const [logoPreview, setLogoPreview] = useState('');
 
     useEffect(() => {
+        fetchCollections();
         if (mode === 'edit' && brandId) {
             fetchBrand();
         }
     }, [mode, brandId]);
+
+    const fetchCollections = async () => {
+        try {
+            const res = await fetch('/api/admin/collections?parentId=null');
+            if (res.ok) {
+                const data = await res.json();
+                const collections = data.collections || data || [];
+                const l1Collections = Array.isArray(collections)
+                    ? collections.filter((c: any) => !c.parentId)
+                    : [];
+                setCollectionOptions(
+                    l1Collections.map((c: any) => ({ value: c.id, label: c.name }))
+                );
+            }
+        } catch (e) {
+            console.error('Failed to fetch collections:', e);
+        }
+    };
 
     const fetchBrand = async () => {
         try {
@@ -48,7 +88,9 @@ export function BrandForm({ brandId, mode }: BrandFormProps) {
                     logoUrl: data.logoUrl || '',
                     enabled: data.enabled,
                 });
-                // Set preview if logo exists
+                if (data.brandCollections?.length) {
+                    setCollectionIds(data.brandCollections.map((bc: any) => bc.collectionId));
+                }
                 if (data.logoUrl) {
                     setLogoPreview(getImageUrl(data.logoUrl));
                 }
@@ -72,7 +114,6 @@ export function BrandForm({ brandId, mode }: BrandFormProps) {
             [name]: type === 'checkbox' ? checked : value,
         }));
 
-        // Auto-generate slug from name
         if (name === 'name') {
             const slug = value
                 .toLowerCase()
@@ -88,7 +129,6 @@ export function BrandForm({ brandId, mode }: BrandFormProps) {
 
         setLogoFile(file);
 
-        // Generate preview
         const reader = new FileReader();
         reader.onloadend = () => {
             setLogoPreview(reader.result as string);
@@ -110,7 +150,6 @@ export function BrandForm({ brandId, mode }: BrandFormProps) {
         try {
             let logoUrl = formData.logoUrl;
 
-            // Upload logo if a new file is selected
             if (logoFile) {
                 const { asset: uploadData } = await uploadAdminAsset({
                     file: logoFile,
@@ -122,14 +161,19 @@ export function BrandForm({ brandId, mode }: BrandFormProps) {
             const url = mode === 'edit' ? `/api/admin/brands/${brandId}` : '/api/admin/brands';
             const method = mode === 'edit' ? 'PATCH' : 'POST';
 
+            const csrfToken = (await ensureCsrfToken(AUTH_SESSION_URL)) || getCookieValue(CSRF_COOKIE_NAME);
+            const headers: HeadersInit = { 'Content-Type': 'application/json' };
+            if (csrfToken) {
+                headers[CSRF_HEADER_NAME] = csrfToken;
+            }
+
             const response = await fetch(url, {
                 method,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers,
                 body: JSON.stringify({
                     ...formData,
                     logoUrl,
+                    collectionIds,
                 }),
             });
 
@@ -138,161 +182,196 @@ export function BrandForm({ brandId, mode }: BrandFormProps) {
                 throw new Error(data.error || `Failed to ${mode} brand`);
             }
 
+            toast({
+                title: 'Success',
+                description: mode === 'edit' ? 'Brand updated successfully' : 'Brand created successfully',
+                variant: 'success',
+            });
+
             router.push('/admin/brands');
         } catch (err: any) {
             setError(err.message);
+            toast({
+                title: 'Error',
+                description: err.message,
+                variant: 'error',
+            });
         } finally {
             setLoading(false);
         }
     };
 
+    if (fetchLoading) {
+        return (
+            <div className="p-6">
+                <div className="flex items-center gap-3 mb-6">
+                    <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                        <ArrowLeft className="w-4 h-4" />
+                    </Button>
+                    <h1 className="text-lg font-semibold">
+                        {mode === 'edit' ? 'Edit Brand' : 'New Brand'}
+                    </h1>
+                </div>
+                <Card className="rounded-sm shadow-none">
+                    <CardContent className="p-6">
+                        <p className="text-sm text-muted-foreground">Loading brand...</p>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+
     return (
-        <>
-            <div className="mb-6">
-                <Link
-                    href="/admin/brands"
-                    className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
-                >
-                    <ArrowLeft className="w-4 h-4" />
-                    Back to Brands
-                </Link>
-                <h1 className="text-xl lg:text-2xl font-bold text-gray-900">
-                    {mode === 'edit' ? 'Edit Brand' : 'Add New Brand'}
-                </h1>
+        <div className="p-6">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                    <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                        <ArrowLeft className="w-4 h-4" />
+                    </Button>
+                    <h1 className="text-lg font-semibold">
+                        {mode === 'edit' ? 'Edit Brand' : 'New Brand'}
+                    </h1>
+                </div>
             </div>
 
-            {fetchLoading ? (
-                <div className="bg-white rounded-xs shadow-xs border border-gray-200 p-8">
-                    <p className="text-center text-gray-500">Loading brand...</p>
-                </div>
-            ) : (
-                <form onSubmit={handleSubmit} className="max-w-2xl">
-                    {error && (
-                        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xs text-red-700 text-sm shadow-xs">
-                            {error}
-                        </div>
-                    )}
+            <form onSubmit={handleSubmit}>
+                {/* Basic Information */}
+                <Card className="rounded-sm shadow-none mb-6">
+                    <CardContent className="p-6">
+                        <h2 className="text-sm font-semibold mb-4">Basic Information</h2>
 
-                    <div className="bg-white rounded-xs shadow-xs border border-gray-200 p-6 space-y-4">
-                        <div>
-                            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                                Brand Name *
-                            </label>
-                            <input
-                                type="text"
-                                id="name"
-                                name="name"
-                                value={formData.name}
-                                onChange={handleChange}
-                                required
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xs focus:ring-2 focus:ring-primary-900 focus:border-transparent"
-                                placeholder="e.g., Apple"
-                            />
-                        </div>
+                        {error && (
+                            <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-sm text-sm text-destructive">
+                                {error}
+                            </div>
+                        )}
 
-                        <div>
-                            <label htmlFor="slug" className="block text-sm font-medium text-gray-700 mb-2">
-                                URL Slug *
-                            </label>
-                            <input
-                                type="text"
-                                id="slug"
-                                name="slug"
-                                value={formData.slug}
-                                onChange={handleChange}
-                                required
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xs focus:ring-2 focus:ring-primary-900 focus:border-transparent"
-                                placeholder="apple"
-                            />
-                            <p className="mt-1 text-xs text-gray-500">Auto-generated from brand name</p>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label>Brand Name *</Label>
+                                <Input
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    placeholder="e.g. Apple"
+                                    className="rounded-sm"
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>URL Slug *</Label>
+                                <Input
+                                    name="slug"
+                                    value={formData.slug}
+                                    onChange={handleChange}
+                                    placeholder="apple"
+                                    className="rounded-sm font-mono text-xs"
+                                    required
+                                />
+                                <p className="text-xs text-muted-foreground">Auto-generated from brand name</p>
+                            </div>
                         </div>
 
-                        <div>
-                            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-                                Description
-                            </label>
-                            <textarea
-                                id="description"
+                        <div className="mt-4 space-y-2">
+                            <Label>Description</Label>
+                            <Textarea
                                 name="description"
                                 value={formData.description}
                                 onChange={handleChange}
-                                rows={3}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xs focus:ring-2 focus:ring-primary-900 focus:border-transparent"
                                 placeholder="Brief description of the brand"
+                                className="resize-none h-20 rounded-sm"
                             />
                         </div>
+                    </CardContent>
+                </Card>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Brand Logo
+                {/* Logo */}
+                <Card className="rounded-sm shadow-none mb-6">
+                    <CardContent className="p-6">
+                        <h2 className="text-sm font-semibold mb-4">Brand Logo</h2>
+
+                        {logoPreview ? (
+                            <div className="relative inline-block">
+                                <img
+                                    src={logoPreview}
+                                    alt="Logo preview"
+                                    className="w-32 h-32 object-contain border rounded-sm"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={removeLogo}
+                                    className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-0.5"
+                                >
+                                    <X className="w-3 h-3" />
+                                </button>
+                            </div>
+                        ) : (
+                            <label className="flex flex-col items-center justify-center w-full h-32 border border-dashed rounded-sm cursor-pointer hover:bg-muted/50 transition-colors">
+                                <Upload className="w-8 h-8 text-muted-foreground mb-2" />
+                                <p className="text-sm font-medium">Upload Logo</p>
+                                <p className="text-xs text-muted-foreground mt-1">PNG, JPG, GIF up to 10MB</p>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleLogoSelect}
+                                    className="hidden"
+                                />
                             </label>
+                        )}
+                    </CardContent>
+                </Card>
 
-                            {logoPreview ? (
-                                <div className="relative inline-block">
-                                    <img
-                                        src={logoPreview}
-                                        alt="Logo preview"
-                                        className="w-32 h-32 object-contain border border-gray-200 rounded-xs"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={removeLogo}
-                                        className="absolute -top-2 -right-2 p-1 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors"
-                                    >
-                                        <X className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            ) : (
-                                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-200 border-dashed rounded-xs cursor-pointer hover:bg-gray-50 transition-colors">
-                                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                        <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                                        <p className="text-sm text-gray-600">
-                                            <span className="font-semibold">Click to upload</span> or drag and drop
-                                        </p>
-                                        <p className="text-xs text-gray-500 mt-1">PNG, JPG, GIF up to 10MB</p>
-                                    </div>
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handleLogoSelect}
-                                        className="hidden"
-                                    />
-                                </label>
-                            )}
-                        </div>
+                {/* Featured in Collections */}
+                <Card className="rounded-sm shadow-none mb-6">
+                    <CardContent className="p-6">
+                        <h2 className="text-sm font-semibold mb-4">Featured in Collections</h2>
+                        <p className="text-xs text-muted-foreground mb-3">
+                            Select collections where this brand should appear in the Top Brands carousel.
+                        </p>
+                        <MultiSelect
+                            options={collectionOptions}
+                            selected={collectionIds}
+                            onChange={setCollectionIds}
+                            placeholder="Select collections..."
+                        />
+                    </CardContent>
+                </Card>
 
-                        <div className="flex items-center">
+                {/* Settings */}
+                <Card className="rounded-sm shadow-none mb-6">
+                    <CardContent className="p-6">
+                        <h2 className="text-sm font-semibold mb-4">Settings</h2>
+
+                        <label className="flex items-center gap-2 cursor-pointer">
                             <input
                                 type="checkbox"
                                 id="enabled"
                                 name="enabled"
                                 checked={formData.enabled}
                                 onChange={handleChange}
-                                className="w-4 h-4 text-primary-900 border-gray-200 rounded focus:ring-primary-900"
+                                className="w-4 h-4 rounded-sm accent-primary"
                             />
-                            <label htmlFor="enabled" className="ml-2 text-sm text-gray-700">
-                                Enabled
-                            </label>
-                        </div>
-                    </div>
+                            <span className="text-sm">Enabled</span>
+                        </label>
+                    </CardContent>
+                </Card>
 
-                    <div className="mt-6 flex flex-col sm:flex-row gap-3">
-                        <Link
-                            href="/admin/brands"
-                            className="flex-1 px-4 py-2 border border-gray-200 text-gray-700 rounded-xs hover:bg-gray-50 transition-colors text-center order-2 sm:order-1"
-                        >
-                            Cancel
-                        </Link>
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="flex-1 px-4 py-2 bg-primary-900 hover:bg-primary-800 text-white rounded-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-xs order-1 sm:order-2"
-                        >
-                            {loading ? (mode === 'edit' ? 'Updating...' : 'Creating...') : (mode === 'edit' ? 'Update Brand' : 'Create Brand')}
-                        </button>
-                    </div>
-                </form>
-            )}
-        </>
+                {/* Actions */}
+                <div className="flex justify-end gap-3">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => router.back()}
+                        className="rounded-sm"
+                    >
+                        Cancel
+                    </Button>
+                    <Button type="submit" disabled={loading} className="rounded-sm">
+                        {loading ? (mode === 'edit' ? 'Saving...' : 'Creating...') : (mode === 'edit' ? 'Save' : 'Create')}
+                    </Button>
+                </div>
+            </form>
+        </div>
     );
 }

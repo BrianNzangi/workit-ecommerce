@@ -31,6 +31,32 @@ declare module "fastify" {
 
 export default fp(async (fastify) => {
     const requestPermissions = new WeakMap<object, Permission[]>();
+    const resolveAdminSession = async (request: any) => {
+        if (request.session) {
+            return request.session;
+        }
+
+        const session = await auth.api.getSession({
+            headers: fromNodeHeaders(request.raw.headers),
+        });
+
+        if (session) {
+            request.session = session.session;
+            request.user = session.user;
+            request.permissions = await getPermissionsForRoleAsync(session.user?.role);
+
+            const normalizedRole = normalizeAdminRole(session.user?.role);
+            if (normalizedRole) {
+                request.user.role = normalizedRole;
+            }
+        } else {
+            request.session = null;
+            request.user = null;
+            request.permissions = [];
+        }
+
+        return request.session;
+    };
 
     fastify.decorateRequest("auth", {
         getter: () => auth,
@@ -49,6 +75,8 @@ export default fp(async (fastify) => {
     });
 
     fastify.decorate("authenticate", async (request, reply) => {
+        await resolveAdminSession(request);
+
         if (!request.session) {
             return reply.status(401).send({ message: "Unauthorized" });
         }
@@ -56,7 +84,7 @@ export default fp(async (fastify) => {
 
     fastify.decorate("authenticateStorefront", async (request, reply) => {
         const storefrontSession = await storefrontAuth.api.getSession({
-            headers: fromNodeHeaders(request.headers),
+            headers: fromNodeHeaders(request.raw.headers),
         });
 
         if (storefrontSession) {
@@ -74,7 +102,7 @@ export default fp(async (fastify) => {
 
     fastify.decorate("optionalStorefrontAuth", async (request, reply) => {
         const storefrontSession = await storefrontAuth.api.getSession({
-            headers: fromNodeHeaders(request.headers),
+            headers: fromNodeHeaders(request.raw.headers),
         });
 
         if (storefrontSession) {
@@ -88,6 +116,8 @@ export default fp(async (fastify) => {
 
     fastify.decorate("authorize", (roles: string[]) => {
         return async (request: any, reply: any) => {
+            await resolveAdminSession(request);
+
             if (!request.session) {
                 return reply.status(401).send({ message: "Unauthorized" });
             }
@@ -114,6 +144,8 @@ export default fp(async (fastify) => {
             : [requiredPermissions];
 
         return async (request: any, reply: any) => {
+            await resolveAdminSession(request);
+
             if (!request.session) {
                 return reply.status(401).send({ message: "Unauthorized" });
             }
@@ -125,20 +157,6 @@ export default fp(async (fastify) => {
     });
 
     fastify.addHook("preHandler", async (request, reply) => {
-        const session = await auth.api.getSession({
-            headers: fromNodeHeaders(request.headers),
-        });
-
-        if (session) {
-            request.session = session.session;
-            request.user = session.user;
-            request.permissions = await getPermissionsForRoleAsync(session.user?.role);
-            const normalizedRole = normalizeAdminRole(session.user?.role);
-            if (normalizedRole) {
-                request.user.role = normalizedRole;
-            }
-        } else {
-            request.permissions = [];
-        }
+        await resolveAdminSession(request);
     });
 });

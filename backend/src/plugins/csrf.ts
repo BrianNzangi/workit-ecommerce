@@ -43,6 +43,13 @@ export default fp(async (fastify) => {
     };
 
     const shouldProtect = (request: FastifyRequest) => {
+        // Auth endpoints use credential-based auth (email/password or tokens),
+        // not cookies — CSRF protection doesn't apply to them.
+        const authPaths = ["/auth/", "/api/auth/"];
+        if (authPaths.some((p) => request.url.startsWith(p))) {
+            return false;
+        }
+
         const cookieNames = Object.keys(request.cookies || {});
         return cookieNames.some(
             (name) => name.startsWith(authCookiePrefix) || name.startsWith(storefrontCookiePrefix),

@@ -14,6 +14,7 @@ export const permissions = [
     "marketing.campaigns.manage",
     "marketing.content.manage",
     "orders.manage",
+    "promotions.manage",
     "settings.manage",
     "shipping.manage",
     "users.manage",
@@ -37,6 +38,7 @@ export const defaultRolePermissions: RolePermissionsMap = {
         "marketing.campaigns.manage",
         "marketing.content.manage",
         "orders.manage",
+        "promotions.manage",
         "shipping.manage",
     ],
     EDITOR: [

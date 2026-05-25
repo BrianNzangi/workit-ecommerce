@@ -7,4 +7,11 @@ export interface CustomerFormData {
     phoneNumber: string;
     password: string;
     confirmPassword: string;
+    address: string;
+    apartment: string;
+    city: string;
+    country: string;
+    postalCode: string;
+    addressPhone: string;
+    notes: string;
 }

@@ -1,0 +1,76 @@
+import { Callout } from 'nextra/components'
+
+# Contributing
+
+## Monorepo Structure
+
+```text
+workit-ecommerce/
+|-- frontend/          # Customer storefront (Next.js)
+|-- admin/             # Admin dashboard (Next.js)
+|-- backend/           # Fastify API (current)
+|-- backend-old/       # Legacy Fastify API (reference only)
+|-- docs/              # This documentation site (Nextra)
+|-- packages/
+|   |-- db/            # Drizzle schema & migrations
+|   `-- validation/    # Shared Zod schemas
+|-- insomnia/          # API testing collection
+`-- .kiro/specs/       # Feature specs & design docs
+```
+
+## Development Workflow
+
+### Running a single app
+
+```bash
+pnpm --filter @workit/frontend dev
+pnpm --filter @workit/admin dev
+pnpm --filter @workit/backend dev
+pnpm --filter @workit/docs dev
+```
+
+### Running all apps
+
+```bash
+pnpm dev
+```
+
+### Building all apps
+
+```bash
+pnpm build
+```
+
+## Adding a New API Endpoint
+
+1. Create the endpoint file in `backend/src/modules/<domain>/endpoints/` or `backend/src/presentation/modules/` for DDD-backed routes.
+2. Register it in the module's `index.ts`.
+3. Add the route to `insomnia/workit-api.json`.
+4. Document it in `docs/pages/api/storefront.mdx` or `docs/pages/api/admin.mdx`.
+
+## Adding a New Package
+
+1. Create the package directory under `packages/`.
+2. Add a `package.json` with `"name": "@workit/<package-name>"`.
+3. Add it to `pnpm-workspace.yaml`.
+4. Reference it in other packages as `"@workit/<package-name>": "workspace:*"`.
+
+## Spec-Driven Development
+
+New features follow the spec workflow:
+
+1. Create a spec in `.kiro/specs/<feature-name>/`.
+2. Write `requirements.md`, then `design.md`, then `tasks.md`.
+3. Implement tasks one by one.
+4. Update docs in `docs/pages/`.
+
+<Callout type="info">
+  See `.kiro/specs/backend-ddd-refactoring/` for an example of a complete spec with requirements, design, and implementation tasks.
+</Callout>
+
+## Code Style
+
+- TypeScript strict mode enabled across all packages
+- Zod for runtime validation at API boundaries
+- Drizzle ORM for all database access with minimal raw SQL
+- No `any` types in new code unless there is a clear justification

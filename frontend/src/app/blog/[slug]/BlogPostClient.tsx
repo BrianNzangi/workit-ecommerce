@@ -1,35 +1,22 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
+import { useBlogs } from '@/hooks/useBlogs';
 import Image from 'next/image';
-import { Blog } from '@/types/blog';
 
 interface BlogPostClientProps {
   slug: string;
 }
 
 export default function BlogPostClient({ slug }: BlogPostClientProps) {
-  const [blog, setBlog] = useState<Blog | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: blogs = [], isLoading: loading, error: fetchError } = useBlogs();
 
-  useEffect(() => {
-    fetch('/api/blogs')
-      .then(res => res.json())
-      .then((blogs: Blog[]) => {
-        const foundBlog = blogs.find(b => b.slug === slug);
-        if (foundBlog) {
-          setBlog(foundBlog);
-        } else {
-          setError('Blog post not found');
-        }
-      })
-      .catch(err => {
-        console.error('Failed to fetch blog:', err);
-        setError('Failed to load blog post');
-      })
-      .finally(() => setLoading(false));
-  }, [slug]);
+  const blog = useMemo(() => blogs.find(b => b.slug === slug) || null, [blogs, slug]);
+  const error = useMemo(() => {
+    if (fetchError) return 'Failed to load blog post';
+    if (!loading && !blog) return 'Blog post not found';
+    return null;
+  }, [fetchError, loading, blog]);
 
   if (loading) {
     return (

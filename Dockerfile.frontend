@@ -3,16 +3,8 @@
 # =========================
 FROM node:20-alpine AS base
 
-# Install build dependencies
-RUN apk add --no-cache \
-    libc6-compat \
-    python3 \
-    make \
-    g++ \
-    rust \
-    cargo
-
-RUN npm install -g pnpm@9
+RUN apk add --no-cache libc6-compat python3 make g++
+RUN corepack enable && corepack prepare pnpm@10.28.2 --activate
 
 WORKDIR /app
 
@@ -21,19 +13,14 @@ WORKDIR /app
 # =========================
 FROM base AS deps
 
-# Copy workspace config first
+# Copy lockfile + manifests first so this layer is cached until they change
 COPY .npmrc ./
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
-
-# Copy package manifests (using backend)
 COPY frontend/package.json ./frontend/
-COPY backend/package.json ./backend/
 COPY admin/package.json ./admin/
 COPY packages ./packages/
 
-# Install ONLY frontend + its dependencies
 RUN pnpm install --no-frozen-lockfile --filter=@workit/frontend...
-
 
 # =========================
 # Build stage
@@ -44,7 +31,6 @@ COPY --from=deps /app /app
 COPY frontend ./frontend
 COPY packages ./packages
 
-# Build arguments
 ARG DATABASE_URL=postgres://dummy:dummy@localhost:5432/dummy
 ARG BACKEND_URL=http://backend:3001
 ARG BACKEND_API_URL=http://backend:3001
@@ -53,7 +39,6 @@ ARG NEXT_PUBLIC_API_URL=https://api.workit.co.ke
 ARG INTERNAL_API_KEY
 ARG REDIS_URL
 
-# Set as environment variables for build
 ENV DATABASE_URL=$DATABASE_URL
 ENV BACKEND_URL=$BACKEND_URL
 ENV BACKEND_API_URL=$BACKEND_API_URL
@@ -65,30 +50,23 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV SKIP_DB_CHECK=true
 
-# Build shared workspace packages first
 RUN pnpm --filter=@workit/db run build
 RUN pnpm --filter=@workit/validation run build
-
-# Build frontend app
 RUN NEXT_PHASE=phase-production-build DATABASE_URL=postgres://localhost:5432/dummy pnpm --filter=@workit/frontend run build
-
 
 # =========================
 # Runtime stage
 # =========================
 FROM node:20-alpine AS runner
 
-RUN npm install -g pnpm@9
+RUN corepack enable && corepack prepare pnpm@10.28.2 --activate
 
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nextjs -u 1001
+RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
 
-# Copy runtime artifacts only
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/frontend/node_modules ./frontend/node_modules
 COPY --from=deps /app/packages ./packages
@@ -98,7 +76,6 @@ COPY --from=builder /app/frontend/package.json ./frontend/package.json
 COPY --from=deps /app/package.json ./package.json
 COPY --from=deps /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
 
-# Change ownership
 RUN chown -R nextjs:nodejs /app
 
 USER nextjs
@@ -106,7 +83,6 @@ USER nextjs
 WORKDIR /app/frontend
 
 EXPOSE 3000
-
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 

@@ -7,6 +7,9 @@ export interface CustomerRecord {
     phoneNumber?: string | null;
     createdAt: string;
     enabled?: boolean;
+    location?: string;
+    ordersCount?: number;
+    totalSpent?: number;
 }
 
 export interface OrderRecord {

@@ -6,9 +6,9 @@ import { Button } from '@/components/ui/button';
 import { useProductForm } from './product-form/useProductForm';
 import { ProductBasicInfo } from './product-form/ProductBasicInfo';
 import { ProductDescription } from './product-form/ProductDescription';
-import { ProductPricing } from './product-form/ProductPricing';
-import { ProductStatus } from './product-form/ProductStatus';
 import { ProductImages } from './product-form/ProductImages';
+import { ProductPricing } from './product-form/ProductPricing';
+import { ProductInventory } from './product-form/ProductInventory';
 import { ProductCollections } from './product-form/ProductCollections';
 import { ProductHomepageCollections } from './product-form/ProductHomepageCollections';
 
@@ -29,24 +29,17 @@ export function ProductForm({ productId, mode }: ProductFormProps) {
         selectedFiles,
         imagePreviews,
         existingImages,
-        displaySalePrice,
-        displayOriginalPrice,
         collections,
         selectedCollections,
-        expandedCollections,
         homepageCollections,
         selectedHomepageCollections,
         brands,
         handleChange,
         handleDescriptionChange,
-        handlePriceChange,
-        handlePriceBlur,
-        handlePriceFocus,
         handleImageSelect,
         removeNewImage,
         removeExistingImage,
         toggleCollection,
-        toggleExpanded,
         toggleHomepageCollection,
         handleSubmit,
     } = useProductForm({ productId, mode });
@@ -61,46 +54,54 @@ export function ProductForm({ productId, mode }: ProductFormProps) {
     }
 
     return (
-        <>
-            {/* Header */}
-            <div className="mb-6">
-                <Button variant="ghost" asChild className="mb-4 -ml-4 text-muted-foreground hover:text-foreground">
-                    <Link href="/admin/products" className="flex items-center gap-2">
-                        <ArrowLeft className="w-4 h-4" />
+        <div className="space-y-6">
+            <div className="space-y-1">
+                <Button variant="ghost" asChild className="h-8 px-2 -ml-2 text-sm text-muted-foreground hover:text-foreground">
+                    <Link href="/admin/products" className="flex items-center gap-1.5">
+                        <ArrowLeft className="h-4 w-4" />
                         Back to Products
                     </Link>
                 </Button>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <h1 className="text-xl lg:text-2xl font-bold tracking-tight">
-                        {mode === 'edit' ? 'Edit Product' : 'Add New Product'}
-                    </h1>
-                    <div className="flex gap-2 sm:gap-3">
-                        <Button variant="outline" asChild className="flex-1 sm:flex-none sm:px-6">
-                            <Link href="/admin/products">Cancel</Link>
-                        </Button>
-                        <Button
-                            type="submit"
-                            form="product-form"
-                            disabled={loading || uploadingImages}
-                            className="flex-1 sm:flex-none sm:px-8 bg-primary text-white"
-                        >
-                            {uploadingImages
-                                ? 'Uploading Images...'
-                                : loading
-                                    ? mode === 'edit'
-                                        ? 'Updating...'
-                                        : 'Creating...'
-                                    : mode === 'edit'
-                                        ? 'Update Product'
-                                        : 'Create Product'}
-                        </Button>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h1 className="text-2xl font-bold tracking-tight">
+                            {mode === 'edit' ? 'Edit Product' : 'Add New Product'}
+                        </h1>
                     </div>
+                    <div className="flex gap-2">
+                    {mode === 'create' && (
+                        <Button
+                            type="button"
+                            variant="outline"
+                            disabled={loading || uploadingImages}
+                            onClick={() => handleSubmit(false)}
+                        >
+                            Save Draft
+                        </Button>
+                    )}
+                    <Button
+                        type="button"
+                        disabled={loading || uploadingImages}
+                        onClick={() => handleSubmit(mode === 'edit' ? undefined : true)}
+                        className="bg-primary-900 hover:bg-primary-800 text-white"
+                    >
+                        {uploadingImages
+                            ? 'Uploading Images...'
+                            : loading
+                                ? mode === 'edit'
+                                    ? 'Updating...'
+                                    : 'Creating...'
+                                : mode === 'edit'
+                                    ? 'Update Product'
+                                    : 'Publish Product'}
+                    </Button>
                 </div>
             </div>
+            </div>
 
-            <form id="product-form" onSubmit={handleSubmit} className="space-y-6">
+            <form id="product-form" onSubmit={(e) => e.preventDefault()}>
                 {error && (
-                    <div className="p-4 bg-red-50 border border-red-200 rounded-xs text-red-700 text-sm shadow-xs">
+                    <div className="mb-4 rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
                         {error}
                     </div>
                 )}
@@ -112,25 +113,6 @@ export function ProductForm({ productId, mode }: ProductFormProps) {
                             handleChange={handleChange}
                             setFormData={setFormData}
                             brands={brands}
-                            taxSettings={taxSettings}
-                        />
-                        <ProductDescription
-                            value={formData.description}
-                            onChange={handleDescriptionChange}
-                        />
-                    </div>
-
-                    <div className="w-full xl:w-[400px] 2xl:w-[575px] shrink-0 space-y-6">
-                        <ProductStatus
-                            enabled={formData.enabled}
-                            onEnabledChange={(val: boolean) => setFormData((prev: any) => ({ ...prev, enabled: val }))}
-                        />
-                        <ProductPricing
-                            displaySalePrice={displaySalePrice}
-                            displayOriginalPrice={displayOriginalPrice}
-                            handlePriceChange={handlePriceChange}
-                            handlePriceBlur={handlePriceBlur}
-                            handlePriceFocus={handlePriceFocus}
                         />
                         <ProductImages
                             existingImages={existingImages}
@@ -140,12 +122,27 @@ export function ProductForm({ productId, mode }: ProductFormProps) {
                             removeExistingImage={removeExistingImage}
                             removeNewImage={removeNewImage}
                         />
+                        <ProductDescription
+                            value={formData.description}
+                            onChange={handleDescriptionChange}
+                        />
+                    </div>
+
+                    <div className="w-full xl:w-80 shrink-0 space-y-6">
+                        <ProductPricing
+                            formData={formData}
+                            handleChange={handleChange}
+                        />
+                        <ProductInventory
+                            formData={formData}
+                            handleChange={handleChange}
+                            setFormData={setFormData}
+                            taxSettings={taxSettings}
+                        />
                         <ProductCollections
                             collections={collections}
                             selectedCollections={selectedCollections}
-                            expandedCollections={expandedCollections}
                             toggleCollection={toggleCollection}
-                            toggleExpanded={toggleExpanded}
                         />
                         <ProductHomepageCollections
                             homepageCollections={homepageCollections}
@@ -155,6 +152,6 @@ export function ProductForm({ productId, mode }: ProductFormProps) {
                     </div>
                 </div>
             </form>
-        </>
+        </div>
     );
 }

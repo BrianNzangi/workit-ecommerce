@@ -69,6 +69,8 @@ export const campaigns = pgTable("Campaign", {
     createdBy: text("createdBy"),
 }, (t) => ({
     statusIdx: index("Campaign_status_idx").on(t.status),
+    byCouponCode: index("Campaign_coupon_code_idx").on(t.couponCode),
+    byStatusDateRange: index("Campaign_status_date_range_idx").on(t.status, t.startDate, t.endDate),
 }));
 
 export const campaignProducts = pgTable("CampaignProduct", {

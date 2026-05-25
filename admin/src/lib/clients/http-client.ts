@@ -53,11 +53,16 @@ class HttpClient {
         return typeof window === "undefined";
     }
 
+    private proxyPath(clientPath: string, serverPath: string) {
+        return this.isServerRequest() ? serverPath : clientPath;
+    }
+
     private catalogAdminPath(resource: "products" | "collections" | "brands", suffix = "") {
-        if (this.isServerRequest()) {
-            return `/catalog/${resource}/admin${suffix}`;
-        }
-        return `/${resource}${suffix}`;
+        const serverPrefix = resource === "products" ? "/_admin" : "/admin";
+        return this.proxyPath(
+            `/${resource}${suffix}`,
+            `/catalog/${resource}${serverPrefix}${suffix}`,
+        );
     }
 
     private async request<T>(path: string, options: RequestOptions = {}): Promise<T> {
@@ -158,9 +163,44 @@ class HttpClient {
             list: (options?: any) => this.get<any>(this.catalogAdminPath("products"), { params: options }),
             get: (id: string) => this.get<any>(this.catalogAdminPath("products", `/${id}`)),
             create: (data: any) => this.post<any>(this.catalogAdminPath("products"), data),
-            update: (id: string, data: any) => this.put<any>(this.catalogAdminPath("products", `/${id}`), data),
+            update: (id: string, data: any) => this.patch<any>(this.catalogAdminPath("products", `/${id}`), data),
             remove: (id: string) => this.delete<any>(this.catalogAdminPath("products", `/${id}`)),
-            search: (params: { q: string }) => this.get<any>(this.catalogAdminPath("products", "/search"), { params })
+            search: (params: { q: string }) => this.get<any>(this.catalogAdminPath("products", "/search"), { params }),
+            /** GET /catalog/products/admin?stockStatus=low_stock[&lowStockThreshold=N] */
+            inventory: (options?: { stockStatus?: string; lowStockThreshold?: number }) =>
+                this.get<any>(this.catalogAdminPath("products"), {
+                    params: { stockStatus: 'low_stock', ...options },
+                }),
+        };
+    }
+
+    public get variants() {
+        const basePath = this.proxyPath("/products", "/catalog/products/_admin");
+        return {
+            /** POST /catalog/products/_admin/:productId/variants */
+            create: (productId: string, data: any) =>
+                this.post<any>(`${basePath}/${productId}/variants`, data),
+            /** PUT /catalog/products/_admin/variants/:id */
+            update: (id: string, data: any) =>
+                this.put<any>(`${basePath}/variants/${id}`, data),
+            /** PATCH /catalog/products/_admin/variants/:id/stock */
+            updateStock: (id: string, stockOnHand: number) =>
+                this.patch<any>(`${basePath}/variants/${id}/stock`, { stockOnHand }),
+        };
+    }
+
+    public get productAssets() {
+        const basePath = this.proxyPath("/products", "/catalog/products/_admin");
+        return {
+            /** POST /catalog/products/_admin/:productId/assets */
+            add: (productId: string, data: any) =>
+                this.post<any>(`${basePath}/${productId}/assets`, data),
+            /** DELETE /catalog/products/_admin/:productId/assets/:assetId */
+            remove: (productId: string, assetId: string) =>
+                this.delete<any>(`${basePath}/${productId}/assets/${assetId}`),
+            /** PATCH /catalog/products/_admin/:productId/assets/:assetId/featured */
+            setFeatured: (productId: string, assetId: string) =>
+                this.patch<any>(`${basePath}/${productId}/assets/${assetId}/featured`, {}),
         };
     }
 
@@ -198,11 +238,11 @@ class HttpClient {
 
     public get homepageCollections() {
         return {
-            list: (options?: any) => this.get<any>("/marketing/homepage/admin", { params: options }),
-            get: (id: string) => this.get<any>(`/marketing/homepage/admin/${id}`),
-            create: (data: any) => this.post<any>("/marketing/homepage/admin", data),
-            update: (id: string, data: any) => this.put<any>(`/marketing/homepage/admin/${id}`, data),
-            remove: (id: string) => this.delete<any>(`/marketing/homepage/admin/${id}`),
+            list: (options?: any) => this.get<any>(this.proxyPath("/homepage-collections", "/marketing/homepage/admin"), { params: options }),
+            get: (id: string) => this.get<any>(this.proxyPath(`/homepage-collections/${id}`, `/marketing/homepage/admin/${id}`)),
+            create: (data: any) => this.post<any>(this.proxyPath("/homepage-collections", "/marketing/homepage/admin"), data),
+            update: (id: string, data: any) => this.put<any>(this.proxyPath(`/homepage-collections/${id}`, `/marketing/homepage/admin/${id}`), data),
+            remove: (id: string) => this.delete<any>(this.proxyPath(`/homepage-collections/${id}`, `/marketing/homepage/admin/${id}`)),
         };
     }
     public get orders() {
@@ -232,11 +272,11 @@ class HttpClient {
 
     public get users() {
         return {
-            list: (options?: any) => this.get<any>("/identity/users/admin", { params: options }),
-            create: (data: any) => this.post<any>("/identity/users/admin", data),
-            get: (id: string) => this.get<any>(`/identity/users/admin/${id}`),
-            update: (id: string, data: any) => this.put<any>(`/identity/users/admin/${id}`, data),
-            remove: (id: string) => this.delete<any>(`/identity/users/admin/${id}`),
+            list: (options?: any) => this.get<any>(this.proxyPath("/users", "/identity/users/admin"), { params: options }),
+            create: (data: any) => this.post<any>(this.proxyPath("/users", "/identity/users/admin"), data),
+            get: (id: string) => this.get<any>(this.proxyPath(`/users/${id}`, `/identity/users/admin/${id}`)),
+            update: (id: string, data: any) => this.put<any>(this.proxyPath(`/users/${id}`, `/identity/users/admin/${id}`), data),
+            remove: (id: string) => this.delete<any>(this.proxyPath(`/users/${id}`, `/identity/users/admin/${id}`)),
         };
     }
 
@@ -252,20 +292,20 @@ class HttpClient {
 
     public get shipping() { // Maps to Shipping Methods
         return {
-            list: (options?: any) => this.get<any>("/fulfillment/shipping/admin", { params: options }),
-            get: (id: string) => this.get<any>(`/fulfillment/shipping/admin/${id}`),
-            create: (data: any) => this.post<any>("/fulfillment/shipping/admin", data),
-            update: (id: string, data: any) => this.put<any>(`/fulfillment/shipping/admin/${id}`, data),
-            delete: (id: string) => this.delete<any>(`/fulfillment/shipping/admin/${id}`),
+            list: (options?: any) => this.get<any>(this.proxyPath("/shipping-methods", "/fulfillment/shipping/admin"), { params: options }),
+            get: (id: string) => this.get<any>(this.proxyPath(`/shipping-methods/${id}`, `/fulfillment/shipping/admin/${id}`)),
+            create: (data: any) => this.post<any>(this.proxyPath("/shipping-methods", "/fulfillment/shipping/admin"), data),
+            update: (id: string, data: any) => this.put<any>(this.proxyPath(`/shipping-methods/${id}`, `/fulfillment/shipping/admin/${id}`), data),
+            delete: (id: string) => this.delete<any>(this.proxyPath(`/shipping-methods/${id}`, `/fulfillment/shipping/admin/${id}`)),
         };
     }
 
     public get shippingZones() {
         return {
-            list: (options?: any) => this.get<any>("/fulfillment/shipping/admin/zones", { params: options }),
-            create: (data: any) => this.post<any>("/fulfillment/shipping/admin/zones", data),
-            update: (id: string, data: any) => this.patch<any>(`/fulfillment/shipping/admin/zones/${id}`, data),
-            delete: (id: string) => this.delete<any>(`/fulfillment/shipping/admin/zones/${id}`),
+            list: (options?: any) => this.get<any>(this.proxyPath("/shipping-zones", "/fulfillment/shipping/admin/zones"), { params: options }),
+            create: (data: any) => this.post<any>(this.proxyPath("/shipping-zones", "/fulfillment/shipping/admin/zones"), data),
+            update: (id: string, data: any) => this.patch<any>(this.proxyPath(`/shipping-zones/${id}`, `/fulfillment/shipping/admin/zones/${id}`), data),
+            delete: (id: string) => this.delete<any>(this.proxyPath(`/shipping-zones/${id}`, `/fulfillment/shipping/admin/zones/${id}`)),
         };
     }
 
@@ -310,10 +350,13 @@ class HttpClient {
 
     public get settings() {
         return {
-            getAll: () => this.get<any>("/site/settings/admin"),
-            updateAll: (data: Record<string, any>) => this.post<any>("/site/settings/admin", data),
-            get: (key: string) => this.get<any>(`/site/settings/admin/${key}`),
-            update: (key: string, value: any) => this.post<any>("/site/settings/admin", { [key]: value }),
+            getAll: () => this.get<any>(this.proxyPath("/settings", "/site/settings/admin")),
+            updateAll: (data: Record<string, any>) => this.post<any>(this.proxyPath("/settings", "/site/settings/admin"), data),
+            get: async (key: string) => {
+                const settings = await this.get<any>(this.proxyPath("/settings", "/site/settings/admin"));
+                return settings?.[key];
+            },
+            update: (key: string, value: any) => this.post<any>(this.proxyPath("/settings", "/site/settings/admin"), { [key]: value }),
         };
     }
 }

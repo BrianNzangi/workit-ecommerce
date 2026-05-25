@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Minus, Plus, Tag, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useCartStore } from "@/store/cartStore";
-import { getImageUrl } from "@/lib/image-utils";
+import { getImageUrl } from "@/lib/image/image-utils";
 import type { ProductPromotion } from "@/types/product";
 
 interface CartItemProps {

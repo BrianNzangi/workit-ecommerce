@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { signIn, signUp, authClient } from '@/lib/auth-client';
+import { useState, useEffect, useRef } from 'react';
+import { signIn, signUp, authClient } from '@/lib/auth/auth-client';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
+import OTPInput from './OTPInput';
 
 type ModalBusyReporter = (busy: boolean, message?: string) => void;
 const requestTimeoutFromEnv = Number(process.env.NEXT_PUBLIC_AUTH_REQUEST_TIMEOUT_MS ?? "30000");
@@ -37,7 +38,19 @@ export function LoginForm({ onBusyChange }: { onBusyChange?: ModalBusyReporter }
     const [step, setStep] = useState<'request' | 'verify'>('request');
     const [sendingOtp, setSendingOtp] = useState(false);
     const [verifyingOtp, setVerifyingOtp] = useState(false);
+    const verifyFormRef = useRef<HTMLFormElement>(null);
+    const autoSubmittedRef = useRef(false);
     const router = useRouter();
+
+    useEffect(() => {
+        if (step === 'verify' && otp.length === 6 && !verifyingOtp && !autoSubmittedRef.current) {
+            autoSubmittedRef.current = true;
+            verifyFormRef.current?.requestSubmit();
+        }
+        if (otp.length < 6) {
+            autoSubmittedRef.current = false;
+        }
+    }, [step, otp, verifyingOtp]);
 
     const handleRequestOtp = async () => {
         setSendingOtp(true);
@@ -118,22 +131,18 @@ export function LoginForm({ onBusyChange }: { onBusyChange?: ModalBusyReporter }
                     </form>
                 </>
             ) : (
-                <form onSubmit={handleVerifyOtp} className="space-y-4">
-                    <p className="text-secondary-600 text-sm mb-4">
+                <form ref={verifyFormRef} onSubmit={handleVerifyOtp} className="space-y-4">
+                    <p className="text-secondary-600 text-sm mb-2">
                         We've sent a 6-digit login code to <span className="font-bold text-secondary-900">{email}</span>.
                     </p>
-                    <input
-                        type="text"
+                    <OTPInput
                         value={otp}
-                        onChange={(e) => setOtp(e.target.value)}
-                        className="w-full px-5 py-3 rounded-lg border border-secondary-200 focus:outline-none focus:ring-2 focus:ring-primary-900/5 focus:border-primary-900 transition-all text-secondary-900 placeholder:text-secondary-400 text-center text-2xl tracking-[0.5em] font-bold caret-primary-900 selection:bg-primary-900/20 selection:text-primary-900"
-                        placeholder="000000"
-                        maxLength={6}
-                        required
+                        onChange={setOtp}
+                        disabled={verifyingOtp}
                     />
                     <button
                         type="submit"
-                        disabled={verifyingOtp}
+                        disabled={verifyingOtp || otp.length < 6}
                         className="w-full py-2 bg-secondary-200 text-secondary-400 font-bold rounded-lg hover:bg-secondary-300 hover:text-secondary-500 transition-all disabled:opacity-50 mt-4 active:bg-primary-900 active:text-white"
                     >
                         {verifyingOtp ? 'Verifying...' : 'Sign In'}
@@ -257,7 +266,19 @@ export function SignUpForm({
 export function VerifyOTPForm({ email, onBusyChange }: { email: string; onBusyChange?: ModalBusyReporter }) {
     const [otp, setOtp] = useState('');
     const [loading, setLoading] = useState(false);
+    const verifyFormRef = useRef<HTMLFormElement>(null);
+    const autoSubmittedRef = useRef(false);
     const router = useRouter();
+
+    useEffect(() => {
+        if (otp.length === 6 && !loading && !autoSubmittedRef.current) {
+            autoSubmittedRef.current = true;
+            verifyFormRef.current?.requestSubmit();
+        }
+        if (otp.length < 6) {
+            autoSubmittedRef.current = false;
+        }
+    }, [otp, loading]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -304,22 +325,18 @@ export function VerifyOTPForm({ email, onBusyChange }: { email: string; onBusyCh
 
     return (
         <div className="w-full">
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <p className="text-secondary-600 text-sm mb-4">
+            <form ref={verifyFormRef} onSubmit={handleSubmit} className="space-y-4">
+                <p className="text-secondary-600 text-sm mb-2">
                     We've sent a 6-digit verification code to <span className="font-bold text-secondary-900">{email}</span>.
                 </p>
-                <input
-                    type="text"
+                <OTPInput
                     value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
-                    className="w-full px-5 py-3 rounded-lg border border-secondary-200 focus:outline-none focus:ring-2 focus:ring-primary-900/5 focus:border-primary-900 transition-all text-secondary-900 placeholder:text-secondary-400 text-center text-2xl tracking-[0.5em] font-bold caret-primary-900 selection:bg-primary-900/20 selection:text-primary-900"
-                    placeholder="000000"
-                    maxLength={6}
-                    required
+                    onChange={setOtp}
+                    disabled={loading}
                 />
                 <button
                     type="submit"
-                    disabled={loading}
+                    disabled={loading || otp.length < 6}
                     className="w-full py-2 bg-secondary-200 text-secondary-400 font-bold rounded-lg hover:bg-secondary-300 hover:text-secondary-500 transition-all disabled:opacity-50 mt-4 active:bg-primary-900 active:text-white"
                 >
                     {loading ? 'Verifying...' : 'Verify Email'}

@@ -120,7 +120,6 @@ export default function InvoiceOnlyPage({ params }: { params: Promise<{ id: stri
                 orderStates={ORDER_STATES}
                 updatingStatus={false}
                 onStatusUpdate={() => { }}
-                onPrint={() => window.print()}
                 getStatusColor={getStatusColor}
             />
         </div>

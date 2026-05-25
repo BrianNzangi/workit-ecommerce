@@ -1,122 +1,162 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import he from 'he';
 import Link from 'next/link';
-import { ChevronRight, ChevronLeft } from 'lucide-react';
-import { fetchNavigationCollectionsDisplayClient } from '@/lib/collections-client';
+import { ChevronRight } from 'lucide-react';
+import { fetchNavigationCollectionsDisplayClient } from '@/lib/collections/collections-client';
 import type { CollectionDisplay } from '@/types/collections';
-import MegaMenuItem from '@/components/menu/MegaMenuItem';
-import { handleDocumentNavigation } from '@/lib/document-navigation';
+import { cn } from '@/lib/utils/utils';
 
-export default function MobileMegaMenu() {
-  const [collections, setCollections] = useState<CollectionDisplay[]>([]);
-  const [hasLoadedCollections, setHasLoadedCollections] = useState(false);
-  const [path, setPath] = useState<CollectionDisplay[]>([]); // active drill-down path
+function Chevron({ isOpen, className }: { isOpen: boolean; className?: string }) {
+  return (
+    <ChevronRight
+      size={16}
+      className={cn(
+        'text-muted-foreground transition-transform duration-200 shrink-0',
+        isOpen && 'rotate-90',
+        className
+      )}
+    />
+  );
+}
 
-  useEffect(() => {
-    async function fetchCollections() {
-      try {
-        const data = await fetchNavigationCollectionsDisplayClient();
-        setCollections(data);
-      } catch (err) {
-        console.error('Failed to fetch collections:', err);
-      } finally {
-        setHasLoadedCollections(true);
-      }
-    }
+function CollectionChildren({
+  items,
+  depth,
+  onNavigate,
+}: {
+  items: CollectionDisplay[];
+  depth: number;
+  onNavigate: () => void;
+}) {
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
-    fetchCollections();
+  const toggle = useCallback((id: string) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   }, []);
 
-  const current = path[path.length - 1] || null;
-
-  // If no path, show L1. If at L1, show L2. If at L2, show L3.
-  const items = current
-    ? current.children || []
-    : collections;
-
-  const handleBack = () => {
-    setPath(path.slice(0, -1));
-  };
-
-  const handleSelect = (col: CollectionDisplay) => {
-    if (col.children && col.children.length > 0) {
-      setPath([...path, col]);
-    }
-  };
+  if (items.length === 0) return null;
 
   return (
-    <div className="font-sans flex flex-col h-full bg-white">
-      {/* Navigator Header */}
-      <div className="flex items-center gap-3 px-2 py-4 border-b border-gray-100">
-        {path.length > 0 ? (
-          <button
-            className="p-2 -ml-2 text-gray-600 hover:bg-gray-50 rounded-full transition-colors"
-            onClick={handleBack}
-          >
-            <ChevronLeft size={24} />
-          </button>
-        ) : null}
-        <div className="font-bold text-gray-900 text-lg">
-          {current ? he.decode(current.name) : 'Shop by Category'}
-        </div>
-      </div>
+    <div className={cn(depth > 0 && 'ml-4 border-l border-gray-100 pl-3')}>
+      {items.map((cat) => {
+        const hasChildren = cat.children && cat.children.length > 0;
+        const isExpanded = expanded.has(cat.id);
 
-      {/* List Area */}
-      <ul className="flex-1 overflow-y-auto pt-2 pb-10">
-        {items.length === 0 ? (
-          <li className="p-4 text-gray-500 italic text-sm text-center">
-            {hasLoadedCollections ? 'No categories found in this section' : 'Loading menu...'}
-          </li>
-        ) : (
-          items.map((cat) => {
-            const hasChildren = cat.children && cat.children.length > 0;
-            const isL2Group = path.length === 1; // current is L1, so items are L2
-
-            return (
-              <li key={cat.id} className="border-b border-gray-50 last:border-0">
-                {hasChildren ? (
-                  <button
-                    onClick={() => handleSelect(cat)}
-                    className="w-full flex items-center justify-between px-4 py-4 text-left hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex flex-col">
-                      <span className={`font-medium text-gray-800 ${isL2Group ? 'uppercase text-xs tracking-wider text-gray-500' : 'text-base'}`}>
-                        {he.decode(cat.name)}
-                      </span>
-                    </div>
-                    <ChevronRight size={20} className="text-gray-400" />
-                  </button>
-                ) : (
-                  <div className="px-2">
-                    <MegaMenuItem
-                      title={cat.name}
-                      image={cat.image}
-                      href={`/collections/${cat.slug}`}
-                    />
-                  </div>
-                )}
-              </li>
-            );
-          })
-        )}
-
-        {/* At depth 1 or 2, show "Shop all" link */}
-        {current && (
-          <li className="mt-4 px-4">
-            <Link
-              href={`/collections/${current.slug}`}
-              onClick={(event) =>
-                handleDocumentNavigation(event, `/collections/${current.slug}`)
-              }
-              className="block w-full text-center py-3 bg-primary-900 text-white font-bold rounded-xs hover:bg-black transition-colors"
+        return (
+          <div key={cat.id}>
+            <div
+              className={cn(
+                'flex items-center gap-2 px-3 py-2.5 rounded-sm transition-colors',
+                depth === 0 ? 'text-foreground font-medium' : 'text-muted-foreground text-sm',
+                hasChildren ? 'cursor-pointer hover:bg-accent' : 'hover:bg-accent/50'
+              )}
+              onClick={() => {
+                if (hasChildren) toggle(cat.id);
+              }}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  if (hasChildren) toggle(cat.id);
+                }
+              }}
             >
-              Shop all {he.decode(current.name)}
-            </Link>
-          </li>
-        )}
-      </ul>
+              <span className="flex-1 min-w-0">
+                {hasChildren ? (
+                  <span className="line-clamp-1">{he.decode(cat.name)}</span>
+                ) : (
+                  <Link
+                    href={`/collections/${cat.slug}`}
+                    onClick={onNavigate}
+                    className="block line-clamp-1 hover:text-primary transition-colors"
+                  >
+                    {he.decode(cat.name)}
+                  </Link>
+                )}
+              </span>
+
+              {hasChildren && (
+                <Chevron isOpen={isExpanded} />
+              )}
+            </div>
+
+            {hasChildren && isExpanded && (
+              <div className="overflow-hidden transition-all duration-200">
+                <CollectionChildren
+                  items={cat.children!}
+                  depth={depth + 1}
+                  onNavigate={onNavigate}
+                />
+                <Link
+                  href={`/collections/${cat.slug}`}
+                  onClick={onNavigate}
+                  className={cn(
+                    'block px-3 py-2 text-xs font-medium transition-colors',
+                    depth === 0
+                      ? 'ml-4 border-l border-gray-100 pl-3 text-primary hover:text-primary/80'
+                      : 'ml-8 text-muted-foreground hover:text-primary'
+                  )}
+                >
+                  Shop all {he.decode(cat.name)} →
+                </Link>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+export default function MobileMegaMenu({ onNavigate }: { onNavigate?: () => void }) {
+  const [collections, setCollections] = useState<CollectionDisplay[]>([]);
+  const [hasLoaded, setHasLoaded] = useState(false);
+
+  useEffect(() => {
+    fetchNavigationCollectionsDisplayClient()
+      .then(setCollections)
+      .catch((err) => console.error('Failed to fetch collections:', err))
+      .finally(() => setHasLoaded(true));
+  }, []);
+
+  const handleNavigate = useCallback(() => {
+    onNavigate?.();
+  }, [onNavigate]);
+
+  if (!hasLoaded) {
+    return (
+      <div className="px-3 py-4 text-sm text-muted-foreground">
+        Loading categories...
+      </div>
+    );
+  }
+
+  if (collections.length === 0) {
+    return (
+      <div className="px-3 py-4 text-sm text-muted-foreground">
+        No categories found
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="text-base font-semibold text-foreground tracking-tight mb-1 px-3">
+        Shop by Category
+      </div>
+      <CollectionChildren
+        items={collections}
+        depth={0}
+        onNavigate={handleNavigate}
+      />
     </div>
   );
 }

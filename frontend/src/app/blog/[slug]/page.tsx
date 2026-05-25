@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import BlogPostClient from './BlogPostClient';
 
-import { SITE_CONFIG } from '@/lib/meta';
-import { proxyFetch } from '@/lib/proxy-utils';
-import { getImageUrl } from '@/lib/image-utils';
+import { SITE_CONFIG } from '@/lib/meta/meta';
+import { proxyFetch } from '@/lib/utils/proxy-utils';
+import { getImageUrl } from '@/lib/image/image-utils';
 
 interface PageProps {
   params: Promise<{

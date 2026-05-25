@@ -67,24 +67,6 @@ export function useProductForm({ productId, mode }: UseProductFormProps) {
     const [uploadedAssetIds, setUploadedAssetIds] = useState<string[]>([]);
     const [existingImages, setExistingImages] = useState<Array<{ id: string; assetId: string; url: string }>>([]);
 
-    // Formatted price display
-    const [displaySalePrice, setDisplaySalePrice] = useState('');
-    const [displayOriginalPrice, setDisplayOriginalPrice] = useState('');
-
-    // Format number with commas and 2 decimal places
-    const formatPrice = (value: string | number): string => {
-        if (!value) return '';
-        const num = typeof value === 'string' ? parseFloat(value) : value;
-        if (isNaN(num)) return '';
-        return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    };
-
-    // Update display values when original data changes (for initial loading)
-    useEffect(() => {
-        if (formData.salePrice) setDisplaySalePrice(formatPrice(formData.salePrice));
-        if (formData.originalPrice) setDisplayOriginalPrice(formatPrice(formData.originalPrice));
-    }, [formData.salePrice, formData.originalPrice]);
-
     // Collection state
     const [collections, setCollections] = useState<Collection[]>([]);
     const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
@@ -234,38 +216,6 @@ export function useProductForm({ productId, mode }: UseProductFormProps) {
         setFormData((prev) => ({ ...prev, description: value }));
     };
 
-    const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'salePrice' | 'originalPrice') => {
-        const value = e.target.value;
-        const cleaned = value.replace(/,/g, '');
-        setFormData((prev) => ({ ...prev, [field]: cleaned }));
-        if (field === 'salePrice') {
-            setDisplaySalePrice(value);
-        } else {
-            setDisplayOriginalPrice(value);
-        }
-    };
-
-    const handlePriceBlur = (field: 'salePrice' | 'originalPrice') => {
-        const value = formData[field];
-        if (value) {
-            const formatted = formatPrice(value);
-            if (field === 'salePrice') {
-                setDisplaySalePrice(formatted);
-            } else {
-                setDisplayOriginalPrice(formatted);
-            }
-        }
-    };
-
-    const handlePriceFocus = (field: 'salePrice' | 'originalPrice') => {
-        const value = formData[field];
-        if (field === 'salePrice') {
-            setDisplaySalePrice(value);
-        } else {
-            setDisplayOriginalPrice(value);
-        }
-    };
-
     const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []);
         if (files.length === 0) return;
@@ -322,8 +272,7 @@ export function useProductForm({ productId, mode }: UseProductFormProps) {
         );
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = async (publish?: boolean) => {
         setLoading(true);
         setError('');
 
@@ -352,13 +301,12 @@ export function useProductForm({ productId, mode }: UseProductFormProps) {
 
             if (selectedFiles.length > 0) {
                 setUploadingImages(true);
-                for (const file of selectedFiles) {
-                    const { asset } = await uploadAdminAsset({
-                        file,
-                        folder: 'products',
-                    });
-                    newAssetIds.push(asset.id);
-                }
+                const uploadResults = await Promise.all(
+                    selectedFiles.map((file) =>
+                        uploadAdminAsset({ file, folder: 'products' })
+                    )
+                );
+                newAssetIds.push(...uploadResults.map((result) => result.asset.id));
                 setUploadingImages(false);
             }
 
@@ -376,6 +324,7 @@ export function useProductForm({ productId, mode }: UseProductFormProps) {
                 assetIds: allAssetIds,
                 collections: getAllSelectedAndParentIds(),
                 homepageCollections: selectedHomepageCollections,
+                enabled: mode === 'edit' ? formData.enabled : (publish ?? false),
             };
 
             const endpoint = mode === 'edit' ? `/api/admin/products/${productId}` : '/api/admin/products';
@@ -418,8 +367,6 @@ export function useProductForm({ productId, mode }: UseProductFormProps) {
         selectedFiles,
         imagePreviews,
         existingImages,
-        displaySalePrice,
-        displayOriginalPrice,
         collections,
         selectedCollections,
         expandedCollections,
@@ -428,9 +375,6 @@ export function useProductForm({ productId, mode }: UseProductFormProps) {
         brands,
         handleChange,
         handleDescriptionChange,
-        handlePriceChange,
-        handlePriceBlur,
-        handlePriceFocus,
         handleImageSelect,
         removeNewImage,
         removeExistingImage,

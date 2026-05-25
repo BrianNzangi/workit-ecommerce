@@ -1,0 +1,83 @@
+import { Callout, FileTree } from 'nextra/components'
+
+# DDD Architecture
+
+`backend` uses Domain-Driven Design with a strict layered architecture.
+
+## Layered Architecture
+
+```text
+Presentation Layer
+  Fastify routes, DTOs, auth
+        |
+Application Layer
+  Use cases, transactions, orchestration
+        |
+Domain Layer
+  Aggregates, entities, value objects, events
+        |
+Infrastructure Layer
+  Repositories, Drizzle, DI, event bus
+```
+
+**Dependency rules**
+
+- Domain has zero external dependencies
+- Application depends only on Domain
+- Infrastructure implements Domain interfaces
+- Presentation depends only on Application
+
+## Directory Structure
+
+<FileTree>
+  <FileTree.Folder name="backend/src" defaultOpen>
+    <FileTree.Folder name="domain" defaultOpen>
+      <FileTree.Folder name="shared">
+        <FileTree.File name="Entity.ts" />
+        <FileTree.File name="ValueObject.ts" />
+        <FileTree.File name="AggregateRoot.ts" />
+        <FileTree.File name="DomainEvent.ts" />
+      </FileTree.Folder>
+      <FileTree.Folder name="order-management" />
+      <FileTree.Folder name="catalog" />
+      <FileTree.Folder name="customer-management" />
+      <FileTree.Folder name="fulfillment" />
+      <FileTree.Folder name="marketing" />
+    </FileTree.Folder>
+    <FileTree.Folder name="application" />
+    <FileTree.Folder name="infrastructure" />
+    <FileTree.Folder name="presentation" />
+  </FileTree.Folder>
+</FileTree>
+
+## Key Patterns
+
+### Aggregates
+
+Aggregates enforce business invariants and are the only entry point for state changes.
+
+### Value Objects
+
+Value objects are immutable, validated, and compared by structure rather than identity.
+
+### Domain Events
+
+Aggregates collect events, and application services publish them after successful persistence.
+
+### Repository Pattern
+
+The domain defines interfaces while infrastructure provides Drizzle-backed implementations.
+
+## Migration Strategy
+
+The migration uses feature flags to let DDD-backed routes and legacy handlers coexist while cutover continues:
+
+```bash
+USE_DDD_ORDER_MANAGEMENT=true
+USE_DDD_CATALOG=true
+V2_ONLY=false
+```
+
+<Callout type="info">
+  No database schema rewrite was required. The DDD implementation maps onto the existing PostgreSQL schema through repository mappers and adapters.
+</Callout>

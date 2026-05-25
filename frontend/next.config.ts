@@ -21,7 +21,9 @@ const mediaRemotePattern = (() => {
 
 const nextConfig: NextConfig = {
   images: {
-    unoptimized: Boolean(mediaUrl),
+    unoptimized: true, 
+    // Fixes the quality "95" error by explicitly listing allowed compiler steps
+    qualities: [25, 50, 75, 95],
     remotePatterns: [
       {
         protocol: 'http',

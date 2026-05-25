@@ -31,13 +31,52 @@ input ShippingMethodListOptions {
   enabledOnly: Boolean
 }
 
+type ShippingZoneCity {
+  id: ID!
+  cityTown: String!
+  standardPrice: Int!
+  expressPrice: Int
+}
+
+type ShippingZone {
+  id: ID!
+  shippingMethodId: String!
+  county: String!
+  cities: [ShippingZoneCity!]!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+input ShippingZoneCityInput {
+  id: ID
+  cityTown: String!
+  standardPrice: Int!
+  expressPrice: Int
+}
+
+input CreateShippingZoneInput {
+  shippingMethodId: String!
+  county: String!
+  cities: [ShippingZoneCityInput!]!
+}
+
+input UpdateShippingZoneInput {
+  shippingMethodId: String
+  county: String
+  cities: [ShippingZoneCityInput!]
+}
+
 extend type Query {
   shippingMethod(id: ID!): ShippingMethod
   shippingMethods(options: ShippingMethodListOptions): [ShippingMethod!]!
+  shippingZones: [ShippingZone!]!
 }
 
 extend type Mutation {
   createShippingMethod(input: CreateShippingMethodInput!): ShippingMethod!
   updateShippingMethod(id: ID!, input: UpdateShippingMethodInput!): ShippingMethod!
   deleteShippingMethod(id: ID!): Boolean!
+  createShippingZone(input: CreateShippingZoneInput!): ShippingZone!
+  updateShippingZone(id: ID!, input: UpdateShippingZoneInput!): ShippingZone!
+  deleteShippingZone(id: ID!): Boolean!
 }

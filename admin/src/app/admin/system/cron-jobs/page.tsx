@@ -1,9 +1,13 @@
 'use client';
 
-import { useState } from 'react';
-import { Clock, Play, CheckCircle, XCircle, Loader2, RefreshCw, History } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Clock, Play, CheckCircle, XCircle, Loader2, History, Search, Database, ShoppingCart, AlertTriangle, Trash2, TrendingUp, Package } from 'lucide-react';
 import { ProtectedRoute } from '@/components/login/ProtectedRoute';
 import { AdminLayout } from '@/components/admin/layout/AdminLayout';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/Badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card } from '@/components/ui/card';
 
 interface CronJob {
     id: string;
@@ -12,6 +16,8 @@ interface CronJob {
     schedule: string;
     endpoint: string;
     enabled: boolean;
+    icon: typeof Clock;
+    category: 'marketing' | 'system' | 'search' | 'commerce';
     lastRun?: string;
     lastStatus?: 'success' | 'error';
     lastResult?: {
@@ -33,83 +39,123 @@ interface ExecutionHistory {
     duration?: number;
 }
 
+const cronJobs: CronJob[] = [
+    {
+        id: 'abandoned-carts',
+        name: 'Abandoned Carts',
+        description: 'Mark carts as abandoned after 2 hours of inactivity',
+        schedule: '0 * * * *',
+        endpoint: '/api/admin/cron/abandoned-carts',
+        enabled: true,
+        icon: ShoppingCart,
+        category: 'commerce',
+    },
+
+    {
+        id: 'low-stock-alerts',
+        name: 'Low Stock Alerts',
+        description: 'Check for products with low stock and generate alerts',
+        schedule: '0 9 * * *',
+        endpoint: '/api/admin/cron/low-stock-alerts',
+        enabled: true,
+        icon: AlertTriangle,
+        category: 'commerce',
+    },
+    {
+        id: 'cleanup-data',
+        name: 'Cleanup Old Data',
+        description: 'Remove old abandoned carts and marketing emails',
+        schedule: '0 2 * * *',
+        endpoint: '/api/admin/cron/cleanup-old-data',
+        enabled: true,
+        icon: Trash2,
+        category: 'system',
+    },
+    {
+        id: 'daily-sales-report',
+        name: 'Daily Sales Report',
+        description: 'Generate daily sales statistics and revenue report',
+        schedule: '0 0 * * *',
+        endpoint: '/api/admin/cron/daily-sales-report',
+        enabled: true,
+        icon: TrendingUp,
+        category: 'commerce',
+    },
+    {
+        id: 'sync-inventory',
+        name: 'Sync Inventory',
+        description: 'Sync product inventory with external systems',
+        schedule: '0 */6 * * *',
+        endpoint: '/api/admin/cron/sync-inventory',
+        enabled: true,
+        icon: Package,
+        category: 'commerce',
+    },
+
+    {
+        id: 'typesense-reindex',
+        name: 'Typesense Full Reindex',
+        description: 'Reindex all products and collections in Typesense search',
+        schedule: '0 */6 * * *',
+        endpoint: '/api/admin/cron/typesense-reindex',
+        enabled: true,
+        icon: Database,
+        category: 'search',
+    },
+    {
+        id: 'typesense-sync-products',
+        name: 'Typesense Sync Products',
+        description: 'Sync published products to Typesense search index',
+        schedule: '0 */6 * * *',
+        endpoint: '/api/admin/cron/typesense-sync-products',
+        enabled: true,
+        icon: Search,
+        category: 'search',
+    },
+    {
+        id: 'typesense-sync-collections',
+        name: 'Typesense Sync Collections',
+        description: 'Sync collections to Typesense search index',
+        schedule: '0 */6 * * *',
+        endpoint: '/api/admin/cron/typesense-sync-collections',
+        enabled: true,
+        icon: Search,
+        category: 'search',
+    },
+];
+
+const categoryConfig = {
+    marketing: { label: 'Marketing', color: 'text-purple-600', bg: 'bg-purple-50' },
+    system: { label: 'System', color: 'text-gray-600', bg: 'bg-gray-50' },
+    search: { label: 'Search', color: 'text-blue-600', bg: 'bg-blue-50' },
+    commerce: { label: 'Commerce', color: 'text-green-600', bg: 'bg-green-50' },
+};
+
+const scheduleMap: Record<string, string> = {
+    '*/5 * * * *': 'Every 5 minutes',
+    '*/15 * * * *': 'Every 15 minutes',
+    '*/30 * * * *': 'Every 30 minutes',
+    '0 * * * *': 'Every hour',
+    '0 */6 * * *': 'Every 6 hours',
+    '0 0 * * *': 'Daily at midnight',
+    '0 2 * * *': 'Daily at 2 AM',
+    '0 9 * * *': 'Daily at 9 AM',
+};
+
 export default function CronJobsPage() {
-    const [jobs, setJobs] = useState<CronJob[]>([
-        {
-            id: 'abandoned-carts',
-            name: 'Abandoned Carts',
-            description: 'Mark carts as abandoned after 2 hours of inactivity',
-            schedule: '0 * * * *',
-            endpoint: '/api/cron/abandoned-carts',
-            enabled: true,
-        },
-        {
-            id: 'send-campaigns',
-            name: 'Send Scheduled Campaigns',
-            description: 'Send marketing campaigns that are scheduled to be sent',
-            schedule: '*/15 * * * *',
-            endpoint: '/api/cron/send-campaigns',
-            enabled: true,
-        },
-        {
-            id: 'update-analytics',
-            name: 'Update Campaign Analytics',
-            description: 'Calculate and update campaign open rates and click rates',
-            schedule: '*/30 * * * *',
-            endpoint: '/api/cron/update-campaign-analytics',
-            enabled: true,
-        },
-        {
-            id: 'low-stock-alerts',
-            name: 'Low Stock Alerts',
-            description: 'Check for products with low stock and generate alerts',
-            schedule: '0 9 * * *',
-            endpoint: '/api/cron/low-stock-alerts',
-            enabled: true,
-        },
-        {
-            id: 'cleanup-data',
-            name: 'Cleanup Old Data',
-            description: 'Remove old abandoned carts and marketing emails',
-            schedule: '0 2 * * *',
-            endpoint: '/api/cron/cleanup-old-data',
-            enabled: true,
-        },
-        {
-            id: 'daily-sales-report',
-            name: 'Daily Sales Report',
-            description: 'Generate daily sales statistics and revenue report',
-            schedule: '0 0 * * *',
-            endpoint: '/api/cron/daily-sales-report',
-            enabled: true,
-        },
-        {
-            id: 'sync-inventory',
-            name: 'Sync Inventory',
-            description: 'Sync product inventory with external systems',
-            schedule: '0 */6 * * *',
-            endpoint: '/api/cron/sync-inventory',
-            enabled: true,
-        },
-        {
-            id: 'process-automations',
-            name: 'Process Marketing Automations',
-            description: 'Trigger automated marketing emails based on customer behavior',
-            schedule: '*/5 * * * *',
-            endpoint: '/api/cron/process-automations',
-            enabled: true,
-        },
-    ]);
+    const [jobs, setJobs] = useState<CronJob[]>(cronJobs);
     const [runningJobs, setRunningJobs] = useState<Set<string>>(new Set());
     const [executionHistory, setExecutionHistory] = useState<ExecutionHistory[]>([]);
-    const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+    const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
     const runJob = async (job: CronJob) => {
         setRunningJobs((prev) => new Set(prev).add(job.id));
         const startTime = Date.now();
 
         try {
-            const response = await fetch(job.endpoint);
+            const response = await fetch(job.endpoint, {
+                credentials: 'include',
+            });
             const data = await response.json();
             const duration = Date.now() - startTime;
 
@@ -172,20 +218,6 @@ export default function CronJobsPage() {
         }
     };
 
-    const formatSchedule = (schedule: string) => {
-        const scheduleMap: { [key: string]: string } = {
-            '*/5 * * * *': 'Every 5 minutes',
-            '*/15 * * * *': 'Every 15 minutes',
-            '*/30 * * * *': 'Every 30 minutes',
-            '0 * * * *': 'Every hour',
-            '0 */6 * * *': 'Every 6 hours',
-            '0 0 * * *': 'Daily at midnight',
-            '0 2 * * *': 'Daily at 2 AM',
-            '0 9 * * *': 'Daily at 9 AM',
-        };
-        return scheduleMap[schedule] || schedule;
-    };
-
     const formatLastRun = (lastRun?: string) => {
         if (!lastRun) return 'Never';
         const date = new Date(lastRun);
@@ -195,238 +227,188 @@ export default function CronJobsPage() {
         const diffHours = Math.floor(diffMs / 3600000);
 
         if (diffMins < 1) return 'Just now';
-        if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
-        if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-        return date.toLocaleString();
+        if (diffMins < 60) return `${diffMins}m ago`;
+        if (diffHours < 24) return `${diffHours}h ago`;
+        return date.toLocaleDateString();
     };
 
     const formatDuration = (ms?: number) => {
         if (!ms) return 'N/A';
         if (ms < 1000) return `${ms}ms`;
-        return `${(ms / 1000).toFixed(2)}s`;
+        return `${(ms / 1000).toFixed(1)}s`;
     };
+
+    const categories = ['all', ...Object.keys(categoryConfig)];
+    const filteredJobs = selectedCategory === 'all' ? jobs : jobs.filter(j => j.category === selectedCategory);
 
     return (
         <ProtectedRoute>
             <AdminLayout>
-                <div className="p-6">
-                    {/* Header */}
-                    <div className="mb-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <h1 className="text-2xl font-bold text-gray-900">Cron Jobs</h1>
-                                <p className="text-sm text-gray-500 mt-1">
-                                    Manage and monitor scheduled background tasks
-                                </p>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-gray-500">
-                                <RefreshCw className="w-4 h-4" />
-                                <span>Last updated: {formatLastRun(lastRefresh.toISOString())}</span>
-                            </div>
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h2 className="text-lg font-semibold text-gray-900">Cron Jobs</h2>
+                            <p className="text-sm text-gray-500 mt-0.5">Manage and monitor scheduled background tasks</p>
                         </div>
                     </div>
 
-                    {/* Jobs Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                        {jobs.map((job) => {
-                            const isRunning = runningJobs.has(job.id);
-
-                            return (
-                                <div
-                                    key={job.id}
-                                    className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col"
-                                >
-                                    {/* Job Header */}
-                                    <div className="flex items-start gap-3 mb-3">
-                                        <div className="p-2 bg-orange-50 rounded-lg shrink-0">
-                                            <Clock className="w-5 h-5 text-[#FF5023]" />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <h3 className="text-base font-semibold text-gray-900 mb-1 truncate">
-                                                {job.name}
-                                            </h3>
-                                            <p className="text-xs text-gray-500 line-clamp-2">{job.description}</p>
-                                        </div>
-                                    </div>
-
-                                    {/* Job Details - Single Horizontal Row */}
-                                    <div className="mb-3 pb-3 border-b border-gray-100 flex items-center justify-between flex-wrap gap-2 text-xs">
-                                        <div className="flex items-center gap-3">
-                                            <div className="flex items-center gap-1">
-                                                <span className="text-gray-500">Schedule:</span>
-                                                <span className="font-medium text-gray-900">{formatSchedule(job.schedule)}</span>
-                                            </div>
-                                            <span className="text-gray-400">({job.schedule})</span>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            <div className="flex items-center gap-1">
-                                                <span className="text-gray-500">Last Run:</span>
-                                                <span className="font-medium text-gray-900">{formatLastRun(job.lastRun)}</span>
-                                            </div>
-                                            <span
-                                                className={`
-                                                    inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-medium
-                                                    ${job.enabled
-                                                        ? 'bg-green-50 text-green-700 border border-green-200'
-                                                        : 'bg-gray-50 text-gray-700 border border-gray-200'
-                                                    }
-                                                `}
-                                            >
-                                                <span className={`w-1.5 h-1.5 rounded-full ${job.enabled ? 'bg-green-600' : 'bg-gray-400'}`} />
-                                                {job.enabled ? 'Enabled' : 'Disabled'}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {/* Last Result */}
-                                    {job.lastResult && (
-                                        <div className="mb-3 p-2 bg-gray-50 rounded text-xs">
-                                            <div className="flex items-center gap-1.5">
-                                                {job.lastStatus === 'success' ? (
-                                                    <CheckCircle className="w-3.5 h-3.5 text-green-600 shrink-0" />
-                                                ) : (
-                                                    <XCircle className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                                                )}
-                                                <p className="text-gray-700 line-clamp-2">
-                                                    {job.lastResult.message ||
-                                                        `Marked ${job.lastResult.count || 0} cart${job.lastResult.count !== 1 ? 's' : ''
-                                                        } as abandoned`}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Action Button */}
-                                    <button
-                                        onClick={() => runJob(job)}
-                                        disabled={isRunning || !job.enabled}
-                                        className={`
-                                            w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-medium text-sm transition-colors
-                                            ${isRunning
-                                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                                : job.enabled
-                                                    ? 'bg-[#FF5023] text-white hover:bg-[#E64519]'
-                                                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                            }
-                                        `}
-                                    >
-                                        {isRunning ? (
-                                            <>
-                                                <Loader2 className="w-4 h-4 animate-spin" />
-                                                Running...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Play className="w-4 h-4" />
-                                                Run Now
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
-                            );
-                        })}
+                    <div className="flex gap-2">
+                        {categories.map((cat) => (
+                            <Button
+                                key={cat}
+                                variant={selectedCategory === cat ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => setSelectedCategory(cat)}
+                                className={`h-8 text-xs ${selectedCategory === cat ? 'bg-primary-800 hover:bg-primary-900' : ''}`}
+                            >
+                                {cat === 'all' ? 'All' : categoryConfig[cat as keyof typeof categoryConfig]?.label || cat}
+                            </Button>
+                        ))}
                     </div>
 
-                    {/* Execution History Table */}
-                    <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
-                        <div className="p-4 border-b border-gray-200">
-                            <div className="flex items-center gap-2">
-                                <History className="w-5 h-5 text-gray-700" />
-                                <h2 className="text-lg font-semibold text-gray-900">Execution History</h2>
-                            </div>
-                            <p className="text-sm text-gray-500 mt-1">Recent cron job executions (last 50)</p>
-                        </div>
+                    <div className="bg-white rounded-lg overflow-hidden">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="w-[240px]">Job</TableHead>
+                                    <TableHead className="w-[100px]">Category</TableHead>
+                                    <TableHead className="w-[160px]">Schedule</TableHead>
+                                    <TableHead className="w-[100px]">Last Run</TableHead>
+                                    <TableHead className="w-[90px]">Status</TableHead>
+                                    <TableHead className="w-[80px]">Duration</TableHead>
+                                    <TableHead className="w-[100px] text-right">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {filteredJobs.map((job) => {
+                                    const isRunning = runningJobs.has(job.id);
+                                    const Icon = job.icon;
+                                    const catConfig = categoryConfig[job.category];
 
-                        {executionHistory.length === 0 ? (
-                            <div className="p-8 text-center">
-                                <History className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                                <p className="text-gray-500">No execution history yet</p>
-                                <p className="text-sm text-gray-400 mt-1">
-                                    Run a job manually or wait for scheduled execution
-                                </p>
-                            </div>
-                        ) : (
-                            <div className="overflow-x-auto">
-                                <table className="w-full">
-                                    <thead className="bg-gray-50 border-b border-gray-200">
-                                        <tr>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Job Name
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Status
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Result
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Duration
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Executed At
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-200">
-                                        {executionHistory.map((execution) => (
-                                            <tr key={execution.id} className="hover:bg-gray-50">
-                                                <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                                                    {execution.jobName}
-                                                </td>
-                                                <td className="px-4 py-3">
-                                                    <span
-                                                        className={`
-                          inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium
-                          ${execution.status === 'success'
-                                                                ? 'bg-green-50 text-green-700 border border-green-200'
-                                                                : 'bg-red-50 text-red-700 border border-red-200'
-                                                            }
-                        `}
-                                                    >
-                                                        {execution.status === 'success' ? (
-                                                            <CheckCircle className="w-3 h-3" />
+                                    return (
+                                        <TableRow key={job.id}>
+                                            <TableCell>
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`p-1.5 rounded-md ${catConfig.bg}`}>
+                                                        <Icon className={`w-4 h-4 ${catConfig.color}`} />
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <p className="font-medium text-sm text-gray-900 truncate">{job.name}</p>
+                                                        <p className="text-xs text-gray-500 truncate">{job.description}</p>
+                                                    </div>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Badge variant="outline" className="text-xs h-5 px-1.5">
+                                                    {catConfig.label}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell>
+                                                <div>
+                                                    <p className="text-sm text-gray-900">{scheduleMap[job.schedule] || job.schedule}</p>
+                                                    <p className="text-xs text-gray-400 font-mono">{job.schedule}</p>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-sm text-gray-500">
+                                                {formatLastRun(job.lastRun)}
+                                            </TableCell>
+                                            <TableCell>
+                                                {job.lastStatus ? (
+                                                    <Badge variant={job.lastStatus === 'success' ? 'success' : 'outline'} className="text-xs h-5 px-1.5">
+                                                        {job.lastStatus === 'success' ? (
+                                                            <CheckCircle className="w-3 h-3 mr-1" />
                                                         ) : (
-                                                            <XCircle className="w-3 h-3" />
+                                                            <XCircle className="w-3 h-3 mr-1" />
                                                         )}
-                                                        {execution.status}
-                                                    </span>
-                                                </td>
-                                                <td className="px-4 py-3 text-sm text-gray-700">
-                                                    {execution.result.message ||
-                                                        `${execution.result.count || 0} cart${execution.result.count !== 1 ? 's' : ''
-                                                        } marked`}
-                                                </td>
-                                                <td className="px-4 py-3 text-sm text-gray-500">
-                                                    {formatDuration(execution.duration)}
-                                                </td>
-                                                <td className="px-4 py-3 text-sm text-gray-500">
-                                                    {formatLastRun(execution.timestamp)}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
+                                                        {job.lastStatus}
+                                                    </Badge>
+                                                ) : (
+                                                    <span className="text-xs text-gray-400">-</span>
+                                                )}
+                                            </TableCell>
+                                            <TableCell className="text-sm text-gray-500">
+                                                {executionHistory.find(e => e.jobId === job.id)?.duration ? formatDuration(executionHistory.find(e => e.jobId === job.id)?.duration) : '-'}
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => runJob(job)}
+                                                    disabled={isRunning || !job.enabled}
+                                                    className="h-7 text-xs"
+                                                >
+                                                    {isRunning ? (
+                                                        <>
+                                                            <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
+                                                            Running
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Play className="w-3.5 h-3.5 mr-1" />
+                                                            Run
+                                                        </>
+                                                    )}
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                })}
+                            </TableBody>
+                        </Table>
                     </div>
 
-                    {/* Info Box */}
-                    <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                        <div className="flex gap-3">
-                            <div className="shrink-0">
-                                <Clock className="w-5 h-5 text-blue-600" />
+                    {executionHistory.length > 0 && (
+                        <div className="bg-white rounded-lg overflow-hidden">
+                            <div className="p-4 border-b border-gray-100">
+                                <div className="flex items-center gap-2">
+                                    <History className="w-4 h-4 text-gray-500" />
+                                    <h3 className="text-sm font-semibold text-gray-900">Execution History</h3>
+                                    <Badge variant="outline" className="text-xs h-5 px-1.5 ml-auto">
+                                        Last {executionHistory.length}
+                                    </Badge>
+                                </div>
                             </div>
-                            <div>
-                                <h4 className="text-sm font-semibold text-blue-900 mb-1">About Cron Jobs</h4>
-                                <p className="text-sm text-blue-700">
-                                    Cron jobs are automated tasks that run on a schedule. These jobs are managed by the
-                                    server's cron daemon on your VPS. You can manually trigger any job using the "Run
-                                    Now" button for testing purposes. In production, configure your VPS cron to call the
-                                    job endpoints at the specified intervals.
-                                </p>
-                            </div>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead className="w-[200px]">Job</TableHead>
+                                        <TableHead className="w-[80px]">Status</TableHead>
+                                        <TableHead>Result</TableHead>
+                                        <TableHead className="w-[80px]">Duration</TableHead>
+                                        <TableHead className="w-[120px]">Executed</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {executionHistory.slice(0, 10).map((execution) => (
+                                        <TableRow key={execution.id}>
+                                            <TableCell className="text-sm font-medium text-gray-900">
+                                                {execution.jobName}
+                                            </TableCell>
+                                            <TableCell>
+                                                <Badge variant={execution.status === 'success' ? 'success' : 'outline'} className="text-xs h-5 px-1.5">
+                                                    {execution.status === 'success' ? (
+                                                        <CheckCircle className="w-3 h-3 mr-1" />
+                                                    ) : (
+                                                        <XCircle className="w-3 h-3 mr-1" />
+                                                    )}
+                                                    {execution.status}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell className="text-sm text-gray-600">
+                                                {execution.result.message || `${execution.result.count || 0} items processed`}
+                                            </TableCell>
+                                            <TableCell className="text-sm text-gray-500">
+                                                {formatDuration(execution.duration)}
+                                            </TableCell>
+                                            <TableCell className="text-sm text-gray-500">
+                                                {formatLastRun(execution.timestamp)}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
                         </div>
-                    </div>
+                    )}
                 </div>
             </AdminLayout>
         </ProtectedRoute>

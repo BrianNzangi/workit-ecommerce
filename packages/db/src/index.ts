@@ -9,6 +9,7 @@ export * from "./schema/marketing.js";
 export * from "./schema/fulfillment.js";
 export * from "./schema/settings.js";
 export * from "./schema/cart.js";
+export * from "./schema/promotions.js";
 export * from "./schema/relations.js";
 
 // IMPORTANT: Also export everything as a 'schema' namespace
@@ -20,6 +21,7 @@ import * as marketing from "./schema/marketing.js";
 import * as fulfillment from "./schema/fulfillment.js";
 import * as settings from "./schema/settings.js";
 import * as cart from "./schema/cart.js";
+import * as promotions from "./schema/promotions.js";
 import * as relations from "./schema/relations.js";
 
 export const schema = {
@@ -30,6 +32,7 @@ export const schema = {
     ...fulfillment,
     ...settings,
     ...cart,
+    ...promotions,
     ...relations
 };
 

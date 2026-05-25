@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
+import { useCustomer, useUpdateCustomer } from "@/hooks/useCustomer";
 
 interface BillingAddressData {
   first_name: string;
@@ -22,68 +23,26 @@ interface BillingAddressData {
 
 export function BillingAddress() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [billingAddress, setBillingAddress] = useState<BillingAddressData>({
-    first_name: "",
-    last_name: "",
-    email: "",
-    phone: "",
-    address_1: "",
-    city: "",
-    county: "",
-    postcode: "",
-    country: "Kenya",
-  });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: customerData, isLoading: loading, error: queryError } = useCustomer();
+  const updateCustomer = useUpdateCustomer();
+  const billingAddress = customerData?.billing || {
+    first_name: "", last_name: "", email: "", phone: "",
+    address_1: "", city: "", county: "", postcode: "", country: "Kenya",
+  };
+  const error = queryError ? (queryError instanceof Error ? queryError.message : 'Failed to load billing address') : null;
   const [saving, setSaving] = useState(false);
 
   const [editData, setEditData] = useState<BillingAddressData>(billingAddress);
 
   useEffect(() => {
-    const fetchBillingAddress = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/customer');
-        const data = await response.json();
-
-        if (data.success) {
-          setBillingAddress(data.billing);
-          setEditData(data.billing);
-        } else {
-          setError(data.error || 'Failed to load billing address');
-        }
-      } catch (err) {
-        console.error('Error fetching billing address:', err);
-        setError('Failed to load billing address');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBillingAddress();
-  }, []);
+    setEditData(billingAddress);
+  }, [billingAddress]);
 
   const handleSave = async () => {
     try {
       setSaving(true);
-      const response = await fetch('/api/customer', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ billing: editData }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setBillingAddress(data.billing);
-        setIsDialogOpen(false);
-        // Clear any previous errors
-        setError(null);
-      } else {
-        alert(data.error || 'Failed to save billing address');
-      }
+      const result = await updateCustomer.mutateAsync({ billing: editData });
+      setIsDialogOpen(false);
     } catch (error) {
       console.error('Error saving billing address:', error);
       alert('Failed to save billing address. Please try again.');

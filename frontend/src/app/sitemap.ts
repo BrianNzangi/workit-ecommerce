@@ -4,7 +4,7 @@ import {
   getCollectionSitemapEntries,
   getProductSitemapEntries,
   getStaticSitemapEntries,
-} from "@/lib/site-indexing";
+} from "@/lib/seo/site-indexing";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [staticPages, productPages, collectionPages, blogPages] = await Promise.all([

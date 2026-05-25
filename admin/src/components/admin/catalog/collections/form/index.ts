@@ -4,4 +4,3 @@ export * from './CollectionFormError';
 export * from './CollectionBasicInfoCard';
 export * from './CollectionHierarchyCard';
 export * from './CollectionDisplaySettingsCard';
-export * from './CollectionSaveCard';

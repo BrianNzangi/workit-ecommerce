@@ -1,7 +1,7 @@
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react';
 import type { DashboardOverviewResponse } from '@/lib/services';
-import { PolarAngleAxis, RadialBar, RadialBarChart, ResponsiveContainer } from 'recharts';
-import { DashboardPanel } from './DashboardPanel';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import { formatMoneyCompact } from './dashboard.utils';
 
 interface DashboardMonthlyTargetPanelProps {
@@ -16,53 +16,43 @@ export function DashboardMonthlyTargetPanel({ monthlyTarget }: DashboardMonthlyT
         value >= 0 ? <ArrowUpRight className="h-4 w-4 text-emerald-600" /> : <ArrowDownRight className="h-4 w-4 text-rose-600" />;
 
     return (
-        <DashboardPanel title="Monthly Target" subtitle="A simple pulse on where revenue is pacing this month.">
-            <div className="mx-auto h-52 w-full max-w-70">
-                <ResponsiveContainer width="100%" height="100%">
-                    <RadialBarChart
-                        cx="50%"
-                        cy="88%"
-                        innerRadius="72%"
-                        outerRadius="100%"
-                        barSize={18}
-                        data={[{ name: 'progress', value: monthlyTarget.progress, fill: '#cc0000' }]}
-                        startAngle={180}
-                        endAngle={0}
-                    >
-                        <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
-                        <RadialBar background dataKey="value" cornerRadius={18} />
-                    </RadialBarChart>
-                </ResponsiveContainer>
-            </div>
+        <Card>
+            <CardHeader>
+                <CardTitle>Monthly Target</CardTitle>
+                <CardDescription>Revenue pacing this month.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="mb-4 text-center">
+                    <p className="text-4xl font-bold">{monthlyTarget.progress.toFixed(1)}%</p>
+                    <p className="mt-1 text-sm text-muted-foreground">Progress against target</p>
+                </div>
 
-            <div className="-mt-16 text-center">
-                <p className="text-4xl font-semibold tracking-tight text-gray-950">{monthlyTarget.progress.toFixed(1)}%</p>
-                <p className="mt-2 text-sm text-gray-500">Progress against a dynamic target derived from real recent sales.</p>
-            </div>
+                <Progress value={monthlyTarget.progress} className="mb-6 h-3" />
 
-            <div className="mt-8 grid gap-4 sm:grid-cols-3">
-                <div className="flex items-center justify-between gap-4 border-b border-gray-100 pb-3 sm:border-b-0 sm:border-r sm:border-gray-100 sm:pb-0 sm:pr-3">
-                    <div>
-                        <p className="text-xs uppercase tracking-[0.18em] text-gray-400">Target</p>
-                        <p className="mt-1 text-lg font-semibold text-gray-950">{formatMoneyCompact(monthlyTarget.target)}</p>
+                <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-xs text-muted-foreground">Target</p>
+                            <p className="text-lg font-semibold">{formatMoneyCompact(monthlyTarget.target)}</p>
+                        </div>
+                        {renderTrendArrow(targetDelta)}
                     </div>
-                    {renderTrendArrow(targetDelta)}
-                </div>
-                <div className="flex items-center justify-between gap-4 border-b border-gray-100 pb-3 sm:border-b-0 sm:border-r sm:border-gray-100 sm:pb-0 sm:pr-3">
-                    <div>
-                        <p className="text-xs uppercase tracking-[0.18em] text-gray-400">Revenue</p>
-                        <p className="mt-1 text-lg font-semibold text-gray-950">{formatMoneyCompact(monthlyTarget.revenue)}</p>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-xs text-muted-foreground">Revenue</p>
+                            <p className="text-lg font-semibold">{formatMoneyCompact(monthlyTarget.revenue)}</p>
+                        </div>
+                        {renderTrendArrow(targetDelta)}
                     </div>
-                    {renderTrendArrow(targetDelta)}
-                </div>
-                <div className="flex items-center justify-between gap-4">
-                    <div>
-                        <p className="text-xs uppercase tracking-[0.18em] text-gray-400">Today</p>
-                        <p className="mt-1 text-lg font-semibold text-gray-950">{formatMoneyCompact(monthlyTarget.today)}</p>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-xs text-muted-foreground">Today</p>
+                            <p className="text-lg font-semibold">{formatMoneyCompact(monthlyTarget.today)}</p>
+                        </div>
+                        {renderTrendArrow(todayDelta)}
                     </div>
-                    {renderTrendArrow(todayDelta)}
                 </div>
-            </div>
-        </DashboardPanel>
+            </CardContent>
+        </Card>
     );
 }

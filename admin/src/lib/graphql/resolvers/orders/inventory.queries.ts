@@ -1,4 +1,6 @@
 import { requireAuth } from '@/lib/middleware/auth.middleware';
+import { mapHttpError } from '../../errors';
+import { OrderService } from '@/lib/services/orders/order.service';
 import type { GraphQLContext } from '../../context';
 
 export const inventoryQueries = {
@@ -8,7 +10,11 @@ export const inventoryQueries = {
         context: GraphQLContext
     ) => {
         requireAuth(context.auth);
-        // OrderService.getInventory implementation was missing in small file, stashing stub
-        throw new Error('Not implemented');
+        try {
+            const orderService = new OrderService();
+            return await orderService.getInventory({ lowStockThreshold });
+        } catch (e) {
+            throw mapHttpError(e);
+        }
     },
 };

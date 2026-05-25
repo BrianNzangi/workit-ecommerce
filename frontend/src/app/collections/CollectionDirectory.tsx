@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
+import { useCollections } from '@/hooks/useCollections';
 import DirectoryHero from '@/components/collections/DirectoryHero';
 import CollectionGroup from '@/components/collections/CollectionGroup';
 
@@ -14,39 +15,21 @@ interface Category {
 }
 
 export default function CollectionDirectory() {
-    const [categories, setCategories] = useState<Category[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { data: rawData = [], isLoading: loading } = useCollections(true);
 
-    useEffect(() => {
-        const fetchCategories = async () => {
-            try {
-                const response = await fetch('/api/collections?includeChildren=true&take=1000');
-                if (response.ok) {
-                    const rawData = await response.json();
+    const categories = useMemo(() => {
+        const processCategories = (cats: any[]): Category[] =>
+            cats.map(cat => ({
+                id: cat.id,
+                name: cat.name,
+                slug: cat.slug,
+                count: cat._count?.products || 0,
+                parentId: cat.parentId,
+                children: cat.children ? processCategories(cat.children) : [],
+            }));
 
-                    const processCategories = (cats: any[]): Category[] => {
-                        return cats.map(cat => ({
-                            id: cat.id,
-                            name: cat.name,
-                            slug: cat.slug,
-                            count: cat._count?.products || 0,
-                            parentId: cat.parentId,
-                            children: cat.children ? processCategories(cat.children) : []
-                        }));
-                    };
-
-                    const hierarchicalData = processCategories(rawData);
-                    setCategories(hierarchicalData.filter(c => !c.parentId));
-                }
-            } catch (error) {
-                console.error('Failed to fetch categories:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchCategories();
-    }, []);
+        return processCategories(rawData).filter(c => !c.parentId);
+    }, [rawData]);
 
     if (loading) {
         return (

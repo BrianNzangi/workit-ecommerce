@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Tag, Loader2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCartStore } from '@/store/cartStore';
-import { CSRF_HEADER_NAME, ensureCsrfToken } from '@/lib/csrf';
+import { useCouponValidate } from '@/hooks/useCouponValidate';
 
 interface DiscountData {
     success: boolean;
@@ -28,58 +28,35 @@ interface Props {
 
 export function CouponInput({ subtotal, onApply, onRemove }: Props) {
     const [code, setCode] = useState('');
-    const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
     const { items } = useCartStore();
+    const couponMutation = useCouponValidate();
 
     const handleApply = async () => {
         if (!code.trim()) return;
 
-        setLoading(true);
         setError(null);
 
         try {
-            const csrfToken = await ensureCsrfToken();
-            const headers: Record<string, string> = {
-                'Content-Type': 'application/json',
-            };
-            if (csrfToken) {
-                headers[CSRF_HEADER_NAME] = csrfToken;
-            }
-
-            const res = await fetch('/api/coupons/validate', {
-                method: 'POST',
-                headers,
-                credentials: 'include',
-                body: JSON.stringify({
-                    code,
-                    subtotal,
-                    items: items.map((item) => ({
-                        productId: item.productId,
-                        variantId: item.variantId,
-                        price: item.price,
-                        quantity: item.quantity,
-                    })),
-                })
+            const data = await couponMutation.mutateAsync({
+                code,
+                subtotal,
+                items: items.map((item) => ({
+                    productId: item.productId,
+                    variantId: item.variantId,
+                    price: item.price,
+                    quantity: item.quantity,
+                })),
             });
-            const data = await res.json();
 
-            if (res.ok && data.success) {
-                onApply(data);
-                setAppliedCoupon(data.code);
-                toast.success(data.message);
-            } else {
-                const errorMessage = data.error || 'Invalid coupon code';
-                setError(errorMessage);
-                toast.error(errorMessage);
-            }
+            onApply(data);
+            setAppliedCoupon(data.code);
+            toast.success(data.message);
         } catch (err) {
-            console.error(err);
-            setError('Failed to validate coupon');
-            toast.error('Failed to validate coupon');
-        } finally {
-            setLoading(false);
+            const message = err instanceof Error ? err.message : 'Invalid coupon code';
+            setError(message);
+            toast.error(message);
         }
     };
 
@@ -121,7 +98,7 @@ export function CouponInput({ subtotal, onApply, onRemove }: Props) {
                     onChange={(e) => setCode(e.target.value.toUpperCase())}
                     placeholder="Discount code"
                     className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-900 focus:border-primary-900 outline-none text-sm transition-all"
-                    disabled={loading}
+                    disabled={couponMutation.isPending}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                             e.preventDefault();
@@ -131,10 +108,10 @@ export function CouponInput({ subtotal, onApply, onRemove }: Props) {
                 />
                 <button
                     onClick={handleApply}
-                    disabled={loading || !code.trim()}
+                    disabled={couponMutation.isPending || !code.trim()}
                     className="px-6 py-2 bg-secondary-900 text-white rounded-lg hover:opacity-90 disabled:opacity-50 text-sm font-medium transition-all"
                 >
-                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Apply'}
+                    {couponMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Apply'}
                 </button>
             </div>
             {error && <p className="text-xs text-red-600 font-medium">{error}</p>}

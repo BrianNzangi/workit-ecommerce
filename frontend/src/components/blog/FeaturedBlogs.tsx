@@ -1,11 +1,8 @@
-'use client';
-
 import { Blog } from '@/types/blog';
 import BlogCard from './BlogCard';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay, Navigation } from 'swiper/modules';
-import 'swiper/css';
-import 'swiper/css/navigation';
+import SectionContainer from '@/components/layout/SectionContainer';
+import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 
 interface FeaturedBlogsProps {
     blogs: Blog[];
@@ -17,70 +14,45 @@ export default function FeaturedBlogs({ blogs }: FeaturedBlogsProps) {
     }
 
     return (
-        <section className="container mx-auto py-4 px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-8 font-sans">
-            <div className="flex justify-between items-center mb-2">
-                <h2 className="font-sans text-xl font-semibold">Tech that helps the world</h2>
-            </div>
+        <section className="py-6 md:py-8">
+            <SectionContainer className="px-4 sm:px-6 lg:px-8">
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-lg md:text-2xl font-bold text-gray-900">
+                        From Our Blog
+                    </h2>
+                    <Link
+                        href="/blog"
+                        className="hidden sm:inline-flex items-center gap-1 text-sm font-medium text-primary-900 hover:text-primary-800 transition-colors"
+                    >
+                        View All
+                        <ArrowRight size={16} />
+                    </Link>
+                </div>
 
-            <div className="overflow-hidden py-4">
-                <Swiper
-                    modules={[Autoplay, Navigation]}
-                    slidesPerView="auto"
-                    spaceBetween={12}
-                    autoplay={
-                        blogs.length > 2
-                            ? {
-                                delay: 2600,
-                                disableOnInteraction: false,
-                                pauseOnMouseEnter: true,
-                                reverseDirection: false,
-                            }
-                            : false
-                    }
-                    speed={700}
-                    loop={blogs.length > 5}
-                    navigation={blogs.length > 5}
-                    allowTouchMove
-                    grabCursor
-                    className="featured-blogs-swiper"
-                >
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {blogs.map((blog) => (
-                        <SwiperSlide key={blog.id} className="w-auto! h-auto">
-                            <BlogCard
-                                id={blog.id}
-                                title={blog.title}
-                                slug={blog.slug}
-                                link={blog.link}
-                                category={blog.category}
-                                image={blog.image}
-                            />
-                        </SwiperSlide>
+                        <BlogCard
+                            key={blog.id}
+                            id={blog.id}
+                            title={blog.title}
+                            slug={blog.slug}
+                            link={blog.link}
+                            category={blog.category}
+                            image={blog.image}
+                        />
                     ))}
-                </Swiper>
-            </div>
+                </div>
 
-            <style jsx global>{`
-                .featured-blogs-swiper .swiper-button-next,
-                .featured-blogs-swiper .swiper-button-prev {
-                    color: #111827;
-                    width: 32px;
-                    height: 32px;
-                    border-radius: 9999px;
-                    background: rgba(255, 255, 255, 0.92);
-                    box-shadow: 0 8px 20px -12px rgba(0, 0, 0, 0.45);
-                }
-                .featured-blogs-swiper .swiper-button-next:after,
-                .featured-blogs-swiper .swiper-button-prev:after {
-                    font-size: 12px;
-                    font-weight: 700;
-                }
-                @media (max-width: 767px) {
-                    .featured-blogs-swiper .swiper-button-next,
-                    .featured-blogs-swiper .swiper-button-prev {
-                        display: none;
-                    }
-                }
-            `}</style>
+                <div className="mt-6 text-center sm:hidden">
+                    <Link
+                        href="/blog"
+                        className="inline-flex items-center gap-1 text-sm font-medium text-primary-900 hover:text-primary-800 transition-colors"
+                    >
+                        View All Blog Posts
+                        <ArrowRight size={16} />
+                    </Link>
+                </div>
+            </SectionContainer>
         </section>
     );
 }

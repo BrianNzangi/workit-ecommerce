@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { getImageUrl } from '@/lib/image-utils';
-import { getBannerHref, type StoreBanner } from '@/lib/banner-target';
+import { getImageUrl } from '@/lib/image/image-utils';
+import { getBannerHref, type StoreBanner } from '@/lib/banner/banner-target';
 import SectionContainer from '@/components/layout/SectionContainer';
 
 interface CollectionHeaderBannerProps {

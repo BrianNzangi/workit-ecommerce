@@ -1,0 +1,39 @@
+import { Callout } from 'nextra/components'
+
+# Backend DDD Refactoring
+
+**Status**: In progress
+
+The Workit backend now runs from `backend/`, which implements the Domain-Driven Design architecture. The old implementation lives in `backend-old/` as reference only.
+
+## Why DDD
+
+DDD helps centralize business rules, enforce invariants consistently, and make changes safer to test and reason about.
+
+## What Changed
+
+| Before | After |
+|--------|-------|
+| Business logic in route handlers | Business logic in domain entities and services |
+| Direct DB access in endpoints | Repository pattern with interfaces |
+| No domain events | Domain events for cross-context communication |
+| Weak boundaries | Five bounded contexts |
+
+## Bounded Contexts
+
+1. **Catalog** for products, brands, collections, and assets
+2. **Order Management** for cart, checkout, orders, and payments
+3. **Customer Management** for customer identity and addresses
+4. **Fulfillment** for shipping methods and fulfillment flow
+5. **Marketing** for campaigns, banners, blog, and homepage content
+
+## Key Design Decisions
+
+- **No schema rewrite**: DDD maps onto the existing PostgreSQL schema
+- **Feature flags**: old and new implementations can coexist during migration
+- **Rollback path**: `USE_DDD_*` flags can be disabled per context
+- **Shared database layer**: the active `backend` uses the shared `packages/db` connection layer
+
+<Callout type="info">
+  Full design document: `.kiro/specs/backend-ddd-refactoring/design.md`
+</Callout>

@@ -19,14 +19,15 @@ function getBackendUrl() {
  */
 export async function proxyRequest(request: NextRequest, customEndpoint?: string) {
     const headersList = await headers();
-    const cookie = headersList.get('cookie');
-    const authHeader = headersList.get('authorization');
+    const cookie = request.headers.get('cookie') || headersList.get('cookie');
+    const authHeader = request.headers.get('authorization') || headersList.get('authorization');
     const csrfHeaderName = (
         process.env.NEXT_PUBLIC_CSRF_HEADER_NAME?.trim() ||
         process.env.CSRF_HEADER_NAME?.trim() ||
         'x-xsrf-token'
     ).toLowerCase();
     const csrfToken =
+        request.headers.get(csrfHeaderName) ||
         headersList.get(csrfHeaderName) ||
         headersList.get('x-xsrf-token') ||
         headersList.get('x-csrf-token');
@@ -51,15 +52,30 @@ export async function proxyRequest(request: NextRequest, customEndpoint?: string
 
     console.log(`[Proxy] ${request.method} ${request.url} -> ${url}`);
 
+    const forwardedHeaders = new Headers(request.headers);
+    forwardedHeaders.delete('host');
+    forwardedHeaders.delete('connection');
+    forwardedHeaders.delete('content-length');
+
+    if (!forwardedHeaders.has('x-api-key') && env['INTERNAL_API_KEY']) {
+        forwardedHeaders.set('x-api-key', env['INTERNAL_API_KEY']);
+    }
+
+    if (cookie && !forwardedHeaders.has('cookie')) {
+        forwardedHeaders.set('cookie', cookie);
+    }
+
+    if (authHeader && !forwardedHeaders.has('authorization')) {
+        forwardedHeaders.set('authorization', authHeader);
+    }
+
+    if (csrfToken && !forwardedHeaders.has(csrfHeaderName)) {
+        forwardedHeaders.set(csrfHeaderName, csrfToken);
+    }
+
     const fetchOptions: RequestInit = {
         method: request.method,
-        headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': env['INTERNAL_API_KEY'] || '',
-            ...(cookie && { 'Cookie': cookie }),
-            ...(authHeader && { 'Authorization': authHeader }),
-            ...(csrfToken && { [csrfHeaderName]: csrfToken }),
-        },
+        headers: forwardedHeaders,
     };
 
     if (request.method !== 'GET' && request.method !== 'HEAD') {
@@ -67,15 +83,16 @@ export async function proxyRequest(request: NextRequest, customEndpoint?: string
             // Try to clone and get JSON
             const body = await request.clone().json();
             fetchOptions.body = JSON.stringify(body);
+            if (!forwardedHeaders.has('content-type')) {
+                forwardedHeaders.set('content-type', 'application/json');
+            }
         } catch (e) {
             // If JSON fails, try FormData (for file uploads)
             try {
                 const formData = await request.clone().formData();
                 fetchOptions.body = formData;
                 // Delete Content-Type to let fetch set it with boundary for FormData
-                if (fetchOptions.headers) {
-                    delete (fetchOptions.headers as any)['Content-Type'];
-                }
+                forwardedHeaders.delete('content-type');
             } catch (formDataError) {
                 // No body or unparseable body, leave fetchOptions.body undefined
             }

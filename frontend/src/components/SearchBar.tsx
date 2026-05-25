@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search } from 'lucide-react';
 import Image from 'next/image';
-import { getImageUrl } from '@/lib/image-utils';
+import { getImageUrl } from '@/lib/image/image-utils';
 
 interface Product {
   id: string;
@@ -104,9 +104,9 @@ export default function SearchBar() {
             placeholder="Search by model, color, brand..."
             className="
               w-full
-              pl-4 pr-4 py-3
-              rounded-full
-              border-2 border-secondary-900
+              pl-4 pr-4 py-2
+              rounded-md
+              border border-gray-300
               bg-gray-100
               focus:outline-none focus:border-primary-800
               font-sans text-black

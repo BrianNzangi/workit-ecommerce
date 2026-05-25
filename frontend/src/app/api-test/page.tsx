@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { testCollections, testBanners, testHomeCollections, testGraphQL, testAllAPIs } from '@/lib/api-test';
+import { testCollections, testBanners, testHomeCollections, testGraphQL, testAllAPIs } from '@/lib/testing/api-test';
 
 /**
  * API Test Page

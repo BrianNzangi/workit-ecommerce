@@ -1,4 +1,8 @@
 import { Upload } from 'lucide-react';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { BlogSEOSection } from './BlogSEOSection';
 
 interface BlogSidebarProps {
@@ -30,68 +34,65 @@ export function BlogSidebar({
     formData,
 }: BlogSidebarProps) {
     const generateSlug = (title: string): string => {
-        return title
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-+|-+$/g, '');
+        return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-5">
             {/* Featured Image */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h3 className="text-sm font-medium text-gray-700 mb-4">Featured Image</h3>
-                {featuredImage ? (
-                    <div className="relative">
-                        <div className="aspect-video w-full overflow-hidden rounded-lg">
-                            <img
-                                src={featuredImage}
-                                alt="Featured"
-                                className="h-full w-full object-cover"
-                            />
+            <Card className="rounded-sm shadow-xs">
+                <CardContent className="p-5">
+                    <Label className="text-sm font-medium mb-3 block">Featured Image</Label>
+                    {featuredImage ? (
+                        <div className="relative">
+                            <div className="aspect-video w-full overflow-hidden rounded-sm">
+                                <img src={featuredImage} alt="Featured" className="h-full w-full object-cover" />
+                            </div>
+                            <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                onClick={onImageRemove}
+                                className="absolute top-2 right-2 rounded-sm h-7 text-xs"
+                            >
+                                Remove
+                            </Button>
                         </div>
-                        <button
-                            onClick={onImageRemove}
-                            className="absolute top-2 right-2 bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 text-sm"
-                        >
-                            Remove
-                        </button>
-                    </div>
-                ) : (
-                    <div className="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center">
-                        <input
-                            type="file"
-                            accept="image/*"
-                            onChange={onImageUpload}
-                            className="hidden"
-                            id="image-upload"
-                            disabled={uploadingImage}
-                        />
-                        <label htmlFor="image-upload" className="cursor-pointer">
-                            <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                            <p className="text-sm text-gray-600 font-medium">
-                                {uploadingImage ? 'Uploading...' : 'Add image'}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-1">
-                                or drop an image to upload
-                            </p>
-                        </label>
-                    </div>
-                )}
-            </div>
+                    ) : (
+                        <div className="border-2 border-dashed border-muted-foreground/30 rounded-sm p-6 text-center">
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={onImageUpload}
+                                className="hidden"
+                                id="image-upload"
+                                disabled={uploadingImage}
+                            />
+                            <label htmlFor="image-upload" className="cursor-pointer block">
+                                <Upload className="w-6 h-6 mx-auto mb-2 text-muted-foreground" />
+                                <p className="text-sm text-muted-foreground font-medium">
+                                    {uploadingImage ? 'Uploading...' : 'Add image'}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">or drop an image to upload</p>
+                            </label>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
 
             {/* Author */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h3 className="text-sm font-medium text-gray-700 mb-4">Author</h3>
-                <input
-                    type="text"
-                    name="author"
-                    value={author}
-                    onChange={onAuthorChange}
-                    placeholder="Author name"
-                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-transparent"
-                />
-            </div>
+            <Card className="rounded-sm shadow-xs">
+                <CardContent className="p-5">
+                    <Label className="text-sm font-medium mb-2 block">Author</Label>
+                    <Input
+                        name="author"
+                        value={author}
+                        onChange={onAuthorChange}
+                        placeholder="Author name"
+                        className="rounded-sm"
+                    />
+                </CardContent>
+            </Card>
 
             {/* SEO Section */}
             <BlogSEOSection

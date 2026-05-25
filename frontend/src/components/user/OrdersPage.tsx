@@ -1,51 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Package, CheckCircle, Clock, Truck, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-
-interface OrderItem {
-  name: string;
-  quantity: number;
-  price: string;
-}
-
-interface Order {
-  id: string;
-  date_created: string;
-  status: string;
-  total: string;
-  currency: string;
-  line_items: OrderItem[];
-}
+import { useOrders } from "@/hooks/useOrders";
 
 export function OrdersPage() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const res = await fetch('/api/orders');
-        const data = await res.json();
-
-        if (data.success) {
-          setOrders(data.orders);
-        } else {
-          setError(data.error || 'Failed to fetch orders');
-        }
-      } catch (err) {
-        console.error('Fetch orders error:', err);
-        setError('Failed to fetch orders');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchOrders();
-  }, []);
+  const { data: ordersData, isLoading: loading, error: queryError } = useOrders();
+  const orders = ordersData?.orders || [];
+  const error = queryError ? (queryError instanceof Error ? queryError.message : 'Failed to fetch orders') : null;
 
   const getStatusIcon = (status: string) => {
     switch (status) {

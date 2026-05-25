@@ -20,7 +20,10 @@ import {
   transformShippingData,
   validateRequiredBillingFields,
   formatPaystackAmount
-} from '@/lib/checkout-utils';
+} from '@/lib/checkout/checkout-utils';
+import { useCustomer, useUpdateCustomer } from '@/hooks/useCustomer';
+import { useShippingZones } from '@/hooks/useShippingZones';
+import { useStoreConfig } from '@/hooks/useStoreConfig';
 
 export const useCheckout = (user: User) => {
   const {
@@ -41,7 +44,21 @@ export const useCheckout = (user: User) => {
   const { items } = useCartStore();
 
   const [loading, setLoading] = useState(false);
-  const [shippingZones, setShippingZones] = useState<any[]>([]);
+
+  const { data: customerData } = useCustomer();
+  const { data: shippingZones } = useShippingZones();
+  const { data: storeConfig } = useStoreConfig();
+
+  // Sync customer data into checkout store
+  useEffect(() => {
+    if (customerData?.billing && !billing) {
+      const address = mapToAddress(customerData.billing);
+      setBilling(address as any);
+      if (sameAsBilling) {
+        setShipping(address as any);
+      }
+    }
+  }, [customerData, setBilling, setShipping, sameAsBilling, billing]);
 
   // Initialize stepData with proper default values
   const [stepData, setStepData] = useState<StepData>({
@@ -68,7 +85,7 @@ export const useCheckout = (user: User) => {
       phone: '',
     },
     payment: { method: 'card' },
-    items: items, // use items from useCartStore directly
+    items: items,
     totals: {
       subtotal: 0,
       shipping: 0,
@@ -78,64 +95,6 @@ export const useCheckout = (user: User) => {
     },
     customer: user,
   });
-
-  // Fetch customer data on mount if user is logged in
-  useEffect(() => {
-    const fetchCustomerData = async () => {
-      try {
-        const response = await fetch('/api/customer');
-        const data = await response.json();
-
-        if (data.success && data.billing) {
-          // Only update if store is empty to avoid overwriting newer local changes
-          if (!billing) {
-            const address = mapToAddress(data.billing);
-            setBilling(address as any);
-            if (sameAsBilling) {
-              setShipping(address as any);
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Failed to fetch customer data:', error);
-      }
-    };
-
-    if (user.id) {
-      fetchCustomerData();
-    }
-  }, [user.id, setBilling, setShipping, sameAsBilling, billing]);
-
-  // Fetch shipping zones
-  useEffect(() => {
-    const fetchShippingZones = async () => {
-      try {
-        const response = await fetch('/api/shipping-zones');
-        const result = await response.json();
-
-        if (result.success) {
-          // Extract all zones from different possible response structures
-          const allZones: any[] = [];
-          if (Array.isArray(result.data)) {
-            result.data.forEach((item: any) => {
-              if (item.zones && Array.isArray(item.zones)) {
-                // It's a method with nested zones
-                allZones.push(...item.zones);
-              } else if (item.county || item.cities) {
-                // It's a zone directly
-                allZones.push(item);
-              }
-            });
-          }
-          setShippingZones(allZones);
-        }
-      } catch (error) {
-        console.error('Failed to fetch shipping zones:', error);
-      }
-    };
-
-    fetchShippingZones();
-  }, []);
 
   // Update totals & step data when dependencies change
   useEffect(() => {
@@ -180,23 +139,18 @@ export const useCheckout = (user: User) => {
     });
   }, [billing, shipping, paymentMethod, paymentData, items, coupon, user]);
 
+  const updateCustomerMutation = useUpdateCustomer();
+
   const handleBillingSubmit = async (formData: BillingFormData) => {
     const billingData = transformBillingData(formData, user.email);
     const address = mapToAddress(billingData);
 
     setBilling(address as any);
-    // Since the option to have a different shipping address is removed, 
-    // we default shipping to be the same as billing.
     setShipping(address as any);
 
-    // Save to backend only if "Save details for future orders" is checked
     if (user.id && formData.saveDetails) {
       try {
-        await fetch('/api/customer', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ billing: billingData }),
-        });
+        await updateCustomerMutation.mutateAsync({ billing: billingData } as Record<string, unknown>);
       } catch (error) {
         console.error('Failed to save billing to backend:', error);
       }
@@ -207,7 +161,6 @@ export const useCheckout = (user: User) => {
   };
 
   const handleShippingSubmit = (data: any) => {
-    // Store shipping method and price
     setStepData((prev) => ({
       ...prev,
       shipping: data,
@@ -230,7 +183,6 @@ export const useCheckout = (user: User) => {
   };
 
   const createOrder = async (): Promise<{ id: string; total: string }> => {
-    // Map addresses to backend format
     const shippingAddress = {
       fullName: `${stepData.shipping.first_name} ${stepData.shipping.last_name}`,
       streetLine1: stepData.shipping.address_1,
@@ -245,7 +197,7 @@ export const useCheckout = (user: User) => {
     const billingAddress = {
       fullName: `${stepData.billing.first_name} ${stepData.billing.last_name}`,
       streetLine1: stepData.billing.address_1,
-      streetLine2: "", // Billing in store doesn't have address_2
+      streetLine2: "",
       city: stepData.billing.city,
       province: stepData.billing.county,
       postalCode: stepData.billing.postcode,
@@ -253,7 +205,6 @@ export const useCheckout = (user: User) => {
       country: stepData.billing.country
     };
 
-    // Get session ID from cart store
     const sessionId = useCartStore.getState().sessionId;
 
     const orderRes = await fetch("/api/checkout/initiate", {
@@ -265,7 +216,7 @@ export const useCheckout = (user: User) => {
       body: JSON.stringify({
         shippingAddress,
         billingAddress,
-        shippingMethodId: "standard", // TODO: Get from store
+        shippingMethodId: "standard",
         ...(coupon?.code ? { couponCode: coupon.code } : {})
       }),
     });
@@ -280,12 +231,13 @@ export const useCheckout = (user: User) => {
   };
 
   const processPaystackPayment = async (order: { id: string; total: string }) => {
-    // Backend returns total in cents already, so no need to multiply by 100
-    // Paystack expects amount in kobo (for NGN) or cents (for KES)
-    const amount = formatPaystackAmount(parseFloat(order.total));
-
-    const configResponse = await fetch('/api/store/config');
-    const config = await configResponse.json();
+    const config = storeConfig;
+    if (!config) {
+      throw new Error('Store configuration not loaded. Please try again.');
+    }
+    if (!config) {
+      throw new Error('Store configuration not loaded. Please try again.');
+    }
 
     if (!config.paystackPublicKey) {
       throw new Error('Paystack is not configured. Please contact support.');
@@ -294,6 +246,8 @@ export const useCheckout = (user: User) => {
     if (!config.paystackEnabled) {
       throw new Error('Paystack payments are currently disabled. Please contact support.');
     }
+
+    const amount = formatPaystackAmount(parseFloat(order.total));
 
     if (!Number.isFinite(amount) || amount <= 0) {
       throw new Error('Invalid payment amount. Please contact support.');
@@ -324,10 +278,10 @@ export const useCheckout = (user: User) => {
         }
 
         const paystackConfig: any = {
-          key: config.paystackPublicKey,
+          key: config!.paystackPublicKey,
           email: payerEmail,
           amount,
-          currency: config.currency || "KES",
+          currency: config!.currency || "KES",
           ref: `order-${order.id}-${Date.now()}`,
           metadata: {
             orderId: order.id,
@@ -344,7 +298,6 @@ export const useCheckout = (user: User) => {
           },
         };
 
-        // Set payment channels based on selected payment method
         if (stepData.payment.method === 'card') {
           paystackConfig.channels = ['card'];
         } else if (stepData.payment.method === 'mpesa') {

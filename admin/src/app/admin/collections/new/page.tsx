@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ProtectedRoute } from '@/components/login/ProtectedRoute';
 import { AdminLayout } from '@/components/admin/layout/AdminLayout';
@@ -13,10 +13,10 @@ import {
     CollectionFormHeader,
     CollectionHierarchyCard,
     CollectionLevel,
-    CollectionSaveCard,
     CollectionTreeNode,
 } from '@/components/admin/catalog/collections/form';
 import { uploadAdminAsset } from '@/lib/shared/images/admin-asset-upload';
+import { CSRF_COOKIE_NAME, CSRF_HEADER_NAME, ensureCsrfToken, getCookieValue, getSessionUrl } from '@/lib/auth/csrf';
 
 const initialFormData: CollectionFormData = {
     name: '',
@@ -25,6 +25,7 @@ const initialFormData: CollectionFormData = {
     parentId: '',
     enabled: true,
     showInMostShopped: false,
+    showInMenuHeader: false,
     sortOrder: 0,
     mostShoppedSortOrder: 0,
     assetId: '',
@@ -43,6 +44,12 @@ export default function NewCollectionPage() {
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string>('');
 
+    const authBaseURL = typeof window !== 'undefined' ? window.location.origin : '';
+    const authSessionUrl = getSessionUrl(
+        process.env.NEXT_PUBLIC_AUTH_BASE_PATH?.trim() || '/api/auth',
+        process.env.NEXT_PUBLIC_AUTH_BASE_URL?.trim() || authBaseURL,
+    );
+
     useEffect(() => {
         fetchCollections();
     }, []);
@@ -56,6 +63,7 @@ export default function NewCollectionPage() {
             const data = result.collections || result;
             const levelOneCollections = (Array.isArray(data) ? data : []).filter((collection: any) => !collection.parentId);
             setCollections(levelOneCollections);
+            handleFieldChange('sortOrder', Math.max(1, levelOneCollections.length + 1));
         } catch (fetchError) {
             console.error('Error fetching collections:', fetchError);
         }
@@ -80,16 +88,34 @@ export default function NewCollectionPage() {
         }
     };
 
+    const getNextSortOrder = (lvl: CollectionLevel, l1Id?: string, l2Id?: string): number => {
+        if (lvl === '1') {
+            return collections.length + 1;
+        }
+        if (lvl === '2' && l1Id) {
+            const parent = collections.find(c => c.id === l1Id);
+            return (parent?.children?.length || 0) + 1;
+        }
+        if (lvl === '3' && l1Id && l2Id) {
+            const l1 = collections.find(c => c.id === l1Id);
+            const l2 = l1?.children?.find(c => c.id === l2Id);
+            return (l2?.children?.length || 0) + 1;
+        }
+        return 1;
+    };
+
     const handleLevelChange = (nextLevel: CollectionLevel) => {
         setLevel(nextLevel);
         setSelectedL1('');
         handleFieldChange('parentId', '');
+        handleFieldChange('sortOrder', getNextSortOrder(nextLevel));
     };
 
     const handleSelectedL1Change = (value: string) => {
         setSelectedL1(value);
         if (level === '2') {
             handleFieldChange('parentId', value);
+            handleFieldChange('sortOrder', getNextSortOrder('2', value));
             return;
         }
         handleFieldChange('parentId', '');
@@ -97,6 +123,7 @@ export default function NewCollectionPage() {
 
     const handleParentIdChange = (value: string) => {
         handleFieldChange('parentId', value);
+        handleFieldChange('sortOrder', getNextSortOrder('3', selectedL1, value));
     };
 
     const handleImageChange = (file: File | null) => {
@@ -142,11 +169,11 @@ export default function NewCollectionPage() {
 
     const validateHierarchy = (): string | null => {
         if (level === '2' && !selectedL1) {
-            return 'Please select a Level 1 parent category.';
+            return 'Please select a parent category.';
         }
         if (level === '3') {
-            if (!selectedL1) return 'Please select a Level 1 category first.';
-            if (!formData.parentId) return 'Please select a Level 2 parent group.';
+            if (!selectedL1) return 'Please select a target category first.';
+            if (!formData.parentId) return 'Please select a parent group.';
         }
         return null;
     };
@@ -169,11 +196,15 @@ export default function NewCollectionPage() {
 
             const parentId = resolveParentId();
 
+            const csrfToken = (await ensureCsrfToken(authSessionUrl)) || getCookieValue(CSRF_COOKIE_NAME);
+            const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+            if (csrfToken) {
+                headers[CSRF_HEADER_NAME] = csrfToken;
+            }
+
             const response = await fetch('/api/admin/collections', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers,
                 body: JSON.stringify({
                     ...formData,
                     assetId: assetId || null,
@@ -210,16 +241,18 @@ export default function NewCollectionPage() {
     return (
         <ProtectedRoute>
             <AdminLayout>
-                <CollectionFormHeader
-                    title="Add New Collection"
-                    description="Create and configure a collection in one place."
-                />
+                <form onSubmit={handleSubmit}>
+                    <CollectionFormHeader
+                        title="New Collection"
+                        onSave={() => {}}
+                        loading={loading}
+                        uploading={uploading}
+                    />
 
-                <form onSubmit={handleSubmit} className="w-full">
                     <CollectionFormError message={error} />
 
-                    <div className="grid w-full grid-cols-1 items-start gap-6 xl:grid-cols-12">
-                        <div className="min-w-0 space-y-6 xl:col-span-8">
+                    <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+                        <div className="xl:col-span-2">
                             <CollectionBasicInfoCard
                                 formData={formData}
                                 imagePreview={imagePreview}
@@ -229,7 +262,7 @@ export default function NewCollectionPage() {
                             />
                         </div>
 
-                        <div className="space-y-6 xl:col-span-4 xl:sticky xl:top-6">
+                        <div className="space-y-6 xl:sticky xl:top-6">
                             <CollectionHierarchyCard
                                 level={level}
                                 collections={collections}
@@ -243,12 +276,7 @@ export default function NewCollectionPage() {
                             <CollectionDisplaySettingsCard
                                 formData={formData}
                                 onFieldChange={handleFieldChange}
-                            />
-
-                            <CollectionSaveCard
-                                loading={loading}
-                                uploading={uploading}
-                                submitLabel="Save Collection"
+                                level={level}
                             />
                         </div>
                     </div>

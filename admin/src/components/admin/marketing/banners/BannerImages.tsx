@@ -6,7 +6,7 @@ import { getImageUrl } from '@/lib/shared/images';
 import { Asset } from '@/lib/services';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { getDimensionsText, getRecommendationText } from './banner.constants';
+import { getDimensionsText, getRecommendationText } from '@/lib/banner/constants';
 import { uploadAdminAsset } from '@/lib/shared/images/admin-asset-upload';
 
 interface BannerImagesProps {

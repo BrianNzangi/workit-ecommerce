@@ -1,5 +1,6 @@
 import { ProductService, CreateProductInput } from '@/lib/services';
 import { requireAuth } from '@/lib/middleware/auth.middleware';
+import { mapHttpError } from '@/lib/graphql/errors';
 import type { GraphQLContext } from '../../context';
 
 export const productMutations = {
@@ -35,28 +36,43 @@ export const productMutations = {
 
     addAssetToProduct: async (
         _parent: any,
-        _args: any,
+        { productId, assetId, sortOrder, featured }: { productId: string; assetId: string; sortOrder?: number; featured?: boolean },
         context: GraphQLContext
     ) => {
         requireAuth(context.auth);
-        throw new Error('Not implemented');
+        try {
+            const productService = new ProductService();
+            return await productService.addAsset(productId, { assetId, sortOrder, featured });
+        } catch (e) {
+            throw mapHttpError(e);
+        }
     },
 
     removeAssetFromProduct: async (
         _parent: any,
-        _args: any,
+        { productId, assetId }: { productId: string; assetId: string },
         context: GraphQLContext
     ) => {
         requireAuth(context.auth);
-        throw new Error('Not implemented');
+        try {
+            const productService = new ProductService();
+            return await productService.removeAsset(productId, assetId);
+        } catch (e) {
+            throw mapHttpError(e);
+        }
     },
 
     setFeaturedAsset: async (
         _parent: any,
-        _args: any,
+        { productId, assetId }: { productId: string; assetId: string },
         context: GraphQLContext
     ) => {
         requireAuth(context.auth);
-        throw new Error('Not implemented');
+        try {
+            const productService = new ProductService();
+            return await productService.setFeaturedAsset(productId, assetId);
+        } catch (e) {
+            throw mapHttpError(e);
+        }
     },
 };

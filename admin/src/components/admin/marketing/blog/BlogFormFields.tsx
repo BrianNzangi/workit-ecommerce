@@ -1,3 +1,8 @@
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
+
 interface BlogFormFieldsProps {
     formData: {
         title: string;
@@ -11,41 +16,33 @@ interface BlogFormFieldsProps {
 export function BlogFormFields({ formData, onChange, errors }: BlogFormFieldsProps) {
     return (
         <>
-            {/* Title */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Title
-                </label>
-                <input
-                    type="text"
-                    name="title"
-                    value={formData.title}
-                    onChange={onChange}
-                    placeholder="e.g., Blog about your latest products or deals"
-                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-transparent ${errors.title ? 'border-red-500' : 'border-gray-200'
-                        }`}
-                />
-                {errors.title && (
-                    <p className="mt-1 text-sm text-red-600">{errors.title}</p>
-                )}
-            </div>
+            <Card className="rounded-sm shadow-xs">
+                <CardContent className="p-5">
+                    <Label className="text-sm font-medium mb-2 block">Title</Label>
+                    <Input
+                        name="title"
+                        value={formData.title}
+                        onChange={onChange}
+                        placeholder="e.g., Blog about your latest products or deals"
+                        className={`rounded-sm ${errors.title ? "border-destructive" : ""}`}
+                    />
+                    {errors.title && <p className="mt-1 text-sm text-destructive">{errors.title}</p>}
+                </CardContent>
+            </Card>
 
-            {/* Excerpt */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Excerpt
-                </label>
-                <p className="text-sm text-gray-500 mb-2">
-                    Add a summary of the post to appear on your home page or blog.
-                </p>
-                <textarea
-                    name="excerpt"
-                    value={formData.excerpt}
-                    onChange={onChange}
-                    rows={3}
-                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-transparent"
-                />
-            </div>
+            <Card className="rounded-sm shadow-xs">
+                <CardContent className="p-5">
+                    <Label className="text-sm font-medium mb-2 block">Excerpt</Label>
+                    <p className="text-xs text-muted-foreground mb-2">Add a summary of the post to appear on your home page or blog.</p>
+                    <Textarea
+                        name="excerpt"
+                        value={formData.excerpt}
+                        onChange={onChange}
+                        rows={3}
+                        className="rounded-sm"
+                    />
+                </CardContent>
+            </Card>
         </>
     );
 }

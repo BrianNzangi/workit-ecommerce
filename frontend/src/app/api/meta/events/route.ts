@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sendMetaEvent } from "@/lib/meta-conversions";
+import { sendMetaEvent } from "@/lib/meta/meta-conversions";
 
 export async function POST(request: NextRequest) {
   try {

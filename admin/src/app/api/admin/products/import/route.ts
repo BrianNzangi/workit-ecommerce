@@ -1,4 +1,4 @@
-import { headers } from 'next/headers';
+import { headers as nextHeaders } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
 function getBackendUrl() {
@@ -13,69 +13,42 @@ function getBackendUrl() {
 }
 
 export async function POST(request: NextRequest) {
-    const headersList = await headers();
+    const headersList = await nextHeaders();
     const cookie = headersList.get('cookie');
 
-    // Get the FormData from the request
-    const formData = await request.formData();
-    const file = formData.get('file') as File;
-
-    if (!file) {
-        return NextResponse.json({ error: 'No file provided' }, { status: 400 });
-    }
+    const csrfHeaderName = (
+        process.env.NEXT_PUBLIC_CSRF_HEADER_NAME?.trim() ||
+        process.env.CSRF_HEADER_NAME?.trim() ||
+        'x-xsrf-token'
+    ).toLowerCase();
+    const csrfToken =
+        request.headers.get(csrfHeaderName) ||
+        headersList.get(csrfHeaderName) ||
+        headersList.get('x-xsrf-token') ||
+        headersList.get('x-csrf-token');
 
     try {
-        // Read the CSV file content
-        const text = await file.text();
+        const body = await request.json();
+        const { products } = body;
 
-        // Parse CSV to JSON
-        const lines = text.split('\n').filter(line => line.trim());
-        if (lines.length < 2) {
-            return NextResponse.json({ error: 'CSV file is empty or invalid' }, { status: 400 });
+        if (!Array.isArray(products) || products.length === 0) {
+            return NextResponse.json({ error: 'No products provided' }, { status: 400 });
         }
 
-        // Get headers from first line
-        const csvHeaders = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-
-        // Parse data rows
-        const csvData = lines.slice(1).map(line => {
-            // Simple CSV parsing (handles quoted fields)
-            const values: string[] = [];
-            let current = '';
-            let inQuotes = false;
-
-            for (let i = 0; i < line.length; i++) {
-                const char = line[i];
-
-                if (char === '"') {
-                    inQuotes = !inQuotes;
-                } else if (char === ',' && !inQuotes) {
-                    values.push(current.trim());
-                    current = '';
-                } else {
-                    current += char;
-                }
-            }
-            values.push(current.trim()); // Push last value
-
-            // Create object from headers and values
-            const row: any = {};
-            csvHeaders.forEach((header, index) => {
-                row[header] = values[index]?.replace(/^"|"$/g, '') || '';
-            });
-            return row;
-        });
-
         const backendUrl = getBackendUrl();
-        const url = `${backendUrl}/catalog/products/admin/import`;
+        const url = `${backendUrl}/catalog/products/_admin/import`;
 
+        const forwardHeaders: Record<string, string> = {
+            'Content-Type': 'application/json',
+        };
+        if (cookie) forwardHeaders['Cookie'] = cookie;
+        if (csrfToken) forwardHeaders[csrfHeaderName] = csrfToken;
+
+        // Send both csvData (old) and products (new) for backward compatibility
         const response = await fetch(url, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Cookie': cookie || '',
-            },
-            body: JSON.stringify({ csvData }),
+            headers: forwardHeaders,
+            body: JSON.stringify({ products, csvData: products }),
         });
 
         const data = await response.json();

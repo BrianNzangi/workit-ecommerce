@@ -3,18 +3,24 @@ import { proxyRequest } from '@/lib/shared/network';
 
 export async function GET(request: NextRequest) {
     const { pathname, search } = request.nextUrl;
-    const backendPath = pathname.replace('/api/admin/products', '/catalog/products/admin');
+    const backendPath = pathname.replace('/api/admin/products', '/catalog/products/_admin');
     return proxyRequest(request, backendPath + search);
 }
 
 export async function PATCH(request: NextRequest) {
     const { pathname, search } = request.nextUrl;
-    const backendPath = pathname.replace('/api/admin/products', '/catalog/products/admin');
+    const backendPath = pathname.replace('/api/admin/products', '/catalog/products/_admin');
+    return proxyRequest(request, backendPath + search);
+}
+
+export async function PUT(request: NextRequest) {
+    const { pathname, search } = request.nextUrl;
+    const backendPath = pathname.replace('/api/admin/products', '/catalog/products/_admin');
     return proxyRequest(request, backendPath + search);
 }
 
 export async function DELETE(request: NextRequest) {
     const { pathname, search } = request.nextUrl;
-    const backendPath = pathname.replace('/api/admin/products', '/catalog/products/admin');
+    const backendPath = pathname.replace('/api/admin/products', '/catalog/products/_admin');
     return proxyRequest(request, backendPath + search);
 }

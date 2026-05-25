@@ -1,0 +1,279 @@
+import { Callout } from 'nextra/components'
+
+# Admin API
+
+All admin APIs require authentication. Include `Authorization: Bearer <admin-token>` on every request.
+
+<Callout>
+  Get an admin token by calling `POST /auth/sign-in/email` with admin credentials.
+</Callout>
+
+---
+
+## Auth
+
+### Sign In
+`POST /auth/sign-in/email`
+
+```json
+{ "email": "admin@workit.co.ke", "password": "password" }
+```
+
+### Sign Out
+`POST /auth/sign-out`
+
+### Get Session
+`GET /auth/session`
+
+---
+
+## Analytics
+
+All analytics endpoints require the `analytics.view` permission.
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /analytics/dashboard-overview` | Full dashboard data (summary, charts, recent orders) |
+| `GET /analytics/weekly-stats` | Orders, revenue, customers, products counts |
+| `GET /analytics/weekly-chart` | Revenue trend data for charts |
+| `GET /analytics/sales-stats` | Total sales with growth percentage |
+| `GET /analytics/recent-orders` | Latest orders (default: 5) |
+
+---
+
+## Catalog — Products
+
+Requires `catalog.manage` permission.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/catalog/products/admin` | List products with filters |
+| `POST` | `/catalog/products/admin` | Create product |
+| `GET` | `/catalog/products/admin/search?q=` | Search products |
+| `GET` | `/catalog/products/admin/:id` | Get product |
+| `PUT` | `/catalog/products/admin/:id` | Update product |
+| `PATCH` | `/catalog/products/admin/:id` | Partial update |
+| `DELETE` | `/catalog/products/admin/:id` | Delete product |
+| `POST` | `/catalog/products/admin/bulk-delete` | Bulk delete `{ ids: [] }` |
+| `GET` | `/catalog/products/admin/template` | Download CSV import template |
+| `GET` | `/catalog/products/admin/export` | Export all products as CSV |
+| `POST` | `/catalog/products/admin/import` | Import products from CSV data |
+| `POST` | `/catalog/products/admin/search/reindex` | Trigger Algolia reindex |
+
+**Create/Update product body:**
+```json
+{
+  "name": "Product Name",
+  "slug": "product-name",
+  "sku": "SKU-001",
+  "description": "Description",
+  "originalPrice": 9999,
+  "salePrice": 7999,
+  "stockOnHand": 50,
+  "enabled": true,
+  "condition": "NEW",
+  "brandId": "uuid",
+  "collections": ["uuid1", "uuid2"],
+  "assetIds": ["uuid1", "uuid2"]
+}
+```
+
+---
+
+## Catalog — Brands
+
+Requires `catalog.manage` permission.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/catalog/brands` | List brands |
+| `POST` | `/catalog/brands` | Create brand |
+| `GET` | `/catalog/brands/search?q=` | Search brands |
+| `GET` | `/catalog/brands/:id` | Get brand |
+| `PUT` | `/catalog/brands/:id` | Update brand |
+| `DELETE` | `/catalog/brands/:id` | Delete brand |
+| `POST` | `/catalog/brands/bulk-delete` | Bulk delete |
+
+---
+
+## Catalog — Collections
+
+Requires `catalog.manage` permission.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/catalog/collections` | List collections |
+| `POST` | `/catalog/collections` | Create collection |
+| `GET` | `/catalog/collections/:id` | Get collection |
+| `PUT` | `/catalog/collections/:id` | Update collection |
+| `DELETE` | `/catalog/collections/:id` | Delete collection |
+| `POST` | `/catalog/collections/bulk-delete` | Bulk delete |
+
+---
+
+## Catalog — Assets
+
+Requires `catalog.manage` permission.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/catalog/assets` | List assets |
+| `POST` | `/catalog/assets/upload` | Upload file (multipart) |
+| `PUT` | `/catalog/assets/:id` | Update asset name |
+| `DELETE` | `/catalog/assets/:id` | Delete asset |
+| `POST` | `/catalog/assets/bulk-delete` | Bulk delete |
+
+---
+
+## Fulfillment — Orders
+
+Requires `orders.manage` permission.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/fulfillment/orders` | List orders |
+| `GET` | `/fulfillment/orders/search?q=` | Search orders |
+| `GET` | `/fulfillment/orders/:id` | Get order |
+| `PATCH` | `/fulfillment/orders/:id/status` | Update order state |
+| `PUT` | `/fulfillment/orders/:id` | Update order |
+| `DELETE` | `/fulfillment/orders/:id` | Delete order |
+| `POST` | `/fulfillment/orders/bulk-delete` | Bulk delete |
+
+**Update order status:**
+```json
+{ "state": "FULFILLED" }
+```
+
+Valid states: `CREATED`, `PAYMENT_SETTLED`, `FULFILLED`, `CANCELLED`
+
+---
+
+## Fulfillment — Shipping
+
+Requires `shipping.manage` permission.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/fulfillment/shipping` | List shipping methods with zones |
+| `POST` | `/fulfillment/shipping` | Create shipping method |
+| `PUT` | `/fulfillment/shipping/:id` | Update shipping method |
+| `DELETE` | `/fulfillment/shipping/:id` | Delete shipping method |
+| `GET` | `/fulfillment/shipping/zones` | List all zones |
+| `POST` | `/fulfillment/shipping/zones` | Create zone with cities |
+| `PATCH` | `/fulfillment/shipping/zones/:id` | Update zone |
+| `DELETE` | `/fulfillment/shipping/zones/:id` | Delete zone |
+
+---
+
+## Identity — Customers
+
+Requires `customers.manage` permission.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/identity/customers` | List customers |
+| `POST` | `/identity/customers` | Create customer |
+| `GET` | `/identity/customers/search?q=` | Search customers |
+| `GET` | `/identity/customers/:id` | Get customer |
+| `PUT` | `/identity/customers/:id` | Update customer |
+| `DELETE` | `/identity/customers/:id` | Delete customer |
+| `POST` | `/identity/customers/bulk-delete` | Bulk delete |
+
+---
+
+## Identity — Users
+
+Requires `users.manage` permission.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/identity/users` | List admin users |
+| `POST` | `/identity/users` | Create admin user |
+| `PUT` | `/identity/users/:id` | Update user |
+| `DELETE` | `/identity/users/:id` | Delete user |
+
+Valid roles: `SUPER_ADMIN`, `ADMIN`, `EDITOR`
+
+---
+
+## Marketing — Campaigns
+
+Requires `marketing.campaigns.manage` or `marketing.content.manage` permission.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/marketing/campaigns` | List campaigns |
+| `POST` | `/marketing/campaigns` | Create campaign |
+| `GET` | `/marketing/campaigns/search?q=` | Search campaigns |
+| `GET` | `/marketing/campaigns/products` | Browse products for campaign |
+| `GET` | `/marketing/campaigns/:id` | Get campaign |
+| `PUT` | `/marketing/campaigns/:id` | Update campaign |
+| `DELETE` | `/marketing/campaigns/:id` | Delete campaign |
+| `POST` | `/marketing/campaigns/bulk-delete` | Bulk delete |
+| `GET` | `/marketing/campaigns/:id/send-payload` | Preview send payload |
+| `POST` | `/marketing/campaigns/:id/send` | Activate/schedule campaign |
+
+---
+
+## Marketing — Banners
+
+Requires `marketing.content.manage` permission.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/marketing/banners` | List banners |
+| `POST` | `/marketing/banners` | Create banner |
+| `GET` | `/marketing/banners/:id` | Get banner |
+| `PUT` | `/marketing/banners/:id` | Update banner |
+| `DELETE` | `/marketing/banners/:id` | Delete banner |
+| `POST` | `/marketing/banners/bulk-delete` | Bulk delete |
+
+---
+
+## Marketing — Blog
+
+Requires `marketing.content.manage` permission.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/marketing/blog` | List blog posts |
+| `POST` | `/marketing/blog` | Create post |
+| `GET` | `/marketing/blog/:id` | Get post |
+| `PUT` | `/marketing/blog/:id` | Update post |
+| `PATCH` | `/marketing/blog/:id/toggle-publish` | Toggle published state |
+| `DELETE` | `/marketing/blog/:id` | Delete post |
+| `POST` | `/marketing/blog/bulk-delete` | Bulk delete |
+
+---
+
+## Marketing — Homepage
+
+Requires `marketing.content.manage` permission.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/marketing/homepage` | List homepage sections |
+| `POST` | `/marketing/homepage` | Create section |
+| `GET` | `/marketing/homepage/:id` | Get section |
+| `PUT` | `/marketing/homepage/:id` | Update section |
+| `DELETE` | `/marketing/homepage/:id` | Delete section |
+
+---
+
+## Site — Settings
+
+Requires `settings.manage` permission.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/site/settings` | Get all settings as key-value map |
+| `POST` | `/site/settings` | Bulk upsert settings |
+
+```json
+// POST /site/settings
+{
+  "storeName": "Workit",
+  "storeEmail": "hello@workit.co.ke",
+  "currency": "KES"
+}
+```

@@ -3,6 +3,7 @@
 import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { useShippingZones } from '@/hooks/useShippingZones';
 
 export interface BillingData {
   first_name?: string;
@@ -69,8 +70,7 @@ export default function StepBilling({
   onComplete,
   data,
 }: StepBillingProps) {
-  const [shippingZones, setShippingZones] = useState<ShippingZone[]>([]);
-  const [loadingZones, setLoadingZones] = useState(true);
+  const { data: shippingZones = [], isLoading: loadingZones } = useShippingZones();
 
   const { register, handleSubmit, setValue, watch, formState: { errors } } =
     useForm<BillingFormData>({
@@ -97,48 +97,8 @@ export default function StepBilling({
   const selectedCounty = watch("county");
   const selectedShippingCounty = watch("shippingCounty");
 
-  // Fetch shipping zones from API
-  useEffect(() => {
-    const fetchShippingZones = async () => {
-      try {
-        setLoadingZones(true);
-        const response = await fetch('/api/shipping-zones');
-        const result = await response.json();
-
-        if (!result.success) {
-          console.error('Failed to fetch shipping zones:', result.error);
-          return;
-        }
-
-        // Extract all zones from different possible response structures
-        const allZones: ShippingZone[] = [];
-        if (Array.isArray(result.data)) {
-          result.data.forEach((item: any) => {
-            if (item.zones && Array.isArray(item.zones)) {
-              // It's a method with nested zones
-              allZones.push(...item.zones);
-            } else if (item.county || item.cities) {
-              // It's a zone directly (matches backend /store/shipping/zones)
-              allZones.push(item);
-            }
-          });
-        }
-
-        setShippingZones(allZones);
-      } catch (error) {
-        console.error('Failed to fetch shipping zones:', error);
-      } finally {
-        setLoadingZones(false);
-      }
-    };
-
-    fetchShippingZones();
-  }, []);
-
-  // Get unique counties from shipping zones
   const availableCounties = Array.from(new Set(shippingZones.map(zone => zone.county))).sort();
 
-  // Get cities for selected county (handling potential duplicates across methods)
   const getAvailableCities = (county: string) => {
     const zones = shippingZones.filter(z => z.county === county);
     const citiesSet = new Set<string>();

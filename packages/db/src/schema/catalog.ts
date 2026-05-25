@@ -12,6 +12,8 @@ export const assets = pgTable("Asset", {
     width: integer("width"),
     height: integer("height"),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+    deletedAt: timestamp("deletedAt"),
 });
 
 export const brands = pgTable("Brand", {
@@ -33,6 +35,7 @@ export const collections = pgTable("Collection", {
     parentId: text("parentId"),
     enabled: boolean("enabled").default(true).notNull(),
     showInMostShopped: boolean("showInMostShopped").default(false).notNull(),
+    showInMenuHeader: boolean("showInMenuHeader").default(false).notNull(),
     mostShoppedSortOrder: integer("mostShoppedSortOrder").default(0).notNull(),
     sortOrder: integer("sortOrder").default(0).notNull(),
     assetId: text("assetId").references(() => assets.id),
@@ -88,4 +91,13 @@ export const productCollections = pgTable("ProductCollection", {
     unq: unique().on(t.productId, t.collectionId),
     byCollectionProduct: index("ProductCollection_collection_product_idx").on(t.collectionId, t.productId),
     byProduct: index("ProductCollection_product_idx").on(t.productId),
+}));
+
+export const brandCollections = pgTable("BrandCollection", {
+    id: text("id").primaryKey().notNull(),
+    brandId: text("brandId").notNull().references(() => brands.id, { onDelete: 'cascade' }),
+    collectionId: text("collectionId").notNull().references(() => collections.id, { onDelete: 'cascade' }),
+    sortOrder: integer("sortOrder").default(0).notNull(),
+}, (t) => ({
+    unq: unique().on(t.brandId, t.collectionId),
 }));

@@ -3,6 +3,24 @@ import { db, schema, eq, desc, ilike, inArray } from "../../../../lib/db.js";
 import { v4 as uuidv4 } from "uuid";
 
 export const ordersAdminRoutes: FastifyPluginAsync = async (fastify) => {
+    const sanitizeOrder = (order: any) => {
+        if (!order) return order;
+
+        const { customer, ...rest } = order;
+
+        return {
+            ...rest,
+            ...(customer
+                ? {
+                    customer: {
+                        ...customer,
+                        password: undefined,
+                    },
+                }
+                : {}),
+        };
+    };
+
     // List All Orders
     fastify.get("/", {
         preHandler: [fastify.authenticate, fastify.authorizePermission('orders.manage')]
@@ -17,7 +35,7 @@ export const ordersAdminRoutes: FastifyPluginAsync = async (fastify) => {
                 lines: { with: { product: true } }
             }
         });
-        return { orders: results, success: true };
+        return { orders: results.map(sanitizeOrder), success: true };
     });
 
     // Search Orders
@@ -29,7 +47,7 @@ export const ordersAdminRoutes: FastifyPluginAsync = async (fastify) => {
             where: ilike(schema.orders.id, `%${q}%`),
             with: { customer: true }
         });
-        return { orders: results, success: true };
+        return { orders: results.map(sanitizeOrder), success: true };
     });
 
     // Show Order
@@ -45,7 +63,7 @@ export const ordersAdminRoutes: FastifyPluginAsync = async (fastify) => {
             }
         });
         if (!order) return reply.status(404).send({ message: "Order not found" });
-        return { order, success: true };
+        return { order: sanitizeOrder(order), success: true };
     });
 
     // Update Order Status

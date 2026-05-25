@@ -1,0 +1,83 @@
+import { Callout, Cards, Card } from 'nextra/components'
+
+# API Reference
+
+The Workit backend exposes two sets of APIs:
+
+<Cards>
+  <Card title="Storefront API" href="/api/storefront" arrow>
+    Public APIs used by the customer-facing storefront. Includes cart, checkout, product catalog, and customer auth.
+  </Card>
+  <Card title="Admin API" href="/api/admin" arrow>
+    Protected APIs used by the admin dashboard. Requires admin authentication and role-based permissions.
+  </Card>
+</Cards>
+
+## Base URL
+
+```
+http://localhost:3001       # local development
+https://api.workit.co.ke   # production
+```
+
+## Authentication
+
+### Admin requests
+
+```http
+Authorization: Bearer <admin-session-token>
+```
+
+Get a token by calling `POST /auth/sign-in/email`.
+
+### Storefront requests
+
+```http
+Authorization: Bearer <storefront-session-token>
+```
+
+Get a token by calling `POST /api/auth/sign-in/email`.
+
+### Guest cart requests
+
+```http
+x-guest-id: <your-guest-id>
+```
+
+No authentication required. Use a consistent UUID per guest session.
+
+## Testing with Insomnia
+
+Import `insomnia/workit-api.json` from the repo root into Insomnia for a ready-to-use collection with all 124 endpoints pre-configured.
+
+<Callout type="info">
+  The Insomnia collection uses environment variables (`base_url`, `admin_token`, `storefront_token`, `guest_id`) so you only need to set them once.
+</Callout>
+
+## Response Format
+
+Most endpoints return JSON. Common patterns:
+
+```json
+// Success (list)
+{ "products": [...], "success": true, "total": 42 }
+
+// Success (single)
+{ "product": { ... }, "success": true }
+
+// Error
+{ "message": "Product not found" }
+```
+
+## HTTP Status Codes
+
+| Code | Meaning |
+|------|---------|
+| `200` | Success |
+| `400` | Bad request / validation error |
+| `401` | Not authenticated |
+| `403` | Not authorized (wrong role) |
+| `404` | Resource not found |
+| `409` | Conflict (e.g. duplicate email/slug) |
+| `429` | Rate limit exceeded |
+| `500` | Internal server error |

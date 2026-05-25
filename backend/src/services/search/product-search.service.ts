@@ -1,10 +1,10 @@
 import { and, asc, db, eq, ilike, inArray, or, schema } from "../../lib/db.js";
 import {
-    deleteAlgoliaProductRecords,
-    isAlgoliaEnabled,
-    searchAlgoliaProductIds,
-    upsertAlgoliaProductRecords,
-} from "./algolia.client.js";
+    deleteTypesenseProductRecords,
+    isTypesenseEnabled,
+    searchTypesenseProductIds,
+    upsertTypesenseProductRecords,
+} from "./typesense.client.js";
 import { mapProductToSearchRecord } from "./product-search.mapper.js";
 import { enrichProductCampaigns, enrichProductsWithCampaigns } from "../../lib/product-campaigns.js";
 
@@ -76,15 +76,15 @@ export class ProductSearchService {
         const searchTerm = query.trim();
         if (!searchTerm) return [];
 
-        if (isAlgoliaEnabled()) {
+        if (isTypesenseEnabled()) {
             try {
-                const productIds = await searchAlgoliaProductIds(searchTerm, {
+                const productIds = await searchTypesenseProductIds(searchTerm, {
                     limit,
-                    filters: "enabled:true",
+                    filters: "enabled:=true",
                 });
                 return this.findStoreProductsByIds(productIds);
             } catch (error) {
-                console.error("Algolia store search failed, falling back to DB search", error);
+                console.error("Typesense store search failed, falling back to DB search", error);
             }
         }
 
@@ -95,12 +95,12 @@ export class ProductSearchService {
         const searchTerm = query.trim();
         if (!searchTerm) return [];
 
-        if (isAlgoliaEnabled()) {
+        if (isTypesenseEnabled()) {
             try {
-                const productIds = await searchAlgoliaProductIds(searchTerm, { limit });
+                const productIds = await searchTypesenseProductIds(searchTerm, { limit });
                 return this.findAdminProductsByIds(productIds);
             } catch (error) {
-                console.error("Algolia admin search failed, falling back to DB search", error);
+                console.error("Typesense admin search failed, falling back to DB search", error);
             }
         }
 
@@ -108,7 +108,7 @@ export class ProductSearchService {
     }
 
     async syncProductById(productId: string): Promise<void> {
-        if (!isAlgoliaEnabled()) return;
+        if (!isTypesenseEnabled()) return;
 
         const product = await db.query.products.findFirst({
             where: eq(schema.products.id, productId),
@@ -120,15 +120,15 @@ export class ProductSearchService {
         });
 
         if (!product) {
-            await deleteAlgoliaProductRecords([productId]);
+            await deleteTypesenseProductRecords([productId]);
             return;
         }
 
-        await upsertAlgoliaProductRecords([mapProductToSearchRecord(product)]);
+        await upsertTypesenseProductRecords([mapProductToSearchRecord(product)]);
     }
 
     async syncProductsByIds(productIds: string[]): Promise<void> {
-        if (!isAlgoliaEnabled()) return;
+        if (!isTypesenseEnabled()) return;
 
         const ids = uniqueIds(productIds);
         if (ids.length === 0) return;
@@ -143,28 +143,28 @@ export class ProductSearchService {
         });
 
         if (products.length > 0) {
-            await upsertAlgoliaProductRecords(products.map(mapProductToSearchRecord));
+            await upsertTypesenseProductRecords(products.map(mapProductToSearchRecord));
         }
 
         const foundIds = new Set(products.map((product: any) => product.id));
         const missingIds = ids.filter((id) => !foundIds.has(id));
         if (missingIds.length > 0) {
-            await deleteAlgoliaProductRecords(missingIds);
+            await deleteTypesenseProductRecords(missingIds);
         }
     }
 
     async deleteProductById(productId: string): Promise<void> {
-        if (!isAlgoliaEnabled()) return;
-        await deleteAlgoliaProductRecords([productId]);
+        if (!isTypesenseEnabled()) return;
+        await deleteTypesenseProductRecords([productId]);
     }
 
     async deleteProductsByIds(productIds: string[]): Promise<void> {
-        if (!isAlgoliaEnabled()) return;
-        await deleteAlgoliaProductRecords(uniqueIds(productIds));
+        if (!isTypesenseEnabled()) return;
+        await deleteTypesenseProductRecords(uniqueIds(productIds));
     }
 
     async reindexAllProducts(batchSize = 200): Promise<{ indexed: number }> {
-        if (!isAlgoliaEnabled()) {
+        if (!isTypesenseEnabled()) {
             return { indexed: 0 };
         }
 
@@ -187,7 +187,7 @@ export class ProductSearchService {
                 break;
             }
 
-            await upsertAlgoliaProductRecords(products.map(mapProductToSearchRecord));
+            await upsertTypesenseProductRecords(products.map(mapProductToSearchRecord));
             indexed += products.length;
             offset += batchSize;
         }

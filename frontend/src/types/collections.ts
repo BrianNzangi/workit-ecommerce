@@ -27,6 +27,7 @@ export interface Collection {
     parentId: string | null;
     enabled: boolean;
     showInMostShopped: boolean;
+    showInMenuHeader: boolean;
     mostShoppedSortOrder: number;
     sortOrder: number;
     assetId: string | null;
@@ -48,6 +49,7 @@ export interface CollectionDisplay {
     slug: string;
     parentId?: string | null;
     sortOrder?: number;
+    showInMenuHeader?: boolean;
     image?: string;
     children?: CollectionDisplay[];
 }

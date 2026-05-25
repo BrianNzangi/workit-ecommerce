@@ -1,6 +1,6 @@
 import ProductRecommendations from "@/components/product/ProductRecommendations";
-import { proxyFetch } from "@/lib/proxy-utils";
-import { normalizeProducts } from "@/lib/product-normalization";
+import { proxyFetch } from "@/lib/utils/proxy-utils";
+import { normalizeProducts } from "@/lib/product/product-normalization";
 import type { Product } from "@/types/product";
 
 interface ProductRecommendationsServerProps {

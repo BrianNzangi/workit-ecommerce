@@ -18,6 +18,13 @@ import {
     Megaphone,
     Clock,
     X,
+    BarChart3,
+    Store,
+    Building2,
+    Percent,
+    Zap,
+    Star,
+    Trash2,
 } from 'lucide-react';
 
 interface MenuItem {
@@ -27,73 +34,84 @@ interface MenuItem {
     children?: MenuItem[];
 }
 
-const menuItems: MenuItem[] = [
+interface MenuSection {
+    title: string;
+    items: MenuItem[];
+}
+
+const menuSections: MenuSection[] = [
     {
-        label: 'Dashboard',
-        href: '/admin/dashboard',
-        icon: LayoutDashboard,
+        title: 'Overview',
+        items: [
+            {
+                label: 'Dashboard',
+                href: '/admin/dashboard',
+                icon: LayoutDashboard,
+            },
+        ],
     },
     {
-        label: 'Catalog',
-        icon: Package,
-        children: [
+        title: 'Commerce',
+        items: [
             {
-                label: 'Products',
-                href: '/admin/products',
-                icon: null,
-            },
-            {
-                label: 'Collections',
-                href: '/admin/collections',
-                icon: null,
-            },
-            {
-                label: 'Homepage Collections',
-                href: '/admin/homepage-collections',
-                icon: null,
-            },
-            {
-                label: 'Brands',
-                href: '/admin/brands',
-                icon: null,
-            },
-            {
-                label: 'Assets',
-                href: '/admin/assets',
-                icon: null,
-            },
-            {
-                label: 'Pages',
-                icon: FileText,
+                label: 'Catalog',
+                icon: Package,
                 children: [
                     {
-                        label: 'Returns and Refunds Policy',
-                        href: '/admin/catalog/pages/warranty-refunds',
+                        label: 'Products',
+                        href: '/admin/products',
                         icon: null,
                     },
                     {
-                        label: 'Shipping Policy',
-                        href: '/admin/catalog/pages/shipping-policy',
+                        label: 'Collections',
+                        href: '/admin/collections',
                         icon: null,
                     },
                     {
-                        label: 'Terms Of Service',
-                        href: '/admin/catalog/pages/terms-of-service',
+                        label: 'Homepage Collections',
+                        href: '/admin/homepage-collections',
                         icon: null,
                     },
                     {
-                        label: 'Privacy Policy',
-                        href: '/admin/catalog/pages/privacy-policy',
+                        label: 'Brands',
+                        href: '/admin/brands',
                         icon: null,
                     },
                     {
-                        label: 'Help Center',
-                        href: '/admin/catalog/pages/help-center',
+                        label: 'Assets',
+                        href: '/admin/assets',
+                        icon: null,
+                    },
+                ],
+            },
+            {
+                label: 'Orders',
+                icon: ShoppingCart,
+                children: [
+                    {
+                        label: 'Orders',
+                        href: '/admin/orders',
                         icon: null,
                     },
                     {
-                        label: 'Advertising Policy',
-                        href: '/admin/catalog/pages/advertising-policy',
+                        label: 'Abandoned Checkouts',
+                        href: '/admin/orders/abandoned',
+                        icon: null,
+                    },
+                ],
+            },
+            {
+                label: 'Customers',
+                icon: Users,
+                children: [
+                    {
+                        label: 'Customers',
+                        href: '/admin/customers',
+                        icon: null,
+                    },
+                    {
+                        label: 'Segments',
+                        href: '/admin/customers/segments',
                         icon: null,
                     },
                 ],
@@ -101,80 +119,116 @@ const menuItems: MenuItem[] = [
         ],
     },
     {
-        label: 'Orders',
-        icon: ShoppingCart,
-        children: [
+        title: 'Promotions',
+        items: [
             {
-                label: 'Orders',
-                href: '/admin/orders',
-                icon: null,
-            },
-            {
-                label: 'Abandoned Checkouts',
-                href: '/admin/orders/abandoned',
-                icon: null,
+                label: 'Promotion Deals',
+                icon: Percent,
+                children: [
+                    {
+                        label: 'Coupon',
+                        href: '/admin/promotions/coupons',
+                        icon: null,
+                    },
+                    {
+                        label: 'Flash Sales',
+                        href: '/admin/promotions/flash-sales',
+                        icon: null,
+                    },
+                    {
+                        label: 'Featured Deal',
+                        href: '/admin/promotions/featured-deals',
+                        icon: null,
+                    },
+                    {
+                        label: 'Clearance Deal',
+                        href: '/admin/promotions/clearance-deals',
+                        icon: null,
+                    },
+                ],
             },
         ],
     },
     {
-        label: 'Customers',
-        icon: Users,
-        children: [
+        title: 'Content',
+        items: [
             {
-                label: 'Customers',
-                href: '/admin/customers',
-                icon: null,
+                label: 'Pages',
+                icon: FileText,
+                children: [
+                    {
+                        label: 'Returns Policy',
+                        href: '/admin/content/pages/returns-policy',
+                        icon: null,
+                    },
+                    {
+                        label: 'Refunds Policy',
+                        href: '/admin/content/pages/refunds-policy',
+                        icon: null,
+                    },
+                    {
+                        label: 'Shipping Policy',
+                        href: '/admin/content/pages/shipping-policy',
+                        icon: null,
+                    },
+                    {
+                        label: 'Terms Of Service',
+                        href: '/admin/content/pages/terms-of-service',
+                        icon: null,
+                    },
+                    {
+                        label: 'Privacy Policy',
+                        href: '/admin/content/pages/privacy-policy',
+                        icon: null,
+                    },
+                    {
+                        label: 'Advertising Policy',
+                        href: '/admin/content/pages/advertising-policy',
+                        icon: null,
+                    },
+                    {
+                        label: 'Help Center',
+                        href: '/admin/content/pages/help-center',
+                        icon: null,
+                    },
+                ],
             },
             {
-                label: 'Segments',
-                href: '/admin/customers/segments',
-                icon: null,
-            },
-        ],
-    },
-    {
-        label: 'Marketing',
-        icon: Megaphone,
-        children: [
-            {
-                label: 'Campaigns',
-                href: '/admin/marketing/campaigns',
-                icon: null,
-            },
-            {
-                label: 'Automations',
-                href: '/admin/marketing/automations',
-                icon: null,
+                label: 'Blog',
+                href: '/admin/content/blog',
+                icon: Megaphone,
             },
             {
                 label: 'Banners',
                 href: '/admin/marketing/banners',
-                icon: null,
+                icon: Image,
             },
         ],
     },
     {
-        label: 'Blog',
-        href: '/admin/blog',
-        icon: FileText,
-    },
-    {
-        label: 'Settings',
-        href: '/admin/settings',
-        icon: Settings,
-    },
-    {
-        label: 'System',
-        icon: Clock,
-        children: [
+        title: 'Administration',
+        items: [
             {
-                label: 'Cron Jobs',
-                href: '/admin/system/cron-jobs',
-                icon: null,
+                label: 'Settings',
+                href: '/admin/settings',
+                icon: Settings,
+            },
+            {
+                label: 'System',
+                icon: Clock,
+                children: [
+                    {
+                        label: 'Cron Jobs',
+                        href: '/admin/system/cron-jobs',
+                        icon: null,
+                    },
+                ],
             },
         ],
     },
 ];
+
+const menuItems: MenuItem[] = menuSections.flatMap((section) => section.items);
 
 interface AdminSidebarProps {
     isOpen?: boolean;
@@ -185,7 +239,6 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
     const pathname = usePathname();
     const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
-    // Automatically expand the parent menus that contain the active page
     useEffect(() => {
         if (!pathname) return;
 
@@ -193,8 +246,10 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
             for (const item of items) {
                 if (item.children) {
                     const subParents = findAllParents(item.children);
-                    const hasDirectActiveChild = item.children.some(child =>
-                        child.href && (pathname === child.href || pathname.startsWith(child.href + '/'))
+                    const hasDirectActiveChild = item.children.some(
+                        (child) =>
+                            child.href &&
+                            (pathname === child.href || pathname.startsWith(child.href + '/'))
                     );
 
                     if (subParents.length > 0 || hasDirectActiveChild) {
@@ -207,7 +262,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
 
         const parentsToExpand = findAllParents(menuItems);
         if (parentsToExpand.length > 0) {
-            setExpandedItems(prev => {
+            setExpandedItems((prev) => {
                 const next = new Set([...prev, ...parentsToExpand]);
                 return Array.from(next);
             });
@@ -217,7 +272,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
     const toggleExpand = (label: string) => {
         setExpandedItems((prev) => {
             if (prev.includes(label)) {
-                return prev.filter(item => item !== label);
+                return prev.filter((item) => item !== label);
             }
             return [...prev, label];
         });
@@ -225,31 +280,28 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
 
     const isItemActive = (item: MenuItem, siblings?: MenuItem[]): boolean => {
         if (item.href) {
-            // Check if pathname exactly matches
             if (pathname === item.href) return true;
 
-            // Check if pathname starts with this href
             if (pathname?.startsWith(item.href + '/')) {
-                // If we have siblings, check if any sibling has a more specific match
                 if (siblings) {
-                    const hasMoreSpecificSibling = siblings.some(sibling => {
+                    const hasMoreSpecificSibling = siblings.some((sibling) => {
                         if (sibling.href && sibling.href !== item.href) {
-                            // Check if the sibling's href is more specific (longer and matches)
-                            if (pathname === sibling.href || (sibling.href && pathname?.startsWith(sibling.href + '/'))) {
+                            if (
+                                pathname === sibling.href ||
+                                (sibling.href && pathname?.startsWith(sibling.href + '/'))
+                            ) {
                                 return sibling.href!.length > item.href!.length;
                             }
                         }
                         return false;
                     });
 
-                    // Only return true if no more specific sibling exists
                     return !hasMoreSpecificSibling;
                 }
                 return true;
             }
             return false;
         }
-        // For parent items with children, don't mark as active
         return false;
     };
 
@@ -265,23 +317,34 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                     <button
                         onClick={() => toggleExpand(item.label)}
                         className={`
-              w-full flex items-center justify-between px-3 py-2 rounded-xs transition-colors
-              ${isActive ? 'text-white font-medium' : 'text-secondary-300 hover:bg-secondary-800'}
+              w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-200 group
+              ${isActive
+                                ? 'bg-white/10 text-white font-medium'
+                                : 'text-secondary-300 hover:bg-white/5 hover:text-white'
+                            }
             `}
                     >
-                        <div className="flex items-center gap-2">
-                            {Icon && <Icon className={`w-4 h-4 ${isActive ? 'text-primary-500' : 'text-secondary-400'}`} />}
-                            <span className={`text-sm ${!Icon && level > 0 ? 'ml-6' : ''}`}>{item.label}</span>
+                        <div className="flex items-center gap-3">
+                            {Icon && (
+                                <Icon
+                                    className={`w-5 h-5 transition-colors ${isActive ? 'text-primary-500' : 'text-secondary-400 group-hover:text-secondary-200'}`}
+                                />
+                            )}
+                            <span className={`text-sm ${!Icon && level > 0 ? 'ml-6' : ''}`}>
+                                {item.label}
+                            </span>
                         </div>
                         {isExpanded ? (
-                            <ChevronDown className="w-4 h-4 text-secondary-400" />
+                            <ChevronDown className="w-4 h-4 text-secondary-400 group-hover:text-secondary-200" />
                         ) : (
-                            <ChevronRight className="w-4 h-4 text-secondary-400" />
+                            <ChevronRight className="w-4 h-4 text-secondary-400 group-hover:text-secondary-200" />
                         )}
                     </button>
                     {isExpanded && item.children && (
-                        <ul className="ml-3 mt-1 space-y-1">
-                            {item.children.map((child) => renderMenuItem(child, level + 1, item.children))}
+                        <ul className="ml-4 mt-1 space-y-0.5 border-l border-secondary-700 pl-2">
+                            {item.children.map((child) =>
+                                renderMenuItem(child, level + 1, item.children)
+                            )}
                         </ul>
                     )}
                 </li>
@@ -293,16 +356,18 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                 <Link
                     href={item.href!}
                     className={`
-            flex items-center gap-2 px-3 py-2 rounded-xs transition-colors text-sm
+            flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-sm group
             ${level > 0 ? 'pl-6' : ''}
             ${isActive
-                            ? 'bg-primary-900 text-white font-medium'
-                            : 'text-secondary-300 hover:bg-secondary-800'
-                        }
+                                ? 'bg-primary-900 text-white font-medium shadow-sm'
+                                : 'text-secondary-300 hover:bg-white/5 hover:text-white'
+                            }
           `}
                 >
                     {level === 0 && Icon && (
-                        <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-secondary-400'}`} />
+                        <Icon
+                            className={`w-5 h-5 transition-colors ${isActive ? 'text-white' : 'text-secondary-400 group-hover:text-secondary-200'}`}
+                        />
                     )}
                     <span>{item.label}</span>
                 </Link>
@@ -318,39 +383,51 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}
         >
-            {/* Logo Section */}
-            <div className="h-[72px] flex items-center justify-between px-6 border-b border-secondary-800 bg-secondary-900 shrink-0">
+            <div className="h-[72px] flex items-center justify-between px-5 border-b border-secondary-800 bg-secondary-900 shrink-0">
                 <Link href="/admin/dashboard" className="relative h-8 w-32 block">
                     <NextImage
                         src="/workit-logo-white.png"
                         alt="Workit Logo"
                         fill
+                        sizes="256px"
                         className="object-contain object-left"
                         priority
                     />
                 </Link>
                 <button
                     onClick={onClose}
-                    className="lg:hidden p-2 text-secondary-400 hover:text-white transition-colors"
+                    className="lg:hidden p-1.5 text-secondary-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                 >
-                    <X className="w-6 h-6" />
+                    <X className="w-5 h-5" />
                 </button>
             </div>
 
-            {/* Navigation */}
             <nav className="flex-1 p-3 pt-4 overflow-y-auto custom-scrollbar">
-                <ul className="space-y-1">
-                    {menuItems.map((item) => renderMenuItem(item))}
-                </ul>
+                {menuSections.map((section) => (
+                    <div key={section.title} className="mb-5">
+                        <h3 className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-secondary-500">
+                            {section.title}
+                        </h3>
+                        <ul className="space-y-0.5">
+                            {section.items.map((item) => renderMenuItem(item))}
+                        </ul>
+                    </div>
+                ))}
             </nav>
 
-            {/* Footer */}
-            <div className="p-3 border-t border-secondary-800 bg-secondary-900">
-                <p className="text-xs text-secondary-400 text-center">
-                    Workit Admin © {new Date().getFullYear()}
-                </p>
+            <div className="p-4 border-t border-secondary-800 bg-secondary-900">
+                <div className="flex items-center gap-3 px-2 py-2.5 rounded-lg bg-secondary-800/50">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-800 to-primary-900 flex items-center justify-center">
+                        <Building2 className="w-4 h-4 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-white truncate">
+                            Workit Enterprises
+                        </p>
+                        <p className="text-[10px] text-secondary-400">Admin Panel v2.0</p>
+                    </div>
+                </div>
             </div>
         </aside>
     );
 }
-

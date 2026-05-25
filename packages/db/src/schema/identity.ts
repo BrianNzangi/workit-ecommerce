@@ -1,4 +1,4 @@
-import { pgTable, text, boolean, timestamp, varchar } from "drizzle-orm/pg-core";
+import { pgTable, text, boolean, timestamp, varchar, index } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 // import { orders } from "./fulfillment"; // Keep this if needed, but fulfillment.ts exists now.
 
@@ -19,7 +19,10 @@ export const users = pgTable("user", {
     lastName: text("lastName"),
     password: text("password"),
     phoneNumber: text("phoneNumber"),
-});
+}, (t) => ({
+    byEmail: index("user_email_idx").on(t.email),
+    byRole: index("user_role_idx").on(t.role),
+}));
 
 // Alias for adminUsers import compatibility
 export const adminUsers = users;
@@ -39,7 +42,11 @@ export const addresses = pgTable("Address", {
     phoneNumber: varchar("phoneNumber", { length: 255 }).notNull(),
     defaultShipping: boolean("defaultShipping").default(false).notNull(),
     defaultBilling: boolean("defaultBilling").default(false).notNull(),
-});
+}, (t) => ({
+    byCustomer: index("Address_customer_idx").on(t.customerId),
+    byDefaultShipping: index("Address_default_shipping_idx").on(t.customerId, t.defaultShipping),
+    byDefaultBilling: index("Address_default_billing_idx").on(t.customerId, t.defaultBilling),
+}));
 
 // Better Auth Tables
 export const session = pgTable("session", {
@@ -51,7 +58,9 @@ export const session = pgTable("session", {
     ipAddress: text('ipAddress'),
     userAgent: text('userAgent'),
     userId: text('userId').notNull().references(() => users.id, { onDelete: 'cascade' })
-});
+}, (t) => ({
+    byUser: index("session_user_idx").on(t.userId),
+}));
 
 export const account = pgTable("account", {
     id: text("id").primaryKey(),
@@ -67,7 +76,9 @@ export const account = pgTable("account", {
     password: text('password'),
     createdAt: timestamp('createdAt').notNull(),
     updatedAt: timestamp('updatedAt').notNull()
-});
+}, (t) => ({
+    byUser: index("account_user_idx").on(t.userId),
+}));
 
 export const verification = pgTable("verification", {
     id: text("id").primaryKey(),

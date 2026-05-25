@@ -16,7 +16,7 @@ export default function BlogCard({ title, slug, category, image }: BlogCardProps
   return (
     <Link
       href={`/blog/${slug}`}
-      className="group block w-70"
+      className="group block"
     >
       <div className="relative w-full aspect-video overflow-hidden rounded-xs">
         {image ? (

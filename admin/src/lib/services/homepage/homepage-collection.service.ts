@@ -45,7 +45,8 @@ export class HomepageCollectionService extends BaseService {
             const response: any = await this.adminClient.homepageCollections.get(id);
             return response.collection || response;
         } catch (error: any) {
-            throw notFoundError('Homepage collection not found');
+            if (error.message?.includes('404')) throw notFoundError('Homepage collection not found');
+            throw validationError(error.message || 'Failed to get homepage collection');
         }
     }
 

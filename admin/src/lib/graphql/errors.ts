@@ -182,3 +182,25 @@ export function externalServiceError(message: string, details?: any): Structured
 export function paymentGatewayError(message: string, details?: any): StructuredError {
   return createGraphQLError(message, ErrorCode.PAYMENT_GATEWAY_ERROR, undefined, details);
 }
+
+/**
+ * Maps an HttpClient error (thrown as { statusCode, message }) to the appropriate StructuredError.
+ *
+ * Mapping:
+ *   400 → validationError  (BAD_USER_INPUT / VALIDATION_ERROR)
+ *   401 → unauthorizedError (UNAUTHORIZED)
+ *   403 → forbiddenError    (FORBIDDEN)
+ *   404 → notFoundError     (NOT_FOUND)
+ *   5xx → internalError     (INTERNAL_ERROR)
+ *   other → internalError   (INTERNAL_ERROR)
+ */
+export function mapHttpError(error: any): StructuredError {
+  const status: number = error?.statusCode ?? 500;
+  const msg: string = error?.message ?? 'An unexpected error occurred';
+
+  if (status === 400) return validationError(msg);
+  if (status === 401) return unauthorizedError(msg);
+  if (status === 403) return forbiddenError(msg);
+  if (status === 404) return notFoundError(msg);
+  return internalError(msg);
+}

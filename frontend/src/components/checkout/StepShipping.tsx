@@ -1,7 +1,8 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useShippingZones } from '@/hooks/useShippingZones';
 
 interface StepShippingProps {
   billingData: { county?: string; city?: string };
@@ -34,8 +35,7 @@ export default function StepShipping({
   onComplete,
   data,
 }: StepShippingProps) {
-  const [shippingZones, setShippingZones] = useState<ShippingZone[]>([]);
-  const [loadingZones, setLoadingZones] = useState(true);
+  const { data: shippingZones = [], isLoading: loadingZones } = useShippingZones();
 
   const {
     register,
@@ -48,44 +48,6 @@ export default function StepShipping({
   });
 
   const selectedMethod = watch("method");
-
-  // Fetch shipping zones from API
-  useEffect(() => {
-    const fetchShippingZones = async () => {
-      try {
-        setLoadingZones(true);
-        const response = await fetch('/api/shipping-zones');
-        const result = await response.json();
-
-        if (!result.success) {
-          console.error('Failed to fetch shipping zones:', result.error);
-          return;
-        }
-
-        // Extract all zones from different possible response structures
-        const allZones: ShippingZone[] = [];
-        if (Array.isArray(result.data)) {
-          result.data.forEach((item: any) => {
-            if (item.zones && Array.isArray(item.zones)) {
-              // It's a method with nested zones
-              allZones.push(...item.zones);
-            } else if (item.county || item.cities) {
-              // It's a zone directly
-              allZones.push(item);
-            }
-          });
-        }
-
-        setShippingZones(allZones);
-      } catch (error) {
-        console.error('Failed to fetch shipping zones:', error);
-      } finally {
-        setLoadingZones(false);
-      }
-    };
-
-    fetchShippingZones();
-  }, []);
 
   // Get pricing for selected city
   const getCityPricing = () => {

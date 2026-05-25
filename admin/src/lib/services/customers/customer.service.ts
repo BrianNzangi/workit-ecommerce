@@ -40,22 +40,14 @@ export class CustomerService extends BaseService {
     }
 
     /**
-     * Search for customers (Filtered locally for now)
+     * Search for customers by delegating the search term to the backend
      */
     async searchCustomers(
-        _searchTerm: string,
-        _options: CustomerSearchOptions = {}
+        searchTerm: string,
+        options: CustomerSearchOptions = {}
     ): Promise<Customer[]> {
-        const response: any = await this.adminClient.customers.list();
-        const customers = Array.isArray(response) ? response : (response.customers || []);
-        // Simple local search for now
-        const term = _searchTerm.toLowerCase();
-        return customers.filter((c: Customer) =>
-            c.email?.toLowerCase().includes(term) ||
-            (c as any).firstName?.toLowerCase().includes(term) ||
-            (c as any).lastName?.toLowerCase().includes(term) ||
-            c.name?.toLowerCase().includes(term)
-        );
+        const response: any = await this.adminClient.customers.list({ q: searchTerm, ...options });
+        return Array.isArray(response) ? response : (response.customers || []);
     }
 
     /**

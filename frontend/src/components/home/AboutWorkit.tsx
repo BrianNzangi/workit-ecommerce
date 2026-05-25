@@ -12,6 +12,7 @@ export default function AboutWorkit() {
             height={90}
             alt="Awin advertiser"
             className="border-0"
+            style={{ width: 'auto', height: 'auto' }}
             unoptimized
           />
         </a>

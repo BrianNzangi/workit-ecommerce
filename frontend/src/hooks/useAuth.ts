@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useSession, authClient } from "@/lib/auth-client";
+import { useSession, authClient } from "@/lib/auth/auth-client";
 import { useRouter } from "next/navigation";
 
 export interface Customer {

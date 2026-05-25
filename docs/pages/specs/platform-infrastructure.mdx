@@ -1,0 +1,59 @@
+import { Callout } from 'nextra/components'
+
+# Platform Infrastructure Improvements
+
+**Status**: 📋 Planned — Requirements complete, design pending
+
+Five critical infrastructure capabilities to make the platform production-grade.
+
+## Capabilities
+
+### 1. Observability & Monitoring
+- Structured logging with correlation IDs (Pino)
+- Application Performance Monitoring (OpenTelemetry)
+- Distributed tracing
+- Real-time error tracking (Sentry)
+- Business metrics dashboards
+
+### 2. Resilience & Reliability
+- Circuit breakers for Paystack and external services
+- Retry with exponential backoff
+- Rate limiting per customer/IP, preferably Redis-backed when enabled
+- Graceful degradation strategies
+- Health check endpoints (`/health/live`, `/health/ready`)
+
+### 3. Data Integrity & Consistency
+- Automated database backups (daily full, 6-hour incremental)
+- Point-in-time recovery
+- Idempotency keys for order and payment endpoints
+- Saga pattern for checkout flow
+
+### 4. Security Hardening
+- Security headers (HSTS, CSP, X-Frame-Options)
+- Input sanitization middleware
+- CSRF protection
+- Audit logging for sensitive operations
+- Secrets management (no secrets in code)
+
+### 5. Scalability Infrastructure
+- Stateless application with shared session storage when horizontal scaling is needed
+- Database read replicas for query distribution
+- Optional Redis caching layer for hot data
+- Background job processing (BullMQ)
+- Message queue for async operations
+
+## Technology Choices
+
+| Capability | Library |
+|-----------|---------|
+| Logging | Pino (already in Fastify) |
+| APM / Tracing | OpenTelemetry |
+| Circuit Breaker | `opossum` or `cockatiel` |
+| Rate Limiting | `@fastify/rate-limit` with optional Redis backing |
+| Background Jobs | BullMQ |
+| Error Tracking | Sentry |
+| Metrics | Prometheus + Grafana |
+
+<Callout type="info">
+  Full requirements document: `.kiro/specs/platform-infrastructure-improvements/requirements.md`
+</Callout>

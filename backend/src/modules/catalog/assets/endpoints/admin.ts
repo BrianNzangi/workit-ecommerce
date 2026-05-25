@@ -1,5 +1,5 @@
 import { FastifyPluginAsync } from "fastify";
-import { db, schema, eq, inArray } from "../../../../lib/db.js";
+import { db, schema, eq, inArray, and, isNull, desc } from "../../../../lib/db.js";
 import { storageService } from "../../../../lib/storage.js";
 import { v4 as uuidv4 } from "uuid";
 
@@ -9,59 +9,24 @@ type DeleteResult =
     | { id: string; status: "in_use" };
 
 export const assetsAdminRoutes: FastifyPluginAsync = async (fastify) => {
-    const isForeignKeyError = (err: any) => err?.code === "23503";
-
-    const deleteAssetFromStorage = async (source?: string | null) => {
-        if (!source) return;
-        const key = source.replace(/^\/uploads\//, "");
-
-        try {
-            await storageService.delete(key);
-        } catch (err) {
-            // Log but don't fail the request if storage delete fails
-            fastify.log.warn({ err, key }, "Failed to delete file from storage");
-        }
-    };
-
-    const detachAssetReferences = async (assetId: string) => {
-        // These relations are "no action" in DB; clear them before deleting the asset row.
-        await Promise.all([
-            db.update(schema.collections as any)
-                .set({ assetId: null } as any)
-                .where(eq(schema.collections.assetId as any, assetId)),
-            db.update(schema.blogs as any)
-                .set({ assetId: null } as any)
-                .where(eq(schema.blogs.assetId as any, assetId)),
-            db.update(schema.banners as any)
-                .set({ desktopImageId: null } as any)
-                .where(eq(schema.banners.desktopImageId as any, assetId)),
-            db.update(schema.banners as any)
-                .set({ mobileImageId: null } as any)
-                .where(eq(schema.banners.mobileImageId as any, assetId)),
-        ]);
-    };
-
     const deleteAssetById = async (id: string): Promise<DeleteResult> => {
         const asset = await db.query.assets.findFirst({
-            where: eq(schema.assets.id, id),
+            where: and(eq(schema.assets.id, id), isNull(schema.assets.deletedAt)),
         });
 
         if (!asset) {
             return { id, status: "not_found" };
         }
 
-        await detachAssetReferences(id);
-        await deleteAssetFromStorage((asset as any).source as string);
+        await db
+            .update(schema.assets as any)
+            .set({
+                deletedAt: new Date(),
+                updatedAt: new Date(),
+            } as any)
+            .where(eq(schema.assets.id as any, id));
 
-        try {
-            await db.delete(schema.assets as any).where(eq(schema.assets.id as any, id));
-            return { id, status: "deleted" };
-        } catch (err) {
-            if (isForeignKeyError(err)) {
-                return { id, status: "in_use" };
-            }
-            throw err;
-        }
+        return { id, status: "deleted" };
     };
 
     fastify.get("/", {
@@ -70,9 +35,10 @@ export const assetsAdminRoutes: FastifyPluginAsync = async (fastify) => {
         const { take = 32, skip = 0 } = request.query as { take?: number; skip?: number };
 
         const assets = await (db as any).query.assets.findMany({
+            where: isNull(schema.assets.deletedAt),
             limit: Number(take),
             offset: Number(skip),
-            orderBy: (assets: any, { desc }: any) => [desc(assets.createdAt)],
+            orderBy: [desc(schema.assets.createdAt)],
         });
 
         return assets;
@@ -109,6 +75,7 @@ export const assetsAdminRoutes: FastifyPluginAsync = async (fastify) => {
             height: null,
             createdAt: new Date(),
             updatedAt: new Date(),
+            deletedAt: null,
         }).returning();
 
         return {
@@ -123,6 +90,64 @@ export const assetsAdminRoutes: FastifyPluginAsync = async (fastify) => {
         preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')],
     }, handleFileUpload);
 
+    fastify.post("/presign", {
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')],
+    }, async (request, reply) => {
+        const { filename, contentType } = request.body as { filename: string; contentType: string };
+
+        if (!filename || !contentType) {
+            return reply.status(400).send({ message: "filename and contentType are required" });
+        }
+
+        const key = `${Date.now()}-${filename}`;
+        const uploadUrl = await storageService.generatePresignedUrl(key, contentType);
+        const publicUrl = storageService.getPublicUrl(key);
+
+        return { key, uploadUrl, publicUrl };
+    });
+
+    fastify.post("/register", {
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')],
+    }, async (request, reply) => {
+        const { key, filename, contentType, fileSize, width, height } = request.body as {
+            key: string;
+            filename: string;
+            contentType: string;
+            fileSize?: number;
+            width?: number | null;
+            height?: number | null;
+        };
+
+        if (!key || !filename) {
+            return reply.status(400).send({ message: "key and filename are required" });
+        }
+
+        const id = uuidv4();
+        const assetSource = storageService.getPublicUrl(key);
+
+        const [newAsset] = await db.insert(schema.assets as any).values({
+            id,
+            name: filename,
+            type: contentType.startsWith("image/") ? "IMAGE" : "DOCUMENT",
+            mimeType: contentType,
+            fileSize: fileSize || null,
+            source: assetSource,
+            preview: assetSource,
+            width: width || null,
+            height: height || null,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            deletedAt: null,
+        }).returning();
+
+        return {
+            ...newAsset,
+            url: assetSource,
+            source: assetSource,
+            success: true,
+        };
+    });
+
     fastify.post("/", {
         preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')],
     }, handleFileUpload);
@@ -134,6 +159,7 @@ export const assetsAdminRoutes: FastifyPluginAsync = async (fastify) => {
         const { name } = request.body as any;
         const updatedAsset = await db.update(schema.assets as any).set({
             name,
+            updatedAt: new Date(),
         } as any).where(eq(schema.assets.id as any, id)).returning();
 
         return updatedAsset;

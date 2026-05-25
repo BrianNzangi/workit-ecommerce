@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sendMetaEvent } from "@/lib/meta-conversions";
+import { sendMetaEvent } from "@/lib/meta/meta-conversions";
 
 const getBackendUrl = () => {
   const env = process.env as Record<string, string | undefined>;

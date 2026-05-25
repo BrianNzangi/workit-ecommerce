@@ -6,7 +6,7 @@ import { Heart, ShoppingCart, Tag } from "lucide-react"
 import toast from "react-hot-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import ProductBenefits from "@/components/product/ProductBenefits"
-import { getProductPriceDisplay, getProductPromotionBadge } from "@/lib/product-promotion"
+import { getProductPriceDisplay, getProductPromotionBadge } from "@/lib/product/product-promotion"
 import { useCartStore } from "@/store/cartStore"
 import { Product } from "@/types/product"
 

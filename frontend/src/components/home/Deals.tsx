@@ -1,30 +1,32 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { getImageUrl, shouldBypassImageOptimization } from '@/lib/image-utils';
-import { getBannerHref, type StoreBanner } from '@/lib/banner-target';
+import { ArrowRight } from 'lucide-react';
+import { getImageUrl } from '@/lib/image/image-utils';
+import { getBannerHref, type StoreBanner } from '@/lib/banner/banner-target';
+import SectionContainer from '@/components/layout/SectionContainer';
 
 interface DealsProps {
     deals: StoreBanner[];
 }
 
 export default function Deals({ deals }: DealsProps) {
-    if (deals.length === 0) {
-        return null;
-    }
+    const visibleDeals = deals.filter(
+        (deal) => getBannerHref(deal) && (deal.desktopImage?.preview || deal.desktopImage?.source),
+    );
+
+    if (visibleDeals.length === 0) return null;
 
     return (
-        <section className="sm:py-6 lg:py-0">
-            <div className="container mx-auto px-2 sm:px-2 md:px-2 lg:px-6">
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2 md:gap-2 lg:gap-2">
-                    {deals.map((deal) => {
-                        const bannerHref = getBannerHref(deal);
+        <section aria-label="Deals and promotions" className="py-6 md:py-8">
+        <SectionContainer className="px-4 sm:px-6 lg:px-8">
+                <h2 className="text-lg md:text-2xl font-bold text-gray-900 mb-6">
+                    Deals
+                </h2>
 
-                        if (!bannerHref || !deal.desktopImage) {
-                            return null;
-                        }
-
-                        const imageUrl = getImageUrl(deal.desktopImage.preview || deal.desktopImage.source);
-                        const shouldBypassOptimization = shouldBypassImageOptimization(imageUrl);
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {visibleDeals.map((deal) => {
+                        const bannerHref = getBannerHref(deal)!;
+                        const imageUrl = getImageUrl(deal.desktopImage!.preview || deal.desktopImage!.source);
                         const ctaText = deal.product?.name
                             ? `View ${deal.product.name}`
                             : `Shop ${deal.collection?.name || deal.title} Deals`;
@@ -33,54 +35,39 @@ export default function Deals({ deals }: DealsProps) {
                             <Link
                                 key={deal.id}
                                 href={bannerHref}
-                                className="block rounded-lg overflow-hidden transition-shadow"
+                                className="group block bg-white rounded-md border border-gray-200 overflow-hidden"
                             >
-                                <div className="p-2 sm:p-2 md:p-2 lg:p-2">
-                                    <div className="relative w-full aspect-[16/8.4] sm:aspect-16/11 overflow-hidden rounded-lg mb-3 sm:mb-4">
-                                        <Image
-                                            src={imageUrl}
-                                            alt={deal.title}
-                                            fill
-                                            className="object-cover"
-                                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                                            unoptimized={shouldBypassOptimization}
-                                        />
-                                    </div>
+                                <div className="relative w-full aspect-video overflow-hidden">
+                                    <Image
+                                        src={imageUrl}
+                                        alt={deal.title}
+                                        fill
+                                        className="object-cover"
+                                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                                    />
+                                </div>
 
-                                    <h3 className="font-sans text-md sm:text-lg md:text-xl font-bold text-gray-900 leading-tight mb-1 sm:mb-1">
+                                <div className="p-3 sm:p-4">
+                                    <h3 className="text-base sm:text-lg font-bold text-gray-900 leading-tight mb-1 line-clamp-2">
                                         {deal.title}
                                     </h3>
 
                                     {deal.description && (
-                                        <p className="font-sans text-xs sm:text-sm md:text-base text-gray-600 line-clamp-2 md:line-clamp-3 mb-3 sm:mb-4">
+                                        <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 mb-3">
                                             {deal.description}
                                         </p>
                                     )}
 
-                                    <div className="flex items-center gap-1">
-                                        <span className="font-sans text-sm sm:text-base font-medium text-primary-800">
-                                            {ctaText}
-                                        </span>
-                                        <svg
-                                            className="w-4 h-4 text-primary-800"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M9 5l7 7-7 7"
-                                            />
-                                        </svg>
+                                    <div className="flex items-center gap-1 text-sm font-medium text-primary-900 group-hover:text-primary-800 transition-colors">
+                                        <span>{ctaText}</span>
+                                        <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
                                     </div>
                                 </div>
                             </Link>
                         );
                     })}
                 </div>
-            </div>
+            </SectionContainer>
         </section>
     );
 }

@@ -2,16 +2,16 @@
 @import "tw-animate-css";
 
 @theme {
-  --color-primary-900: #ea1d2a;
-  --color-primary-800: #ec343f;
-  --color-primary-700: #ee4a55;
-  --color-primary-600: #f0616a;
-  --color-primary-500: #f2777f;
-  --color-primary-400: #f58e95;
-  --color-primary-300: #f7a5aa;
-  --color-primary-200: #f9bbbf;
-  --color-primary-100: #fbd2d4;
-  --color-primary-50: #fde8ea;
+  --color-primary-900: #e71333;
+  --color-primary-800: #ed4049;
+  --color-primary-700: #f35c5d;
+  --color-primary-600: #f77471;
+  --color-primary-500: #fb8985;
+  --color-primary-400: #fe9e99;
+  --color-primary-300: #ffb2ad;
+  --color-primary-200: #ffc5c1;
+  --color-primary-100: #ffd9d6;
+  --color-primary-50: #ffecea;
 
   --color-secondary-900: #060709;
   --color-secondary-800: #181a1c;
@@ -24,156 +24,25 @@
   --color-secondary-100: #c5c6c6;
   --color-secondary-50: #e2e2e2;
 
-  --color-accent-900: #1C9737;
-  --color-accent-800: #E8EAED;
+  --color-accent-900: #00755f;
+  --color-accent-800: #30826e;
+  --color-accent-700: #4b907d;
+  --color-accent-600: #629d8c;
+  --color-accent-500: #79ab9c;
+  --color-accent-400: #8fb9ac;
+  --color-accent-300: #a6c6bc;
+  --color-accent-200: #bcd4cc;
+  --color-accent-100: #d2e2dd;
+  --color-accent-50: #e8f1ee;
 
-  --font-ibm-plex-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: var(--font-ibm-plex-sans);
-}
+  --font-sans: "Hanken Grotesk", system-ui, -apple-system, sans-serif;
 
-/* IBM Plex Sans Utilities */
-.ibm-plex-sans-thin {
-  font-family: "IBM Plex Sans", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 100;
-  font-style: normal;
-  font-variation-settings: "wdth" 100;
-}
+  --animate-marquee: marquee 30s linear infinite;
 
-.ibm-plex-sans-extralight {
-  font-family: "IBM Plex Sans", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 200;
-  font-style: normal;
-  font-variation-settings: "wdth" 100;
-}
-
-.ibm-plex-sans-light {
-  font-family: "IBM Plex Sans", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 300;
-  font-style: normal;
-  font-variation-settings: "wdth" 100;
-}
-
-.ibm-plex-sans-regular {
-  font-family: "IBM Plex Sans", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 400;
-  font-style: normal;
-  font-variation-settings: "wdth" 100;
-}
-
-.ibm-plex-sans-medium {
-  font-family: "IBM Plex Sans", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 500;
-  font-style: normal;
-  font-variation-settings: "wdth" 100;
-}
-
-.ibm-plex-sans-semibold {
-  font-family: "IBM Plex Sans", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 600;
-  font-style: normal;
-  font-variation-settings: "wdth" 100;
-}
-
-.ibm-plex-sans-bold {
-  font-family: "IBM Plex Sans", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 700;
-  font-style: normal;
-  font-variation-settings: "wdth" 100;
-}
-
-.ibm-plex-sans-thin-italic {
-  font-family: "IBM Plex Sans", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 100;
-  font-style: italic;
-  font-variation-settings: "wdth" 100;
-}
-
-.ibm-plex-sans-extralight-italic {
-  font-family: "IBM Plex Sans", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 200;
-  font-style: italic;
-  font-variation-settings: "wdth" 100;
-}
-
-.ibm-plex-sans-light-italic {
-  font-family: "IBM Plex Sans", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 300;
-  font-style: italic;
-  font-variation-settings: "wdth" 100;
-}
-
-.ibm-plex-sans-regular-italic {
-  font-family: "IBM Plex Sans", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 400;
-  font-style: italic;
-  font-variation-settings: "wdth" 100;
-}
-
-.ibm-plex-sans-medium-italic {
-  font-family: "IBM Plex Sans", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 500;
-  font-style: italic;
-  font-variation-settings: "wdth" 100;
-}
-
-.ibm-plex-sans-semibold-italic {
-  font-family: "IBM Plex Sans", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 600;
-  font-style: italic;
-  font-variation-settings: "wdth" 100;
-}
-
-.ibm-plex-sans-bold-italic {
-  font-family: "IBM Plex Sans", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 700;
-  font-style: italic;
-  font-variation-settings: "wdth" 100;
-}
-
-.ibm-plex-sans-extrabold {
-  font-family: "IBM Plex Sans", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 800;
-  font-style: normal;
-  font-variation-settings: "wdth" 100;
-}
-
-.ibm-plex-sans-black {
-  font-family: "IBM Plex Sans", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 900;
-  font-style: normal;
-  font-variation-settings: "wdth" 100;
-}
-
-.ibm-plex-sans-extrabold-italic {
-  font-family: "IBM Plex Sans", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 800;
-  font-style: italic;
-  font-variation-settings: "wdth" 100;
-}
-
-.ibm-plex-sans-black-italic {
-  font-family: "IBM Plex Sans", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 900;
-  font-style: italic;
-  font-variation-settings: "wdth" 100;
+  @keyframes marquee {
+    0% { transform: translateX(-50%); }
+    100% { transform: translateX(0%); }
+  }
 }
 
 :root {

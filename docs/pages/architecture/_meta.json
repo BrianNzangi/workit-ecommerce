@@ -1,0 +1,7 @@
+{
+  "index": "Overview",
+  "bounded-contexts": "Bounded Contexts",
+  "ddd-design": "DDD Architecture",
+  "database": "Database & Schema",
+  "auth": "Authentication"
+}

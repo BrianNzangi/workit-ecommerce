@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useCart } from "@/hooks/useCart";
 import { useCartStore } from "@/store/cartStore";
-import { getImageUrl } from "@/lib/image-utils";
+import { getImageUrl } from "@/lib/image/image-utils";
 import { Heart, X, Info, Minus, Plus } from "lucide-react";
 import type { Coupon as CheckoutCoupon } from "@/types/checkout";
 

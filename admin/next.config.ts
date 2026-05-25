@@ -62,14 +62,16 @@ const nextConfig: NextConfig = {
     dangerouslyAllowSVG: true,
   },
   async rewrites() {
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+    const backendUrl =
+    process.env.NEXT_PUBLIC_BACKEND_URL ||
+    (process.env.NODE_ENV === 'production' ? 'http://workit-backend:3001' : 'http://localhost:3001');
     return [
       // NOTE: /api/admin/assets is handled by the route.ts handler (not a rewrite)
       // to properly support file uploads with streaming body
       // Catalog
       {
         source: '/api/admin/products/:path*',
-        destination: `${backendUrl}/catalog/products/admin/:path*`,
+        destination: `${backendUrl}/catalog/products/_admin/:path*`,
       },
       {
         source: '/api/admin/collections/:path*',
@@ -104,7 +106,7 @@ const nextConfig: NextConfig = {
       },
       {
         source: '/api/admin/homepage-collections/:path*',
-        destination: `${backendUrl}/marketing/homepage/:path*`,
+        destination: `${backendUrl}/marketing/homepage/admin/:path*`,
       },
       {
         // Map marketing stats to analytics weekly-stats for now as fallback

@@ -8,7 +8,7 @@ import {
     YAxis,
 } from 'recharts';
 import type { DashboardOverviewResponse } from '@/lib/services';
-import { DashboardPanel } from './DashboardPanel';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatMoneyCompact } from './dashboard.utils';
 
 function SalesTrendTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; name: string }>; label?: string }) {
@@ -17,13 +17,13 @@ function SalesTrendTooltip({ active, payload, label }: { active?: boolean; paylo
     }
 
     return (
-        <div className="rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-lg">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-gray-400">{label}</p>
-            <div className="space-y-1.5 text-sm text-gray-600">
+        <div className="rounded-lg border bg-background px-3 py-2 shadow-md">
+            <p className="mb-1 text-xs font-medium text-muted-foreground">{label}</p>
+            <div className="space-y-1 text-sm">
                 {payload.map((entry) => (
-                    <div key={entry.name} className="flex items-center justify-between gap-6">
-                        <span>{entry.name}</span>
-                        <span className="font-semibold text-gray-900">KSh {Math.round(entry.value).toLocaleString()}</span>
+                    <div key={entry.name} className="flex items-center justify-between gap-4">
+                        <span className="text-muted-foreground">{entry.name}</span>
+                        <span className="font-medium">KSh {Math.round(entry.value).toLocaleString()}</span>
                     </div>
                 ))}
             </div>
@@ -47,68 +47,62 @@ export function DashboardRevenuePanel({ revenueTrend, revenueLegend }: Dashboard
     ];
 
     return (
-        <DashboardPanel
-            title="Revenue"
-            aside={
-                <div className="flex items-center gap-4 text-xs font-medium text-gray-500">
-                    <span className="inline-flex items-center gap-2">
-                        <span className="h-2.5 w-2.5 rounded-full bg-primary-900" />
+        <Card>
+            <CardHeader>
+                <CardTitle>Revenue</CardTitle>
+                <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                    <span className="inline-flex items-center gap-1.5">
+                        <span className="h-2 w-2 rounded-full bg-primary" />
                         Current week {formatMoneyCompact(revenueLegend.currentWeekTotal)}
                     </span>
-                    <span className="inline-flex items-center gap-2">
-                        <span className="h-2.5 w-2.5 rounded-full bg-secondary-400" />
+                    <span className="inline-flex items-center gap-1.5">
+                        <span className="h-2 w-2 rounded-full bg-muted-foreground/50" />
                         Last week {formatMoneyCompact(revenueLegend.previousWeekTotal)}
                     </span>
                 </div>
-            }
-        >
-            <div className="flex h-full min-h-[360px] flex-col">
-                <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={revenueTrend} margin={{ top: 16, right: 12, left: 8, bottom: 16 }}>
-                        <CartesianGrid stroke="#eceef2" strokeDasharray="4 4" vertical={false} />
-                        <XAxis
-                            dataKey="label"
-                            axisLine={false}
-                            tickLine={false}
-                            padding={{ left: 18, right: 12 }}
-                            tick={{ fill: '#757677', fontSize: 12 }}
-                        />
-                        <YAxis
-                            axisLine={{ stroke: '#d1d5db', strokeWidth: 1 }}
-                            tickLine={false}
-                            domain={yAxisDomain}
-                            width={72}
-                            tick={{ fill: '#757677', fontSize: 12 }}
-                            tickFormatter={(value: number) => `KSh ${(value / 1000).toFixed(value >= 1000000 ? 1 : 0)}k`}
-                        />
-                        <Tooltip content={<SalesTrendTooltip />} />
-                        <Line
-                            type="monotone"
-                            dataKey="current"
-                            name="Current week"
-                            stroke="#cc0000"
-                            strokeWidth={3}
-                            dot={false}
-                            isAnimationActive
-                            animationDuration={900}
-                            animationEasing="ease-out"
-                            activeDot={{ r: 5, strokeWidth: 0 }}
-                        />
-                        <Line
-                            type="monotone"
-                            dataKey="previous"
-                            name="Last week"
-                            stroke="#8f8f91"
-                            strokeWidth={2.5}
-                            strokeDasharray="6 6"
-                            dot={false}
-                            isAnimationActive
-                            animationDuration={900}
-                            animationEasing="ease-out"
-                        />
-                    </LineChart>
-                </ResponsiveContainer>
-            </div>
-        </DashboardPanel>
+            </CardHeader>
+            <CardContent>
+                <div className="h-[320px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={revenueTrend} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
+                            <XAxis
+                                dataKey="label"
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                            />
+                            <YAxis
+                                axisLine={false}
+                                tickLine={false}
+                                domain={yAxisDomain}
+                                width={64}
+                                tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                                tickFormatter={(value: number) => `KSh ${(value / 1000).toFixed(value >= 1000000 ? 1 : 0)}k`}
+                            />
+                            <Tooltip content={<SalesTrendTooltip />} />
+                            <Line
+                                type="monotone"
+                                dataKey="current"
+                                name="Current week"
+                                stroke="hsl(var(--primary))"
+                                strokeWidth={2}
+                                dot={false}
+                                activeDot={{ r: 4 }}
+                            />
+                            <Line
+                                type="monotone"
+                                dataKey="previous"
+                                name="Last week"
+                                stroke="hsl(var(--muted-foreground))"
+                                strokeWidth={2}
+                                strokeDasharray="5 5"
+                                dot={false}
+                            />
+                        </LineChart>
+                    </ResponsiveContainer>
+                </div>
+            </CardContent>
+        </Card>
     );
 }

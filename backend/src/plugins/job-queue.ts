@@ -1,6 +1,6 @@
 import fp from "fastify-plugin";
 import { productSearchService } from "../services/search/product-search.service.js";
-import { isAlgoliaEnabled } from "../services/search/algolia.client.js";
+import { isTypesenseEnabled } from "../services/search/typesense.client.js";
 
 type JobType = "search.sync" | "search.delete" | "search.reindex";
 
@@ -49,21 +49,21 @@ export default fp(async (fastify) => {
     const handleJob = async (job: Job) => {
         switch (job.type) {
             case "search.sync": {
-                if (!isAlgoliaEnabled()) return;
+                if (!isTypesenseEnabled()) return;
                 const ids = job.payload.productIds || [];
                 if (ids.length === 0) return;
                 await productSearchService.syncProductsByIds(ids);
                 return;
             }
             case "search.delete": {
-                if (!isAlgoliaEnabled()) return;
+                if (!isTypesenseEnabled()) return;
                 const ids = job.payload.productIds || [];
                 if (ids.length === 0) return;
                 await productSearchService.deleteProductsByIds(ids);
                 return;
             }
             case "search.reindex": {
-                if (!isAlgoliaEnabled()) return;
+                if (!isTypesenseEnabled()) return;
                 const batchSize = job.payload.batchSize;
                 await productSearchService.reindexAllProducts(batchSize);
                 return;

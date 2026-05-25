@@ -6,6 +6,7 @@ export interface Collection {
     parentId: string | null;
     enabled: boolean;
     showInMostShopped: boolean;
+    showInMenuHeader: boolean;
     sortOrder: number;
     createdAt: string;
     children?: Collection[];

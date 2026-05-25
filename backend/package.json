@@ -2,22 +2,25 @@
     "name": "@workit/backend",
     "version": "1.0.0",
     "type": "module",
-    "description": "Workit Backend migrated to Fastify",
+    "description": "Workit Backend - DDD Architecture",
     "main": "dist/index.js",
     "scripts": {
         "predev": "pnpm --dir .. --filter @workit/db build && pnpm --dir .. --filter @workit/validation build",
         "dev": "tsx watch src/server.ts",
         "prebuild": "pnpm --dir .. --filter @workit/db build && pnpm --dir .. --filter @workit/validation build",
         "build": "tsc",
-        "start": "node dist/server.js",
+        "start": "node dist/src/server.js",
+        "test": "vitest --run",
+        "test:watch": "vitest",
         "db:push": "drizzle-kit push --dialect=postgresql --url=$DATABASE_URL --schema=../packages/db/dist/schema/*.js"
     },
     "dependencies": {
         "@aws-sdk/client-s3": "^3.987.0",
+        "@aws-sdk/s3-request-presigner": "3.987.0",
         "@fastify/auth": "^5.0.0",
         "@fastify/autoload": "^6.0.0",
-        "@fastify/cors": "^10.0.0",
         "@fastify/cookie": "^10.0.0",
+        "@fastify/cors": "^10.0.0",
         "@fastify/jwt": "^9.0.0",
         "@fastify/multipart": "^9.4.0",
         "@fastify/sensible": "^6.0.0",
@@ -37,12 +40,14 @@
         "fastify-type-provider-zod": "^4.0.0",
         "ioredis": "^5.9.2",
         "postgres": "^3.4.8",
+        "typesense": "^1.8.2",
         "uuid": "^13.0.0",
         "zod": "latest"
     },
     "devDependencies": {
         "@types/node": "^20.0.0",
         "tsx": "^4.19.1",
-        "typescript": "^5.0.0"
+        "typescript": "^5.0.0",
+        "vitest": "^2.0.0"
     }
 }

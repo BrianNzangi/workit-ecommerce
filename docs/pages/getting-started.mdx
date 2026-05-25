@@ -1,0 +1,110 @@
+import { Callout, Steps, Tabs } from 'nextra/components'
+
+# Getting Started
+
+This guide walks you through setting up the Workit monorepo locally.
+
+## Prerequisites
+
+- **Node.js** 20+
+- **pnpm** 10+
+- **Docker Desktop** for local Postgres and containerized app services
+
+## Installation
+
+<Steps>
+
+### Clone the repository
+
+```bash
+git clone https://github.com/your-org/workit-ecommerce.git
+cd workit-ecommerce
+```
+
+### Install dependencies
+
+```bash
+pnpm install
+```
+
+### Set up environment variables
+
+Copy the example env files for each app:
+
+```bash
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env.local
+cp admin/.env.example admin/.env.local
+```
+
+Then fill in the required values. At minimum you need:
+
+```bash
+# backend/.env
+DATABASE_URL=postgresql://postgres:password@localhost:5432/workit-db
+BETTER_AUTH_SECRET=your-secret-here
+BACKEND_URL=http://localhost:3001
+FRONTEND_URL=http://localhost:3000
+ADMIN_URL=http://localhost:3002
+```
+
+### Start the development environment
+
+<Tabs items={['Full local', 'Docker stack']}>
+  <Tabs.Tab>
+  Run everything locally:
+
+  ```bash
+  pnpm dev
+  ```
+  </Tabs.Tab>
+  <Tabs.Tab>
+  Run the full stack in Docker:
+
+  ```bash
+  docker compose up --build --remove-orphans
+  ```
+  </Tabs.Tab>
+</Tabs>
+
+</Steps>
+
+## Local Ports
+
+| App | URL |
+|-----|-----|
+| Storefront | `http://localhost:3000` |
+| Backend API | `http://localhost:3001` |
+| Admin | `http://localhost:3002` |
+| Docs | `http://localhost:3003` |
+| Drizzle Studio | `http://localhost:4983` |
+
+## Database
+
+### Push schema changes
+
+```bash
+# From repo root
+pnpm db:push
+
+# Or from backend
+pnpm --filter @workit/backend db:push
+```
+
+<Callout type="warning">
+  `DB_AUTO_PUSH=true` is set by default in development and the backend will auto-push schema on startup. Set it to `false` in `backend/.env` to disable this.
+</Callout>
+
+## API Testing
+
+Import the Insomnia collection to test all APIs:
+
+1. Open **Insomnia** and choose **File** then **Import**.
+2. Select `insomnia/workit-api.json` from the repo root.
+3. Set environment variables:
+   - `base_url`: `http://localhost:3001`
+   - `admin_token`: your admin session token
+   - `storefront_token`: your customer session token
+   - `guest_id`: any string such as `guest-test-001`
+
+The collection includes storefront and admin request groups for local verification.

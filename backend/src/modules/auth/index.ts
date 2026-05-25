@@ -55,11 +55,17 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
                 return reply.code(204).send();
             }
 
-            const originalUrl = request.raw.url;
+            const originalUrl = request.raw.url || "";
 
-            // Compatibility for deployments still proxying /api/auth/* to backend.
-            if (originalUrl?.startsWith("/api/auth")) {
+            // Better Auth expects routes under /auth/*.
+            // Depending on Fastify prefix mounting, request.raw.url can arrive as:
+            // - /api/auth/sign-in/email
+            // - /auth/sign-in/email
+            // - /sign-in/email
+            if (originalUrl.startsWith("/api/auth")) {
                 request.raw.url = originalUrl.replace(/^\/api\/auth/, "/auth");
+            } else if (!originalUrl.startsWith("/auth")) {
+                request.raw.url = `/auth${originalUrl.startsWith("/") ? originalUrl : `/${originalUrl}`}`;
             }
 
             try {

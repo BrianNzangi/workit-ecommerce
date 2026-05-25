@@ -19,7 +19,7 @@
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
-  --radius: 0.5rem;
+  --radius: 0.375rem;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -27,16 +27,28 @@
   --chart-5: oklch(0.769 0.188 70.08);
 
   /* Brand Colors - Primary (Red) */
-  --color-primary-900: #cc0000;
-  --color-primary-800: #d5372b;
-  --color-primary-700: #dd5445;
-  --color-primary-600: #e46c5c;
-  --color-primary-500: #ea8273;
-  --color-primary-400: #f0988a;
-  --color-primary-300: #f5ada1;
-  --color-primary-200: #f9c1b8;
-  --color-primary-100: #fcd6d0;
-  --color-primary-50: #feeae7;
+  --color-primary-900: #e71333;
+  --color-primary-800: #ed4049;
+  --color-primary-700: #f35c5d;
+  --color-primary-600: #f77471;
+  --color-primary-500: #fb8985;
+  --color-primary-400: #fe9e99;
+  --color-primary-300: #ffb2ad;
+  --color-primary-200: #ffc5c1;
+  --color-primary-100: #ffd9d6;
+  --color-primary-50: #ffecea;
+
+  /* Brand Colors - Accent (Teal) */
+  --color-accent-900: #00755f;
+  --color-accent-800: #30826e;
+  --color-accent-700: #4b907d;
+  --color-accent-600: #629d8c;
+  --color-accent-500: #79ab9c;
+  --color-accent-400: #8fb9ac;
+  --color-accent-300: #a6c6bc;
+  --color-accent-200: #bcd4cc;
+  --color-accent-100: #d2e2dd;
+  --color-accent-50: #e8f1ee;
 
   /* Brand Colors - Secondary (Gray) */
   --color-secondary-900: #060709;
@@ -85,7 +97,7 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
+  --color-accent: #00755f;
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
@@ -94,10 +106,10 @@
   --color-ring: var(--ring);
 
   --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 1px);
+  --radius-sm: calc(var(--radius) - 2px);
 
-  --font-sans: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  --font-sans: "Hanken Grotesk", system-ui, -apple-system, sans-serif;
 
   /* Primary Colors */
   --color-primary-900: var(--color-primary-900);
@@ -122,34 +134,51 @@
   --color-secondary-200: var(--color-secondary-200);
   --color-secondary-100: var(--color-secondary-100);
   --color-secondary-50: var(--color-secondary-50);
+
+  /* Accent Colors */
+  --color-accent-900: var(--color-accent-900);
+  --color-accent-800: var(--color-accent-800);
+  --color-accent-700: var(--color-accent-700);
+  --color-accent-600: var(--color-accent-600);
+  --color-accent-500: var(--color-accent-500);
+  --color-accent-400: var(--color-accent-400);
+  --color-accent-300: var(--color-accent-300);
+  --color-accent-200: var(--color-accent-200);
+  --color-accent-100: var(--color-accent-100);
+  --color-accent-50: var(--color-accent-50);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  font-family: "Hanken Grotesk", system-ui, -apple-system, sans-serif;
   font-optical-sizing: auto;
-  font-variation-settings: "wdth" 100;
 }
 
-.ibm-plex-sans-admin {
-  font-family: "IBM Plex Sans", sans-serif;
+.hanken-grotesk-admin {
+  font-family: "Hanken Grotesk", sans-serif;
   font-optical-sizing: auto;
   font-style: normal;
-  font-variation-settings: "wdth" 100;
 }
 
 /* Ensure form inputs are visible */
 input,
 textarea,
 select {
-  background-color: white;
-  color: var(--color-secondary-900);
+    color: var(--color-secondary-900);
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: var(--color-secondary-300);
+    color: var(--color-secondary-300);
+}
+
+/* Hide default date picker icon */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    display: none;
+}
+input[type="date"] {
+    -webkit-calendar-picker-indicator: none;
 }
 
 /* TipTap Editor Styles */
@@ -221,4 +250,27 @@ textarea::placeholder {
 .prose a {
   color: var(--color-primary-800);
   text-decoration: underline;
+}
+
+/* Custom Scrollbar for Admin Sidebar */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-secondary-600) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--color-secondary-600);
+  border-radius: 999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-secondary-500);
 }

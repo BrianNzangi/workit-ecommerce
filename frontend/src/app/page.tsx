@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import dynamic from 'next/dynamic';
 import HomepageCollection from '@/components/home/HomepageCollection';
 import MostShopped from '@/components/categories-grid/MostShopped';
 import HeroSection from '@/components/banners/HeroSection';
@@ -11,9 +12,22 @@ import {
     getHomepageBanners,
     getHomepageCollections,
     getMostShoppedCollections,
-} from '@/lib/homepage-data';
-import { recordSsrRenderTime } from '@/lib/metrics';
-import { SITE_CONFIG, DEFAULT_OG, DEFAULT_TWITTER } from '@/lib/meta';
+    getFeaturedDeals,
+    getFlashSales,
+    getClearanceDeals,
+} from '@/lib/homepage/homepage-data';
+import { recordSsrRenderTime } from '@/lib/utils/metrics';
+import { SITE_CONFIG, DEFAULT_OG, DEFAULT_TWITTER } from '@/lib/meta/meta';
+
+const FeaturedDealsSection = dynamic(
+    () => import('@/components/home/FeaturedDealsSection'),
+);
+const FlashSalesSection = dynamic(
+    () => import('@/components/home/FlashSalesSection'),
+);
+const ClearanceDealsSection = dynamic(
+    () => import('@/components/home/ClearanceDealsSection'),
+);
 
 export const metadata: Metadata = {
     title: SITE_CONFIG.title,
@@ -39,6 +53,9 @@ export default async function Home() {
         getMostShoppedCollections(),
         getHomepageCollections({ status: 'active' }),
         getFeaturedBlogs(),
+        getFeaturedDeals(),
+        getFlashSales(),
+        getClearanceDeals(),
     ]);
 
     const homepageBanners = unwrapSettled(results[0], {
@@ -56,6 +73,9 @@ export default async function Home() {
     const mostShoppedCollections = unwrapSettled(results[1], []);
     const homepageCollections = unwrapSettled(results[2], []);
     const featuredBlogs = unwrapSettled(results[3], []);
+    const featuredDeals = unwrapSettled(results[4], []);
+    const flashSales = unwrapSettled(results[5], []);
+    const clearanceDeals = unwrapSettled(results[6], []);
     recordSsrRenderTime('/', Date.now() - startedAt);
 
     return (
@@ -63,12 +83,15 @@ export default async function Home() {
             <HeroSection banners={heroBanners} />
             <MostShopped collections={mostShoppedCollections} />
             <Deals deals={dealsBanners} />
+            <FeaturedDealsSection deals={featuredDeals} />
             <HorizontalBanner banner={topHorizontalBanner} position="DEALS_HORIZONTAL" />
+            <FlashSalesSection sales={flashSales} />
             <HomepageCollection
                 collections={homepageCollections}
                 middleBanner={middleBanner}
                 bottomBanner={bottomBanner}
             />
+            <ClearanceDealsSection deals={clearanceDeals} />
             <FeaturedBlogs blogs={featuredBlogs} />
             <AboutWorkit />
         </div>

@@ -1,5 +1,6 @@
 import { CustomerService } from '@/lib/services';
 import { requireAuth } from '@/lib/middleware/auth.middleware';
+import { mapHttpError } from '@/lib/graphql/errors';
 import type { GraphQLContext } from '../../context';
 
 export const addressMutations = {
@@ -9,8 +10,12 @@ export const addressMutations = {
         context: GraphQLContext
     ) => {
         requireAuth(context.auth);
-        const customerService = new CustomerService();
-        return await customerService.createAddress(customerId, input);
+        try {
+            const customerService = new CustomerService();
+            return await customerService.createAddress(customerId, input);
+        } catch (error) {
+            throw mapHttpError(error);
+        }
     },
 
     updateAddress: async (
@@ -19,8 +24,12 @@ export const addressMutations = {
         context: GraphQLContext
     ) => {
         requireAuth(context.auth);
-        const customerService = new CustomerService();
-        return await customerService.updateAddress(id, input);
+        try {
+            const customerService = new CustomerService();
+            return await customerService.updateAddress(id, input);
+        } catch (error) {
+            throw mapHttpError(error);
+        }
     },
 
     deleteAddress: async (
@@ -29,7 +38,11 @@ export const addressMutations = {
         context: GraphQLContext
     ) => {
         requireAuth(context.auth);
-        const customerService = new CustomerService();
-        return await customerService.deleteAddress(id);
+        try {
+            const customerService = new CustomerService();
+            return await customerService.deleteAddress(id);
+        } catch (error) {
+            throw mapHttpError(error);
+        }
     },
 };

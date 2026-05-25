@@ -1,6 +1,7 @@
 import { FastifyPluginAsync } from "fastify";
-import { db, schema, eq, desc, ilike, inArray, asc } from "../../../../lib/db.js";
+import { db, schema, eq, desc, ilike, inArray, asc, isNull } from "../../../../lib/db.js";
 import { v4 as uuidv4 } from "uuid";
+import { getTypesenseClient, upsertTypesenseCollectionRecords } from "../../../../services/search/typesense.client.js";
 
 export const collectionsAdminRoutes: FastifyPluginAsync = async (fastify) => {
     // List Collections
@@ -32,6 +33,7 @@ export const collectionsAdminRoutes: FastifyPluginAsync = async (fastify) => {
         }
 
         const results = await (db as any).query.collections.findMany({
+            where: isNull(schema.collections.parentId),
             orderBy: [asc(schema.collections.sortOrder as any)],
             with: withRelations
         });
@@ -75,7 +77,7 @@ export const collectionsAdminRoutes: FastifyPluginAsync = async (fastify) => {
             await fastify.cache.invalidateTags(["collections", "products"]);
             return { collection, success: true };
         } catch (error: any) {
-            if (error.code === '23505' && error.message.includes('Collection_slug_unique')) {
+            if (error.cause?.code === '23505' || error.message?.includes('Collection_slug_unique')) {
                 return reply.status(400).send({
                     success: false,
                     message: "A collection with this slug already exists. Please use a unique slug."
@@ -95,6 +97,37 @@ export const collectionsAdminRoutes: FastifyPluginAsync = async (fastify) => {
             with: { asset: true }
         });
         return { collections: results, success: true };
+    });
+
+    fastify.post("/search/reindex", {
+        preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
+    }, async () => {
+        const typesenseClient = getTypesenseClient();
+        if (!typesenseClient) {
+            return {
+                success: false,
+                message: "Typesense not configured"
+            };
+        }
+
+        const collections = await db.query.collections.findMany({
+            columns: { id: true, name: true, slug: true, description: true }
+        });
+
+        const collectionDocuments = collections.map((collection: any) => ({
+            id: collection.id,
+            name: collection.name,
+            slug: collection.slug,
+            description: collection.description || ""
+        }));
+
+        await upsertTypesenseCollectionRecords(collectionDocuments);
+
+        return {
+            success: true,
+            count: collectionDocuments.length,
+            message: `Synced ${collectionDocuments.length} collections to Typesense`
+        };
     });
 
     // Show Collection
@@ -120,7 +153,7 @@ export const collectionsAdminRoutes: FastifyPluginAsync = async (fastify) => {
             await fastify.cache.invalidateTags(["collections", "products"]);
             return { collection, success: true };
         } catch (error: any) {
-            if (error.code === '23505' && error.message.includes('Collection_slug_unique')) {
+            if (error.cause?.code === '23505' || error.message?.includes('Collection_slug_unique')) {
                 return reply.status(400).send({
                     success: false,
                     message: "A collection with this slug already exists. Please use a unique slug."

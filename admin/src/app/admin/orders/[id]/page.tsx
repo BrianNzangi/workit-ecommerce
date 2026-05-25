@@ -1,25 +1,22 @@
 'use client';
 
-import { useEffect, useState, use, useRef } from 'react';
-import { Loader2, AlertCircle, ChevronLeft } from 'lucide-react';
+import { useEffect, useState, use } from 'react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
 import { AdminLayout } from '@/components/admin/layout/AdminLayout';
 import { ProtectedRoute } from '@/components/login/ProtectedRoute';
 import { toast } from '@/hooks/use-toast';
 import { InvoiceDisplay } from '@/components/admin/orders/InvoiceDisplay';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface OrderLine {
     id: string;
     quantity: number;
     linePrice: number;
-    variant?: {
+    product?: {
         name?: string;
-        sku?: string;
-        product?: {
-            name?: string;
-        };
-    };
+    } | null;
 }
 
 interface Order {
@@ -58,9 +55,6 @@ const ORDER_STATES = [
 
 export default function OrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
-    const searchParams = useSearchParams();
-    const action = searchParams.get('action');
-    const actionHandledRef = useRef<string | null>(null);
     const [order, setOrder] = useState<Order | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -124,27 +118,6 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
         }
     };
 
-    const handlePrint = () => {
-        window.print();
-    };
-
-    useEffect(() => {
-        if (!order || !action) return;
-        if (action !== 'print') return;
-
-        const actionKey = `${order.id}:${action}`;
-        if (actionHandledRef.current === actionKey) return;
-        actionHandledRef.current = actionKey;
-
-        const timer = setTimeout(() => {
-            if (action === 'print') {
-                handlePrint();
-            }
-        }, 300);
-
-        return () => clearTimeout(timer);
-    }, [order, action]);
-
     const getStatusColor = (state: string) => {
         const colors: Record<string, string> = {
             CREATED: 'bg-gray-100 text-gray-800',
@@ -163,8 +136,8 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
             <ProtectedRoute>
                 <AdminLayout>
                     <div className="flex flex-col items-center justify-center min-h-[400px]">
-                        <Loader2 className="w-12 h-12 text-[#FF5023] animate-spin mb-4" />
-                        <p className="text-gray-600 font-medium font-sans">Loading order details...</p>
+                        <Loader2 className="w-8 h-8 text-primary-700 animate-spin mb-3" />
+                        <p className="text-gray-600 text-sm">Loading order details...</p>
                     </div>
                 </AdminLayout>
             </ProtectedRoute>
@@ -175,17 +148,18 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
         return (
             <ProtectedRoute>
                 <AdminLayout>
-                    <div className="p-8 bg-white rounded-lg shadow-sm border border-gray-200 text-center font-sans">
-                        <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-                        <h2 className="text-xl font-bold text-gray-900 mb-2">Error Loading Order</h2>
-                        <p className="text-gray-600 mb-6">{error || 'Order not found'}</p>
-                        <Link
-                            href="/admin/orders"
-                            className="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
-                        >
-                            <ChevronLeft className="w-4 h-4 mr-1" /> Back to Orders
-                        </Link>
-                    </div>
+                    <Card className="max-w-md mx-auto rounded border border-gray-200">
+                        <CardContent className="p-8 text-center">
+                            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                            <h2 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Order</h2>
+                            <p className="text-sm text-gray-600 mb-6">{error || 'Order not found'}</p>
+                            <Button asChild variant="outline" className="rounded">
+                                <Link href="/admin/orders">
+                                    Back to Orders
+                                </Link>
+                            </Button>
+                        </CardContent>
+                    </Card>
                 </AdminLayout>
             </ProtectedRoute>
         );
@@ -199,7 +173,6 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                     orderStates={ORDER_STATES}
                     updatingStatus={updatingStatus}
                     onStatusUpdate={handleStatusUpdate}
-                    onPrint={handlePrint}
                     getStatusColor={getStatusColor}
                 />
             </AdminLayout>

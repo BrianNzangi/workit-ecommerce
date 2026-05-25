@@ -1,0 +1,104 @@
+type Campaign {
+  id: ID!
+  name: String!
+  slug: String!
+  description: String
+  type: String!
+  status: String!
+  startDate: DateTime!
+  endDate: DateTime
+  discountType: String
+  discountValue: Float
+  couponCode: String
+  minPurchaseAmount: Float
+  maxDiscountAmount: Float
+  usageLimit: Int
+  usagePerCustomer: Int
+  targetAudience: String
+  bannerIds: [String!]!
+  collectionIds: [String!]!
+  productIds: [String!]!
+  featuredProductsCount: Int
+  emailsSent: Int!
+  emailsOpened: Int!
+  emailsClicked: Int!
+  conversions: Int!
+  revenue: Float!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type CampaignFeaturedProduct {
+  id: ID!
+  name: String!
+  slug: String!
+  sku: String
+  salePrice: Float
+  originalPrice: Float
+}
+
+type CampaignDispatchResult {
+  success: Boolean!
+  message: String
+  dispatchId: String
+}
+
+input CreateCampaignInput {
+  name: String!
+  slug: String!
+  description: String
+  type: String!
+  status: String!
+  startDate: DateTime!
+  endDate: DateTime
+  targetAudience: String
+  discountType: String
+  discountValue: Float
+  couponCode: String
+  minPurchaseAmount: Float
+  maxDiscountAmount: Float
+  usageLimit: Int
+  usagePerCustomer: Int
+  bannerIds: [String!]
+  collectionIds: [String!]
+  productIds: [String!]
+}
+
+input UpdateCampaignInput {
+  name: String
+  slug: String
+  description: String
+  type: String
+  status: String
+  startDate: DateTime
+  endDate: DateTime
+  targetAudience: String
+  discountType: String
+  discountValue: Float
+  couponCode: String
+  minPurchaseAmount: Float
+  maxDiscountAmount: Float
+  usageLimit: Int
+  usagePerCustomer: Int
+  bannerIds: [String!]
+  collectionIds: [String!]
+  productIds: [String!]
+}
+
+input CampaignListOptions {
+  status: String
+  type: String
+  q: String
+}
+
+extend type Query {
+  campaigns(options: CampaignListOptions): [Campaign!]!
+  campaign(id: ID!): Campaign
+}
+
+extend type Mutation {
+  createCampaign(input: CreateCampaignInput!): Campaign!
+  updateCampaign(id: ID!, input: UpdateCampaignInput!): Campaign!
+  deleteCampaign(id: ID!): Boolean!
+  sendCampaign(id: ID!): CampaignDispatchResult!
+}

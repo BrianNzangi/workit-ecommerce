@@ -3,9 +3,9 @@ import { proxyRequest } from '@/lib/shared/network';
 
 export async function GET(request: NextRequest) {
     const { search } = new URL(request.url);
-    return proxyRequest(request, `/catalog/products/admin${search}`);
+    return proxyRequest(request, `/catalog/products/_admin${search}`);
 }
 
 export async function POST(request: NextRequest) {
-    return proxyRequest(request, '/catalog/products/admin');
+    return proxyRequest(request, '/catalog/products/_admin');
 }

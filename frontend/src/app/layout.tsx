@@ -1,18 +1,25 @@
 import type { Metadata } from "next";
 import { Toaster } from "react-hot-toast";
-import Header from "../components/layout/Header";
+import Header from "../components/layout/header/Header";
 import CartInitializer from "../components/providers/CartInitializer";
 import MetaCookieInitializer from "../components/providers/MetaCookieInitializer";
 import QueryProvider from "../components/providers/QueryProvider";
-import Footer from "../components/layout/Footer";
+import Footer from "../components/layout/footer/Footer";
 import "./globals.css";
 import Script from "next/script";
+import { Hanken_Grotesk } from "next/font/google";
+
+const hankenGrotesk = Hanken_Grotesk({
+  subsets: ["latin"],
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  display: "swap",
+});
 
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
 const AuthModalWrapper = dynamic(() => import("../components/auth/AuthModalWrapper"));
 
-import { SITE_CONFIG, DEFAULT_OG, DEFAULT_TWITTER } from "@/lib/meta";
+import { SITE_CONFIG, DEFAULT_OG, DEFAULT_TWITTER } from "@/lib/meta/meta";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_CONFIG.url),
@@ -82,12 +89,7 @@ gtag('config', 'G-Y0DN0MB5CV');`,
 })(window, document, "clarity", "script", "vylyphkwcr");`,
           }}
         />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&display=swap"
-          rel="stylesheet"
-        />
+
         {/* JSON-LD SEO */}
         <Script
           id="workit-jsonld"
@@ -96,7 +98,7 @@ gtag('config', 'G-Y0DN0MB5CV');`,
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body suppressHydrationWarning className="font-sans flex flex-col min-h-screen">
+      <body suppressHydrationWarning className={`${hankenGrotesk.className} font-sans flex flex-col min-h-screen`}>
         <QueryProvider>
           <CartInitializer />
           <MetaCookieInitializer />
@@ -122,7 +124,7 @@ gtag('config', 'G-Y0DN0MB5CV');`,
               boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)', // shadow-lg
               padding: '16px',
               fontSize: '14px',
-              fontFamily: '"IBM Plex Sans", sans-serif',
+              fontFamily: '"Hanken Grotesk", sans-serif',
             },
             // Success toast
             success: {

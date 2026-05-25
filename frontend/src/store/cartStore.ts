@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import axios from 'axios';
 import type { ProductPromotion } from '@/types/product';
-import { CSRF_HEADER_NAME, ensureCsrfToken } from '@/lib/csrf';
+import { CSRF_HEADER_NAME, ensureCsrfToken } from '@/lib/security/csrf';
 
 export type CartItem = {
   id: string; // This is the Line ID in backend
@@ -27,6 +27,15 @@ type CartState = {
 
   fetchCart: () => Promise<void>;
   addItem: (item: {
+    id: string;
+    variantId?: string;
+    name: string;
+    price: number;
+    image: string;
+    quantity?: number;
+    activePromotion?: ProductPromotion | null;
+  }) => Promise<void>;
+  quickAdd: (item: {
     id: string;
     variantId?: string;
     name: string;
@@ -155,6 +164,27 @@ export const useCartStore = create<CartState>()(
           // Refetch to get correct Line IDs and totals
           await get().fetchCart();
           set({ isOpen: true }); // Open cart on add
+        } catch (error) {
+          console.error('Failed to add item:', error);
+        }
+      },
+
+      quickAdd: async (item) => {
+        let { sessionId } = get();
+        const quantity = item.quantity || 1;
+        if (!sessionId) {
+          sessionId = generateSessionId();
+          set({ sessionId });
+        }
+
+        try {
+          await axios.post('/api/cart', {
+            productId: item.id,
+            variantId: item.variantId,
+            quantity
+          }, { headers: await getMutationHeaders(sessionId), withCredentials: true });
+
+          await get().fetchCart();
         } catch (error) {
           console.error('Failed to add item:', error);
         }

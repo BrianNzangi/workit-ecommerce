@@ -60,6 +60,7 @@ export const storefrontAuth = betterAuth({
     advanced: {
         cookiePrefix: storefrontCookiePrefix,
         useSecureCookies: isProduction,
+        disableCSRFCheck: true, // We handle CSRF via our own plugin; this allows API clients (Insomnia, curl) without Origin header
         defaultCookieAttributes: {
             secure: isProduction,
             sameSite: isProduction ? "none" : "lax",

@@ -1,9 +1,12 @@
 import { validationError, unauthorizedError } from "@/lib/graphql/errors";
 import { RegisterAdminInput, LoginInput, AuthPayload } from "./auth.types";
 
+// Server-side auth calls must use the internal Docker service name, not the public URL.
+// BACKEND_URL / BACKEND_API_URL resolve to http://backend:3001 inside Docker.
 const backendBaseUrl =
-    process.env.NEXT_PUBLIC_BACKEND_URL ||
+    process.env.BACKEND_URL ||
     process.env.BACKEND_API_URL ||
+    process.env.NEXT_PUBLIC_BACKEND_URL ||
     "http://localhost:3001";
 
 export class AuthService {

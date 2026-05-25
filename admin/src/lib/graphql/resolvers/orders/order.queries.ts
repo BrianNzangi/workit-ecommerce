@@ -1,5 +1,6 @@
 import { OrderService, OrderListOptions } from '@/lib/services';
 import { requireAuth } from '@/lib/middleware/auth.middleware';
+import { mapHttpError } from '@/lib/graphql/errors';
 import type { GraphQLContext } from '../../context';
 
 export const orderQueries = {
@@ -9,8 +10,12 @@ export const orderQueries = {
         context: GraphQLContext
     ) => {
         requireAuth(context.auth);
-        const orderService = new OrderService();
-        return await orderService.getOrder(id);
+        try {
+            const orderService = new OrderService();
+            return await orderService.getOrder(id);
+        } catch (error) {
+            throw mapHttpError(error);
+        }
     },
 
     orders: async (
@@ -19,8 +24,12 @@ export const orderQueries = {
         context: GraphQLContext
     ) => {
         requireAuth(context.auth);
-        const orderService = new OrderService();
-        return await orderService.getOrders(options);
+        try {
+            const orderService = new OrderService();
+            return await orderService.getOrders(options);
+        } catch (error) {
+            throw mapHttpError(error);
+        }
     },
 
     searchOrders: async (
@@ -29,7 +38,11 @@ export const orderQueries = {
         context: GraphQLContext
     ) => {
         requireAuth(context.auth);
-        const orderService = new OrderService();
-        return await orderService.searchOrders(searchTerm);
+        try {
+            const orderService = new OrderService();
+            return await orderService.searchOrders(searchTerm);
+        } catch (error) {
+            throw mapHttpError(error);
+        }
     },
 };

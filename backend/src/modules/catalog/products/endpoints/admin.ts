@@ -13,6 +13,22 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
         }
     };
 
+    const findProductByIdentifier = async (identifier: string) => {
+        return (db as any).query.products.findFirst({
+            where: or(
+                eq(schema.products.id as any, identifier),
+                eq(schema.products.slug as any, identifier)
+            ),
+            with: {
+                assets: { with: { asset: true } },
+                collections: { with: { collection: true } },
+                homepageCollections: { with: { collection: true } },
+                brand: true,
+                campaignProducts: { with: { campaign: true } },
+            },
+        });
+    };
+
     // List Products (Admin view might include more details)
     fastify.get("/", {
         preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
@@ -213,16 +229,7 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
         preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
     }, async (request, reply) => {
         const { id } = request.params as any;
-        const product = await (db as any).query.products.findFirst({
-            where: eq(schema.products.id as any, id),
-            with: {
-                assets: { with: { asset: true } },
-                collections: { with: { collection: true } },
-                homepageCollections: { with: { collection: true } },
-                brand: true,
-                campaignProducts: { with: { campaign: true } },
-            },
-        });
+        const product = await findProductByIdentifier(id);
         if (!product) return reply.status(404).send({ message: "Product not found" });
         return { product: enrichProductCampaigns(product), success: true };
     });
@@ -231,40 +238,45 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
     const updateProductHandler = async (request: any, reply: any) => {
         const { id } = request.params as any;
         const { collections: collectionIds, assetIds, homepageCollections: homepageCollectionIds, ...productData } = request.body as any;
+        const existingProduct = await findProductByIdentifier(id);
+
+        if (!existingProduct) return reply.status(404).send({ message: "Product not found" });
+
+        const resolvedProductId = existingProduct.id;
 
         const [product] = await db
             .update(schema.products as any)
             .set({ ...productData, updatedAt: new Date() })
-            .where(eq(schema.products.id as any, id))
+            .where(eq(schema.products.id as any, resolvedProductId))
             .returning();
 
         if (!product) return reply.status(404).send({ message: "Product not found" });
 
         if (collectionIds !== undefined) {
-            await db.delete(schema.productCollections as any).where(eq(schema.productCollections.productId as any, id));
+            await db.delete(schema.productCollections as any).where(eq(schema.productCollections.productId as any, resolvedProductId));
             if (collectionIds.length > 0) {
                 await db.insert(schema.productCollections as any).values(
-                    collectionIds.map((cid: string) => ({ id: uuidv4(), productId: id, collectionId: cid }))
+                    collectionIds.map((cid: string) => ({ id: uuidv4(), productId: resolvedProductId, collectionId: cid }))
                 );
             }
         }
 
         if (assetIds !== undefined) {
-            await db.delete(schema.productAssets as any).where(eq(schema.productAssets.productId as any, id));
+            await db.delete(schema.productAssets as any).where(eq(schema.productAssets.productId as any, resolvedProductId));
             if (assetIds.length > 0) {
                 await db.insert(schema.productAssets as any).values(
-                    assetIds.map((aid: string, index: number) => ({ id: uuidv4(), productId: id, assetId: aid, sortOrder: index }))
+                    assetIds.map((aid: string, index: number) => ({ id: uuidv4(), productId: resolvedProductId, assetId: aid, sortOrder: index }))
                 );
             }
         }
 
         if (homepageCollectionIds !== undefined) {
-            await db.delete(schema.homepageCollectionProducts as any).where(eq(schema.homepageCollectionProducts.productId as any, id));
+            await db.delete(schema.homepageCollectionProducts as any).where(eq(schema.homepageCollectionProducts.productId as any, resolvedProductId));
             if (homepageCollectionIds.length > 0) {
                 await db.insert(schema.homepageCollectionProducts as any).values(
                     homepageCollectionIds.map((hcid: string, index: number) => ({
                         id: uuidv4(),
-                        productId: id,
+                        productId: resolvedProductId,
                         collectionId: hcid,
                         sortOrder: index
                     }))
@@ -273,8 +285,8 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
         }
 
         await runSearchSyncSafely(
-            { type: "search.sync", payload: { productIds: [id] } },
-            `update:${id}`
+            { type: "search.sync", payload: { productIds: [resolvedProductId] } },
+            `update:${resolvedProductId}`
         );
 
         await fastify.cache.invalidateTags(["products", "homepage-collections"]);
@@ -295,12 +307,15 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
     // Delete Product
     fastify.delete("/:id", {
         preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
-    }, async (request) => {
+    }, async (request, reply) => {
         const { id } = request.params as any;
-        await db.delete(schema.products as any).where(eq(schema.products.id as any, id));
+        const existingProduct = await findProductByIdentifier(id);
+        if (!existingProduct) return reply.status(404).send({ message: "Product not found" });
+
+        await db.delete(schema.products as any).where(eq(schema.products.id as any, existingProduct.id));
         await runSearchSyncSafely(
-            { type: "search.delete", payload: { productIds: [id] } },
-            `delete:${id}`
+            { type: "search.delete", payload: { productIds: [existingProduct.id] } },
+            `delete:${existingProduct.id}`
         );
 
         await fastify.cache.invalidateTags(["products", "homepage-collections"]);
@@ -395,22 +410,19 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
         return reply.send(csv);
     });
 
-    // ─── Import Products from CSV data ───────────────────────────
+    // ─── Import Products from JSON ──────────────────────────────
     fastify.post("/import", {
         preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
     }, async (request, reply) => {
-        const { csvData } = request.body as { csvData: any[] };
+        const { products } = request.body as { products: any[] };
 
-        if (!Array.isArray(csvData) || csvData.length === 0) {
+        if (!Array.isArray(products) || products.length === 0) {
             return reply.status(400).send({ error: 'No data provided' });
         }
 
-        // Pre-fetch brands and collections for lookup
+        // Pre-fetch brands for lookup
         const allBrands = await (db as any).query.brands.findMany();
-        const allCollections = await (db as any).query.collections.findMany();
-
         const brandBySlug = new Map(allBrands.map((b: any) => [b.slug, b.id]));
-        const collectionBySlug = new Map(allCollections.map((c: any) => [c.slug, c.id]));
 
         let created = 0;
         let updated = 0;
@@ -418,11 +430,11 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
         const errors: string[] = [];
         const touchedProductIds = new Set<string>();
 
-        for (let i = 0; i < csvData.length; i++) {
-            const row = csvData[i];
+        for (let i = 0; i < products.length; i++) {
+            const row = products[i];
             try {
                 if (!row.name || !row.slug) {
-                    errors.push(`Row ${i + 1}: Missing required fields (name, slug)`);
+                    errors.push(`Item ${i + 1}: Missing required fields (name, slug)`);
                     skipped++;
                     continue;
                 }
@@ -431,14 +443,8 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
                     name: row.name,
                     slug: row.slug,
                     sku: row.sku || null,
-                    description: row.description || null,
-                    salePrice: row.salePrice ? parseFloat(row.salePrice) : null,
-                    originalPrice: row.originalPrice ? parseFloat(row.originalPrice) : null,
-                    stockOnHand: row.stockOnHand ? parseInt(row.stockOnHand) : 20,
-                    enabled: row.enabled !== undefined ? row.enabled === 'true' || row.enabled === true : true,
+                    enabled: false,
                     condition: row.condition || 'NEW',
-                    vat: row.vat ? parseFloat(row.vat) : 0,
-                    vatInclusive: row.vatInclusive !== undefined ? row.vatInclusive === 'true' || row.vatInclusive === true : true,
                 };
 
                 // Resolve brand
@@ -468,30 +474,8 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
                 }
                 touchedProductIds.add(productId);
 
-                // Handle collections (pipe-separated slugs)
-                if (row.collections) {
-                    const collSlugs = String(row.collections).split('|').map((s: string) => s.trim()).filter(Boolean);
-                    const collIds = collSlugs
-                        .map((slug: string) => collectionBySlug.get(slug))
-                        .filter((id): id is string => !!id);
-
-                    if (collIds.length > 0) {
-                        // Remove existing and re-add
-                        await db.delete(schema.productCollections as any)
-                            .where(eq(schema.productCollections.productId as any, productId));
-                        await db.insert(schema.productCollections as any).values(
-                            collIds.map((cid: string, idx: number) => ({
-                                id: uuidv4(),
-                                productId,
-                                collectionId: cid,
-                                sortOrder: idx,
-                            }))
-                        );
-                    }
-                }
-
             } catch (err: any) {
-                errors.push(`Row ${i + 1} (${row.name || 'unknown'}): ${err.message}`);
+                errors.push(`Item ${i + 1} (${row.name || 'unknown'}): ${err.message}`);
                 skipped++;
             }
         }
@@ -508,7 +492,7 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
             created,
             updated,
             skipped,
-            total: csvData.length,
+            total: products.length,
             errors: errors.length > 0 ? errors : undefined,
         };
     });

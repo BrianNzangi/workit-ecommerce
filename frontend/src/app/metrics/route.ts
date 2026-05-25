@@ -1,4 +1,4 @@
-import { getPrometheusContentType, getPrometheusMetrics } from '@/lib/metrics';
+import { getPrometheusContentType, getPrometheusMetrics } from '@/lib/utils/metrics';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;

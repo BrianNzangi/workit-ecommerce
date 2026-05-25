@@ -5,4 +5,5 @@ export * from "./schema/marketing.js";
 export * from "./schema/fulfillment.js";
 export * from "./schema/settings.js";
 export * from "./schema/cart.js";
+export * from "./schema/promotions.js";
 export * from "./schema/relations.js";

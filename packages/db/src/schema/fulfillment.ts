@@ -1,4 +1,4 @@
-import { pgTable, text, varchar, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, boolean, timestamp, jsonb, index } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { orderStateEnum, paymentStateEnum } from "./enums.js";
 import { users, addresses } from "./identity.js";
@@ -19,7 +19,11 @@ export const orders = pgTable("Order", {
     shippingMethodId: text("shippingMethodId").references(() => shippingMethods.id),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().notNull(),
-});
+}, (t) => ({
+    byCustomerCreatedAt: index("Order_customer_created_at_idx").on(t.customerId, t.createdAt),
+    byState: index("Order_state_idx").on(t.state),
+    byCode: index("Order_code_idx").on(t.code),
+}));
 
 export const orderLines = pgTable("OrderLine", {
     id: text("id").primaryKey().notNull(),
@@ -27,7 +31,10 @@ export const orderLines = pgTable("OrderLine", {
     productId: text("productId").notNull().references(() => products.id),
     quantity: integer("quantity").notNull(),
     linePrice: integer("linePrice").notNull(),
-});
+}, (t) => ({
+    byOrder: index("OrderLine_order_idx").on(t.orderId),
+    byProduct: index("OrderLine_product_idx").on(t.productId),
+}));
 
 export const payments = pgTable("Payment", {
     id: text("id").primaryKey().notNull(),
@@ -41,7 +48,10 @@ export const payments = pgTable("Payment", {
     errorMessage: text("errorMessage"),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().notNull(),
-});
+}, (t) => ({
+    byOrder: index("Payment_order_idx").on(t.orderId),
+    byState: index("Payment_state_idx").on(t.state),
+}));
 
 export const shippingMethods = pgTable("ShippingMethod", {
     id: text("id").primaryKey().notNull(),
@@ -52,7 +62,9 @@ export const shippingMethods = pgTable("ShippingMethod", {
     isExpress: boolean("isExpress").default(false).notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().notNull(),
-});
+}, (t) => ({
+    byEnabled: index("ShippingMethod_enabled_idx").on(t.enabled),
+}));
 
 export const shippingZones = pgTable("ShippingZone", {
     id: text("id").primaryKey().notNull(),
@@ -60,7 +72,9 @@ export const shippingZones = pgTable("ShippingZone", {
     county: varchar("county", { length: 255 }).notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().notNull(),
-});
+}, (t) => ({
+    byShippingMethod: index("ShippingZone_shipping_method_idx").on(t.shippingMethodId),
+}));
 
 export const shippingCities = pgTable("ShippingCity", {
     id: text("id").primaryKey().notNull(),
@@ -70,6 +84,8 @@ export const shippingCities = pgTable("ShippingCity", {
     expressPrice: integer("expressPrice").notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().notNull(),
-});
+}, (t) => ({
+    byZone: index("ShippingCity_zone_idx").on(t.zoneId),
+}));
 
 // End of tables

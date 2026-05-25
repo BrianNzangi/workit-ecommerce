@@ -6,11 +6,11 @@ import ProductRecommendationsLoading from '@/components/product/ProductRecommend
 import ProductRecommendationsServer from '@/components/product/ProductRecommendationsServer';
 import { Category } from '@/types/collection';
 import type { Product } from '@/types/product';
-import { SITE_CONFIG } from '@/lib/meta';
-import { recordSsrRenderTime } from '@/lib/metrics';
-import { proxyFetch } from '@/lib/proxy-utils';
-import { getImageUrl } from '@/lib/image-utils';
-import { normalizeProduct, normalizeProducts } from '@/lib/product-normalization';
+import { SITE_CONFIG } from '@/lib/meta/meta';
+import { recordSsrRenderTime } from '@/lib/utils/metrics';
+import { proxyFetch } from '@/lib/utils/proxy-utils';
+import { getImageUrl } from '@/lib/image/image-utils';
+import { normalizeProduct, normalizeProducts } from '@/lib/product/product-normalization';
 
 interface Props {
   params: Promise<{ slug: string }>;

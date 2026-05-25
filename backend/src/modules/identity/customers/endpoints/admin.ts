@@ -82,9 +82,34 @@ export const customersAdminRoutes: FastifyPluginAsync = async (fastify) => {
         const { id } = request.params as any;
         const customer = await db.query.users.findFirst({
             where: and(eq(schema.users.id, id), eq(schema.users.role, 'CUSTOMER')),
+            with: {
+                addresses: true,
+            }
         });
         if (!customer) return reply.status(404).send({ message: "Customer not found" });
-        return { customer, success: true };
+
+        // Fetch customer orders
+        const orders = await db.query.orders.findMany({
+            where: eq(schema.orders.customerId, id),
+            orderBy: [desc(schema.orders.createdAt)],
+            limit: 50,
+        });
+
+        // Calculate total spent and order count
+        const totalSpent = orders.reduce((sum: number, order: any) => sum + (order.total || 0), 0);
+        const ordersCount = orders.length;
+
+        return {
+            customer: {
+                ...customer,
+                addresses: undefined,
+                address: customer.addresses?.[0] || null,
+                orders,
+                totalSpent,
+                ordersCount,
+            },
+            success: true
+        };
     });
 
     // Edit Customer

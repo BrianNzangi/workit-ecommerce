@@ -1,0 +1,743 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-05-20T00:00:00.000Z",
+  "__export_source": "insomnia.desktop.app:v2023.5.8",
+  "resources": [
+    {
+      "_id": "wrk_workit_api",
+      "_type": "workspace",
+      "parentId": null,
+      "name": "Workit API",
+      "description": "Current Workit API collection. Admin auth is cookie-based on /auth/*, storefront auth is cookie-based on /api/auth/*, and admin proxy requests go through the Next admin app on :3002.",
+      "scope": "collection"
+    },
+    {
+      "_id": "env_base",
+      "_type": "environment",
+      "parentId": "wrk_workit_api",
+      "name": "Base Environment",
+      "data": {
+        "backend_url": "http://localhost:3001",
+        "admin_url": "http://localhost:3002",
+        "storefront_url": "http://localhost:3000",
+        "admin_email": "admin@example.com",
+        "admin_password": "password123",
+        "customer_email": "user@example.com",
+        "customer_password": "password123",
+        "guest_id": "guest-test-001",
+        "product_id": "",
+        "product_slug": "",
+        "brand_id": "",
+        "collection_id": "",
+        "homepage_collection_id": "",
+        "order_id": "",
+        "customer_id": "",
+        "user_id": "",
+        "shipping_method_id": "",
+        "shipping_zone_id": "",
+        "line_id": "",
+        "campaign_id": "",
+        "banner_id": "",
+        "blog_id": ""
+      }
+    },
+    {
+      "_id": "grp_diag",
+      "_type": "request_group",
+      "parentId": "wrk_workit_api",
+      "name": "Diagnostics",
+      "description": "Basic health and route checks"
+    },
+    {
+      "_id": "req_diag_api",
+      "_type": "request",
+      "parentId": "grp_diag",
+      "name": "Backend API Info",
+      "method": "GET",
+      "url": "{{ backend_url }}/api",
+      "headers": [],
+      "parameters": [],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "req_diag_live",
+      "_type": "request",
+      "parentId": "grp_diag",
+      "name": "Backend Live Health",
+      "method": "GET",
+      "url": "{{ backend_url }}/health/live",
+      "headers": [],
+      "parameters": [],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "grp_admin",
+      "_type": "request_group",
+      "parentId": "wrk_workit_api",
+      "name": "Admin Direct Backend",
+      "description": "Use these against Fastify on :3001. Authenticate first; Insomnia cookie jar will carry the session."
+    },
+    {
+      "_id": "grp_admin_auth",
+      "_type": "request_group",
+      "parentId": "grp_admin",
+      "name": "Auth"
+    },
+    {
+      "_id": "req_admin_auth_signin",
+      "_type": "request",
+      "parentId": "grp_admin_auth",
+      "name": "Sign In",
+      "method": "POST",
+      "url": "{{ backend_url }}/auth/sign-in/email",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "parameters": [],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"{{ admin_email }}\",\n  \"password\": \"{{ admin_password }}\"\n}"
+      },
+      "authentication": {}
+    },
+    {
+      "_id": "req_admin_auth_session",
+      "_type": "request",
+      "parentId": "grp_admin_auth",
+      "name": "Get Session",
+      "method": "GET",
+      "url": "{{ backend_url }}/auth/get-session",
+      "headers": [],
+      "parameters": [],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "req_admin_auth_signout",
+      "_type": "request",
+      "parentId": "grp_admin_auth",
+      "name": "Sign Out",
+      "method": "POST",
+      "url": "{{ backend_url }}/auth/sign-out",
+      "headers": [],
+      "parameters": [],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "grp_admin_orders",
+      "_type": "request_group",
+      "parentId": "grp_admin",
+      "name": "Fulfillment - Orders"
+    },
+    {
+      "_id": "req_admin_orders_list",
+      "_type": "request",
+      "parentId": "grp_admin_orders",
+      "name": "List Orders",
+      "method": "GET",
+      "url": "{{ backend_url }}/fulfillment/orders/admin",
+      "headers": [],
+      "parameters": [
+        { "name": "limit", "value": "50" },
+        { "name": "offset", "value": "0" }
+      ],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "req_admin_orders_search",
+      "_type": "request",
+      "parentId": "grp_admin_orders",
+      "name": "Search Orders",
+      "method": "GET",
+      "url": "{{ backend_url }}/fulfillment/orders/admin/search",
+      "headers": [],
+      "parameters": [
+        { "name": "q", "value": "{{ order_id }}" }
+      ],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "req_admin_orders_get",
+      "_type": "request",
+      "parentId": "grp_admin_orders",
+      "name": "Get Order",
+      "method": "GET",
+      "url": "{{ backend_url }}/fulfillment/orders/admin/{{ order_id }}",
+      "headers": [],
+      "parameters": [],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "req_admin_orders_patch_status",
+      "_type": "request",
+      "parentId": "grp_admin_orders",
+      "name": "Update Order Status",
+      "method": "PATCH",
+      "url": "{{ backend_url }}/fulfillment/orders/admin/{{ order_id }}/status",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "parameters": [],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"state\": \"PAYMENT_SETTLED\"\n}"
+      },
+      "authentication": {}
+    },
+    {
+      "_id": "grp_admin_products",
+      "_type": "request_group",
+      "parentId": "grp_admin",
+      "name": "Catalog - Products"
+    },
+    {
+      "_id": "req_admin_products_list",
+      "_type": "request",
+      "parentId": "grp_admin_products",
+      "name": "List Products",
+      "method": "GET",
+      "url": "{{ backend_url }}/catalog/products/_admin",
+      "headers": [],
+      "parameters": [
+        { "name": "limit", "value": "20" },
+        { "name": "offset", "value": "0" },
+        { "name": "includeTotalAll", "value": "true" }
+      ],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "req_admin_products_search",
+      "_type": "request",
+      "parentId": "grp_admin_products",
+      "name": "Search Products",
+      "method": "GET",
+      "url": "{{ backend_url }}/catalog/products/_admin/search",
+      "headers": [],
+      "parameters": [
+        { "name": "q", "value": "shoe" },
+        { "name": "limit", "value": "20" }
+      ],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "req_admin_products_get",
+      "_type": "request",
+      "parentId": "grp_admin_products",
+      "name": "Get Product",
+      "method": "GET",
+      "url": "{{ backend_url }}/catalog/products/_admin/{{ product_id }}",
+      "headers": [],
+      "parameters": [],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "req_admin_products_create",
+      "_type": "request",
+      "parentId": "grp_admin_products",
+      "name": "Create Product",
+      "method": "POST",
+      "url": "{{ backend_url }}/catalog/products/_admin",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "parameters": [],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Insomnia Test Product\",\n  \"slug\": \"insomnia-test-product\",\n  \"sku\": \"INS-001\",\n  \"description\": \"Created from Insomnia\",\n  \"originalPrice\": 9999,\n  \"stockOnHand\": 25,\n  \"enabled\": true,\n  \"collections\": [],\n  \"assetIds\": [],\n  \"homepageCollections\": []\n}"
+      },
+      "authentication": {}
+    },
+    {
+      "_id": "grp_admin_brands",
+      "_type": "request_group",
+      "parentId": "grp_admin",
+      "name": "Catalog - Brands"
+    },
+    {
+      "_id": "req_admin_brands_list",
+      "_type": "request",
+      "parentId": "grp_admin_brands",
+      "name": "List Brands",
+      "method": "GET",
+      "url": "{{ backend_url }}/catalog/brands/admin",
+      "headers": [],
+      "parameters": [],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "req_admin_brands_search",
+      "_type": "request",
+      "parentId": "grp_admin_brands",
+      "name": "Search Brands",
+      "method": "GET",
+      "url": "{{ backend_url }}/catalog/brands/admin/search",
+      "headers": [],
+      "parameters": [
+        { "name": "q", "value": "nike" }
+      ],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "req_admin_brands_create",
+      "_type": "request",
+      "parentId": "grp_admin_brands",
+      "name": "Create Brand",
+      "method": "POST",
+      "url": "{{ backend_url }}/catalog/brands/admin",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "parameters": [],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Insomnia Brand\",\n  \"slug\": \"insomnia-brand\"\n}"
+      },
+      "authentication": {}
+    },
+    {
+      "_id": "grp_admin_collections",
+      "_type": "request_group",
+      "parentId": "grp_admin",
+      "name": "Catalog - Collections"
+    },
+    {
+      "_id": "req_admin_collections_list",
+      "_type": "request",
+      "parentId": "grp_admin_collections",
+      "name": "List Collections",
+      "method": "GET",
+      "url": "{{ backend_url }}/catalog/collections/admin",
+      "headers": [],
+      "parameters": [
+        { "name": "includeChildren", "value": "true" }
+      ],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "req_admin_collections_search",
+      "_type": "request",
+      "parentId": "grp_admin_collections",
+      "name": "Search Collections",
+      "method": "GET",
+      "url": "{{ backend_url }}/catalog/collections/admin/search",
+      "headers": [],
+      "parameters": [
+        { "name": "q", "value": "tools" }
+      ],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "req_admin_collections_get",
+      "_type": "request",
+      "parentId": "grp_admin_collections",
+      "name": "Get Collection",
+      "method": "GET",
+      "url": "{{ backend_url }}/catalog/collections/admin/{{ collection_id }}",
+      "headers": [],
+      "parameters": [],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "grp_admin_homepage",
+      "_type": "request_group",
+      "parentId": "grp_admin",
+      "name": "Marketing - Homepage"
+    },
+    {
+      "_id": "req_admin_homepage_list",
+      "_type": "request",
+      "parentId": "grp_admin_homepage",
+      "name": "List Homepage Collections",
+      "method": "GET",
+      "url": "{{ backend_url }}/marketing/homepage/admin",
+      "headers": [],
+      "parameters": [],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "req_admin_homepage_get",
+      "_type": "request",
+      "parentId": "grp_admin_homepage",
+      "name": "Get Homepage Collection",
+      "method": "GET",
+      "url": "{{ backend_url }}/marketing/homepage/admin/{{ homepage_collection_id }}",
+      "headers": [],
+      "parameters": [],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "grp_admin_shipping",
+      "_type": "request_group",
+      "parentId": "grp_admin",
+      "name": "Fulfillment - Shipping"
+    },
+    {
+      "_id": "req_admin_shipping_methods_list",
+      "_type": "request",
+      "parentId": "grp_admin_shipping",
+      "name": "List Shipping Methods",
+      "method": "GET",
+      "url": "{{ backend_url }}/fulfillment/shipping/admin",
+      "headers": [],
+      "parameters": [],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "req_admin_shipping_zones_list",
+      "_type": "request",
+      "parentId": "grp_admin_shipping",
+      "name": "List Shipping Zones",
+      "method": "GET",
+      "url": "{{ backend_url }}/fulfillment/shipping/admin/zones",
+      "headers": [],
+      "parameters": [],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "grp_admin_customers",
+      "_type": "request_group",
+      "parentId": "grp_admin",
+      "name": "Identity - Customers"
+    },
+    {
+      "_id": "req_admin_customers_list",
+      "_type": "request",
+      "parentId": "grp_admin_customers",
+      "name": "List Customers",
+      "method": "GET",
+      "url": "{{ backend_url }}/identity/customers/admin",
+      "headers": [],
+      "parameters": [
+        { "name": "limit", "value": "50" },
+        { "name": "offset", "value": "0" }
+      ],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "req_admin_customers_get",
+      "_type": "request",
+      "parentId": "grp_admin_customers",
+      "name": "Get Customer",
+      "method": "GET",
+      "url": "{{ backend_url }}/identity/customers/admin/{{ customer_id }}",
+      "headers": [],
+      "parameters": [],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "grp_admin_users",
+      "_type": "request_group",
+      "parentId": "grp_admin",
+      "name": "Identity - Users"
+    },
+    {
+      "_id": "req_admin_users_list",
+      "_type": "request",
+      "parentId": "grp_admin_users",
+      "name": "List Users",
+      "method": "GET",
+      "url": "{{ backend_url }}/identity/users/admin",
+      "headers": [],
+      "parameters": [],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "req_admin_users_create",
+      "_type": "request",
+      "parentId": "grp_admin_users",
+      "name": "Create User",
+      "method": "POST",
+      "url": "{{ backend_url }}/identity/users/admin",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "parameters": [],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"editor@example.com\",\n  \"password\": \"password123\",\n  \"firstName\": \"Editor\",\n  \"lastName\": \"User\",\n  \"role\": \"EDITOR\"\n}"
+      },
+      "authentication": {}
+    },
+    {
+      "_id": "grp_admin_settings",
+      "_type": "request_group",
+      "parentId": "grp_admin",
+      "name": "Site - Settings"
+    },
+    {
+      "_id": "req_admin_settings_get",
+      "_type": "request",
+      "parentId": "grp_admin_settings",
+      "name": "Get Settings",
+      "method": "GET",
+      "url": "{{ backend_url }}/site/settings/admin",
+      "headers": [],
+      "parameters": [],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "req_admin_settings_post",
+      "_type": "request",
+      "parentId": "grp_admin_settings",
+      "name": "Update Settings",
+      "method": "POST",
+      "url": "{{ backend_url }}/site/settings/admin",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "parameters": [],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"siteName\": \"Workit\",\n  \"supportEmail\": \"support@workit.co.ke\"\n}"
+      },
+      "authentication": {}
+    },
+    {
+      "_id": "grp_admin_proxy",
+      "_type": "request_group",
+      "parentId": "wrk_workit_api",
+      "name": "Admin Proxy (:3002)",
+      "description": "Use these to mirror the admin frontend path through Next.js."
+    },
+    {
+      "_id": "req_proxy_auth_session",
+      "_type": "request",
+      "parentId": "grp_admin_proxy",
+      "name": "Proxy Get Session",
+      "method": "GET",
+      "url": "{{ admin_url }}/api/auth/get-session",
+      "headers": [],
+      "parameters": [],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "req_proxy_orders_list",
+      "_type": "request",
+      "parentId": "grp_admin_proxy",
+      "name": "Proxy List Orders",
+      "method": "GET",
+      "url": "{{ admin_url }}/api/admin/orders",
+      "headers": [],
+      "parameters": [],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "req_proxy_products_list",
+      "_type": "request",
+      "parentId": "grp_admin_proxy",
+      "name": "Proxy List Products",
+      "method": "GET",
+      "url": "{{ admin_url }}/api/admin/products",
+      "headers": [],
+      "parameters": [
+        { "name": "limit", "value": "20" },
+        { "name": "offset", "value": "0" }
+      ],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "grp_storefront",
+      "_type": "request_group",
+      "parentId": "wrk_workit_api",
+      "name": "Storefront",
+      "description": "Public and storefront-authenticated endpoints"
+    },
+    {
+      "_id": "grp_storefront_auth",
+      "_type": "request_group",
+      "parentId": "grp_storefront",
+      "name": "Auth"
+    },
+    {
+      "_id": "req_storefront_auth_signin",
+      "_type": "request",
+      "parentId": "grp_storefront_auth",
+      "name": "Sign In",
+      "method": "POST",
+      "url": "{{ backend_url }}/api/auth/sign-in/email",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "parameters": [],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"{{ customer_email }}\",\n  \"password\": \"{{ customer_password }}\"\n}"
+      },
+      "authentication": {}
+    },
+    {
+      "_id": "req_storefront_auth_session",
+      "_type": "request",
+      "parentId": "grp_storefront_auth",
+      "name": "Get Session",
+      "method": "GET",
+      "url": "{{ backend_url }}/api/auth/get-session",
+      "headers": [],
+      "parameters": [],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "grp_storefront_catalog",
+      "_type": "request_group",
+      "parentId": "grp_storefront",
+      "name": "Catalog"
+    },
+    {
+      "_id": "req_storefront_products_list",
+      "_type": "request",
+      "parentId": "grp_storefront_catalog",
+      "name": "List Products",
+      "method": "GET",
+      "url": "{{ backend_url }}/store/products",
+      "headers": [],
+      "parameters": [
+        { "name": "limit", "value": "20" },
+        { "name": "offset", "value": "0" }
+      ],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "req_storefront_product_get",
+      "_type": "request",
+      "parentId": "grp_storefront_catalog",
+      "name": "Get Product By ID Or Slug",
+      "method": "GET",
+      "url": "{{ backend_url }}/store/products/{{ product_slug }}",
+      "headers": [],
+      "parameters": [],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "req_storefront_collections_list",
+      "_type": "request",
+      "parentId": "grp_storefront_catalog",
+      "name": "List Collections",
+      "method": "GET",
+      "url": "{{ backend_url }}/store/collections",
+      "headers": [],
+      "parameters": [],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "req_storefront_homepage_list",
+      "_type": "request",
+      "parentId": "grp_storefront_catalog",
+      "name": "List Homepage Collections",
+      "method": "GET",
+      "url": "{{ backend_url }}/store/homepage-collections",
+      "headers": [],
+      "parameters": [],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "grp_storefront_cart",
+      "_type": "request_group",
+      "parentId": "grp_storefront",
+      "name": "Cart"
+    },
+    {
+      "_id": "req_storefront_cart_get",
+      "_type": "request",
+      "parentId": "grp_storefront_cart",
+      "name": "Get Cart",
+      "method": "GET",
+      "url": "{{ backend_url }}/api/cart",
+      "headers": [
+        { "name": "x-guest-id", "value": "{{ guest_id }}" }
+      ],
+      "parameters": [],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "req_storefront_cart_add",
+      "_type": "request",
+      "parentId": "grp_storefront_cart",
+      "name": "Add To Cart",
+      "method": "POST",
+      "url": "{{ backend_url }}/api/cart",
+      "headers": [
+        { "name": "x-guest-id", "value": "{{ guest_id }}" },
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "parameters": [],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"productId\": \"{{ product_id }}\",\n  \"quantity\": 1\n}"
+      },
+      "authentication": {}
+    },
+    {
+      "_id": "req_storefront_cart_update_line",
+      "_type": "request",
+      "parentId": "grp_storefront_cart",
+      "name": "Update Cart Line",
+      "method": "PUT",
+      "url": "{{ backend_url }}/api/cart/{{ line_id }}",
+      "headers": [
+        { "name": "x-guest-id", "value": "{{ guest_id }}" },
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "parameters": [],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"quantity\": 2\n}"
+      },
+      "authentication": {}
+    },
+    {
+      "_id": "grp_storefront_checkout",
+      "_type": "request_group",
+      "parentId": "grp_storefront",
+      "name": "Checkout"
+    },
+    {
+      "_id": "req_storefront_checkout_verify",
+      "_type": "request",
+      "parentId": "grp_storefront_checkout",
+      "name": "Verify Payment",
+      "method": "POST",
+      "url": "{{ backend_url }}/api/checkout/verify",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "parameters": [],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"orderId\": \"{{ order_id }}\",\n  \"paymentReference\": \"\"\n}"
+      },
+      "authentication": {}
+    }
+  ]
+}

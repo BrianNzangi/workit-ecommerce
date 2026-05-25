@@ -4,6 +4,15 @@ import { z } from "zod";
 import { productSearchService } from "../../../../services/search/product-search.service.js";
 import { buildCacheKey } from "../../../../lib/cache.js";
 import { enrichProductCampaigns, enrichProductsWithCampaigns, normalizeCampaignDate } from "../../../../lib/product-campaigns.js";
+import { CouponRepository } from "../../../../infrastructure/persistence/repositories/CouponRepository.js";
+import { CouponMapper } from "../../../../infrastructure/persistence/mappers/CouponMapper.js";
+import { FeaturedDealRepository } from "../../../../infrastructure/persistence/repositories/FeaturedDealRepository.js";
+import { FeaturedDealMapper } from "../../../../infrastructure/persistence/mappers/FeaturedDealMapper.js";
+import { ClearanceDealRepository } from "../../../../infrastructure/persistence/repositories/ClearanceDealRepository.js";
+import { ClearanceDealMapper } from "../../../../infrastructure/persistence/mappers/ClearanceDealMapper.js";
+import { FlashSaleRepository } from "../../../../infrastructure/persistence/repositories/FlashSaleRepository.js";
+import { FlashSaleMapper } from "../../../../infrastructure/persistence/mappers/FlashSaleMapper.js";
+import { featureFlags, isRouteMigrationEnabled } from "../../../../infrastructure/feature-flags/flags.js";
 
 const productsQuerySchema = z.object({
     limit: z.coerce.number().default(50),
@@ -35,9 +44,9 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
         productSearch: 60,
         productDetail: 300,
         brands: 1800,
-        collections: 1800,
-        banners: 300,
-        homepageCollections: 300,
+        collections: 7200,
+        banners: 3600,
+        homepageCollections: 3600,
         campaigns: 120,
         shipping: 900,
         policies: 3600,
@@ -471,6 +480,41 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
         return payload;
     });
 
+    // Featured Brands by Collection
+    fastify.get("/brands/featured", {
+        schema: {
+            tags: ["Catalog"],
+            querystring: z.object({ collectionSlug: z.string().optional() })
+        },
+        preHandler: [fastify.publicRateLimit],
+    }, async (request, reply) => {
+        const { collectionSlug } = request.query as any;
+        if (!collectionSlug) return { brands: [] };
+        const cacheKey = buildCacheKey("store:brands:featured", collectionSlug);
+        const cached = await fastify.cache.get<{ brands: any[] }>(cacheKey);
+        if (cached) {
+            reply.header("x-cache", "HIT");
+            reply.header("Cache-Control", `public, max-age=${TTL.brands}`);
+            return cached;
+        }
+        const collection = await db.query.collections.findFirst({
+            where: eq(schema.collections.slug, collectionSlug),
+            columns: { id: true },
+        });
+        if (!collection) return { brands: [] };
+        const brandCollections = await db.query.brandCollections.findMany({
+            where: eq(schema.brandCollections.collectionId, collection.id),
+            orderBy: [asc(schema.brandCollections.sortOrder)],
+            with: { brand: true },
+        });
+        const brands = brandCollections.map((bc: any) => bc.brand);
+        const payload = { brands };
+        await fastify.cache.set(cacheKey, payload, TTL.brands, ["brands"]);
+        reply.header("x-cache", "MISS");
+        reply.header("Cache-Control", `public, max-age=${TTL.brands}`);
+        return payload;
+    });
+
     const collectionsQuerySchema = z.object({
         includeChildren: z.coerce.boolean().optional().default(false),
         parentId: z.string().optional(),
@@ -877,14 +921,180 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
         return { valid: true, items };
     });
 
-    // Coupon Validation (Campaigns)
-    fastify.post("/coupons/validate", {
-        schema: {
-            tags: ["Marketing"],
-            body: couponValidateSchema,
-        },
-        preHandler: [fastify.optionalStorefrontAuth, fastify.publicRateLimit],
-    }, async (request, reply) => {
+    // ─── DDD Promotion Endpoints ────────────────────────────────────────
+    const useDDDPromotions = isRouteMigrationEnabled(featureFlags.useDDDMarketing);
+
+    const couponMapper = new CouponMapper();
+    const featuredDealMapper = new FeaturedDealMapper();
+    const clearanceDealMapper = new ClearanceDealMapper();
+    const flashSaleMapper = new FlashSaleMapper();
+    const couponRepo = new CouponRepository(couponMapper);
+    const featuredDealRepo = new FeaturedDealRepository(featuredDealMapper);
+    const clearanceDealRepo = new ClearanceDealRepository(clearanceDealMapper);
+    const flashSaleRepo = new FlashSaleRepository(flashSaleMapper);
+
+    // Active Featured Deals
+    fastify.get("/featured-deals", {
+        schema: { tags: ["Promotions"] },
+        preHandler: [fastify.publicRateLimit],
+    }, async (_request, reply) => {
+        const cacheKey = buildCacheKey("store:promotions:featured-deals:list");
+        const cached = await fastify.cache.get<{ deals: any[] }>(cacheKey);
+        if (cached) {
+            reply.header("x-cache", "HIT");
+            reply.header("Cache-Control", "public, max-age=300");
+            return cached;
+        }
+
+        const all = await featuredDealRepo.findAll({ status: "ACTIVE" });
+        const now = new Date();
+        const active = all.filter(d => d.startDate <= now && d.endDate >= now);
+
+        const payload = {
+            deals: active.map(d => ({
+                id: d.id,
+                title: d.title,
+                productId: d.productId,
+                discount: d.discount,
+                dealType: d.dealType,
+                startDate: d.startDate,
+                endDate: d.endDate,
+            })),
+        };
+        await fastify.cache.set(cacheKey, payload, 300, ["featured-deals", "promotions"]);
+        reply.header("x-cache", "MISS");
+        reply.header("Cache-Control", "public, max-age=300");
+        return payload;
+    });
+
+    // Active Clearance Deals
+    fastify.get("/clearance-deals", {
+        schema: { tags: ["Promotions"] },
+        preHandler: [fastify.publicRateLimit],
+    }, async (_request, reply) => {
+        const cacheKey = buildCacheKey("store:promotions:clearance-deals:list");
+        const cached = await fastify.cache.get<{ deals: any[] }>(cacheKey);
+        if (cached) {
+            reply.header("x-cache", "HIT");
+            reply.header("Cache-Control", "public, max-age=300");
+            return cached;
+        }
+
+        const all = await clearanceDealRepo.findAll({ status: "ACTIVE" });
+        const now = new Date();
+        const active = all.filter(d => d.startDate <= now && d.endDate >= now);
+
+        const payload = {
+            deals: active.map(d => ({
+                id: d.id,
+                title: d.title,
+                productId: d.productId,
+                discount: d.discount,
+                type: d.type,
+                deal: d.deal,
+                startDate: d.startDate,
+                endDate: d.endDate,
+            })),
+        };
+        await fastify.cache.set(cacheKey, payload, 300, ["clearance-deals", "promotions"]);
+        reply.header("x-cache", "MISS");
+        reply.header("Cache-Control", "public, max-age=300");
+        return payload;
+    });
+
+    // Active Flash Sales
+    fastify.get("/flash-sales", {
+        schema: { tags: ["Promotions"] },
+        preHandler: [fastify.publicRateLimit],
+    }, async (_request, reply) => {
+        const cacheKey = buildCacheKey("store:promotions:flash-sales:list");
+        const cached = await fastify.cache.get<{ sales: any[] }>(cacheKey);
+        if (cached) {
+            reply.header("x-cache", "HIT");
+            reply.header("Cache-Control", "public, max-age=300");
+            return cached;
+        }
+
+        const all = await flashSaleRepo.findAll({ status: "ACTIVE" });
+        const now = new Date();
+        const active = all.filter(s => s.startDate <= now && s.endDate >= now);
+
+        const payload = {
+            sales: active.map(s => ({
+                id: s.id,
+                title: s.title,
+                discount: s.discount,
+                productIds: s.productIds,
+                startDate: s.startDate,
+                endDate: s.endDate,
+            })),
+        };
+        await fastify.cache.set(cacheKey, payload, 300, ["flash-sales", "promotions"]);
+        reply.header("x-cache", "MISS");
+        reply.header("Cache-Control", "public, max-age=300");
+        return payload;
+    });
+
+    // Coupon Validation — uses DDD Coupon aggregate when USE_DDD_MARKETING is enabled
+    if (useDDDPromotions) {
+        const dddCouponValidateSchema = z.object({
+            code: z.string().min(1),
+            subtotal: z.coerce.number().min(0),
+        });
+
+        fastify.post("/coupons/validate", {
+            schema: { tags: ["Promotions"], body: dddCouponValidateSchema },
+            preHandler: [fastify.optionalStorefrontAuth, fastify.publicRateLimit],
+        }, async (request, reply) => {
+            const { code, subtotal } = request.body as z.infer<typeof dddCouponValidateSchema>;
+            const normalizedCode = String(code).trim().toUpperCase();
+
+            if (!normalizedCode) {
+                return reply.status(400).send({ error: "Coupon code is required" });
+            }
+
+            const coupon = await couponRepo.findByCode(normalizedCode);
+            if (!coupon) {
+                return reply.status(404).send({ error: "Invalid coupon code" });
+            }
+
+            if (!coupon.isActive()) {
+                if (coupon.isExpired()) {
+                    return reply.status(400).send({ error: "Coupon has expired" });
+                }
+                return reply.status(400).send({ error: "Coupon is not active" });
+            }
+
+            const minAmount = coupon.minAmount.amount;
+            if (subtotal < minAmount) {
+                return reply.status(400).send({
+                    error: `Minimum order value of KES ${minAmount.toLocaleString()} required`,
+                });
+            }
+
+            let discountAmount = coupon.couponAmount.amount;
+            if (discountAmount > subtotal) {
+                discountAmount = subtotal;
+            }
+
+            return {
+                success: true,
+                code: coupon.code || normalizedCode,
+                type: "FIXED_AMOUNT",
+                value: coupon.couponAmount.amount,
+                discountAmount,
+                message: "Coupon applied successfully!",
+            };
+        });
+    } else {
+        // Legacy Campaign-based coupon validation
+        fastify.post("/coupons/validate", {
+            schema: {
+                tags: ["Marketing"],
+                body: couponValidateSchema,
+            },
+            preHandler: [fastify.optionalStorefrontAuth, fastify.publicRateLimit],
+        }, async (request, reply) => {
         const { code, subtotal, items = [] } = request.body as z.infer<typeof couponValidateSchema>;
         const normalizedCode = String(code).trim().toUpperCase();
         const userId = (request as any).storefrontUser?.id;
@@ -1043,6 +1253,7 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
             ...(details ? { details } : {}),
         };
     });
+    }
 
     // Shipping Info
     fastify.get("/shipping", {

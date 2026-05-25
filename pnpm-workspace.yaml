@@ -2,4 +2,15 @@ packages:
   - 'admin'
   - 'frontend'
   - 'backend'
+  - 'docs'
   - 'packages/*'
+  # 'backend-old' is kept as reference only and is not part of the active workspace
+
+overrides:
+  unrs-resolver: 'npm:is-buffer@^2.0.5'
+
+allowBuilds:
+  core-js: true
+  esbuild: true
+  sharp: true
+  unrs-resolver: true

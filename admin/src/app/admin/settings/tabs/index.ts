@@ -27,6 +27,7 @@ export interface Settings {
         paystack_public_key: string;
         paystack_secret_key: string;
         paystack_enabled: boolean;
+        webhook_url: string;
     };
     shipping: {
         methods: Array<{

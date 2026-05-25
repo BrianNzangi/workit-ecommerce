@@ -1,5 +1,5 @@
 import { MetadataRoute } from "next";
-import { getCanonicalSiteUrl } from "@/lib/site-indexing";
+import { getCanonicalSiteUrl } from "@/lib/seo/site-indexing";
 
 export default function robots(): MetadataRoute.Robots {
   return {

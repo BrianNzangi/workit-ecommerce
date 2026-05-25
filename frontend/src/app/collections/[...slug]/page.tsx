@@ -3,11 +3,11 @@ import CollectionClient from '@/components/collections/CollectionClient'
 import { Product } from '@/types/product'
 import { Category, Brand } from '@/types/collection'
 import type { Collection as ApiCollection } from '@/types/collections';
-import { SITE_CONFIG } from '@/lib/meta';
-import { fetchCollectionBySlug, fetchNavigationCollections } from '@/lib/collections-server';
-import { proxyFetch } from '@/lib/proxy-utils';
-import { recordSsrRenderTime } from '@/lib/metrics';
-import { normalizeProducts } from '@/lib/product-normalization';
+import { SITE_CONFIG } from '@/lib/meta/meta';
+import { fetchCollectionBySlug, fetchNavigationCollections } from '@/lib/collections/collections-server';
+import { proxyFetch } from '@/lib/utils/proxy-utils';
+import { recordSsrRenderTime } from '@/lib/utils/metrics';
+import { normalizeProducts } from '@/lib/product/product-normalization';
 
 interface Props {
   params: Promise<{ slug: string[] }>

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { proxyFetch } from "@/lib/proxy-utils";
-import { normalizeProducts } from "@/lib/product-normalization";
-import { sendMetaEvent } from "@/lib/meta-conversions";
+import { proxyFetch } from "@/lib/utils/proxy-utils";
+import { normalizeProducts } from "@/lib/product/product-normalization";
+import { sendMetaEvent } from "@/lib/meta/meta-conversions";
 import { Product } from "@/types/product";
 
 export async function GET(req: NextRequest) {

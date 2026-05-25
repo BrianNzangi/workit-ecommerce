@@ -3,7 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import he from 'he';
-import { getImageUrl } from '@/lib/image-utils';
+import { getImageUrl } from '@/lib/image/image-utils';
 
 interface MegaMenuItemProps {
   title: string;

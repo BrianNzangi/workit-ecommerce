@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { proxyFetch } from '@/lib/proxy-utils';
+import { proxyFetch } from '@/lib/utils/proxy-utils';
 
 export async function GET(request: NextRequest) {
   try {

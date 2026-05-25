@@ -1,6 +1,9 @@
 import { format } from 'date-fns';
 import type { DashboardOverviewResponse } from '@/lib/services';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/Badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { formatMoney, formatOrderState } from './dashboard.utils';
 
 interface DashboardRecentOrdersCardProps {
@@ -25,62 +28,57 @@ function getStatusColor(status: string) {
 
 export function DashboardRecentOrdersCard({ orders, loading }: DashboardRecentOrdersCardProps) {
     return (
-        <div className="flex h-full flex-col overflow-hidden rounded-lg">
-            <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
-                <div>
-                    <h2 className="text-xl font-semibold text-gray-950">Recent Orders</h2>
-                    <p className="mt-1 text-sm text-gray-500">Latest customer activity flowing into the admin console.</p>
-                </div>
-            </div>
-
-            <div className="flex-1 overflow-x-auto">
-                <table className="w-full text-left">
-                    <thead>
-                        <tr className="border-b border-gray-100 bg-gray-50/80">
-                            <th className="px-6 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500">Order ID</th>
-                            <th className="px-6 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500">Customer</th>
-                            <th className="px-6 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500">Date</th>
-                            <th className="px-6 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500">Total</th>
-                            <th className="px-6 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
+        <Card>
+            <CardHeader>
+                <CardTitle>Recent Orders</CardTitle>
+                <CardDescription>Latest customer activity flowing into the admin console.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Order ID</TableHead>
+                            <TableHead>Customer</TableHead>
+                            <TableHead>Date</TableHead>
+                            <TableHead>Total</TableHead>
+                            <TableHead>Status</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
                         {loading ? (
                             Array.from({ length: 5 }).map((_, index) => (
-                                <tr key={index} className="animate-pulse">
-                                    <td className="px-6 py-4"><div className="h-4 w-20 rounded bg-gray-100" /></td>
-                                    <td className="px-6 py-4"><div className="h-4 w-32 rounded bg-gray-100" /></td>
-                                    <td className="px-6 py-4"><div className="h-4 w-24 rounded bg-gray-100" /></td>
-                                    <td className="px-6 py-4"><div className="h-4 w-16 rounded bg-gray-100" /></td>
-                                    <td className="px-6 py-4"><div className="h-6 w-20 rounded-full bg-gray-100" /></td>
-                                </tr>
+                                <TableRow key={index}>
+                                    <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                                    <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                                    <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                                    <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+                                </TableRow>
                             ))
                         ) : orders.length === 0 ? (
-                            <tr>
-                                <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                            <TableRow>
+                                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                                     No recent orders to display
-                                </td>
-                            </tr>
+                                </TableCell>
+                            </TableRow>
                         ) : (
                             orders.map((order) => (
-                                <tr key={order.id} className="transition-colors hover:bg-gray-50/80">
-                                    <td className="px-6 py-4 text-sm font-medium text-gray-950">#{order.code}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-600">{order.customerName}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-600">
-                                        {format(new Date(order.createdAt), 'MMM d, yyyy')}
-                                    </td>
-                                    <td className="px-6 py-4 text-sm font-semibold text-gray-900">{formatMoney(order.total)}</td>
-                                    <td className="px-6 py-4">
+                                <TableRow key={order.id}>
+                                    <TableCell className="font-medium">#{order.code}</TableCell>
+                                    <TableCell>{order.customerName}</TableCell>
+                                    <TableCell>{format(new Date(order.createdAt), 'MMM d, yyyy')}</TableCell>
+                                    <TableCell className="font-semibold">{formatMoney(order.total)}</TableCell>
+                                    <TableCell>
                                         <Badge variant={getStatusColor(order.state)}>
                                             {formatOrderState(order.state)}
                                         </Badge>
-                                    </td>
-                                </tr>
+                                    </TableCell>
+                                </TableRow>
                             ))
                         )}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
     );
 }

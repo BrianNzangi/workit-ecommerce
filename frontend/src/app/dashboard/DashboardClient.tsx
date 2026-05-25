@@ -3,25 +3,13 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from '@/hooks/useAuth';
+import { useOrders } from '@/hooks/useOrders';
 import { UserSidebar } from "../../components/user/UserSidebar";
 import { AccountInfo } from "../../components/user/AccountInfo";
 import { BillingAddress } from "../../components/user/BillingAddress";
 import { OrderStats } from "../../components/user/OrderStats";
 import { RecentOrders } from "../../components/user/RecentOrders";
 import { OrdersPage } from "../../components/user/OrdersPage";
-
-interface Order {
-  id: string;
-  date_created: string;
-  status: string;
-  total: string;
-  currency: string;
-  line_items: Array<{
-    name: string;
-    quantity: number;
-    price: string;
-  }>;
-}
 
 type ActiveSection = 'dashboard' | 'orders' | 'track-order' | 'cart' | 'wishlist' | 'compare' | 'cards-address' | 'browsing-history' | 'settings';
 
@@ -30,33 +18,8 @@ export default function DashboardClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeSection, setActiveSection] = useState<ActiveSection>('dashboard');
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push('/?auth=login');
-      return;
-    }
-  }, [isAuthenticated, authLoading, router]);
-
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const res = await fetch('/api/orders');
-        const data = await res.json();
-        if (data.success) {
-          setOrders(data.orders);
-        }
-      } catch (error) {
-        console.error('Failed to fetch orders:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchOrders();
-  }, []);
+  const { data: ordersData, isLoading: loading } = useOrders();
+  const orders = ordersData?.orders || [];
 
   useEffect(() => {
     const section = searchParams.get('section') as ActiveSection;

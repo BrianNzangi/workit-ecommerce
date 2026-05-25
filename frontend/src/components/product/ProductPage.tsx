@@ -8,8 +8,8 @@ import he from "he"
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa"
 import ProductInfo from "@/components/product/ProductInfo"
 import { Product } from "@/types/product"
-import { getImageUrl } from "@/lib/image-utils"
-import { trackMetaEvent } from "@/lib/meta-browser"
+import { getImageUrl } from "@/lib/image/image-utils"
+import { trackMetaEvent } from "@/lib/meta/meta-browser"
 
 export default function ProductPage({
   product,

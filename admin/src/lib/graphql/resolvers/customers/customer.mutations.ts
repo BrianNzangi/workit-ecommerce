@@ -1,5 +1,6 @@
 import { CustomerService, CreateCustomerInput } from '@/lib/services';
 import { requireAuth } from '@/lib/middleware/auth.middleware';
+import { mapHttpError } from '@/lib/graphql/errors';
 import type { GraphQLContext } from '../../context';
 
 export const customerMutations = {
@@ -9,8 +10,12 @@ export const customerMutations = {
         context: GraphQLContext
     ) => {
         requireAuth(context.auth);
-        const customerService = new CustomerService();
-        return await customerService.registerCustomer(input);
+        try {
+            const customerService = new CustomerService();
+            return await customerService.registerCustomer(input);
+        } catch (error) {
+            throw mapHttpError(error);
+        }
     },
 
     updateCustomer: async (
@@ -19,7 +24,11 @@ export const customerMutations = {
         context: GraphQLContext
     ) => {
         requireAuth(context.auth);
-        const customerService = new CustomerService();
-        return await customerService.updateCustomer(id, input);
+        try {
+            const customerService = new CustomerService();
+            return await customerService.updateCustomer(id, input);
+        } catch (error) {
+            throw mapHttpError(error);
+        }
     },
 };

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import BlogPageClient from './BlogPageClient';
 
-import { SITE_CONFIG, DEFAULT_OG, DEFAULT_TWITTER } from '@/lib/meta';
+import { SITE_CONFIG, DEFAULT_OG, DEFAULT_TWITTER } from '@/lib/meta/meta';
 
 export const metadata: Metadata = {
   title: `Blog | ${SITE_CONFIG.name}`,

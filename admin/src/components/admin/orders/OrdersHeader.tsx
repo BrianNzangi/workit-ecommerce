@@ -1,0 +1,9 @@
+import { ShoppingCart } from 'lucide-react';
+
+export function OrdersHeader() {
+    return (
+        <div className="mb-6">
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900">Orders</h1>
+        </div>
+    );
+}

@@ -1,0 +1,202 @@
+import { Callout, Tabs } from 'nextra/components'
+
+# Storefront API
+
+All public APIs used by the customer-facing storefront. Base path: `http://localhost:3001`.
+
+---
+
+## Auth
+
+### Sign Up
+`POST /api/auth/sign-up/email`
+
+```json
+{
+  "email": "customer@example.com",
+  "password": "password123",
+  "name": "Jane Doe",
+  "firstName": "Jane",
+  "lastName": "Doe"
+}
+```
+
+### Sign In
+`POST /api/auth/sign-in/email`
+
+```json
+{
+  "email": "customer@example.com",
+  "password": "password123"
+}
+```
+
+### Sign Out
+`POST /api/auth/sign-out`
+
+### Get Session
+`GET /api/auth/session`
+
+---
+
+## Cart
+
+<Callout>
+  For guest users, include `x-guest-id: <your-guest-id>` header on all cart requests. For authenticated users, use `Authorization: Bearer <token>`.
+</Callout>
+
+### Get Cart
+`GET /api/cart`
+
+Returns the current cart with enriched product and campaign data.
+
+### Add to Cart
+`POST /api/cart`
+
+```json
+{
+  "productId": "uuid",
+  "variantId": "uuid",   // optional
+  "quantity": 1
+}
+```
+
+### Update Cart Line
+`PUT /api/cart/:lineId`
+
+```json
+{ "quantity": 3 }
+```
+
+### Remove Cart Line
+`DELETE /api/cart/:lineId`
+
+### Clear Cart
+`DELETE /api/cart`
+
+---
+
+## Checkout
+
+<Callout type="warning">
+  Checkout requires an authenticated customer (`Authorization: Bearer <token>`). Guest checkout is not supported.
+</Callout>
+
+### Initiate Checkout
+`POST /api/checkout/initiate`
+
+Creates an order from the current cart.
+
+```json
+{
+  "shippingAddressId": "uuid",
+  "billingAddressId": "uuid",
+  "shippingMethodId": "uuid",
+  "couponCode": "SUMMER10",
+
+  // OR pass address objects directly:
+  "shippingAddress": {
+    "fullName": "Jane Doe",
+    "streetLine1": "123 Main St",
+    "city": "Nairobi",
+    "province": "Nairobi",
+    "phoneNumber": "+254712345678",
+    "country": "KE"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "orderId": "uuid",
+  "code": "ORD-123456-789",
+  "total": 2500
+}
+```
+
+### Verify Payment
+`POST /api/checkout/verify`
+
+Verifies a Paystack payment and marks the order as `PAYMENT_SETTLED`.
+
+```json
+{
+  "orderId": "uuid",
+  "paymentReference": "paystack-ref-abc"
+}
+```
+
+### Paystack Webhook
+`POST /api/checkout/webhook`
+
+Receives `charge.success` events from Paystack. Validates the HMAC signature automatically.
+
+---
+
+## Products
+
+### List Products
+`GET /store/products`
+
+| Query | Type | Description |
+|-------|------|-------------|
+| `limit` | number | Default: 50, max: 100 |
+| `offset` | number | Default: 0 |
+| `collection` | string | Filter by collection slug |
+| `campaign` | string | Filter by campaign slug or ID |
+| `brand` | string | Filter by brand ID |
+| `q` | string | Text search |
+| `onSale` | boolean | Only sale items |
+| `inStock` | boolean | Only in-stock items |
+| `minPrice` | number | Minimum price filter |
+| `maxPrice` | number | Maximum price filter |
+| `sortBy` | string | `popularity`, `price_asc`, `price_desc` |
+
+### Search Products
+`GET /store/products/search?q=shoes`
+
+Uses Algolia search index when configured, falls back to database search.
+
+### Get Product
+`GET /store/products/:idOrSlug`
+
+Accepts either a product UUID or slug.
+
+---
+
+## Catalog
+
+### Get Brands
+`GET /store/brands`
+
+### Get Collections
+`GET /store/collections`
+
+| Query | Type | Description |
+|-------|------|-------------|
+| `includeChildren` | boolean | Include nested sub-collections |
+| `parentId` | string | Filter by parent collection ID (`null` for root) |
+
+### Get Banners
+`GET /store/banners`
+
+| Query | Type | Description |
+|-------|------|-------------|
+| `position` | string | Filter by position (e.g. `hero`) |
+| `collection` | string | Filter by collection slug |
+| `campaign` | string | Filter by campaign slug |
+
+### Get Homepage Collections
+`GET /store/homepage-collections`
+
+Returns enabled homepage sections with their featured products.
+
+### Get Campaigns
+`GET /store/campaigns`
+
+### Get Shipping Methods
+`GET /store/shipping`
+
+### Get Store Policies
+`GET /store/policies`

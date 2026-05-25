@@ -114,32 +114,115 @@ export async function uploadAdminAsset({
   folder?: string;
 }) {
   const preparedFile = await optimizeImageForUpload(file);
-  const formData = new FormData();
+  const csrfToken = (await ensureCsrfToken(AUTH_SESSION_URL)) || getCookieValue(CSRF_COOKIE_NAME);
 
-  formData.append("file", preparedFile, preparedFile.name);
-  if (folder) {
-    formData.append("folder", folder);
-  }
+  const uploadViaAdminProxy = async () => {
+    const formData = new FormData();
+    formData.append("file", preparedFile, preparedFile.name);
+    if (folder) {
+      formData.append("folder", folder);
+    }
+
+    const fallbackHeaders = new Headers();
+    if (csrfToken) {
+      fallbackHeaders.set(CSRF_HEADER_NAME, csrfToken);
+    }
+
+    const response = await fetch("/api/admin/assets", {
+      method: "POST",
+      body: formData,
+      credentials: "include",
+      headers: fallbackHeaders,
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => null);
+      throw new Error(error?.message || "Failed to upload asset");
+    }
+
+    const asset = await response.json();
+
+    return {
+      asset,
+      uploadedFile: preparedFile,
+      optimized: preparedFile !== file,
+    };
+  };
 
   const headers = new Headers();
-  const csrfToken = (await ensureCsrfToken(AUTH_SESSION_URL)) || getCookieValue(CSRF_COOKIE_NAME);
   if (csrfToken) {
     headers.set(CSRF_HEADER_NAME, csrfToken);
   }
+  headers.set("Content-Type", "application/json");
 
-  const response = await fetch("/api/admin/assets", {
+  const presignResponse = await fetch("/api/admin/assets/presign", {
     method: "POST",
-    body: formData,
+    body: JSON.stringify({
+      filename: preparedFile.name,
+      contentType: preparedFile.type,
+    }),
     credentials: "include",
     headers,
   });
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => null);
-    throw new Error(error?.message || "Upload failed");
+  if (!presignResponse.ok) {
+    const error = await presignResponse.json().catch(() => null);
+    throw new Error(error?.message || "Failed to get upload URL");
   }
 
-  const asset = await response.json();
+  const { key, uploadUrl, publicUrl } = await presignResponse.json();
+
+  let uploadResponse: Response;
+  try {
+    uploadResponse = await fetch(uploadUrl, {
+      method: "PUT",
+      body: preparedFile,
+      headers: {
+        "Content-Type": preparedFile.type,
+      },
+    });
+  } catch (error) {
+    console.warn("Direct storage upload failed, falling back to admin proxy upload:", {
+      error,
+      uploadUrl,
+      publicUrl,
+    });
+    return uploadViaAdminProxy();
+  }
+
+  if (!uploadResponse.ok) {
+    console.warn("Direct storage upload returned a non-OK response, falling back to admin proxy upload:", {
+      status: uploadResponse.status,
+      uploadUrl,
+      publicUrl,
+    });
+    return uploadViaAdminProxy();
+  }
+
+  const registerHeaders = new Headers();
+  registerHeaders.set("Content-Type", "application/json");
+  if (csrfToken) {
+    registerHeaders.set(CSRF_HEADER_NAME, csrfToken);
+  }
+
+  const registerResponse = await fetch("/api/admin/assets/register", {
+    method: "POST",
+    body: JSON.stringify({
+      key,
+      filename: preparedFile.name,
+      contentType: preparedFile.type,
+      fileSize: preparedFile.size,
+    }),
+    credentials: "include",
+    headers: registerHeaders,
+  });
+
+  if (!registerResponse.ok) {
+    const error = await registerResponse.json().catch(() => null);
+    throw new Error(error?.message || "Failed to register asset");
+  }
+
+  const asset = await registerResponse.json();
 
   return {
     asset,

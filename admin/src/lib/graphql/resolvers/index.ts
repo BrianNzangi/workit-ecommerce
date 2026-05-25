@@ -26,6 +26,9 @@ import { assetQueries } from './assets/asset.queries';
 import { assetMutations } from './assets/asset.mutations';
 import { analyticsQueries } from './analytics/analytics.queries';
 
+import { settingsQueries } from './settings/settings.queries';
+import { settingsMutations } from './settings/settings.mutations';
+
 export const resolvers = {
     // Scalars
     ...scalarResolvers,
@@ -70,6 +73,11 @@ export const resolvers = {
 
         // Analytics
         ...analyticsQueries,
+
+
+
+        // Settings
+        ...settingsQueries,
     },
 
     // Mutations
@@ -110,5 +118,10 @@ export const resolvers = {
 
         // Assets
         ...assetMutations,
+
+
+
+        // Settings
+        ...settingsMutations,
     },
 };

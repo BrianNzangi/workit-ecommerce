@@ -1,0 +1,102 @@
+import { Callout } from 'nextra/components'
+
+# Authentication
+
+Workit uses [Better Auth](https://better-auth.com) with two separate instances — one for admin users and one for storefront customers.
+
+## Two Auth Systems
+
+| | Admin Auth | Storefront Auth |
+|--|-----------|----------------|
+| **Base path** | `/auth/*` | `/api/auth/*` |
+| **Cookie prefix** | `admin-auth` | `store-auth` |
+| **Sign up** | ❌ No public sign-up | ✅ Email + Google OAuth |
+| **Used by** | Admin dashboard | Frontend storefront |
+| **Roles** | `SUPER_ADMIN`, `ADMIN`, `EDITOR` | `CUSTOMER` |
+
+## Admin Auth
+
+Admin accounts are created by a `SUPER_ADMIN` via the Users management page — there is no public registration endpoint.
+
+**Sign in:**
+```http
+POST /auth/sign-in/email
+Content-Type: application/json
+
+{
+  "email": "admin@workit.co.ke",
+  "password": "your-password"
+}
+```
+
+**Get session:**
+```http
+GET /auth/session
+Authorization: Bearer <token>
+```
+
+## Storefront Auth
+
+Customers can register via email/password or Google OAuth.
+
+**Sign up:**
+```http
+POST /api/auth/sign-up/email
+Content-Type: application/json
+
+{
+  "email": "customer@example.com",
+  "password": "password123",
+  "name": "Jane Doe",
+  "firstName": "Jane",
+  "lastName": "Doe"
+}
+```
+
+**Sign in:**
+```http
+POST /api/auth/sign-in/email
+Content-Type: application/json
+
+{
+  "email": "customer@example.com",
+  "password": "password123"
+}
+```
+
+## Role-Based Access Control (RBAC)
+
+Admin permissions are configured via **Site Settings** and cached in Redis. Each permission maps to a set of allowed roles:
+
+| Permission | Description |
+|-----------|-------------|
+| `catalog.manage` | Create/edit/delete products, brands, collections |
+| `orders.manage` | View and update orders |
+| `customers.manage` | View and manage customers |
+| `users.manage` | Create and manage admin users |
+| `marketing.campaigns.manage` | Manage discount campaigns |
+| `marketing.content.manage` | Manage banners, blog, homepage |
+| `analytics.view` | View analytics dashboard |
+| `settings.manage` | Update store settings |
+| `shipping.manage` | Manage shipping methods and zones |
+
+## Guest Cart
+
+Unauthenticated users can add items to a cart using a guest ID:
+
+```http
+POST /api/cart
+x-guest-id: guest-abc-123
+Content-Type: application/json
+
+{
+  "productId": "prod-uuid",
+  "quantity": 1
+}
+```
+
+On checkout, the guest cart is automatically merged into the authenticated customer's cart.
+
+<Callout type="warning">
+  The `x-guest-id` header must be consistent across all cart requests for the same guest session. Store it in `localStorage` or a cookie on the client side.
+</Callout>

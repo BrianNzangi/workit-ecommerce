@@ -1,39 +1,29 @@
 # =========================
 # Base image (shared)
 # =========================
-FROM node:20-bookworm AS base
+FROM node:20-bookworm-slim AS base
 
-# System dependencies
-RUN apt-get update && apt-get install -y \
-    python3 \
-    make \
-    g++ \
-    build-essential \
-    libc6 \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 make g++ build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-RUN npm install -g pnpm@9 node-gyp-build
+RUN corepack enable && corepack prepare pnpm@10.28.2 --activate
 
 WORKDIR /app
-
 
 # =========================
 # Dependencies stage
 # =========================
 FROM base AS deps
 
+# Copy lockfile + manifests first so this layer is cached until they change
 COPY .npmrc ./
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
-
-# Copy package manifests (using backend)
 COPY admin/package.json ./admin/
-COPY backend/package.json ./backend/
 COPY frontend/package.json ./frontend/
 COPY packages ./packages/
 
-# Install ONLY admin + its dependencies
 RUN pnpm install --no-frozen-lockfile --filter=@workit/admin...
-
 
 # =========================
 # Build stage
@@ -44,14 +34,12 @@ COPY --from=deps /app /app
 COPY admin ./admin
 COPY packages ./packages
 
-# Build arguments
 ARG DATABASE_URL
 ARG BACKEND_URL=http://backend:3001
 ARG NEXT_PUBLIC_BACKEND_URL=https://api.workit.co.ke
 ARG NEXT_PUBLIC_API_URL
 ARG STOREFRONT_URL=https://workit.co.ke
 
-# Set as environment variables for build
 ENV DATABASE_URL=$DATABASE_URL
 ENV BACKEND_URL=$BACKEND_URL
 ENV NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL
@@ -61,29 +49,23 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV SKIP_DB_CHECK=true
 
-# Build shared workspace packages first
 RUN pnpm --filter=@workit/db run build
 RUN pnpm --filter=@workit/validation run build
-
-# Build admin app
 RUN pnpm --filter=@workit/admin run build
-
 
 # =========================
 # Runtime stage
 # =========================
-FROM node:20-bookworm AS runner
+FROM node:20-bookworm-slim AS runner
 
-RUN npm install -g pnpm@9
+RUN corepack enable && corepack prepare pnpm@10.28.2 --activate
 
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Create non-root user
 RUN groupadd -r nodejs && useradd -r -g nodejs nodejs
 
-# Copy runtime artifacts only
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/admin/node_modules ./admin/node_modules
 COPY --from=deps /app/packages ./packages
@@ -93,7 +75,6 @@ COPY --from=builder /app/admin/package.json ./admin/package.json
 COPY --from=deps /app/package.json ./package.json
 COPY --from=deps /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
 
-# Change ownership
 RUN chown -R nodejs:nodejs /app
 
 USER nodejs
@@ -101,7 +82,6 @@ USER nodejs
 WORKDIR /app/admin
 
 EXPOSE 3002
-
 ENV PORT=3002
 ENV HOSTNAME="0.0.0.0"
 

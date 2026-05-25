@@ -36,7 +36,7 @@ export const AlertModal = ({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-            <div className="relative w-full max-w-md bg-white rounded-lg shadow-lg p-6">
+            <div className="relative w-full max-w-md bg-white rounded-sm p-4">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
                     <button
@@ -56,7 +56,7 @@ export const AlertModal = ({
                         type="button"
                         disabled={loading}
                         onClick={onClose}
-                        className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                        className="px-4 py-2 rounded-sm text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
                     >
                         Cancel
                     </button>
@@ -64,7 +64,7 @@ export const AlertModal = ({
                         type="button"
                         disabled={loading}
                         onClick={onConfirm}
-                        className="px-4 py-2 bg-primary-800 border border-transparent rounded-md text-sm font-medium text-white hover:bg-primary-900 transition-colors disabled:opacity-50"
+                        className="px-4 py-2 bg-primary-800 rounded-sm text-sm font-medium text-white hover:bg-primary-900 transition-colors disabled:opacity-50"
                     >
                         {loading ? 'Deleting...' : 'Continue'}
                     </button>

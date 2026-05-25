@@ -1,4 +1,6 @@
 import { ProductService, ProductListOptions } from '@/lib/services';
+import { requireAuth } from '@/lib/middleware/auth.middleware';
+import { mapHttpError } from '@/lib/graphql/errors';
 import type { GraphQLContext } from '../../context';
 
 export const productQueries = {
@@ -31,10 +33,16 @@ export const productQueries = {
 
     searchProductsEnhanced: async (
         _parent: any,
-        _args: any,
+        { searchTerm, options }: { searchTerm: string; options?: Record<string, any> },
         context: GraphQLContext
     ) => {
-        // requireAuth(context.auth);
-        throw new Error('Not implemented');
+        requireAuth(context.auth);
+        if (!searchTerm) return [];
+        try {
+            const productService = new ProductService();
+            return await productService.searchProductsEnhanced(searchTerm, options);
+        } catch (e) {
+            throw mapHttpError(e);
+        }
     },
 };

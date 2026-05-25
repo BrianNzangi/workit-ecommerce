@@ -3,15 +3,20 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { ChevronDown, SlidersHorizontal, X } from 'lucide-react';
 import ColProductGrid from '@/components/product/ColProductGrid';
-import ProductFilters from '@/components/filters/ProductFilters';
 import ProductPagination from '@/components/ui/ProductPagination';
 import CollectionHeaderBannerLoader from '@/components/banners/CollectionHeaderBannerLoader';
+import FilterSidebar from '@/components/filters/FilterSidebar';
+import SectionContainer from '@/components/layout/SectionContainer';
 import Breadcrumbs from '@/components/ui/Breadcrumbs';
-import ProductSorter from './ProductSorter';
+import LazySection from '@/components/ui/LazySection';
+import ShopByCategoryCarousel from '@/components/collections/ShopByCategoryCarousel';
+import TopBrandsCarousel from '@/components/collections/TopBrandsCarousel';
 import Head from 'next/head';
 import { Category, Brand } from '@/types/collection';
 import { Product } from '@/types/product';
+import { useCollectionProducts } from '@/hooks/useCollectionProducts';
 
 interface CollectionPagination {
   total: number;
@@ -32,11 +37,24 @@ interface CollectionClientProps {
   campaignSlug?: string | null;
 }
 
+interface FeaturedBrand {
+  id: string;
+  name: string;
+  slug: string;
+  logoUrl?: string | null;
+}
+
+const SORT_OPTIONS = [
+  { val: 'popularity', label: 'Relevance' },
+  { val: 'price_asc', label: 'Price: Low to High' },
+  { val: 'price_desc', label: 'Price: High to Low' },
+];
+
 export default function CollectionClient({
   fullSlug,
   category,
   categories,
-  products,
+  products: ssrProducts,
   initialPagination,
   brands,
   campaignSlug,
@@ -46,9 +64,8 @@ export default function CollectionClient({
   const listingQueryKey = campaignSlug ? 'campaign' : 'collection';
   const [currentPage, setCurrentPage] = useState(initialPagination.currentPage || 1);
   const [sortBy, setSortBy] = useState('popularity');
-  const [serverProducts, setServerProducts] = useState<Product[]>(products);
-  const [loadingProducts, setLoadingProducts] = useState(products.length === 0);
-  const [pagination, setPagination] = useState<CollectionPagination>(initialPagination);
+  const [sortOpen, setSortOpen] = useState(false);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [filterState, setFilterState] = useState<{
     category?: string | number | null;
     tag?: Array<string | number>;
@@ -59,6 +76,34 @@ export default function CollectionClient({
     inStock?: boolean;
     shippingMethodId?: string;
   }>({});
+  const [featuredBrands, setFeaturedBrands] = useState<FeaturedBrand[]>([]);
+  const [featuredBrandsLoading, setFeaturedBrandsLoading] = useState(false);
+
+  const isL1Collection = !campaignSlug && (category?.parent === 0 || category?.parent === null || category?.parent === undefined);
+
+  const subCategories = useMemo(() => {
+    if (!category || !categories.length) return [];
+    const match = categories.find(c => String(c.id) === String(category.id));
+    if (!match?.children?.length) return [];
+
+    if (isL1Collection) {
+      const groups = match.children as Category[];
+      return groups.flatMap(g => g.children || []) as Category[];
+    }
+    return match.children as Category[];
+  }, [isL1Collection, category, categories]);
+
+  useEffect(() => {
+    if (!currentCollectionSlug) return;
+    setFeaturedBrandsLoading(true);
+    fetch(`/api/brands/featured?collectionSlug=${currentCollectionSlug}`)
+      .then(res => res.json())
+      .then(data => {
+        setFeaturedBrands(data.brands || []);
+      })
+      .catch(() => setFeaturedBrands([]))
+      .finally(() => setFeaturedBrandsLoading(false));
+  }, [currentCollectionSlug]);
 
   const flattenCategories = useCallback((items: Category[] = []): Category[] => {
     const flattened: Category[] = [];
@@ -81,108 +126,35 @@ export default function CollectionClient({
     return categoryList.find((item) => String(item.id) === String(categoryId))?.slug || currentCollectionSlug;
   }, [categoryList, currentCollectionSlug, filterState.category]);
 
-  useEffect(() => {
-    setServerProducts(products);
-    setLoadingProducts(products.length === 0);
-  }, [products]);
-
-  useEffect(() => {
-    setPagination(initialPagination);
-  }, [initialPagination]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const fetchProducts = async () => {
-      setLoadingProducts(true);
-      try {
-        const params = new URLSearchParams({
-          limit: String(perPage),
-          offset: String((currentPage - 1) * perPage),
-          sortBy,
-        });
-        params.set(listingQueryKey, campaignSlug || selectedCategorySlug);
-
-        if (filterState.brand?.length) {
-          params.set('brand', String(filterState.brand[0]));
-        }
-        if (filterState.onSale) {
-          params.set('onSale', 'true');
-        }
-        if (filterState.inStock) {
-          params.set('inStock', 'true');
-        }
-        if (filterState.shippingMethodId) {
-          params.set('shippingMethodId', filterState.shippingMethodId);
-        }
-        if (filterState.minPrice !== undefined) {
-          params.set('minPrice', String(filterState.minPrice));
-        }
-        if (filterState.maxPrice !== undefined) {
-          params.set('maxPrice', String(filterState.maxPrice));
-        }
-
-        const response = await fetch(`/api/store/products?${params.toString()}`, {
-          cache: 'no-store',
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch products: ${response.status}`);
-        }
-
-        const data = await response.json();
-        if (!cancelled) {
-          setServerProducts(data.products || []);
-          setPagination(data.pagination || {
-            total: data.products?.length || 0,
-            limit: perPage,
-            offset: (currentPage - 1) * perPage,
-            currentPage,
-            totalPages: Math.max(1, Math.ceil((data.products?.length || 0) / perPage)),
-            hasMore: false,
-          });
-        }
-      } catch (error) {
-        console.error('Failed to fetch collection products:', error);
-        if (!cancelled) {
-          setServerProducts([]);
-          setPagination({
-            total: 0,
-            limit: perPage,
-            offset: 0,
-            currentPage: 1,
-            totalPages: 1,
-            hasMore: false,
-          });
-        }
-      } finally {
-        if (!cancelled) {
-          setLoadingProducts(false);
-        }
-      }
-    };
-
-    fetchProducts();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [
-    currentPage,
-    perPage,
-    selectedCategorySlug,
-    campaignSlug,
+  const collectionProductsParams = useMemo(() => ({
     listingQueryKey,
-    filterState.brand,
-    filterState.inStock,
-    filterState.maxPrice,
-    filterState.minPrice,
-    filterState.onSale,
-    filterState.shippingMethodId,
+    listingValue: campaignSlug || selectedCategorySlug,
+    limit: perPage,
+    offset: (currentPage - 1) * perPage,
     sortBy,
+    brand: filterState.brand?.length ? String(filterState.brand[0]) : undefined,
+    onSale: filterState.onSale || undefined,
+    inStock: filterState.inStock || undefined,
+    shippingMethodId: filterState.shippingMethodId || undefined,
+    minPrice: filterState.minPrice,
+    maxPrice: filterState.maxPrice,
+  }), [
+    listingQueryKey, campaignSlug, selectedCategorySlug,
+    perPage, currentPage, sortBy,
+    filterState.brand, filterState.onSale, filterState.inStock,
+    filterState.shippingMethodId, filterState.minPrice, filterState.maxPrice,
   ]);
 
-  // JSON-LD for structured data
+  const { data: productsData, isLoading: loadingProducts } = useCollectionProducts(
+    collectionProductsParams,
+    ssrProducts.length > 0 && currentPage === 1 && sortBy === 'popularity' && Object.keys(filterState).length === 0
+      ? { products: ssrProducts, pagination: initialPagination }
+      : undefined,
+  );
+
+  const serverProducts = productsData?.products || [];
+  const pagination = productsData?.pagination || initialPagination;
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
@@ -234,6 +206,16 @@ export default function CollectionClient({
     }
   }, [currentPage, safeCurrentPage]);
 
+  const getSortLabel = (val: string) => {
+    return SORT_OPTIONS.find(o => o.val === val)?.label || 'Relevance';
+  };
+
+  useEffect(() => {
+    if (!mobileFiltersOpen) return;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, [mobileFiltersOpen]);
+
   if (!category && !campaignSlug && categories.length > 0)
     return (
       <div className="container mx-auto px-4 py-10 font-sans text-center">
@@ -254,7 +236,7 @@ export default function CollectionClient({
         />
       </Head>
 
-      <div className="max-w-[1280px] mx-auto px-4 py-4 space-y-8">
+      <SectionContainer className="px-4 sm:px-6 lg:px-8 py-4 space-y-8">
         <Breadcrumbs
           paths={[
             { label: 'Home', href: '/' },
@@ -263,51 +245,195 @@ export default function CollectionClient({
           ]}
         />
 
+        {/* Collection Title */}
+        {category && (
+          <div>
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-gray-900 tracking-tight">
+              {category.name}
+            </h1>
+            {category.description && (
+              <p className="mt-2 text-base md:text-lg text-gray-600 max-w-3xl">
+                {category.description}
+              </p>
+            )}
+          </div>
+        )}
+
         <CollectionHeaderBannerLoader
           title={category?.name || fullSlug}
           collectionSlug={campaignSlug || currentCollectionSlug}
           campaignSlug={campaignSlug}
         />
 
-        {/* Unified Filter & Sort Toolbar */}
-        <div className="space-y-4">
-          <ProductFilters
-            selectedCategory={filterState.category ?? category?.id ?? null}
-            collectionSlug={selectedCategorySlug}
-            sortBy={sortBy}
-            onSortChange={setSortBy}
-            onFilterChange={handleFilterChange}
-          />
-
-          {/* Brands Quick-Access (Optional) */}
-          {brands.length > 0 && (
-            <div className="flex overflow-x-auto gap-3 pb-2 custom-scrollbar">
-              {brands.slice(0, 10).map((brand) => (
-                <a
-                  key={brand.id}
-                  href={brand.link || '#'}
-                  className="shrink-0 border border-gray-100 rounded-lg p-2 w-24 h-24 flex items-center justify-center bg-white shadow-sm hover:shadow-md transition-shadow"
-                >
-                  {brand.image ? (
-                    <Image
-                      src={brand.image.src}
-                      alt={brand.name}
-                      width={80}
-                      height={80}
-                      className="max-h-20 w-auto object-contain"
-                      unoptimized
-                    />
-                  ) : (
-                    <span className="text-xs text-gray-400 font-bold text-center px-1">{brand.name}</span>
-                  )}
-                </a>
-              ))}
-            </div>
+        {/* Shop by Category + Top Brands carousels (lazy loaded) */}
+        <div className="space-y-8">
+          {subCategories.length > 0 && (
+            <LazySection
+              placeholder={
+                <div className="h-50 bg-gray-50 rounded-lg animate-pulse" />
+              }
+            >
+              <ShopByCategoryCarousel
+                title="Shop by Category"
+                parentSlug={currentCollectionSlug}
+                categories={subCategories.map((c: any) => ({
+                  id: String(c.id),
+                  name: c.name,
+                  slug: c.slug,
+                  parentSlug: currentCollectionSlug,
+                  image: c.asset?.preview || c.asset?.source || null,
+                }))}
+              />
+            </LazySection>
           )}
+          <LazySection
+            placeholder={
+              <div className="space-y-4">
+                <div className="h-7 w-32 bg-gray-200 rounded animate-pulse" />
+                <div className="flex gap-4">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="shrink-0 w-30 sm:w-35 aspect-4/3 bg-gray-200 rounded-lg animate-pulse"
+                    />
+                  ))}
+                </div>
+              </div>
+            }
+          >
+            {featuredBrandsLoading ? (
+              <div className="space-y-4">
+                <div className="h-7 w-32 bg-gray-200 rounded animate-pulse" />
+                <div className="flex gap-4">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="shrink-0 w-30 sm:w-35 aspect-4/3 bg-gray-200 rounded-lg animate-pulse"
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : featuredBrands.length > 0 ? (
+              <TopBrandsCarousel
+                title="Top Brands"
+                brands={featuredBrands}
+              />
+            ) : null}
+          </LazySection>
         </div>
 
-        <div className="grid grid-cols-1 gap-8">
-          <section className="w-full">
+        </SectionContainer>
+
+        {/* Filter Sidebar + Product Grid */}
+        <div className="bg-[#F5F5F5] border-t border-gray-200 w-full">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6 md:gap-8">
+          {/* Desktop Sidebar */}
+          <aside className="hidden md:block bg-white rounded-md border-2 border-gray-200">
+            <div className="sticky top-4 p-4">
+              <FilterSidebar
+                selectedCategory={filterState.category ?? category?.id ?? null}
+                collectionSlug={selectedCategorySlug}
+                onFilterChange={handleFilterChange}
+              />
+            </div>
+          </aside>
+
+          {/* Mobile Sidebar Overlay */}
+          {mobileFiltersOpen && (
+            <div className="fixed inset-0 z-50 md:hidden">
+              <div
+                className="absolute inset-0 bg-black/40"
+                onClick={() => setMobileFiltersOpen(false)}
+              />
+              <div className="absolute left-0 top-0 h-full w-[85%] max-w-sm bg-white shadow-2xl flex flex-col animate-in slide-in-from-left duration-300">
+                <div className="flex items-center justify-between p-4 border-b border-gray-100">
+                  <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <SlidersHorizontal size={18} className="text-primary-900" />
+                    Filters
+                  </h2>
+                  <button
+                    onClick={() => setMobileFiltersOpen(false)}
+                    className="p-2 hover:bg-gray-50 rounded-full transition-colors"
+                  >
+                    <X size={20} className="text-gray-400" />
+                  </button>
+                </div>
+                <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                  <FilterSidebar
+                    selectedCategory={filterState.category ?? category?.id ?? null}
+                    collectionSlug={selectedCategorySlug}
+                    onFilterChange={handleFilterChange}
+                  />
+                </div>
+                <div className="p-4 border-t border-gray-100">
+                  <button
+                    onClick={() => setMobileFiltersOpen(false)}
+                    className="w-full py-3 bg-primary-900 text-white text-sm font-bold rounded-lg hover:bg-primary-800 transition-colors"
+                  >
+                    Show Results
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Main Content */}
+          <main className="space-y-6 min-w-0">
+            {/* Sort Bar */}
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setMobileFiltersOpen(true)}
+                  className="md:hidden h-10 px-4 flex items-center gap-2 border border-gray-200 bg-white text-sm font-medium rounded-md hover:bg-gray-50"
+                >
+                  <SlidersHorizontal size={16} />
+                  Filters
+                  {(filterState.brand?.length || filterState.minPrice !== undefined || filterState.maxPrice !== undefined) && (
+                    <span className="w-2 h-2 rounded-full bg-primary-900" />
+                  )}
+                </button>
+                <p className="text-sm text-gray-500">
+                  {pagination.total > 0
+                    ? `${pagination.total} product${pagination.total !== 1 ? 's' : ''} found`
+                    : ''}
+                </p>
+              </div>
+
+              <div className="relative">
+                <button
+                  onClick={() => setSortOpen(!sortOpen)}
+                  onBlur={() => setTimeout(() => setSortOpen(false), 150)}
+                  className="h-10 px-4 flex items-center gap-2 border border-gray-200 bg-white text-sm font-medium rounded-md hover:bg-gray-50 transition-colors"
+                >
+                  Sort by: <span className="font-bold">{getSortLabel(sortBy)}</span>
+                  <ChevronDown size={14} className={`transition-transform ${sortOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {sortOpen && (
+                  <div className="absolute right-0 top-full mt-1 w-52 bg-white border border-gray-200 rounded shadow-xl z-40 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <div className="py-1">
+                      {SORT_OPTIONS.map(opt => (
+                        <button
+                          key={opt.val}
+                          onClick={() => {
+                            setSortBy(opt.val);
+                            setSortOpen(false);
+                          }}
+                          className={`w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-gray-50 ${
+                            sortBy === opt.val ? 'font-bold bg-gray-50 text-gray-900' : 'text-gray-700'
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Product Grid */}
             {loadingProducts ? (
               <div className="rounded-xl border border-gray-100 bg-white p-16 text-center shadow-sm">
                 <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-primary-900" />
@@ -349,9 +475,10 @@ export default function CollectionClient({
                 </div>
               </div>
             )}
-          </section>
+          </main>
         </div>
-      </div>
+        </div>
+        </div>
     </>
   );
 }

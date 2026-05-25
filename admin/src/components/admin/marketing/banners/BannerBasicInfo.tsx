@@ -20,7 +20,7 @@ import {
 import { cn } from '@/lib/shared/utils/cn';
 import { BannerLinkedCampaign, BannerLinkedProduct } from './types';
 import { BannerProductPicker } from './BannerProductPicker';
-import { findCollectionPath, getRootCollections } from './banner.utils';
+import { findCollectionPath, getRootCollections } from '@/lib/banner/utils';
 
 interface BannerFormData {
     name: string;

@@ -1,0 +1,51 @@
+import { Cards, Card } from 'nextra/components'
+
+# Workit E-commerce Platform
+
+Workit is a full-stack e-commerce platform for the Kenyan market. It includes a storefront, an admin dashboard, and a Fastify backend in one monorepo.
+
+## Apps And Packages
+
+| Package | Description | URL |
+|---------|-------------|-----|
+| `frontend` | Customer storefront | `workit.co.ke` |
+| `admin` | Admin dashboard | `admin.workit.co.ke` |
+| `backend` | Fastify REST API | `api.workit.co.ke` |
+| `backend-old` | Legacy backend kept for reference | - |
+| `packages/db` | Drizzle ORM schema and migrations | - |
+| `packages/validation` | Shared Zod schemas | - |
+
+## Quick Links
+
+<Cards>
+  <Card title="Getting Started" href="/getting-started" arrow />
+  <Card title="Architecture" href="/architecture" arrow />
+  <Card title="API Reference" href="/api" arrow />
+  <Card title="Deployment Guide" href="/guides/deployment" arrow />
+</Cards>
+
+## Tech Stack
+
+**Frontend and Admin**
+
+- Next.js 14
+- TypeScript
+- Tailwind CSS
+- Redux Toolkit
+
+**Backend**
+
+- Fastify 5
+- Drizzle ORM
+- PostgreSQL
+- Redis for optional caching and rate limiting
+- Better Auth
+- Paystack
+- Cloudflare R2 / S3-compatible storage
+
+**Infrastructure**
+
+- pnpm workspaces
+- Turborepo
+- Docker Compose
+- Vercel for frontend and admin deployment

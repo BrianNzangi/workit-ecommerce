@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { trackMetaEvent } from '@/lib/meta-browser';
+import { trackMetaEvent } from '@/lib/meta/meta-browser';
 
 const ContactForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);

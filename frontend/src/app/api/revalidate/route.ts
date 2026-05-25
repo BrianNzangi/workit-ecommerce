@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { redis } from '@/lib/redis';
+import { redis } from '@/lib/utils/redis';
 import { revalidatePath, revalidateTag } from 'next/cache';
 
 /**

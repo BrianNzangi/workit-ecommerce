@@ -1,5 +1,47 @@
+# Version control
+.git
+.gitignore
+.github
+
+# Dependencies (rebuilt inside Docker)
 node_modules
 **/node_modules
+
+# Build outputs (rebuilt inside Docker)
 dist
 **/dist
-.git
+.next
+**/.next
+.turbo
+**/.turbo
+
+# pnpm store (not needed in image)
+.pnpm-store
+
+# Dev / editor files
+.vscode
+.idea
+*.log
+**/*.log
+
+# Test artifacts
+coverage
+**/coverage
+**/__tests__
+**/*.test.ts
+**/*.spec.ts
+
+# Docs / agent files
+docs
+.agent
+README.md
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local env files (secrets should come from docker-compose env_file)
+.env.local
+**/.env.local
+.env.development
+**/.env.development

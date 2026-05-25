@@ -6,8 +6,8 @@
  */
 
 import { NextResponse } from 'next/server';
-import { proxyFetch } from '@/lib/proxy-utils';
-import { normalizeProducts } from '@/lib/product-normalization';
+import { proxyFetch } from '@/lib/utils/proxy-utils';
+import { normalizeProducts } from '@/lib/product/product-normalization';
 
 /**
  * GET /api/home-collection

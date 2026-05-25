@@ -1,22 +1,34 @@
 import { CollectionService, CollectionListOptions } from '@/lib/services';
+import { requireAuth } from '@/lib/middleware/auth.middleware';
+import { mapHttpError } from '@/lib/graphql/errors';
 import type { GraphQLContext } from '../../context';
 
 export const collectionQueries = {
     collection: async (
         _parent: any,
         { id }: { id: string },
-        _context: GraphQLContext
+        context: GraphQLContext
     ) => {
-        const collectionService = new CollectionService();
-        return await collectionService.getCollection(id);
+        requireAuth(context.auth);
+        try {
+            const collectionService = new CollectionService();
+            return await collectionService.getCollection(id);
+        } catch (error) {
+            throw mapHttpError(error);
+        }
     },
 
     collections: async (
         _parent: any,
         { options }: { options?: CollectionListOptions },
-        _context: GraphQLContext
+        context: GraphQLContext
     ) => {
-        const collectionService = new CollectionService();
-        return await collectionService.getCollections(options);
+        requireAuth(context.auth);
+        try {
+            const collectionService = new CollectionService();
+            return await collectionService.getCollections(options);
+        } catch (error) {
+            throw mapHttpError(error);
+        }
     },
 };

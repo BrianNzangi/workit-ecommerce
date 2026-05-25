@@ -14,6 +14,7 @@ export interface CollectionFormData {
     parentId: string;
     enabled: boolean;
     showInMostShopped: boolean;
+    showInMenuHeader: boolean;
     sortOrder: number;
     mostShoppedSortOrder: number;
     assetId: string;

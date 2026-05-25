@@ -7,7 +7,7 @@ import {
   normalizeIndexNowUrls,
   toAbsoluteSiteUrl,
   type IndexingScope,
-} from "@/lib/site-indexing";
+} from "@/lib/seo/site-indexing";
 
 interface IndexNowRequestBody {
   paths?: string[];
