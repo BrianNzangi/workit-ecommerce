@@ -17,6 +17,7 @@
         "migrate": "drizzle-kit migrate --config=drizzle.config.ts",
         "push": "drizzle-kit push --config=drizzle.config.ts",
         "seed": "node dist/seed.js",
+        "seed:help-center": "tsx src/seed-help-center.ts",
         "studio": "node ./scripts/studio.mjs"
     },
     "peerDependencies": {
