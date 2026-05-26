@@ -16,7 +16,7 @@ export async function GET(
 
         // Fetch all settings from the backend
         const response = await fetch(`${backendUrl}/site/settings`, {
-            next: { revalidate: 3600 } // Cache for 1 hour
+            cache: 'no-store'
         });
 
         if (!response.ok) {
