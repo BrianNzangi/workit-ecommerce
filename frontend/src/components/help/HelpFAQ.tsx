@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import he from "he";
+import { ChevronDown } from "lucide-react";
 
 interface Article {
   id: string;
@@ -12,12 +13,13 @@ interface Article {
 
 interface FAQCategory {
   category: string;
-  faqs: { question: string; answer: string }[];
+  faqs: { id: string; question: string; answer: string }[];
 }
 
 const HelpFAQ = () => {
   const [categories, setCategories] = useState<FAQCategory[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const fetchFAQs = async () => {
@@ -28,13 +30,13 @@ const HelpFAQ = () => {
         const data = await response.json();
         const articles = data.articles || [];
 
-        // Group articles by category
         const groupedMap: Record<string, FAQCategory> = {};
         articles.forEach((article: Article) => {
           if (!groupedMap[article.category]) {
             groupedMap[article.category] = { category: article.category, faqs: [] };
           }
           groupedMap[article.category].faqs.push({
+            id: article.id,
             question: article.title,
             answer: article.content
           });
@@ -51,17 +53,26 @@ const HelpFAQ = () => {
     fetchFAQs();
   }, []);
 
+  const toggleExpanded = (id: string) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
   if (loading) {
     return (
-      <section className="pt-20 pb-8 bg-accent-800 font-sans">
+      <section className="py-16 bg-white font-sans">
         <div className="container mx-auto px-8">
           <div className="animate-pulse space-y-12">
             {[1, 2].map(i => (
               <div key={i}>
-                <div className="h-8 bg-gray-200 rounded w-48 mb-6"></div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {[1, 2].map(j => (
-                    <div key={j} className="h-32 bg-white border border-secondary-300 rounded-xs"></div>
+                <div className="h-8 bg-gray-100 rounded w-48 mb-6"></div>
+                <div className="space-y-3">
+                  {[1, 2, 3].map(j => (
+                    <div key={j} className="h-14 bg-gray-50 rounded-lg"></div>
                   ))}
                 </div>
               </div>
@@ -73,27 +84,38 @@ const HelpFAQ = () => {
   }
 
   return (
-    <section className="pt-20 pb-8 bg-accent-800 font-sans min-h-100">
+    <section className="py-16 bg-white font-sans min-h-100">
       <div className="container mx-auto px-8">
         {categories.length > 0 ? (
           categories.map((category) => (
             <div key={category.category} className="mb-12">
-              <h2 className="text-2xl font-bold mb-6">{category.category}</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {category.faqs.map((faq, index) => (
-                  <div key={index} className="bg-white border border-secondary-300 rounded-xs p-6 shadow-sm">
-                    <h3 className="font-semibold text-lg mb-2 wrap-break-word">{he.decode(faq.question)}</h3>
-                    <div
-                      className="text-secondary-700 text-md prose prose-sm max-w-none wrap-break-word overflow-wrap-anywhere"
-                      dangerouslySetInnerHTML={{ __html: he.decode(faq.answer) }}
-                    />
-                  </div>
-                ))}
+              <h2 className="text-2xl font-bold mb-6 text-gray-900">{category.category}</h2>
+              <div className="space-y-3">
+                {category.faqs.map((faq) => {
+                  const isOpen = expanded.has(faq.id);
+                  return (
+                    <div key={faq.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                      <button
+                        onClick={() => toggleExpanded(faq.id)}
+                        className="w-full flex items-center justify-between px-6 py-4 text-left bg-white hover:bg-gray-50 transition-colors"
+                      >
+                        <span className="font-medium text-gray-900 pr-4">{he.decode(faq.question)}</span>
+                        <ChevronDown className={`h-5 w-5 text-gray-400 flex-shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
+                      </button>
+                      <div className={`overflow-hidden transition-all duration-200 ${isOpen ? "max-h-[2000px]" : "max-h-0"}`}>
+                        <div
+                          className="px-6 pb-4 text-gray-600 text-sm leading-relaxed prose prose-sm max-w-none"
+                          dangerouslySetInnerHTML={{ __html: he.decode(faq.answer) }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           ))
         ) : (
-          <div className="py-20 text-center text-gray-500">
+          <div className="py-20 text-center text-gray-400">
             <p>No help articles found. Please check back later.</p>
           </div>
         )}

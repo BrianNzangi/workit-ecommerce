@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 const HelpCenterPage = () => {
   return (
-    <main className="min-h-screen bg-primary-900">
+    <main className="min-h-screen bg-white">
       <HelpHero />
 
       <HelpFAQ />

@@ -42,22 +42,22 @@ const ContactForm = () => {
   };
 
   return (
-    <section className="pb-20 bg-accent-800 font-sans">
+    <section className="pb-20 bg-white font-sans border-t border-gray-200">
       <div className="container mx-auto px-8">
         <div className="mx-auto">
-          <h2 className="text-2xl font-bold mb-4">Contact Us</h2>
-          <form onSubmit={handleSubmit}>
+          <h2 className="text-2xl font-bold mb-6 text-gray-900">Contact Us</h2>
+          <form onSubmit={handleSubmit} className="max-w-lg">
             <div className="mb-4">
-              <label htmlFor="name" className="block text-secondary-00 mb-2">Name</label>
-              <input type="text" id="name" name="name" className="w-full p-2 border border-secondary-200 rounded-xs" />
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+              <input type="text" id="name" name="name" className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-900 focus:border-transparent" />
             </div>
             <div className="mb-4">
-              <label htmlFor="email" className="block text-secondary-00 mb-2">Email</label>
-              <input type="email" id="email" name="email" className="w-full p-2 border border-secondary-200 rounded-xs" />
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input type="email" id="email" name="email" className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-900 focus:border-transparent" />
             </div>
             <div className="mb-4">
-              <label htmlFor="nature" className="block text-secondary-00 mb-2">Nature of Request</label>
-              <select id="nature" name="nature" className="w-full p-2 border border-secondary-200 rounded-xs">
+              <label htmlFor="nature" className="block text-sm font-medium text-gray-700 mb-1">Nature of Request</label>
+              <select id="nature" name="nature" className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-900 focus:border-transparent">
                 <option value="">Select a request type</option>
                 <option value="return-policy">Return Policy</option>
                 <option value="warranty">Warranty</option>
@@ -66,14 +66,14 @@ const ContactForm = () => {
               </select>
             </div>
             <div className="mb-4">
-              <label htmlFor="message" className="block text-secondary-00 mb-2">Message</label>
-              <textarea id="message" name="message" className="w-full p-2 border border-secondary-200 rounded-xs" rows={4}></textarea>
+              <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">Message</label>
+              <textarea id="message" name="message" className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-900 focus:border-transparent" rows={4}></textarea>
             </div>
-            <button type="submit" disabled={isSubmitting} className="bg-primary-900 text-white text-xl px-8 py-2 rounded-xs hover:bg-primary-800 disabled:cursor-not-allowed disabled:opacity-70">
+            <button type="submit" disabled={isSubmitting} className="bg-primary-900 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-primary-800 disabled:cursor-not-allowed disabled:opacity-70 transition-colors">
               {isSubmitting ? 'Submitting...' : 'Submit'}
             </button>
             {statusMessage ? (
-              <p className="mt-4 text-sm text-secondary-900">{statusMessage}</p>
+              <p className="mt-4 text-sm text-gray-600">{statusMessage}</p>
             ) : null}
           </form>
         </div>

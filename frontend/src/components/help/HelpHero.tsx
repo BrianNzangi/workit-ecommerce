@@ -8,29 +8,18 @@ const HelpHero = () => {
   const router = useRouter();
 
   return (
-    <section className="bg-primary-900 py-20 font-sans">
+    <section className="bg-white py-16 font-sans border-b border-gray-200">
       <div className="container mx-auto px-8">
-        <div className="bg-white border-8 border-primary-500 rounded-xs shadow-lg p-10 text-gray-800 ">
-          <h1 className="text-3xl font-bold mb-6">Welcome to Workit Customer Support</h1>
+        <div className="p-10">
+          <h1 className="text-4xl font-bold mb-4 text-gray-900">Help Center</h1>
 
-          <p className="mb-6 leading-relaxed">
-            For faster and more personalized assistance, please contact us directly through your
-            <button onClick={() => router.push('/login')} className="font-bold text-primary-900 hover:underline mx-1">Workit account</button> using the <strong>Help</strong>, <strong>Return</strong>, or
-            <strong> Warranty</strong> options.
+          <p className="text-lg text-gray-600 mb-2">
+            Find answers to frequently asked questions about orders, payments, and technical issues.
           </p>
-
-          <p className="mb-6 leading-relaxed">
-            If you haven’t made a purchase yet, simply fill out the form below, our support team will get back to you within two business days.
+          <p className="text-gray-500">
+            Need more help? <button onClick={() => router.push('/login')} className="text-primary-900 font-medium hover:underline">Sign in</button> for personalized support or use the contact form below.
           </p>
-
-          <div className="flex gap-4 mt-8">
-            <button onClick={() => router.push('/sign-up')} className="bg-primary-900 text-white px-6 py-3 rounded-xs font-medium hover:bg-primary-800 transition">
-              Create an Account
-            </button>
-            <button onClick={() => router.push('/login')} className="text-primary-900 font-medium border border-primary-900 px-6 py-3 rounded-xs hover:bg-primary-50 transition">
-              Already a member? Log-in here.
-            </button>
-          </div>
+        </div>
         </div>
       </div>
     </section>
