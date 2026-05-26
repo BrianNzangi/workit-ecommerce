@@ -1,25 +1,27 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import he from "he";
-import { ChevronDown } from "lucide-react";
+import { ChevronRight, FileText } from "lucide-react";
+import SectionContainer from "@/components/layout/SectionContainer";
 
 interface Article {
   id: string;
   title: string;
-  content: string;
   category: string;
+  lastUpdated: string;
 }
 
 interface FAQCategory {
   category: string;
-  faqs: { id: string; question: string; answer: string }[];
+  articles: Article[];
 }
 
 const HelpFAQ = () => {
   const [categories, setCategories] = useState<FAQCategory[]>([]);
   const [loading, setLoading] = useState(true);
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchFAQs = async () => {
@@ -28,21 +30,19 @@ const HelpFAQ = () => {
         if (!response.ok) throw new Error('Failed to fetch help center data');
 
         const data = await response.json();
-        const articles = data.articles || [];
+        const articles: Article[] = data.articles || [];
 
         const groupedMap: Record<string, FAQCategory> = {};
-        articles.forEach((article: Article) => {
+        articles.forEach((article) => {
           if (!groupedMap[article.category]) {
-            groupedMap[article.category] = { category: article.category, faqs: [] };
+            groupedMap[article.category] = { category: article.category, articles: [] };
           }
-          groupedMap[article.category].faqs.push({
-            id: article.id,
-            question: article.title,
-            answer: article.content
-          });
+          groupedMap[article.category].articles.push(article);
         });
 
-        setCategories(Object.values(groupedMap));
+        const groups = Object.values(groupedMap);
+        setCategories(groups);
+        if (groups.length > 0) setSelectedCategory(groups[0].category);
       } catch (error) {
         console.error('Error fetching FAQs:', error);
       } finally {
@@ -53,73 +53,109 @@ const HelpFAQ = () => {
     fetchFAQs();
   }, []);
 
-  const toggleExpanded = (id: string) => {
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
+  const currentCategory = categories.find((c) => c.category === selectedCategory);
 
   if (loading) {
     return (
       <section className="py-16 bg-white font-sans">
-        <div className="container mx-auto px-8">
-          <div className="animate-pulse space-y-12">
-            {[1, 2].map(i => (
-              <div key={i}>
-                <div className="h-8 bg-gray-100 rounded w-48 mb-6"></div>
-                <div className="space-y-3">
-                  {[1, 2, 3].map(j => (
-                    <div key={j} className="h-14 bg-gray-50 rounded-lg"></div>
-                  ))}
-                </div>
+        <SectionContainer className="px-8">
+          <div className="flex gap-8">
+            <div className="w-64 shrink-0 animate-pulse space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-12 bg-gray-100 rounded-lg" />
+              ))}
+            </div>
+            <div className="flex-1 animate-pulse space-y-4">
+              <div className="h-8 bg-gray-100 rounded w-48" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="h-24 bg-gray-50 rounded-lg" />
+                ))}
               </div>
-            ))}
+            </div>
           </div>
-        </div>
+        </SectionContainer>
+      </section>
+    );
+  }
+
+  if (categories.length === 0) {
+    return (
+      <section className="py-16 bg-white font-sans">
+        <SectionContainer className="px-8 text-center text-gray-400 py-20">
+          <p>No help articles found. Please check back later.</p>
+        </SectionContainer>
       </section>
     );
   }
 
   return (
-    <section className="py-16 bg-white font-sans min-h-100">
-      <div className="container mx-auto px-8">
-        {categories.length > 0 ? (
-          categories.map((category) => (
-            <div key={category.category} className="mb-12">
-              <h2 className="text-2xl font-bold mb-6 text-gray-900">{category.category}</h2>
-              <div className="space-y-3">
-                {category.faqs.map((faq) => {
-                  const isOpen = expanded.has(faq.id);
-                  return (
-                    <div key={faq.id} className="border border-gray-200 rounded-lg overflow-hidden">
-                      <button
-                        onClick={() => toggleExpanded(faq.id)}
-                        className="w-full flex items-center justify-between px-6 py-4 text-left bg-white hover:bg-gray-50 transition-colors"
-                      >
-                        <span className="font-medium text-gray-900 pr-4">{he.decode(faq.question)}</span>
-                        <ChevronDown className={`h-5 w-5 text-gray-400 flex-shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
-                      </button>
-                      <div className={`overflow-hidden transition-all duration-200 ${isOpen ? "max-h-[2000px]" : "max-h-0"}`}>
-                        <div
-                          className="px-6 pb-4 text-gray-600 text-sm leading-relaxed prose prose-sm max-w-none"
-                          dangerouslySetInnerHTML={{ __html: he.decode(faq.answer) }}
-                        />
+    <section className="py-16 bg-white font-sans">
+      <SectionContainer className="px-8">
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Left sidebar: categories */}
+          <aside className="lg:w-64 shrink-0">
+            <nav className="lg:sticky lg:top-24 space-y-1">
+              {categories.map((cat) => {
+                const isActive = cat.category === selectedCategory;
+                return (
+                  <button
+                    key={cat.category}
+                    onClick={() => setSelectedCategory(cat.category)}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left text-sm transition-colors ${
+                      isActive
+                        ? "bg-primary-900 text-white font-medium"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    <span>{cat.category}</span>
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded-full ${
+                        isActive ? "bg-white/20 text-white" : "bg-gray-200 text-gray-600"
+                      }`}
+                    >
+                      {cat.articles.length}
+                    </span>
+                  </button>
+                );
+              })}
+            </nav>
+          </aside>
+
+          {/* Right main: article cards */}
+          <div className="flex-1 min-w-0">
+            {currentCategory && (
+              <>
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                  {currentCategory.category}
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {currentCategory.articles.map((article) => (
+                    <Link
+                      key={article.id}
+                      href={`/help-center/${article.id}`}
+                      className="group block p-5 rounded-xl border border-gray-200 bg-white hover:border-primary-900 hover:shadow-sm transition-all"
+                    >
+                      <div className="flex items-start gap-3">
+                        <FileText className="h-5 w-5 text-primary-900 mt-0.5 shrink-0" />
+                        <div className="min-w-0">
+                          <h3 className="font-medium text-gray-900 group-hover:text-primary-900 transition-colors break-words">
+                            {he.decode(article.title)}
+                          </h3>
+                          <p className="text-xs text-gray-400 mt-1">
+                            Updated {new Date(article.lastUpdated).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-primary-900 mt-1 shrink-0 ml-auto transition-colors" />
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))
-        ) : (
-          <div className="py-20 text-center text-gray-400">
-            <p>No help articles found. Please check back later.</p>
+                    </Link>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
-        )}
-      </div>
+        </div>
+      </SectionContainer>
     </section>
   );
 };

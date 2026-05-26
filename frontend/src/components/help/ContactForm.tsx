@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { trackMetaEvent } from '@/lib/meta/meta-browser';
+import SectionContainer from '@/components/layout/SectionContainer';
 
 const ContactForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -43,8 +44,7 @@ const ContactForm = () => {
 
   return (
     <section className="pb-20 bg-white font-sans border-t border-gray-200">
-      <div className="container mx-auto px-8">
-        <div className="mx-auto">
+      <SectionContainer className="px-8">
           <h2 className="text-2xl font-bold mb-6 text-gray-900">Contact Us</h2>
           <form onSubmit={handleSubmit} className="max-w-lg">
             <div className="mb-4">
@@ -76,8 +76,7 @@ const ContactForm = () => {
               <p className="mt-4 text-sm text-gray-600">{statusMessage}</p>
             ) : null}
           </form>
-        </div>
-      </div>
+      </SectionContainer>
     </section>
   );
 };
