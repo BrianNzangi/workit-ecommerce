@@ -20,7 +20,6 @@ const HelpHero = () => {
             Need more help? <button onClick={() => router.push('/login')} className="text-primary-900 font-medium hover:underline">Sign in</button> for personalized support or use the contact form below.
           </p>
         </div>
-        </div>
       </div>
     </section>
   );
