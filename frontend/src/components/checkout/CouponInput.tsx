@@ -44,7 +44,6 @@ export function CouponInput({ subtotal, onApply, onRemove }: Props) {
                 subtotal,
                 items: items.map((item) => ({
                     productId: item.productId,
-                    variantId: item.variantId,
                     price: item.price,
                     quantity: item.quantity,
                 })),

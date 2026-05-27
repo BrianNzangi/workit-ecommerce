@@ -13,7 +13,6 @@ export interface CartItem {
     id: string; // Line ID (kept for compatibility)
     lineId: string; // For cart line items
     productId: string;
-    variantId: string | null;
     name: string;
     price: number;
     priceWithTax: number; // Price including tax
@@ -48,7 +47,6 @@ export function useCart() {
             id: item.id, // Line ID
             lineId: item.id,
             productId: item.productId,
-            variantId: item.variantId, // Map from store item
             name: item.name,
             price: item.price,
             priceWithTax: item.price, // For now, price includes tax
@@ -74,7 +72,7 @@ export function useCart() {
         };
     }, [storeItems]);
 
-    const addItem = async (productId: string, variantId?: string, quantity: number = 1) => {
+    const addItem = async (productId: string, quantity: number = 1) => {
         // This function signature is for compatibility
         // The actual addItem in the store takes a full product object
         // This would need to be called from components that have the full product data

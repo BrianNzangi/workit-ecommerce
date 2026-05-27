@@ -3,8 +3,6 @@ import { Entity } from '../../shared/Entity.js';
 interface CartLineProps {
   cartId: string;
   productId: string;
-  /** Optional variant ID for products with variants. */
-  variantId?: string;
   quantity: number;
   createdAt: Date;
   updatedAt: Date;
@@ -31,7 +29,6 @@ export class CartLine extends Entity<string> {
     id: string;
     cartId: string;
     productId: string;
-    variantId?: string;
     quantity: number;
   }): CartLine {
     if (!Number.isInteger(params.quantity) || params.quantity <= 0) {
@@ -40,7 +37,6 @@ export class CartLine extends Entity<string> {
     return new CartLine(params.id, {
       cartId: params.cartId,
       productId: params.productId,
-      variantId: params.variantId,
       quantity: params.quantity,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -54,7 +50,6 @@ export class CartLine extends Entity<string> {
     id: string;
     cartId: string;
     productId: string;
-    variantId?: string;
     quantity: number;
     createdAt: Date;
     updatedAt: Date;
@@ -68,10 +63,6 @@ export class CartLine extends Entity<string> {
 
   get productId(): string {
     return this.props.productId;
-  }
-
-  get variantId(): string | undefined {
-    return this.props.variantId;
   }
 
   get quantity(): number {

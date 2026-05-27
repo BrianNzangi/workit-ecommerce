@@ -77,7 +77,6 @@ const rawCart: CartWithLines = {
       id: 'cart-line-1',
       cartId: 'cart-1',
       productId: 'product-1',
-      variantId: null,
       quantity: 3,
       createdAt: now,
       updatedAt: now,
@@ -272,7 +271,6 @@ describe('CartMapper', () => {
       expect(line.id).toBe('cart-line-1');
       expect(line.productId).toBe('product-1');
       expect(line.quantity).toBe(3);
-      expect(line.variantId).toBeUndefined();
     });
 
     it('should reconstruct a guest cart', () => {
@@ -286,13 +284,12 @@ describe('CartMapper', () => {
       expect(cart.guestId).toBe('guest-abc');
     });
 
-    it('should reconstruct a cart with variant lines', () => {
-      const rawWithVariant: CartWithLines = {
+    it('should reconstruct a cart without variant information', () => {
+      const rawWithoutVariant: CartWithLines = {
         ...rawCart,
-        lines: [{ ...rawCart.lines[0], variantId: 'variant-1' }],
       };
-      const cart = mapper.toDomain(rawWithVariant);
-      expect(cart.lines[0].variantId).toBe('variant-1');
+      const cart = mapper.toDomain(rawWithoutVariant);
+      expect(cart.lines[0].productId).toBe('product-1');
     });
 
     it('should reconstruct an empty cart', () => {
@@ -336,7 +333,6 @@ describe('CartMapper', () => {
       expect(dtos[0].cartId).toBe('cart-1');
       expect(dtos[0].productId).toBe('product-1');
       expect(dtos[0].quantity).toBe(3);
-      expect(dtos[0].variantId).toBeNull();
     });
 
     it('should return empty array for a cart with no lines', () => {

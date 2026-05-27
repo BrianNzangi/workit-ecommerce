@@ -33,7 +33,6 @@ export interface HomepageProduct {
         description?: string;
         isExpress: boolean;
     };
-    variantId?: string;
     variants?: Variant[];
     stockOnHand?: number;
     canBuy?: boolean;
@@ -97,6 +96,52 @@ function sortBanners(banners: StoreBanner[], position?: string) {
     return banners
         .filter((banner) => banner.enabled && (!position || banner.position === position))
         .sort((a, b) => a.sortOrder - b.sortOrder);
+}
+
+export interface HomepageSectionConfig {
+    key: string;
+    enabled: boolean;
+    order: number;
+}
+
+export interface HomepageLayout {
+    sections: HomepageSectionConfig[];
+}
+
+const DEFAULT_HOMEPAGE_LAYOUT: HomepageLayout = {
+    sections: [
+        { key: 'hero', enabled: true, order: 1 },
+        { key: 'most-shopped', enabled: true, order: 2 },
+        { key: 'deals', enabled: true, order: 3 },
+        { key: 'horizontal-banner', enabled: true, order: 4 },
+        { key: 'homepage-collections', enabled: true, order: 5 },
+        { key: 'featured-blogs', enabled: true, order: 6 },
+        { key: 'about-workit', enabled: true, order: 7 },
+    ],
+};
+
+export async function getHomepageLayout(): Promise<HomepageLayout> {
+    try {
+        const response = await proxyFetch('/site/settings', {
+            method: 'GET',
+            cache: 'force-cache',
+            next: { revalidate: 300 },
+            useRequestContext: false,
+        });
+
+        if (!response.ok) return DEFAULT_HOMEPAGE_LAYOUT;
+
+        const settings = await response.json();
+        const layout = settings['homepage_layout'];
+
+        if (!layout || !layout.sections || !Array.isArray(layout.sections)) {
+            return DEFAULT_HOMEPAGE_LAYOUT;
+        }
+
+        return layout as HomepageLayout;
+    } catch {
+        return DEFAULT_HOMEPAGE_LAYOUT;
+    }
 }
 
 export async function getHomepageBanners(): Promise<Record<string, StoreBanner[]>> {
@@ -192,45 +237,6 @@ export interface FlashSale {
     productIds: string[];
     startDate: string;
     endDate: string;
-}
-
-export async function getFeaturedDeals(): Promise<FeaturedDeal[]> {
-    const response = await proxyFetch('/store/featured-deals', {
-        method: 'GET',
-        next: { revalidate: 300 },
-        useRequestContext: false,
-    });
-
-    if (!response.ok) return [];
-
-    const data = await response.json();
-    return data.deals || [];
-}
-
-export async function getClearanceDeals(): Promise<ClearanceDeal[]> {
-    const response = await proxyFetch('/store/clearance-deals', {
-        method: 'GET',
-        next: { revalidate: 300 },
-        useRequestContext: false,
-    });
-
-    if (!response.ok) return [];
-
-    const data = await response.json();
-    return data.deals || [];
-}
-
-export async function getFlashSales(): Promise<FlashSale[]> {
-    const response = await proxyFetch('/store/flash-sales', {
-        method: 'GET',
-        next: { revalidate: 300 },
-        useRequestContext: false,
-    });
-
-    if (!response.ok) return [];
-
-    const data = await response.json();
-    return data.sales || [];
 }
 
 export async function getFirstBanner(

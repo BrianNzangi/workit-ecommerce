@@ -78,8 +78,8 @@ function CollectionChildren({
                       he.decode(cat.name)
                     ) : (
                       <Link
-                        href={`/collections/${cat.slug}`}
-                        onClick={(event) => onNavigate(event, `/collections/${cat.slug}`)}
+                        href={`/shop/collections/${cat.slug}`}
+                        onClick={(event) => onNavigate(event, `/shop/collections/${cat.slug}`)}
                         className="block hover:text-primary-900 transition-colors"
                       >
                         {he.decode(cat.name)}
@@ -134,8 +134,8 @@ function CollectionChildren({
                       <span className="line-clamp-1">{he.decode(cat.name)}</span>
                     ) : (
                       <Link
-                        href={`/collections/${cat.slug}`}
-                        onClick={(event) => onNavigate(event, `/collections/${cat.slug}`)}
+                        href={`/shop/collections/${cat.slug}`}
+                        onClick={(event) => onNavigate(event, `/shop/collections/${cat.slug}`)}
                         className={cn(
                           'block line-clamp-1 transition-colors',
                           isGroup
@@ -299,8 +299,8 @@ export default function MegaMenu() {
           {menuHeaderItems.map((l1) => (
             <Link
               key={l1.id}
-              href={`/collections/${l1.slug}`}
-              onClick={(event) => handleNavigate(event, `/collections/${l1.slug}`)}
+              href={`/shop/collections/${l1.slug}`}
+              onClick={(event) => handleNavigate(event, `/shop/collections/${l1.slug}`)}
               className="text-base font-bold text-white hover:text-white/80 transition-colors tracking-tight whitespace-nowrap"
             >
               {he.decode(l1.name)}

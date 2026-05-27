@@ -41,11 +41,11 @@ export function getBannerHref(banner?: StoreBanner | null): string | null {
     }
 
     if (banner.campaign?.slug) {
-        return `/collections/${banner.campaign.slug}`;
+        return `/shop/collections/${banner.campaign.slug}`;
     }
 
     if (banner.collection?.slug) {
-        return `/collections/${banner.collection.slug}`;
+        return `/shop/collections/${banner.collection.slug}`;
     }
 
     return null;

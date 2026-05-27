@@ -3,6 +3,8 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { emailOTP } from "better-auth/plugins";
 import { nextCookies } from "better-auth/next-js";
 import { db, schema } from "@workit/db";
+import { renderEmail } from "@/lib/email/renderEmail";
+import { buildLoginCodeHtml } from "@/lib/email/templates/loginCode";
 
 type OtpType = "sign-in" | "email-verification" | "forget-password";
 
@@ -12,21 +14,15 @@ const EMAIL_REQUEST_TIMEOUT_MS = Number.isFinite(timeoutFromEnv) && timeoutFromE
     ? timeoutFromEnv
     : 10000;
 
-const otpMessageByType: Record<OtpType, { subject: string; title: string; description: string }> = {
+const otpMessageByType: Record<OtpType, { subject: string }> = {
     "sign-in": {
-        subject: "Your Workit sign-in code",
-        title: "Sign in to Workit",
-        description: "Use this one-time code to complete your sign in.",
+        subject: "Your code: {{otp_code}}",
     },
     "email-verification": {
-        subject: "Verify your Workit email",
-        title: "Verify your email",
-        description: "Use this one-time code to verify your Workit account email address.",
+        subject: "Your code: {{otp_code}}",
     },
     "forget-password": {
-        subject: "Your Workit password reset code",
-        title: "Reset your password",
-        description: "Use this one-time code to reset your password.",
+        subject: "Your code: {{otp_code}}",
     },
 };
 
@@ -38,27 +34,23 @@ const getOtpType = (type: string): OtpType =>
 const buildOtpEmail = ({
     otp,
     type,
+    email,
 }: {
     otp: string;
     type: OtpType;
+    email: string;
 }) => {
     const message = otpMessageByType[type];
-    const html = `
-        <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#111827;">
-            <h2 style="margin:0 0 12px;font-size:22px;">${message.title}</h2>
-            <p style="margin:0 0 20px;color:#4b5563;">${message.description}</p>
-            <div style="margin:0 0 20px;padding:14px 18px;border:1px solid #e5e7eb;border-radius:8px;background:#f9fafb;">
-                <p style="margin:0 0 8px;color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:.08em;">One-time code</p>
-                <p style="margin:0;font-size:30px;font-weight:700;letter-spacing:.25em;">${otp}</p>
-            </div>
-            <p style="margin:0 0 8px;color:#4b5563;">This code expires in ${OTP_EXPIRES_MINUTES} minutes.</p>
-            <p style="margin:0;color:#6b7280;font-size:13px;">If you didn't request this, you can safely ignore this email.</p>
-        </div>
-    `;
+    const body = buildLoginCodeHtml({ otp, email, expiresMinutes: OTP_EXPIRES_MINUTES });
+    const html = renderEmail({
+        previewText: `Your Workit login code: ${otp}`,
+        body,
+    });
 
     const text =
-        `${message.title}\n\n` +
-        `${message.description}\n\n` +
+        `${message.subject}\n\n` +
+        `Enter your email to receive a one-time login code.\n\n` +
+        `We've sent a 6-digit login code to ${email}.\n\n` +
         `Code: ${otp}\n` +
         `Expires in ${OTP_EXPIRES_MINUTES} minutes.\n\n` +
         `If you didn't request this, you can ignore this email.`;
@@ -67,6 +59,7 @@ const buildOtpEmail = ({
         subject: message.subject,
         html,
         text,
+        templateData: { otp_code: otp, email },
     };
 };
 
@@ -115,6 +108,7 @@ const sendOtpViaResend = async ({
     subject: string;
     html: string;
     text: string;
+    templateData?: Record<string, string>;
 }) => {
     const apiKey = process.env.RESEND_API_KEY?.trim();
     const fromEmail = process.env.RESEND_FROM_EMAIL?.trim() || process.env.OTP_FROM_EMAIL?.trim();
@@ -158,14 +152,17 @@ const sendOtpViaPlunk = async ({
     subject,
     html,
     text,
+    templateData,
 }: {
     to: string;
     subject: string;
     html: string;
     text: string;
+    templateData?: Record<string, string>;
 }) => {
     const apiKey = process.env.PLUNK_API_KEY?.trim();
     const fromEmail = process.env.PLUNK_FROM_EMAIL?.trim() || process.env.OTP_FROM_EMAIL?.trim();
+    const plunkTemplateId = process.env.PLUNK_TEMPLATE_ID?.trim();
     if (!apiKey || !fromEmail) {
         console.warn("[Auth OTP] Plunk not configured", {
             hasApiKey: !!apiKey,
@@ -174,27 +171,36 @@ const sendOtpViaPlunk = async ({
         return false;
     }
 
+    const body: Record<string, unknown> = {
+        to,
+        subject,
+        from: fromEmail,
+    };
+
+    if (plunkTemplateId && templateData) {
+        body.templateId = plunkTemplateId;
+        body.data = templateData;
+    } else {
+        body.body = html;
+    }
+
     const response = await fetchWithTimeout("https://next-api.useplunk.com/v1/send", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${apiKey}`,
         },
-        body: JSON.stringify({
-            to,
-            subject,
-            body: html,
-            from: fromEmail,
-        }),
+        body: JSON.stringify(body),
     });
 
     if (!response.ok) {
-        const body = await response.text();
+        const errText = await response.text();
         console.error("[Auth OTP] Plunk send failed", {
             status: response.status,
-            body: body.slice(0, 500),
+            body: errText.slice(0, 500),
+            usedTemplate: !!plunkTemplateId,
         });
-        throw new Error(`Plunk send failed (${response.status}): ${body}`);
+        throw new Error(`Plunk send failed (${response.status}): ${errText}`);
     }
 
     if (process.env.OTP_DEBUG === "true") {
@@ -202,6 +208,7 @@ const sendOtpViaPlunk = async ({
             status: response.status,
             to,
             subject,
+            usedTemplate: !!plunkTemplateId,
         });
     }
 
@@ -218,6 +225,7 @@ const sendOtpViaUnosend = async ({
     subject: string;
     html: string;
     text: string;
+    templateData?: Record<string, string>;
 }) => {
     const apiKey = process.env.UNOSEND_API_KEY?.trim();
     const fromEmail = process.env.UNOSEND_FROM_EMAIL?.trim() || process.env.OTP_FROM_EMAIL?.trim();
@@ -348,9 +356,10 @@ export const auth = betterAuth({
             allowedAttempts: 5,
             async sendVerificationOTP({ email, otp, type }) {
                 const normalizedType = getOtpType(type);
-                const { subject, html, text } = buildOtpEmail({
+                const { subject, html, text, templateData } = buildOtpEmail({
                     otp,
                     type: normalizedType,
+                    email,
                 });
 
                 try {
@@ -388,6 +397,7 @@ export const auth = betterAuth({
                                     subject,
                                     html,
                                     text,
+                                    templateData,
                                 }),
                                 EMAIL_REQUEST_TIMEOUT_MS,
                                 "OTP email provider timeout",

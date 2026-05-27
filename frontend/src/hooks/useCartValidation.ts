@@ -68,11 +68,11 @@ export function useCartValidation() {
         if (!result.valid && result.invalidItems && result.invalidItems.length > 0) {
             // Remove invalid items
             result.invalidItems.forEach((invalidItem: any) => {
-                const variantId = invalidItem.variantId || invalidItem.item?.variantId || invalidItem.item?.id;
-                if (variantId) {
-                    // Find the cart item with this variant ID and remove it
+                const id = invalidItem.id || invalidItem.item?.id || invalidItem.productId;
+                if (id) {
+                    // Find the cart item with this ID and remove it
                     const cartItem = items.find(item =>
-                        item.variantId === variantId || item.id === variantId
+                        item.id === id || item.productId === id
                     );
                     if (cartItem) {
                         removeItem(cartItem.id);

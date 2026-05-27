@@ -74,7 +74,7 @@ function CollectionChildren({
                   <span className="line-clamp-1">{he.decode(cat.name)}</span>
                 ) : (
                   <Link
-                    href={`/collections/${cat.slug}`}
+                    href={`/shop/collections/${cat.slug}`}
                     onClick={onNavigate}
                     className="block line-clamp-1 hover:text-primary transition-colors"
                   >
@@ -96,7 +96,7 @@ function CollectionChildren({
                   onNavigate={onNavigate}
                 />
                 <Link
-                  href={`/collections/${cat.slug}`}
+                  href={`/shop/collections/${cat.slug}`}
                   onClick={onNavigate}
                   className={cn(
                     'block px-3 py-2 text-xs font-medium transition-colors',

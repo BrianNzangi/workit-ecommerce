@@ -19,6 +19,7 @@ const PAGE_DEFINITIONS: Record<string, { title: string; dbKey: string; descripti
     'privacy-policy': { title: 'Privacy Policy', dbKey: 'page_privacy_policy', description: 'Data collection and privacy practices' },
     'advertising-policy': { title: 'Advertising Policy', dbKey: 'page_returns_claims', description: 'Advertising guidelines and disclosures' },
     'help-center': { title: 'Help Center', dbKey: 'page_help_center', description: 'Customer support articles and FAQs' },
+    'about-workit': { title: 'About Workit', dbKey: 'page_about_workit', description: 'About the store, mission, and brand story' },
 };
 
 export default function PageEditorPage() {
@@ -137,7 +138,7 @@ export default function PageEditorPage() {
         return (
             <ProtectedRoute>
                 <AdminLayout>
-                    <div className="flex items-center justify-center min-h-[400px]">
+                    <div className="flex items-center justify-center min-h-100">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-800" />
                     </div>
                 </AdminLayout>

@@ -23,6 +23,7 @@ const PAGE_DEFINITIONS: { slug: string; title: string; dbKey: string; descriptio
     { slug: 'privacy-policy', title: 'Privacy Policy', dbKey: 'page_privacy_policy', description: 'Data collection and privacy practices' },
     { slug: 'advertising-policy', title: 'Advertising Policy', dbKey: 'page_returns_claims', description: 'Advertising guidelines and disclosures' },
     { slug: 'help-center', title: 'Help Center', dbKey: 'page_help_center', description: 'Customer support articles and FAQs' },
+    { slug: 'about-workit', title: 'About Workit', dbKey: 'page_about_workit', description: 'About the store, mission, and brand story' },
 ];
 
 export default function PagesPage() {

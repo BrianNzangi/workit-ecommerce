@@ -53,7 +53,7 @@ export default function HorizontalBanner({
 
     return (
         <section className="py-2 md:py-4">
-            <SectionContainer className="px-3 sm:px-6 md:px-2 lg:px-8 xl:px-8 2xl:px-8">
+            <SectionContainer className="px-10 sm:px-12 lg:px-16">
                 {bannerHref ? (
                     <Link
                         href={bannerHref}

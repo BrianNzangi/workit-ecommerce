@@ -102,7 +102,7 @@ export default function FlashSalesSection({ sales }: FlashSalesSectionProps) {
                             </div>
 
                             <button
-                                onClick={() => router.push('/collections/all')}
+                                onClick={() => router.push('/shop/collections/all')}
                                 className="w-full md:w-auto inline-flex items-center justify-center gap-2 bg-white text-red-600 font-bold px-6 py-3 rounded-xl hover:bg-red-50 transition-colors cursor-pointer text-sm md:text-base"
                             >
                                 Shop Flash Sale

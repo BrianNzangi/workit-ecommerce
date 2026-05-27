@@ -1,14 +1,14 @@
 "use client"
 
 import React, { useEffect, useRef, useState } from "react"
-import Image from "next/image"
 import Link from "next/link"
+import SectionContainer from "@/components/layout/SectionContainer"
 import { Breadcrumb, Category } from "@/utils/breadcrumbs"
 import he from "he"
-import { FaChevronLeft, FaChevronRight } from "react-icons/fa"
-import ProductInfo from "@/components/product/ProductInfo"
+import ProductMediaColumn from "@/components/product/ProductMediaColumn"
+import ProductInfoColumn from "@/components/product/ProductInfoColumn"
+import ProductPurchaseColumn from "@/components/product/ProductPurchaseColumn"
 import { Product } from "@/types/product"
-import { getImageUrl } from "@/lib/image/image-utils"
 import { trackMetaEvent } from "@/lib/meta/meta-browser"
 
 export default function ProductPage({
@@ -54,7 +54,7 @@ export default function ProductPage({
         name: c.name,
         slug: c.slug,
         id: c.id,
-        url: `/collections/${c.slug}`,
+        url: `/shop/collections/${c.slug}`,
       });
     });
   }
@@ -97,17 +97,9 @@ export default function ProductPage({
     })
   }, [cartPrice, product.id, product.name])
 
-  const nextImage = () => {
-    setSelectedIdx((prev) => (prev + 1) % images.length)
-  }
-
-  const prevImage = () => {
-    setSelectedIdx((prev) => (prev === 0 ? images.length - 1 : prev - 1))
-  }
-
   return (
-    <main className="bg-[#FAFAFA] font-sans">
-      <div className="mx-auto mb-8 max-w-300 px-4 py-6">
+    <main className="bg-white font-sans">
+      <SectionContainer className="px-10 sm:px-12 lg:px-16 mb-8 py-6">
         <nav className="mb-6 flex flex-wrap items-center gap-2 text-sm text-gray-500">
           {breadcrumbs.map((crumb, idx) => {
             const crumbName = he.decode(crumb.name)
@@ -126,96 +118,37 @@ export default function ProductPage({
           })}
         </nav>
 
-        <div className="flex flex-col md:flex-row gap-6">
-          <div className="w-full md:w-3/4 lg:w-2/3 flex flex-col gap-4">
-            <div className="rounded-lg bg-white p-4 shadow-md md:p-6">
-              <div className="relative overflow-hidden rounded-lg bg-white">
-                <div>
-                  {images.length > 1 && (
-                    <button
-                      onClick={prevImage}
-                      className="absolute left-3 top-1/2 z-10 -translate-y-1/2 rounded-full border border-gray-200 bg-white/95 p-3 text-gray-600 shadow-sm transition hover:border-gray-300 hover:text-secondary-900"
-                      aria-label="Previous image"
-                    >
-                      <FaChevronLeft />
-                    </button>
-                  )}
-                  <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-lg bg-white">
-                    <Image
-                      src={getImageUrl(images[selectedIdx]?.url || "")}
-                      alt={product.name}
-                      width={900}
-                      height={900}
-                      className="max-h-80 w-auto object-contain lg:max-h-80"
-                      unoptimized
-                    />
-                  </div>
-                  {images.length > 1 && (
-                    <button
-                      onClick={nextImage}
-                      className="absolute right-3 top-1/2 z-10 -translate-y-1/2 rounded-full border border-gray-200 bg-white/95 p-3 text-gray-600 shadow-sm transition hover:border-gray-300 hover:text-secondary-900"
-                      aria-label="Next image"
-                    >
-                      <FaChevronRight />
-                    </button>
-                  )}
-                </div>
+        <div className="grid grid-cols-1 xl:grid-cols-[minmax(420px,1.3fr)_minmax(360px,1.1fr)_minmax(320px,0.8fr)] gap-8">
+          <ProductMediaColumn
+            images={images}
+            productName={product.name}
+            selectedIdx={selectedIdx}
+            onSelectImage={setSelectedIdx}
+          />
 
-                {images.length > 0 && (
-                  <div className="border-t border-gray-100 px-2 py-2 md:px-2">
-                    <div className="mb-3 text-center text-sm font-medium text-gray-500">
-                      {selectedIdx + 1}/{images.length}
-                    </div>
-                    <div className="flex gap-3 overflow-x-auto pb-1">
-                      {images.map((img, idx) => (
-                        <button
-                          key={img.id || `${img.url}-${idx}`}
-                          type="button"
-                          onClick={() => setSelectedIdx(idx)}
-                          className={`relative h-24 w-24 shrink-0 overflow-hidden rounded-sm border bg-white transition ${
-                            selectedIdx === idx
-                              ? "border-2 border-primary-900 shadow-sm"
-                              : "border-gray-200 hover:border-gray-300"
-                          }`}
-                          aria-label={`View image ${idx + 1}`}
-                        >
-                          <Image
-                            src={getImageUrl(img.url || "")}
-                            alt={`${product.name} thumbnail ${idx + 1}`}
-                            fill
-                            className="object-contain"
-                            unoptimized
-                          />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
+          <ProductInfoColumn product={product} />
 
-            {product.description && (
-              <section className="rounded-lg bg-white p-5 shadow-md md:p-5">
-                <h2 className="text-2xl font-semibold text-secondary-900 border-b border-gray-200 mb-4 pb-2">
-                  More about this item
-                </h2>
-                <div
-                  className="prose prose-sm md:prose-base max-w-none text-secondary-700 [&>p]:mb-2 [&>ul]:mb-4 [&>ol]:mb-4 [&>h1]:mb-3 [&>h2]:mb-3 [&>h3]:mb-3 [&>li]:mb-1 [&_a]:text-primary-900 [&_a]:underline [&_a:hover]:text-[#e04500]"
-                  dangerouslySetInnerHTML={{
-                    __html: he.decode(product.description.trim()),
-                  }}
-                />
-              </section>
-            )}
+          <div className="xl:sticky xl:top-22 xl:self-start">
+            <ProductPurchaseColumn
+              product={product}
+              cartPrice={cartPrice}
+              cartOriginalPrice={cartOriginalPrice}
+            />
           </div>
-
-        <ProductInfo
-          product={product}
-          cartPrice={cartPrice}
-          cartOriginalPrice={cartOriginalPrice}
-        />
         </div>
-      </div>
+
+        {product.description && (
+          <section className="mt-10 border-t border-gray-200 pt-8">
+            <h2 className="text-lg font-bold text-secondary-900 mb-4">More About This Item</h2>
+            <div
+              className="prose prose-sm max-w-none text-secondary-700 [&>p]:mb-3 [&>ul]:mb-5 [&>ol]:mb-5 [&>h1]:mb-4 [&>h2]:mb-4 [&>h3]:mb-4 [&>li]:mb-1.5 [&_a]:text-primary-900 [&_a]:underline [&_a:hover]:text-[#e04500]"
+              dangerouslySetInnerHTML={{
+                __html: he.decode(product.description!.trim()),
+              }}
+            />
+          </section>
+        )}
+      </SectionContainer>
     </main>
   )
 }

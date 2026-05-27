@@ -22,7 +22,7 @@ const STATIC_PAGES: Array<{
   priority: number;
 }> = [
   { path: "/", changeFrequency: "daily", priority: 1 },
-  { path: "/collections", changeFrequency: "weekly", priority: 0.95 },
+  { path: "/shop/collections", changeFrequency: "weekly", priority: 0.95 },
   { path: "/blog", changeFrequency: "daily", priority: 0.9 },
   { path: "/about-workit", changeFrequency: "monthly", priority: 0.8 },
   { path: "/help-center", changeFrequency: "monthly", priority: 0.75 },
@@ -131,7 +131,7 @@ function flattenCollectionEntries(
 
     const segments = [...parentSegments, collection.slug];
     entries.push({
-      url: toAbsoluteSiteUrl(`/collections/${segments.join("/")}`),
+      url: toAbsoluteSiteUrl(`/shop/collections/${segments.join("/")}`),
       lastModified: collection.updatedAt || collection.createdAt || null,
       changeFrequency: "weekly",
       priority: segments.length === 1 ? 0.85 : 0.75,

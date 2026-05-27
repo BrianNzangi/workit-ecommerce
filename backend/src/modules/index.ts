@@ -10,6 +10,7 @@ import { shippingRoutes } from "./fulfillment/shipping/index.js";
 import { customersRoutes } from "./identity/customers/index.js";
 import { usersRoutes } from "./identity/users/index.js";
 import { promotionsRoutes } from "./promotions/index.js";
+import { marketingRoutes } from "./marketing/index.js";
 import { brevoRoutes } from "./site/brevo/index.js";
 import { settingsRoutes } from "./site/settings/index.js";
 import { storeRoutes } from "./site/store/index.js";
@@ -68,6 +69,9 @@ export const appModules: FastifyPluginAsync = async (fastify) => {
     // Promotions
     await fastify.register(promotionsRoutes, { prefix: "/promotions" });
     await fastify.register(promotionsRoutes, { prefix: "/api/promotions" });
+
+    // Marketing (Content Management)
+    await fastify.register(marketingRoutes, { prefix: "/marketing" });
 
     // Site / Storefront
     await fastify.register(brevoRoutes, { prefix: "/site/brevo" });

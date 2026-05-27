@@ -6,6 +6,7 @@ import StepBilling from './StepBilling';
 import StepShipping from './StepShipping';
 import StepPayment from './StepPayment';
 import OrderSummary from './OrderSummary';
+import SectionContainer from '@/components/layout/SectionContainer';
 import { useCheckout } from '@/hooks/useCheckout';
 import { User } from '@/types/checkout';
 
@@ -41,8 +42,8 @@ export default function CheckoutClient({ user }: CheckoutClientProps) {
     !loading;
 
   return (
-    <section className="bg-[#F1F1F2] min-h-screen py-8">
-      <div className="container mx-auto px-4 max-w-7xl grid grid-cols-1 md:grid-cols-3 gap-8 font-sans">
+    <section className="bg-[#F1F1F2] min-h-screen">
+      <SectionContainer className="px-10 sm:px-12 lg:px-16 py-6 grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="md:col-span-2 space-y-6">
           <StepBilling
             user={user}
@@ -79,7 +80,7 @@ export default function CheckoutClient({ user }: CheckoutClientProps) {
             showPaymentInstruction={!!(stepData.payment.method && activeStep >= 3)} // Ensure boolean
           />
         </div>
-      </div>
+      </SectionContainer>
     </section>
   );
 }

@@ -879,7 +879,6 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
         subtotal: z.coerce.number().min(0),
         items: z.array(z.object({
             productId: z.string().optional(),
-            variantId: z.string().optional(),
             price: z.coerce.number().min(0),
             quantity: z.coerce.number().min(1),
         })).optional(),

@@ -8,7 +8,6 @@ import { CSRF_HEADER_NAME, ensureCsrfToken } from '@/lib/security/csrf';
 export type CartItem = {
   id: string; // This is the Line ID in backend
   productId: string;
-  variantId: string | null;
   name: string;
   image: string;
   price: number;
@@ -28,7 +27,6 @@ type CartState = {
   fetchCart: () => Promise<void>;
   addItem: (item: {
     id: string;
-    variantId?: string;
     name: string;
     price: number;
     image: string;
@@ -37,7 +35,6 @@ type CartState = {
   }) => Promise<void>;
   quickAdd: (item: {
     id: string;
-    variantId?: string;
     name: string;
     price: number;
     image: string;
@@ -96,7 +93,7 @@ export const useCartStore = create<CartState>()(
         const items = get().items;
         const matched =
           items.find(i => i.id === value) ||
-          items.find(i => i.productId === value || i.variantId === value);
+          items.find(i => i.productId === value);
         return matched?.id || value;
       };
 
@@ -127,7 +124,6 @@ export const useCartStore = create<CartState>()(
             const mappedItems = (response.data.lines || []).map((line: any) => ({
               id: line.id, // Line ID
               productId: line.productId, // Product ID
-              variantId: line.variantId || null,
               name: line.product.name,
               price: line.product.salePrice ?? line.product.originalPrice ?? 0,
               // Simplify asset lookup: first asset's preview, or empty string
@@ -157,7 +153,6 @@ export const useCartStore = create<CartState>()(
         try {
           await axios.post('/api/cart', {
             productId: item.id,
-            variantId: item.variantId,
             quantity
           }, { headers: await getMutationHeaders(sessionId), withCredentials: true });
 
@@ -180,7 +175,6 @@ export const useCartStore = create<CartState>()(
         try {
           await axios.post('/api/cart', {
             productId: item.id,
-            variantId: item.variantId,
             quantity
           }, { headers: await getMutationHeaders(sessionId), withCredentials: true });
 

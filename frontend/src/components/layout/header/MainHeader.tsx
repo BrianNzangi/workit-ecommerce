@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { ShoppingBag, X, Menu } from 'lucide-react';
+import SectionContainer from '@/components/layout/SectionContainer';
 import SearchBar from '@/components/SearchBar';
 import MobileMegaMenu from '@/components/menu/MobileMegaMenu';
 import UserMenu from '@/components/menu/UserMenu';
@@ -42,7 +43,8 @@ export default function MainHeader({
     return (
         <header id="site-header">
             <div className="font-sans text-secondary-900 border-b border-gray-300">
-                <div className="container mx-auto px-4 sm:px-0 md:px-8 lg:px-8 xl:px-10 2xl:px-8 py-4 flex items-center justify-between gap-4 flex-wrap md:flex-nowrap">
+                <SectionContainer className="px-10 sm:px-12 lg:px-16 py-4">
+                  <div className="flex items-center justify-between gap-4 flex-wrap md:flex-nowrap">
                     <Link
                         href="/"
                         onClick={handleLogoClick}
@@ -101,7 +103,8 @@ export default function MainHeader({
                             <Menu className="w-6 h-6" />
                         </button>
                     </div>
-                </div>
+                    </div>
+                </SectionContainer>
 
                 <div className="md:hidden px-4 pb-2">
                     <SearchBar />

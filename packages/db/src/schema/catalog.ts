@@ -54,6 +54,7 @@ export const products = pgTable("Product", {
     slug: varchar("slug", { length: 255 }).notNull().unique(),
     sku: varchar("sku", { length: 255 }).unique(),
     description: text("description"),
+    shortDescription: text("shortDescription"),
     salePrice: doublePrecision("salePrice"),
     originalPrice: doublePrecision("originalPrice"),
     stockOnHand: integer("stockOnHand").default(20).notNull(),

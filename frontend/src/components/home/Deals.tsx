@@ -18,7 +18,7 @@ export default function Deals({ deals }: DealsProps) {
 
     return (
         <section aria-label="Deals and promotions" className="py-6 md:py-8">
-        <SectionContainer className="px-4 sm:px-6 lg:px-8">
+        <SectionContainer className="px-10 sm:px-12 lg:px-16">
                 <h2 className="text-lg md:text-2xl font-bold text-gray-900 mb-6">
                     Deals
                 </h2>

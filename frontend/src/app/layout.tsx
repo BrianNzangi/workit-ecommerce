@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import { Toaster } from "react-hot-toast";
-import Header from "../components/layout/header/Header";
 import CartInitializer from "../components/providers/CartInitializer";
 import MetaCookieInitializer from "../components/providers/MetaCookieInitializer";
 import QueryProvider from "../components/providers/QueryProvider";
-import Footer from "../components/layout/footer/Footer";
 import "./globals.css";
 import Script from "next/script";
 import { Hanken_Grotesk } from "next/font/google";
@@ -102,11 +100,7 @@ gtag('config', 'G-Y0DN0MB5CV');`,
         <QueryProvider>
           <CartInitializer />
           <MetaCookieInitializer />
-          <Suspense fallback={<div className="h-20" />}>
-            <Header />
-          </Suspense>
-          <main className="grow">{children}</main>
-          <Footer />
+          {children}
           <Suspense fallback={null}>
             <AuthModalWrapper />
           </Suspense>
@@ -114,19 +108,17 @@ gtag('config', 'G-Y0DN0MB5CV');`,
         <Toaster
           position="top-right"
           toastOptions={{
-            // Default options
             duration: 3000,
             style: {
               background: '#fff',
               color: '#1F2323',
-              borderRadius: '0.25rem', // rounded-xs
-              border: '1px solid #E5E7EB', // border-gray-200
-              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)', // shadow-lg
+              borderRadius: '0.25rem',
+              border: '1px solid #E5E7EB',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
               padding: '16px',
               fontSize: '14px',
               fontFamily: '"Hanken Grotesk", sans-serif',
             },
-            // Success toast
             success: {
               style: {
                 background: '#fff',
@@ -134,7 +126,6 @@ gtag('config', 'G-Y0DN0MB5CV');`,
                 border: '1px solid #E5E7EB',
               },
             },
-            // Error toast
             error: {
               style: {
                 background: '#fff',

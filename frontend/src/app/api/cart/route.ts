@@ -88,8 +88,7 @@ export async function POST(request: NextRequest) {
       const matchedLine = Array.isArray(responseBody?.lines)
         ? responseBody.lines.find(
             (line: any) =>
-              String(line.productId) === String(payload.productId) &&
-              String(line.variantId || "") === String(payload.variantId || ""),
+              String(line.productId) === String(payload.productId),
           )
         : null;
 
@@ -103,7 +102,7 @@ export async function POST(request: NextRequest) {
       void sendMetaEvent({
         request,
         eventName: "AddToCart",
-        eventId: `cart:${payload.productId}:${payload.variantId || "default"}:${Date.now()}`,
+        eventId: `cart:${payload.productId}:${Date.now()}`,
         eventSourceUrl: request.headers.get("referer"),
         customData: {
           currency: "KES",

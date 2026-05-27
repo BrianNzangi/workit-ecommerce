@@ -51,19 +51,20 @@ describe('Cart aggregate', () => {
       expect(cart.lines[0].quantity).toBe(2);
     });
 
-    it('should merge quantities when the same product+variant is added again', () => {
+    it('should merge quantities when the same product is added again', () => {
       const cart = makeCart();
-      cart.addLine({ id: 'line-1', productId: 'prod-1', variantId: 'var-1', quantity: 2 });
-      cart.addLine({ id: 'line-2', productId: 'prod-1', variantId: 'var-1', quantity: 3 });
+      cart.addLine({ id: 'line-1', productId: 'prod-1', quantity: 2 });
+      cart.addLine({ id: 'line-2', productId: 'prod-1', quantity: 3 });
       expect(cart.lines).toHaveLength(1);
       expect(cart.lines[0].quantity).toBe(5);
     });
 
-    it('should add separate lines for different variants of the same product', () => {
+    it('should merge quantities regardless of variant', () => {
       const cart = makeCart();
-      cart.addLine({ id: 'line-1', productId: 'prod-1', variantId: 'var-1', quantity: 1 });
-      cart.addLine({ id: 'line-2', productId: 'prod-1', variantId: 'var-2', quantity: 1 });
-      expect(cart.lines).toHaveLength(2);
+      cart.addLine({ id: 'line-1', productId: 'prod-1', quantity: 1 });
+      cart.addLine({ id: 'line-2', productId: 'prod-1', quantity: 1 });
+      expect(cart.lines).toHaveLength(1);
+      expect(cart.lines[0].quantity).toBe(2);
     });
 
     it('should add separate lines for different products', () => {

@@ -15,7 +15,6 @@ export interface CartLineRecord {
   id: string;
   cartId: string;
   productId: string;
-  variantId: string | null;
   quantity: number;
   createdAt: Date;
   updatedAt: Date;
@@ -39,7 +38,6 @@ export interface CartLinePersistenceDto {
   id: string;
   cartId: string;
   productId: string;
-  variantId: string | null;
   quantity: number;
   createdAt: Date;
   updatedAt: Date;
@@ -58,7 +56,6 @@ export class CartMapper {
         id: l.id,
         cartId: l.cartId,
         productId: l.productId,
-        variantId: l.variantId ?? undefined,
         quantity: l.quantity,
         createdAt: l.createdAt,
         updatedAt: l.updatedAt,
@@ -96,7 +93,6 @@ export class CartMapper {
       id: line.id,
       cartId: cart.id,
       productId: line.productId,
-      variantId: line.variantId ?? null,
       quantity: line.quantity,
       createdAt: line.createdAt,
       updatedAt: line.updatedAt,

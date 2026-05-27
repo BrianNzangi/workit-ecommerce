@@ -45,6 +45,7 @@ export function useProductForm({ productId, mode }: UseProductFormProps) {
         slug: '',
         sku: '',
         description: '',
+        shortDescription: '',
         salePrice: '',
         originalPrice: '',
         brandId: '',
@@ -125,6 +126,7 @@ export function useProductForm({ productId, mode }: UseProductFormProps) {
                 slug: data.slug,
                 sku: data.sku || '',
                 description: data.description || '',
+                shortDescription: data.shortDescription || '',
                 salePrice: data.salePrice ? data.salePrice.toString() : '',
                 originalPrice: data.originalPrice ? data.originalPrice.toString() : '',
                 brandId: data.brandId || '',
@@ -214,6 +216,10 @@ export function useProductForm({ productId, mode }: UseProductFormProps) {
 
     const handleDescriptionChange = (value: string) => {
         setFormData((prev) => ({ ...prev, description: value }));
+    };
+
+    const handleShortDescriptionChange = (value: string) => {
+        setFormData((prev) => ({ ...prev, shortDescription: value }));
     };
 
     const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -375,6 +381,7 @@ export function useProductForm({ productId, mode }: UseProductFormProps) {
         brands,
         handleChange,
         handleDescriptionChange,
+        handleShortDescriptionChange,
         handleImageSelect,
         removeNewImage,
         removeExistingImage,

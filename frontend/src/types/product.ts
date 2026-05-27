@@ -140,7 +140,6 @@ export interface Product {
   variants?: Variant[];
 
   // Standardized fields for Single-Product Mode (Normalized per product)
-  variantId?: string;
   canBuy?: boolean;
 
   // Metadata

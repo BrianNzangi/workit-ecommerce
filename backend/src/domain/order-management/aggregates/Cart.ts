@@ -19,7 +19,7 @@ interface CartProps {
  *
  * Invariants:
  * - Either customerId or guestId must be provided
- * - Duplicate product+variant combinations are merged (quantity summed)
+ * - Duplicate products are merged (quantity summed)
  * - Line quantities must be positive integers
  */
 export class Cart extends AggregateRoot<string> {
@@ -101,21 +101,20 @@ export class Cart extends AggregateRoot<string> {
 
   /**
    * Add a product to the cart or increase its quantity if already present.
-   * If the same productId + variantId combination exists, quantities are merged.
+   * If the same productId exists, quantities are merged.
    *
    * @throws {Error} if quantity is not a positive integer
    */
   addLine(params: {
     id: string;
     productId: string;
-    variantId?: string;
     quantity: number;
   }): void {
     if (!Number.isInteger(params.quantity) || params.quantity <= 0) {
       throw new Error(`Quantity must be a positive integer, got: ${params.quantity}`);
     }
 
-    const existing = this.findLine(params.productId, params.variantId);
+    const existing = this.findLine(params.productId);
     if (existing) {
       existing.updateQuantity(existing.quantity + params.quantity);
     } else {
@@ -123,7 +122,6 @@ export class Cart extends AggregateRoot<string> {
         id: params.id,
         cartId: this.id,
         productId: params.productId,
-        variantId: params.variantId,
         quantity: params.quantity,
       });
       this.props.lines.push(line);
@@ -190,9 +188,9 @@ export class Cart extends AggregateRoot<string> {
 
   // ─── Private Helpers ─────────────────────────────────────────────────────────
 
-  private findLine(productId: string, variantId?: string): CartLine | undefined {
+  private findLine(productId: string): CartLine | undefined {
     return this.props.lines.find(
-      (l) => l.productId === productId && l.variantId === variantId,
+      (l) => l.productId === productId,
     );
   }
 }

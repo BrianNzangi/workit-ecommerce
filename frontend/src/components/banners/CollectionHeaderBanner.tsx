@@ -25,7 +25,7 @@ export default function CollectionHeaderBanner({
   const mobileImage = getImageUrl(
     banner.mobileImage?.preview || banner.mobileImage?.source || banner.desktopImage?.preview || banner.desktopImage?.source
   );
-  const bannerLink = getBannerHref(banner) || `/collections/${collectionSlug}`;
+  const bannerLink = getBannerHref(banner) || `/shop/collections/${collectionSlug}`;
   const bannerAlt = banner.title || title;
 
   return (

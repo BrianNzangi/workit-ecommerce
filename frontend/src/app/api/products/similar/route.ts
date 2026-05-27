@@ -55,7 +55,6 @@ export async function GET(request: NextRequest) {
         categories: product.collections?.map((c: any) => c.collection) || [],
         brand: product.brand,
         canBuy: (product.stockOnHand ?? 0) > 0,
-        variantId: product.id,
       };
     });
 

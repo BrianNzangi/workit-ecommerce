@@ -14,6 +14,9 @@ export function normalizeProduct(product: any): Product {
 
     return {
         ...product,
+        // Map shortDescription from backend (camelCase) to frontend type (snake_case)
+        short_description: product.shortDescription || product.short_description || null,
+
         // Ensure core fields are present
         id: String(product.id),
         name: product.name,
@@ -29,11 +32,6 @@ export function normalizeProduct(product: any): Product {
         stockOnHand: stockOnHand,
         inStock: inStock,
         canBuy: inStock,
-
-        // Standardization for Single-Product Mode
-        variantId: (product.variants && product.variants.length > 0)
-            ? String(product.variants[0].id)
-            : String(product.id),
 
         // Ensure imagery is mapped correctly if missing
         images: product.images || (product.assets?.map((a: any) => ({

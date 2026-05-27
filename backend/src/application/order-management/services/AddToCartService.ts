@@ -8,7 +8,6 @@ export interface AddToCartRequest {
   /** Guest session ID, or undefined for authenticated users. */
   guestId?: string;
   productId: string;
-  variantId?: string;
   quantity: number;
 }
 
@@ -67,7 +66,6 @@ export class AddToCartService {
     cart.addLine({
       id: uuidv4(),
       productId: request.productId,
-      variantId: request.variantId,
       quantity: request.quantity,
     });
 

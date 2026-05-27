@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useProductForm } from './product-form/useProductForm';
 import { ProductBasicInfo } from './product-form/ProductBasicInfo';
 import { ProductDescription } from './product-form/ProductDescription';
+import { ProductShortDescription } from './product-form/ProductShortDescription';
 import { ProductImages } from './product-form/ProductImages';
 import { ProductPricing } from './product-form/ProductPricing';
 import { ProductInventory } from './product-form/ProductInventory';
@@ -36,6 +37,7 @@ export function ProductForm({ productId, mode }: ProductFormProps) {
         brands,
         handleChange,
         handleDescriptionChange,
+        handleShortDescriptionChange,
         handleImageSelect,
         removeNewImage,
         removeExistingImage,
@@ -125,6 +127,10 @@ export function ProductForm({ productId, mode }: ProductFormProps) {
                         <ProductDescription
                             value={formData.description}
                             onChange={handleDescriptionChange}
+                        />
+                        <ProductShortDescription
+                            value={formData.shortDescription}
+                            onChange={handleShortDescriptionChange}
                         />
                     </div>
 

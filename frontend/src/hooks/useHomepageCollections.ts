@@ -38,8 +38,6 @@ export interface HomepageProduct {
         description?: string;
         isExpress: boolean;
     };
-    // Variant fields
-    variantId?: string;
     variants?: Variant[];
     stockOnHand?: number;
     canBuy?: boolean;

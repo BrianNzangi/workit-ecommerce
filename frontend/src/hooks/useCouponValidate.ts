@@ -8,7 +8,6 @@ interface CouponPayload {
     subtotal: number;
     items: Array<{
         productId: string;
-        variantId: string | null;
         price: number;
         quantity: number;
     }>;

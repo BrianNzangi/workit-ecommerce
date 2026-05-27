@@ -10,6 +10,7 @@ import { getImageUrl, shouldBypassImageOptimization } from '@/lib/image/image-ut
 import { getBannerHref, type StoreBanner } from '@/lib/banner/banner-target';
 import { cn } from '@/lib/utils/utils';
 import { Button } from '@/components/ui/button';
+import SectionContainer from '@/components/layout/SectionContainer';
 
 interface HeroSectionProps {
     banners: StoreBanner[];
@@ -117,12 +118,11 @@ export default function HeroSection({ banners }: HeroSectionProps) {
 
     return (
         <section
-            className="pt-4 mb-4 md:mb-5"
             role="region"
             aria-roledescription="carousel"
             aria-label="Homepage banner carousel"
         >
-            <div className="mx-auto container px-3 sm:px-6 md:px-2 lg:px-8 xl:px-8 2xl:px-8">
+            <SectionContainer className="px-10 sm:px-12 lg:px-16 py-6">
                 <div
                     className="relative w-full overflow-hidden rounded-sm bg-secondary-900"
                     onTouchStart={onTouchStart}
@@ -226,7 +226,7 @@ export default function HeroSection({ banners }: HeroSectionProps) {
                         </>
                     )}
                 </div>
-            </div>
+            </SectionContainer>
         </section>
     );
 }

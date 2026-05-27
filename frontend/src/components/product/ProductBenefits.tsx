@@ -6,7 +6,7 @@ export default function ProductBenefits() {
   return (
     <div className="mt-2 space-y-4 text-left">
       <div className="flex items-start gap-3">
-        <span className="rounded-full bg-green-100 p-2 text-green-600">
+        <span className="rounded-full bg-accent-100 p-2 text-accent-900">
           <ShieldCheck size={20} />
         </span>
         <div>
@@ -21,7 +21,7 @@ export default function ProductBenefits() {
       </div>
 
       <div className="flex items-start gap-3">
-        <span className="rounded-full bg-green-100 p-2 text-green-600">
+        <span className="rounded-full bg-accent-100 p-2 text-accent-900">
           <Undo2 size={20} />
         </span>
         <div>
@@ -36,7 +36,7 @@ export default function ProductBenefits() {
       </div>
 
       <div className="flex items-start gap-3">
-        <span className="rounded-full bg-green-100 p-2 text-green-600">
+        <span className="rounded-full bg-accent-100 p-2 text-accent-900">
           <Handshake size={20} />
         </span>
         <div>

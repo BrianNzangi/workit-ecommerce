@@ -11,6 +11,7 @@ interface ProductProps {
   name: string;
   slug: string;
   description: string | null;
+  shortDescription: string | null;
   originalPrice: Money | null;
   salePrice: Money | null;
   stockOnHand: number;
@@ -58,6 +59,7 @@ export class Product extends AggregateRoot<string> {
     name: string;
     slug: string;
     description?: string | null;
+    shortDescription?: string | null;
     originalPrice?: Money | null;
     salePrice?: Money | null;
     stockOnHand: number;
@@ -73,6 +75,7 @@ export class Product extends AggregateRoot<string> {
       name: params.name,
       slug: params.slug,
       description: params.description ?? null,
+      shortDescription: params.shortDescription ?? null,
       originalPrice: params.originalPrice ?? null,
       salePrice: params.salePrice ?? null,
       stockOnHand: params.stockOnHand,
@@ -98,6 +101,7 @@ export class Product extends AggregateRoot<string> {
     name: string;
     slug: string;
     description: string | null;
+    shortDescription: string | null;
     originalPrice: Money | null;
     salePrice: Money | null;
     stockOnHand: number;
@@ -130,6 +134,10 @@ export class Product extends AggregateRoot<string> {
 
   get description(): string | null {
     return this.props.description;
+  }
+
+  get shortDescription(): string | null {
+    return this.props.shortDescription;
   }
 
   get originalPrice(): Money | null {

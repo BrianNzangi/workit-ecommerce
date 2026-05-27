@@ -1,6 +1,7 @@
 "use client"
 
 import ColProductCard from "@/components/product/ColProductCard"
+import SectionContainer from "@/components/layout/SectionContainer"
 import { Product } from "@/types/product"
 
 interface ProductRecommendationsProps {
@@ -13,13 +14,13 @@ export default function ProductRecommendations({
   alsoViewed,
 }: ProductRecommendationsProps) {
   return (
-    <section className="mt-12 w-full bg-white py-12">
-      <div className="mx-auto max-w-[1200px] px-4">
-        <div className="pb-12">
-          <h2 className="mb-2 text-2xl font-semibold text-secondary-900">
+    <section className="mt-12 w-full bg-white py-6 md:py-8">
+      <SectionContainer className="px-10 sm:px-12 lg:px-16 mb-8 py-6">
+        <div className="pb-6 md:pb-8">
+          <h2 className="mb-2 text-lg md:text-2xl font-bold text-secondary-900">
             Similar Items You Might Like
           </h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+          <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-5">
             {similarItems.length > 0 ? (
               similarItems.map((item) => (
                 <ColProductCard key={item.id} {...item} />
@@ -33,10 +34,10 @@ export default function ProductRecommendations({
         </div>
 
         <div>
-          <h2 className="mb-2 text-2xl font-semibold text-secondary-900">
+          <h2 className="mb-2 text-lg md:text-2xl font-bold text-secondary-900">
             People Who Viewed This Item Also Viewed
           </h2>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+          <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-5">
             {alsoViewed.length > 0 ? (
               alsoViewed.map((item) => (
                 <ColProductCard key={item.id} {...item} />
@@ -48,7 +49,7 @@ export default function ProductRecommendations({
             )}
           </div>
         </div>
-      </div>
+      </SectionContainer>
     </section>
   )
 }

@@ -58,21 +58,14 @@ export default function ProductInfo({
 
   const handleAddToCart = async () => {
     const canBuy = product.canBuy ?? true
-    const variantId = product.variantId || product.variants?.[0]?.id
 
     if (!canBuy) {
       toast.error("This product is currently out of stock")
       return
     }
 
-    if (!variantId || variantId === "undefined" || variantId === "null") {
-      toast.error("Invalid product variant. Please refresh the page.")
-      return
-    }
-
     addToCartStore({
       id: String(product.id),
-      variantId: String(variantId),
       name: product.name || "Product",
       image: product.image || product.images?.[0]?.url || "",
       price: cartPrice,
@@ -85,7 +78,6 @@ export default function ProductInfo({
 
   const handleBuyNow = async () => {
     const canBuy = product.canBuy ?? true
-    const variantId = product.variantId || product.variants?.[0]?.id
 
     if (!canBuy) {
       toast.error("This product is currently out of stock")
@@ -94,7 +86,6 @@ export default function ProductInfo({
 
     addToCartStore({
       id: String(product.id),
-      variantId: String(variantId),
       name: product.name || "Product",
       image: product.image || product.images?.[0]?.url || "",
       price: cartPrice,

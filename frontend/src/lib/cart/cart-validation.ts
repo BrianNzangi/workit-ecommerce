@@ -7,7 +7,6 @@
 export interface CartItem {
     id: string; // This is the Line ID in backend
     productId: string;
-    variantId: string | null;
     name: string;
     image: string;
     price: number;
@@ -61,13 +60,13 @@ export function removeInvalidItems(
     items: CartItem[],
     invalidItems: any[]
 ): CartItem[] {
-    const invalidVariantIds = new Set(
-        invalidItems.map(item => item.variantId)
+    const invalidIds = new Set(
+        invalidItems.map(item => item.id)
     );
 
     return items.filter(item => {
-        const variantId = item.variantId || item.id;
-        return !invalidVariantIds.has(variantId);
+        const id = item.id;
+        return !invalidIds.has(id);
     });
 }
 
@@ -105,12 +104,12 @@ export function validateCartItemsLocally(items: CartItem[]): {
     const errors: string[] = [];
 
     items.forEach((item, index) => {
-        const variantId = item.variantId || item.id;
+        const id = item.id;
 
-        if (!variantId) {
-            errors.push(`Item ${index + 1} (${item.name || 'Unknown'}): Missing variant ID`);
-        } else if (!isValidUUID(variantId)) {
-            errors.push(`Item ${index + 1} (${item.name || 'Unknown'}): Invalid variant ID format (expected UUID, got "${variantId}")`);
+        if (!id) {
+            errors.push(`Item ${index + 1} (${item.name || 'Unknown'}): Missing ID`);
+        } else if (!isValidUUID(id)) {
+            errors.push(`Item ${index + 1} (${item.name || 'Unknown'}): Invalid ID format (expected UUID, got "${id}")`);
         }
 
         if (!item.name) {

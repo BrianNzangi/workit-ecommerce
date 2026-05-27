@@ -59,7 +59,6 @@ export async function GET(
             image: mainImage,
             price: Number(productObj.salePrice ?? 0),
             compareAtPrice: productObj.originalPrice ? Number(productObj.originalPrice) : undefined,
-            variantId: productObj.id,
             stockOnHand: productObj.stockOnHand ?? 0,
             canBuy: (productObj.stockOnHand ?? 0) > 0,
             variants: [fallbackVariant],

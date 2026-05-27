@@ -1,5 +1,6 @@
 import { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
+import { v4 as uuidv4 } from 'uuid';
 import { and, db, eq, schema } from '@workit/db';
 import { enrichProductCampaigns } from '../../../../lib/product-campaigns.js';
 import { container, DI_TOKENS } from '../../../../infrastructure/di/container.js';
@@ -8,7 +9,6 @@ import { CartRepository } from '../../../../infrastructure/persistence/repositor
 
 const addBodySchema = z.object({
   productId: z.string(),
-  variantId: z.string().optional(),
   quantity: z.number().int().min(1).default(1),
 });
 
@@ -106,9 +106,8 @@ async function mergeGuestCartIfNeeded(params: {
 
   for (const line of guestCart.lines) {
     customerCart.addLine({
-      id: line.id,
+      id: uuidv4(),
       productId: line.productId,
-      variantId: line.variantId,
       quantity: line.quantity,
     });
   }
@@ -147,7 +146,7 @@ export const cartPublicRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const { productId, variantId, quantity } = request.body as z.infer<typeof addBodySchema>;
+      const { productId, quantity } = request.body as z.infer<typeof addBodySchema>;
       const customerId = (request as any).storefrontUser?.id as string | undefined;
       const guestId = getGuestId(request);
 
@@ -163,7 +162,6 @@ export const cartPublicRoutes: FastifyPluginAsync = async (fastify) => {
           customerId,
           guestId: customerId ? undefined : guestId,
           productId,
-          variantId,
           quantity,
         });
 

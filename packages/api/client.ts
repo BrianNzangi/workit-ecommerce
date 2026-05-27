@@ -405,6 +405,7 @@ export namespace products {
         name: string
         slug: string
         description?: string
+        shortDescription?: string
         sku: string
         salePrice: number
         originalPrice: number
@@ -420,6 +421,7 @@ export namespace products {
         name: string
         slug: string
         description: string | null
+        shortDescription: string | null
         sku: string
         salePrice: number
         originalPrice: number
@@ -522,6 +524,7 @@ export namespace products {
     name?: string
     slug?: string
     description?: string
+    shortDescription?: string
     sku?: string
     salePrice?: number
     originalPrice?: number

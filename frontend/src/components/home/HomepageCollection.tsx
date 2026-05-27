@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import ProductCarousel from './ProductCarousel';
 import HorizontalBanner from '../banners/HorizontalBanner';
+import SectionContainer from '@/components/layout/SectionContainer';
 import type { HomepageCollectionData } from '@/lib/homepage/homepage-data';
 import type { StoreBanner } from '@/lib/banner/banner-target';
 
@@ -23,8 +24,8 @@ export default function HomepageCollection({
     const remaining = collections.slice(6);
 
     const renderCollection = (collection: HomepageCollectionData) => (
-        <section key={collection.id} aria-label={collection.title} className="py-2 md:py-4">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <section key={collection.id} aria-label={collection.title}>
+            <SectionContainer className="px-10 sm:px-12 lg:px-16 mb-8 py-6">
                 <div className="flex items-end justify-between mb-4">
                     <div className="space-y-0">
                         <h2 className="text-lg md:text-xl font-extrabold text-secondary-900">
@@ -52,7 +53,7 @@ export default function HomepageCollection({
                 )}
 
                 <ProductCarousel products={collection.products} />
-            </div>
+            </SectionContainer>
         </section>
     );
 

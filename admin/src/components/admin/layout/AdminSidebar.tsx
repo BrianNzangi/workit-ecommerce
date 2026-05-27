@@ -191,7 +191,17 @@ const menuSections: MenuSection[] = [
                         href: '/admin/content/pages/help-center',
                         icon: null,
                     },
+                    {
+                        label: 'About Workit',
+                        href: '/admin/content/pages/about-workit',
+                        icon: null,
+                    },
                 ],
+            },
+            {
+                label: 'Homepage Control',
+                href: '/admin/content/homepage',
+                icon: LayoutDashboard,
             },
             {
                 label: 'Blog',

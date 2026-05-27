@@ -3,6 +3,7 @@ export interface AdminProduct {
     name: string;
     slug: string;
     description: string | null;
+    shortDescription: string | null;
     salePrice: number | null;
     originalPrice: number | null;
     enabled: boolean;

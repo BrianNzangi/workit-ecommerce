@@ -22,7 +22,6 @@ export default function ProductCard({
     shippingMethod,
     condition,
     activePromotion,
-    variantId,
     canBuy,
 }: Product) {
     const router = useRouter();
@@ -34,10 +33,9 @@ export default function ProductCard({
     });
     const promotionBadge = getProductPromotionBadge({ activePromotion });
     const isVariantAvailable = canBuy ?? true;
-    const finalVariantId = variantId || variants?.[0]?.id || id || '';
 
     const { quickAdd, increaseQuantity, decreaseQuantity, removeItem, items } = useCartStore();
-    const cartItem = items.find(i => i.variantId === finalVariantId || i.id === finalVariantId || i.productId === id);
+    const cartItem = items.find(i => i.productId === id);
     const quantity = cartItem?.quantity || 0;
 
     const productHref = `/deal-details/${slug}`;
@@ -64,21 +62,8 @@ export default function ProductCard({
             return;
         }
 
-        if (!finalVariantId) {
-            console.error('Missing variant ID:', {
-                productId: id,
-                productName: name,
-                providedVariantId: variantId,
-                variants: variants,
-                variantsLength: variants?.length
-            });
-            toast.error('Product configuration error. Please try refreshing the page or contact support.');
-            return;
-        }
-
         await quickAdd({
             id: id,
-            variantId: finalVariantId,
             name: name || 'Product',
             image: imageUrl,
             price: basePrice,
