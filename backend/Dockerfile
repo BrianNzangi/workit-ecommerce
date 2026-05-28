@@ -1,17 +1,25 @@
 FROM node:22-alpine
 
+WORKDIR /app/backend
+
 RUN apk add --no-cache libc6-compat
 RUN corepack enable && corepack prepare pnpm@11.1.3 --activate
 
-WORKDIR /app
+ENV NODE_ENV=production
 
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install
+# install deps
+COPY backend/package.json ./package.json
+COPY pnpm-workspace.yaml ../
+COPY pnpm-lock.yaml ../
+COPY packages ../packages
 
-COPY . .
+RUN pnpm install --frozen-lockfile=false
 
-RUN pnpm run build
+# source
+COPY backend .
 
-EXPOSE 3000
+RUN pnpm build
 
-CMD ["pnpm", "start"]
+EXPOSE 3001
+
+CMD ["node", "dist/src/server.js"]
