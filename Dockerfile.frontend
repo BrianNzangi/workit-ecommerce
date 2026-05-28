@@ -96,9 +96,6 @@ COPY --from=builder /app/frontend/package.json ./frontend/package.json
 COPY --from=deps /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
 COPY --from=deps /app/package.json ./package.json
 
-# Install production dependencies only
-RUN pnpm install --prod --frozen-lockfile
-
 RUN chown -R nextjs:nodejs /app
 
 USER nextjs
