@@ -20,9 +20,6 @@
         "seed:help-center": "tsx src/seed-help-center.ts",
         "studio": "node ./scripts/studio.mjs"
     },
-    "peerDependencies": {
-        "drizzle-orm": "^0.45.1"
-    },
     "dependencies": {
         "@types/bcryptjs": "^2.4.6",
         "bcryptjs": "^3.0.3",

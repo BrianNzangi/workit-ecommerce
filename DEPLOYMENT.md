@@ -205,9 +205,19 @@ In Dokploy:
 
 1. Go to **Applications**
 2. Click **New Application**
-3. Choose the GitHub repository
-4. Use `Dockerfile.backend`
-5. Name the app `backend`
+3. Set **Provider** to **GitHub**
+4. Choose the `workit-ecommerce` repository from your connected GitHub account
+5. Set **Branch** to the production branch, usually `main`
+6. Set **Build Path** to `/`
+7. Leave **Trigger Type** as **On Push**
+8. Set **Build Type** to **Dockerfile**
+9. Set **Docker File** to `Dockerfile.backend`
+10. Set **Docker Context Path** to `.`
+11. Leave **Docker Build Stage** empty
+12. Name the app `backend`
+13. Save the app and continue to variables
+
+For this repo, the backend Dockerfile’s final runtime image is the correct build target, so you do not need a custom build stage.
 
 ### 7.2 Service variables
 
@@ -271,9 +281,19 @@ In Dokploy:
 
 1. Go to **Applications**
 2. Click **New Application**
-3. Choose the GitHub repository
-4. Use `Dockerfile.frontend`
-5. Name the app `frontend`
+3. Set **Provider** to **GitHub**
+4. Choose the `workit-ecommerce` repository from your connected GitHub account
+5. Set **Branch** to the production branch, usually `main`
+6. Set **Build Path** to `/`
+7. Leave **Trigger Type** as **On Push**
+8. Set **Build Type** to **Dockerfile**
+9. Set **Docker File** to `Dockerfile.frontend`
+10. Set **Docker Context Path** to `.`
+11. Leave **Docker Build Stage** empty
+12. Name the app `frontend`
+13. Save the app and continue to variables
+
+For this repo, the frontend Dockerfile’s final runtime image is the correct target, so you do not need a custom build stage.
 
 ### 8.2 Service variables
 
@@ -329,9 +349,19 @@ In Dokploy:
 
 1. Go to **Applications**
 2. Click **New Application**
-3. Choose the GitHub repository
-4. Use `Dockerfile.admin`
-5. Name the app `admin`
+3. Set **Provider** to **GitHub**
+4. Choose the `workit-ecommerce` repository from your connected GitHub account
+5. Set **Branch** to the production branch, usually `main`
+6. Set **Build Path** to `/`
+7. Leave **Trigger Type** as **On Push**
+8. Set **Build Type** to **Dockerfile**
+9. Set **Docker File** to `Dockerfile.admin`
+10. Set **Docker Context Path** to `.`
+11. Leave **Docker Build Stage** empty
+12. Name the app `admin`
+13. Save the app and continue to variables
+
+For this repo, the admin Dockerfile’s final runtime image is the correct target, so you do not need a custom build stage.
 
 ### 9.2 Service variables
 
@@ -433,6 +463,8 @@ pnpm --dir /app/backend db:push
 ```
 
 If the migration fails, inspect the backend logs first and fix the schema issue before retrying.
+
+If you ever see `ERR_MODULE_NOT_FOUND` for `drizzle-orm` in Dokploy, redeploy the backend after pulling the latest repo changes. The `@workit/db` package now ships `drizzle-orm` as a normal dependency, so the rebuilt image will include it.
 
 ---
 
