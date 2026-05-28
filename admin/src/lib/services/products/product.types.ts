@@ -1,7 +1,34 @@
-import { products } from '@workit/api';
+export interface Product {
+    id: string;
+    name: string;
+    slug: string;
+    description: string | null;
+    shortDescription: string | null;
+    sku: string;
+    salePrice: number;
+    originalPrice: number;
+    stockOnHand: number;
+    enabled: boolean;
+    createdAt: string;
+    updatedAt: string;
+    assets?: any[];
+    collections?: any[];
+}
 
-export type Product = products.Product;
-export type CreateProductInput = products.CreateProductInput;
+export interface CreateProductInput {
+    name: string;
+    slug: string;
+    description?: string;
+    shortDescription?: string;
+    sku: string;
+    salePrice: number;
+    originalPrice: number;
+    stockOnHand: number;
+    enabled?: boolean;
+    collections?: string[];
+    homepageCollections?: string[];
+    assetIds?: string[];
+}
 
 export interface ProductListOptions {
     limit?: number;

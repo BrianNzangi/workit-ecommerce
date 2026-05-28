@@ -1,76 +1,44 @@
-import { betterAuth } from "better-auth";
-import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { db, schema } from "@workit/db";
-import { withDevOrigins } from "./dev-origins";
+export type User = {
+    id: string;
+    email?: string | null;
+    name?: string | null;
+    role?: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
+};
 
-const splitOrigins = (value?: string): string[] =>
-    (value ?? "")
-        .split(",")
-        .map((origin) => origin.trim())
-        .filter(Boolean);
+export type Session = {
+    user: User;
+    session?: unknown;
+};
 
-const configuredOrigins = withDevOrigins(Array.from(
-    new Set([
-        ...splitOrigins(process.env.BETTER_AUTH_TRUSTED_ORIGINS),
-        ...splitOrigins(process.env.CORS_ORIGIN),
-        ...splitOrigins(process.env.NEXT_PUBLIC_ADMIN_BASE_URL),
-        ...splitOrigins(process.env.ADMIN_URL),
-    ]),
-));
+const getBackendUrl = () => {
+    const env = process.env as Record<string, string | undefined>;
+    return (
+        env.BACKEND_API_URL ||
+        env.BACKEND_URL ||
+        env.NEXT_PUBLIC_BACKEND_URL ||
+        env.NEXT_PUBLIC_API_URL ||
+        "http://localhost:3001"
+    ).replace(/\/$/, "");
+};
 
-const authBaseUrl =
-    process.env.NEXT_PUBLIC_AUTH_BASE_URL ||
-    process.env.NEXT_PUBLIC_ADMIN_BASE_URL ||
-    process.env.ADMIN_URL ||
-    process.env.BETTER_AUTH_URL;
-const authCookiePrefix =
-    process.env.BETTER_AUTH_COOKIE_PREFIX?.trim() ||
-    process.env.NEXT_PUBLIC_AUTH_COOKIE_PREFIX?.trim() ||
-    "admin-auth";
+async function getSession({ headers }: { headers: Headers }): Promise<Session | null> {
+    const cookie = headers.get("cookie");
+    const response = await fetch(`${getBackendUrl()}/auth/get-session`, {
+        headers: cookie ? { cookie } : undefined,
+        cache: "no-store",
+    });
 
-export const auth = betterAuth({
-    secret: process.env.BETTER_AUTH_SECRET || "pvhf6y7u8i9o0p1q2r3s4t5u6v7w8x9y",
-    ...(authBaseUrl ? { baseURL: authBaseUrl } : {}),
+    if (!response.ok) {
+        return null;
+    }
 
-    database: drizzleAdapter(db, {
-        provider: "pg",
-        schema: schema,
-    }),
+    return response.json();
+}
 
-    emailAndPassword: {
-        enabled: true,
-        password: {
-            hash: async (password: string) => {
-                const bcrypt = await import("bcryptjs");
-                return await bcrypt.hash(password, 10);
-            },
-            verify: async ({ password, hash }: { password: string; hash: string }) => {
-                const bcrypt = await import("bcryptjs");
-                return await bcrypt.compare(password, hash);
-            },
-        },
+export const auth = {
+    api: {
+        getSession,
     },
-
-    user: {
-        additionalFields: {
-            role: {
-                type: "string",
-                defaultValue: "CUSTOMER",
-            },
-            firstName: {
-                type: "string",
-            },
-            lastName: {
-                type: "string",
-            },
-        },
-    },
-
-    ...(configuredOrigins.length ? { trustedOrigins: configuredOrigins } : {}),
-    advanced: {
-        cookiePrefix: authCookiePrefix,
-    },
-});
-
-export type Session = typeof auth.$Infer.Session;
-export type User = Session["user"];
+};

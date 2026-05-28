@@ -1,6 +1,8 @@
-import { banners } from '@workit/api';
-
-export type Banner = banners.Banner & {
+export type Banner = {
+    id: string;
+    linkUrl: string | null;
+    createdAt: string;
+    updatedAt: string;
     name: string;
     slug: string;
     description?: string;
@@ -19,7 +21,7 @@ export type Banner = banners.Banner & {
     campaignId?: string;
 };
 
-export type CreateBannerInput = banners.CreateBannerInput & {
+export type CreateBannerInput = {
     name: string;
     slug: string;
     description?: string;

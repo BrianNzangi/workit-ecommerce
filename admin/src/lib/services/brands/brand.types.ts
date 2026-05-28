@@ -1,4 +1,14 @@
-import { brands } from '@workit/api';
+export interface Brand {
+    id: string;
+    name: string;
+    slug: string;
+    enabled: boolean;
+    createdAt: string;
+    updatedAt: string;
+}
 
-export type Brand = brands.Brand;
-export type CreateBrandInput = brands.CreateBrandInput;
+export interface CreateBrandInput {
+    name: string;
+    slug: string;
+    enabled?: boolean;
+}

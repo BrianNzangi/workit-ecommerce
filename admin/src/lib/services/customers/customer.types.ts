@@ -1,6 +1,15 @@
-import { customers } from '@workit/api';
-
-export type Customer = customers.Customer;
+export interface Customer {
+    id: string;
+    email: string;
+    name: string;
+    firstName: string | null;
+    lastName: string | null;
+    role: string;
+    createdAt: string;
+    updatedAt: string;
+    addresses?: any[];
+    orders?: any[];
+}
 
 export interface CreateCustomerInput {
     email: string;

@@ -1,9 +1,32 @@
-import { analytics } from '@workit/api';
+export interface StatsResponse {
+    customers: number;
+    totalProducts: number;
+    stockProducts: number;
+    outOfStock: number;
+    revenue: number;
+}
 
-export type StatsResponse = analytics.StatsResponse;
-export type SalesStatsResponse = analytics.SalesStatsResponse;
-export type RecentOrder = analytics.RecentOrder;
-export type ChartResponse = analytics.ChartResponse;
+export interface SalesStatsResponse {
+    current: number;
+    previous: number;
+    percentageChange: number;
+}
+
+export interface RecentOrder {
+    id: string;
+    code: string;
+    customerName: string;
+    total: number;
+    state: string;
+    createdAt: string;
+}
+
+export interface ChartResponse {
+    items: Array<{
+        day: string;
+        value: number;
+    }>;
+}
 
 export interface DashboardSummaryResponse {
     totalSales: number;

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-let API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+let API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 // Add /api prefix if missing and it's a full URL
 if (API_URL.startsWith('http') && !API_URL.endsWith('/api') && !API_URL.includes('/api/')) {
