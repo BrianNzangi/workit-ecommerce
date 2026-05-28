@@ -1,91 +1,16 @@
-FROM node:22-alpine AS base
+FROM node:22-alpine
 
-RUN apk add --no-cache libc6-compat python3 make g++ bash
-RUN corepack enable && corepack prepare pnpm@11.1.3 --activate
-
-ENV CI=true
-ENV PNPM_CONFIG_CONFIRM_MODULES_PURGE=false
-
-WORKDIR /app
-
-# =========================
-# Dependencies stage
-# =========================
-FROM base AS deps
-
-COPY .npmrc ./
-COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
-COPY frontend/package.json ./frontend/
-COPY admin/package.json ./admin/
-COPY packages ./packages/
-
-RUN pnpm install --no-frozen-lockfile --filter=@workit/frontend...
-
-# =========================
-# Build stage
-# =========================
-FROM base AS builder
-
-COPY --from=deps /app /app
-COPY frontend ./frontend
-COPY packages ./packages
-
-ARG DATABASE_URL
-ARG BACKEND_URL
-ARG BACKEND_API_URL
-ARG NEXT_PUBLIC_BACKEND_URL
-ARG NEXT_PUBLIC_API_URL
-ARG INTERNAL_API_KEY
-ARG REDIS_URL
-
-ENV DATABASE_URL=$DATABASE_URL
-ENV BACKEND_URL=$BACKEND_URL
-ENV BACKEND_API_URL=$BACKEND_API_URL
-ENV NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-ENV INTERNAL_API_KEY=$INTERNAL_API_KEY
-ENV REDIS_URL=$REDIS_URL
-
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV SKIP_DB_CHECK=true
-ENV NEXT_PHASE=phase-production-build
-
-# IMPORTANT: prevent build-time API calls
-RUN pnpm --filter=@workit/db run build
-RUN pnpm --filter=@workit/validation run build
-RUN pnpm --filter=@workit/frontend run build
-
-# =========================
-# Runtime stage
-# =========================
-FROM node:22-alpine AS runner
-
+RUN apk add --no-cache libc6-compat
 RUN corepack enable && corepack prepare pnpm@11.1.3 --activate
 
 WORKDIR /app
 
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV PORT=3000
-ENV HOSTNAME=0.0.0.0
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install
 
-RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
+COPY . .
 
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/frontend/node_modules ./frontend/node_modules
-COPY --from=deps /app/packages ./packages
-COPY --from=builder /app/frontend/.next ./frontend/.next
-COPY --from=builder /app/frontend/public ./frontend/public
-COPY --from=builder /app/frontend/package.json ./frontend/package.json
-COPY --from=deps /app/package.json ./package.json
-COPY --from=deps /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
-
-RUN chown -R nextjs:nodejs /app
-
-USER nextjs
-
-WORKDIR /app/frontend
+RUN pnpm run build
 
 EXPOSE 3000
 
