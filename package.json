@@ -5,7 +5,7 @@
         "dev": "turbo dev --filter=@workit/frontend --filter=@workit/admin",
         "build": "turbo build",
         "lint": "turbo lint",
-        "start": "turbo start",
+        "start": "pnpm --filter @workit/frontend start",
         "db:studio": "pnpm --filter @workit/db studio",
         "db:push": "pnpm --filter @workit/db push",
         "studio": "pnpm --filter @workit/db studio"
