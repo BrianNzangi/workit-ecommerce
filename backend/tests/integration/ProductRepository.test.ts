@@ -24,6 +24,7 @@ const rawProduct: ProductRecord = {
   slug: 'red-running-shoe',
   sku: 'SHOE-RED-42',
   description: 'A comfortable red running shoe',
+  shortDescription: 'Comfortable red running shoe',
   originalPrice: 2000,
   salePrice: 1500,
   stockOnHand: 10,
@@ -42,6 +43,7 @@ const rawProductNoSalePrice: ProductRecord = {
   ...rawProduct,
   id: 'prod-2',
   sku: 'SHOE-BLUE-42',
+  shortDescription: 'Comfortable blue running shoe',
   salePrice: null,
 };
 
