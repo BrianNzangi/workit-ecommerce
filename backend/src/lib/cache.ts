@@ -62,11 +62,29 @@ export function createCacheStore(redis: RedisClient | null, log?: FastifyBaseLog
         };
     }
 
+    const isRedisReady = () => Boolean(redis && redis.status === "ready");
+    const withTimeout = async <T>(promise: Promise<T>, timeoutMs = 250): Promise<T> => {
+        let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+        try {
+            return await Promise.race([
+                promise,
+                new Promise<T>((_, reject) => {
+                    timeoutHandle = setTimeout(() => reject(new Error("Redis operation timed out")), timeoutMs);
+                }),
+            ]);
+        } finally {
+            if (timeoutHandle) clearTimeout(timeoutHandle);
+        }
+    };
+
     return {
         enabled: true,
         async get<T>(key: string): Promise<T | null> {
+            if (!isRedisReady()) {
+                return null;
+            }
             try {
-                const data = await redis.get(key);
+                const data = await withTimeout(redis.get(key));
                 return data ? (JSON.parse(data) as T) : null;
             } catch (error) {
                 log?.error({ error, key }, "Redis cache get failed");
@@ -74,6 +92,9 @@ export function createCacheStore(redis: RedisClient | null, log?: FastifyBaseLog
             }
         },
         async set(key: string, value: unknown, ttlSeconds: number, tags?: string[]): Promise<void> {
+            if (!isRedisReady()) {
+                return;
+            }
             try {
                 const payload = JSON.stringify(value);
                 const pipeline = redis.pipeline();
@@ -87,29 +108,35 @@ export function createCacheStore(redis: RedisClient | null, log?: FastifyBaseLog
                     });
                 }
 
-                await pipeline.exec();
+                await withTimeout(pipeline.exec());
             } catch (error) {
                 log?.error({ error, key }, "Redis cache set failed");
             }
         },
         async del(keys: string | string[]): Promise<void> {
+            if (!isRedisReady()) {
+                return;
+            }
             try {
                 const list = Array.isArray(keys) ? keys : [keys];
                 if (list.length > 0) {
-                    await redis.del(...list);
+                    await withTimeout(redis.del(...list));
                 }
             } catch (error) {
                 log?.error({ error, keys }, "Redis cache delete failed");
             }
         },
         async invalidateTag(tag: string): Promise<void> {
+            if (!isRedisReady()) {
+                return;
+            }
             try {
                 const setKey = tagKey(tag);
-                const keys = await redis.smembers(setKey);
+                const keys = await withTimeout(redis.smembers(setKey));
                 if (keys.length > 0) {
-                    await redis.del(...keys);
+                    await withTimeout(redis.del(...keys));
                 }
-                await redis.del(setKey);
+                await withTimeout(redis.del(setKey));
             } catch (error) {
                 log?.error({ error, tag }, "Redis cache tag invalidation failed");
             }

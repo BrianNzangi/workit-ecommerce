@@ -7,6 +7,8 @@ type ProxyFetchOptions = RequestInit & {
     useRequestContext?: boolean;
 };
 
+const inflightRequests = new Map<string, Promise<Response>>();
+
 function getBackendUrl() {
     // We use bracket notation to prevent Next.js from inlining these values at build time
     const env = process.env as Record<string, string | undefined>;
@@ -73,6 +75,16 @@ export async function proxyFetch(path: string, options: ProxyFetchOptions = {}) 
 
     const backendUrl = getBackendUrl();
     const url = isExternalUrl ? path : `${backendUrl}${path}`;
+
+    // Deduplicate in-flight GET requests to the same URL so concurrent
+    // calls (e.g. 9 homepage-collection slug routes) share a single backend request.
+    if (isGet) {
+        const pending = inflightRequests.get(url);
+        if (pending) {
+            return pending.then(r => r.clone());
+        }
+    }
+
     const routeLabel = (() => {
         try {
             return isExternalUrl ? new URL(path).pathname || '/' : path.split('?')[0] || '/';
@@ -101,13 +113,24 @@ export async function proxyFetch(path: string, options: ProxyFetchOptions = {}) 
     }
 
     try {
-        const response = await fetch(url, {
+        const requestPromise = fetch(url, {
             ...options,
             headers: {
                 ...defaultHeaders,
                 ...options.headers,
             },
         });
+
+        if (isGet) {
+            inflightRequests.set(url, requestPromise);
+            requestPromise.finally(() => {
+                if (inflightRequests.get(url) === requestPromise) {
+                    inflightRequests.delete(url);
+                }
+            });
+        }
+
+        const response = await requestPromise;
 
         // 3. If it's a successful GET response, cache it in Redis
         if (isGet && response.ok && canUseProxyCache) {

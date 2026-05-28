@@ -12,17 +12,38 @@ if (!redisUrl && process.env.NODE_ENV === 'production' && !warned) {
 export const redis = redisUrl
     ? new Redis(redisUrl, {
         maxRetriesPerRequest: null,
-        retryStrategy: (times) => Math.min(times * 50, 2000),
+        connectTimeout: 1000,
+        retryStrategy: () => null,
     })
     : null;
+
+function isRedisReady() {
+    return Boolean(redis && redis.status === 'ready');
+}
+
+async function withTimeout<T>(promise: Promise<T>, timeoutMs = 250): Promise<T> {
+    let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+    try {
+        return await Promise.race([
+            promise,
+            new Promise<T>((_, reject) => {
+                timeoutHandle = setTimeout(() => reject(new Error('Redis operation timed out')), timeoutMs);
+            }),
+        ]);
+    } finally {
+        if (timeoutHandle) clearTimeout(timeoutHandle);
+    }
+}
 
 /**
  * Cache utility for Redis
  */
 export async function getCachedData<T>(key: string): Promise<T | null> {
-    if (!redis) return null;
+    if (!isRedisReady()) return null;
     try {
-        const data = await redis.get(key);
+        const client = redis;
+        if (!client) return null;
+        const data = await withTimeout(client.get(key));
         return data ? JSON.parse(data) : null;
     } catch (error) {
         console.error(`Redis Get Error [${key}]:`, error);
@@ -31,9 +52,11 @@ export async function getCachedData<T>(key: string): Promise<T | null> {
 }
 
 export async function setCachedData(key: string, data: any, ttlSeconds: number = 300): Promise<void> {
-    if (!redis) return;
+    if (!isRedisReady()) return;
     try {
-        await redis.set(key, JSON.stringify(data), 'EX', ttlSeconds);
+        const client = redis;
+        if (!client) return;
+        await withTimeout(client.set(key, JSON.stringify(data), 'EX', ttlSeconds));
     } catch (error) {
         console.error(`Redis Set Error [${key}]:`, error);
     }

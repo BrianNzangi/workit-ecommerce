@@ -1,3 +1,4 @@
+import SectionContainer from '@/components/layout/SectionContainer';
 import ProductCardSkeleton from "./ProductCardSkeleton";
 
 function Skeleton({ className }: { className?: string }) {
@@ -7,8 +8,10 @@ function Skeleton({ className }: { className?: string }) {
 export function HeroSectionSkeleton() {
   return (
     <section aria-label="Loading banners" className="w-full">
-      <Skeleton className="w-full h-50 sm:h-75 md:h-100h-[500px] rounded-none" />
-      <div className="flex justify-center gap-2 mt-4">
+      <SectionContainer className="px-10 sm:px-12 lg:px-16 py-6">
+        <Skeleton className="w-full h-45 md:h-75 rounded-sm" />
+      </SectionContainer>
+      <div className="flex justify-center gap-2 mt-2">
         {Array.from({ length: 4 }).map((_, i) => (
           <Skeleton key={i} className="w-2.5 h-2.5 rounded-full" />
         ))}
@@ -20,7 +23,7 @@ export function HeroSectionSkeleton() {
 export function CategoriesSkeleton() {
   return (
     <section aria-label="Loading categories" className="py-2 sm:py-4 lg:py-4">
-      <div className="mx-auto max-w-480 px-3 sm:px-6 md:px-2 lg:px-8 xl:px-8 2xl:px-8">
+      <SectionContainer className="px-10 sm:px-12 lg:px-16">
         <Skeleton className="h-7 w-40 mb-6" />
         <div className="grid grid-cols-8 gap-2 lg:gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
@@ -30,7 +33,7 @@ export function CategoriesSkeleton() {
             </div>
           ))}
         </div>
-      </div>
+      </SectionContainer>
     </section>
   );
 }
@@ -38,14 +41,14 @@ export function CategoriesSkeleton() {
 export function DealsSkeleton() {
   return (
     <section aria-label="Loading deals" className="py-6 md:py-8">
-      <div className="mx-auto max-w-480 px-4 sm:px-6 lg:px-8">
+      <SectionContainer className="px-10 sm:px-12 lg:px-16">
         <Skeleton className="h-7 w-24 mb-6" />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="w-full aspect-video rounded-md" />
           ))}
         </div>
-      </div>
+      </SectionContainer>
     </section>
   );
 }
@@ -53,7 +56,7 @@ export function DealsSkeleton() {
 export function BlogGridSkeleton() {
   return (
     <section aria-label="Loading blog posts" className="py-6 md:py-8">
-      <div className="mx-auto max-w-480 px-4 sm:px-6 lg:px-8">
+      <SectionContainer className="px-10 sm:px-12 lg:px-16 mb-8 py-6">
         <div className="flex justify-between items-center mb-6">
           <Skeleton className="h-7 w-40" />
           <Skeleton className="h-4 w-20" />
@@ -69,17 +72,17 @@ export function BlogGridSkeleton() {
             </div>
           ))}
         </div>
-      </div>
+      </SectionContainer>
     </section>
   );
 }
 
 export function BannerSkeleton() {
   return (
-    <section aria-label="Loading banner" className="py-6 md:py-8">
-      <div className="mx-auto max-w-480 px-4 sm:px-6 lg:px-8">
-        <Skeleton className="w-full h-30 sm:h-40 rounded-lg" />
-      </div>
+    <section aria-label="Loading banner" className="py-2 md:py-4">
+      <SectionContainer className="px-10 sm:px-12 lg:px-16">
+        <Skeleton className="w-full h-52 rounded-md" />
+      </SectionContainer>
     </section>
   );
 }
@@ -87,7 +90,7 @@ export function BannerSkeleton() {
 export function CollectionSkeleton() {
   return (
     <section aria-label="Loading collection" className="py-2 md:py-4">
-      <div className="mx-auto max-w-480 px-4 sm:px-6 lg:px-8">
+      <SectionContainer className="px-10 sm:px-12 lg:px-16 mb-8 py-6">
         <div className="flex items-end justify-between mb-4">
           <div className="space-y-1">
             <Skeleton className="h-6 w-48" />
@@ -100,7 +103,7 @@ export function CollectionSkeleton() {
             <ProductCardSkeleton key={i} />
           ))}
         </div>
-      </div>
+      </SectionContainer>
     </section>
   );
 }

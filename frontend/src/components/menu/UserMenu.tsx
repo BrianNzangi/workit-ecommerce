@@ -77,7 +77,7 @@ export default function UserMenu() {
         className="flex items-center gap-2 text-secondary-900 hover:text-primary-900 transition-colors"
       >
         <CircleUser className="h-6 w-6" />
-        <span className="font-sans text-lg font-medium hidden lg:inline">
+        <span className="font-sans text-lg font-medium hidden lg:inline" suppressHydrationWarning>
           {customer ? `${customer.firstName}` : 'Account'}
         </span>
         <ChevronDown className="h-4 w-4 hidden lg:inline" />

@@ -10,6 +10,7 @@ export interface ProductRecord {
   slug: string;
   sku: string | null;
   description: string | null;
+  shortDescription: string | null;
   salePrice: number | null;
   originalPrice: number | null;
   stockOnHand: number;
@@ -32,6 +33,7 @@ export interface ProductPersistenceDto {
   slug: string;
   sku: string | null;
   description: string | null;
+  shortDescription: string | null;
   salePrice: number | null;
   originalPrice: number | null;
   stockOnHand: number;
@@ -82,6 +84,7 @@ export class ProductMapper {
       name: raw.name,
       slug: raw.slug,
       description: raw.description,
+      shortDescription: raw.shortDescription ?? null,
       originalPrice,
       salePrice,
       stockOnHand: raw.stockOnHand,
@@ -108,6 +111,7 @@ export class ProductMapper {
       slug: product.slug,
       sku: product.sku?.value ?? null,
       description: product.description,
+      shortDescription: product.shortDescription,
       originalPrice: product.originalPrice?.amount ?? null,
       salePrice: product.salePrice?.amount ?? null,
       stockOnHand: product.stockOnHand,

@@ -616,11 +616,11 @@ export const checkoutPublicRoutes: FastifyPluginAsync = async (fastify) => {
         });
 
         if (stockAdjustedProductIds.size > 0) {
-            try {
-                await productSearchService.syncProductsByIds(Array.from(stockAdjustedProductIds));
-            } catch (error) {
-                fastify.log.error({ error }, "Failed to sync product stock to search index after checkout");
-            }
+            void productSearchService
+                .syncProductsByIds(Array.from(stockAdjustedProductIds))
+                .catch((error) => {
+                    fastify.log.error({ error }, "Failed to sync product stock to search index after checkout");
+                });
         }
 
         return checkoutResult;

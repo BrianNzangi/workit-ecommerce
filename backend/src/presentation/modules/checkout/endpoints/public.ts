@@ -15,6 +15,8 @@
  */
 import { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
+import { v4 as uuidv4 } from 'uuid';
+import { db, schema } from '@workit/db';
 import { featureFlags, isRouteMigrationEnabled } from '../../../../infrastructure/feature-flags/flags.js';
 import { container, DI_TOKENS } from '../../../../infrastructure/di/container.js';
 import { PlaceOrderService } from '../../../../application/order-management/services/PlaceOrderService.js';
@@ -45,6 +47,21 @@ const initiateBodySchema = z.object({
 const verifyBodySchema = z.object({
   orderId: z.string(),
   paymentReference: z.string().optional(),
+});
+
+const mapAddress = (address: z.infer<typeof addressSchema>) => ({
+  id: uuidv4(),
+  customerId: '',
+  fullName: address.fullName,
+  streetLine1: address.streetLine1,
+  streetLine2: address.streetLine2 ?? null,
+  city: address.city,
+  province: address.province,
+  postalCode: address.postalCode ?? '',
+  country: address.country ?? 'KE',
+  phoneNumber: address.phoneNumber,
+  defaultShipping: false,
+  defaultBilling: false,
 });
 
 // â”€â”€â”€ Routes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -78,11 +95,39 @@ export const checkoutPublicRoutes: FastifyPluginAsync = async (fastify) => {
 
       try {
         const placeOrderService = container.resolve<PlaceOrderService>(DI_TOKENS.PlaceOrderService);
+        let shippingAddressId = body.shippingAddressId;
+        let billingAddressId = body.billingAddressId;
+
+        if (!shippingAddressId) {
+          if (!body.shippingAddress) {
+            return reply.status(400).send({ message: 'Shipping address is required' });
+          }
+
+          shippingAddressId = uuidv4();
+          await db.insert(schema.addresses).values({
+            ...mapAddress(body.shippingAddress),
+            id: shippingAddressId,
+            customerId: userId,
+          });
+        }
+
+        if (!billingAddressId) {
+          if (body.billingAddress) {
+            billingAddressId = uuidv4();
+            await db.insert(schema.addresses).values({
+              ...mapAddress(body.billingAddress),
+              id: billingAddressId,
+              customerId: userId,
+            });
+          } else {
+            billingAddressId = shippingAddressId;
+          }
+        }
 
         const result = await placeOrderService.execute({
           customerId: userId,
-          shippingAddressId: body.shippingAddressId ?? '',
-          billingAddressId: body.billingAddressId,
+          shippingAddressId,
+          billingAddressId,
           shippingMethodId: body.shippingMethodId,
           couponCode: body.couponCode,
           currencyCode: 'KES',

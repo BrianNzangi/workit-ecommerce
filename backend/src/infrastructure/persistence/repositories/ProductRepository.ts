@@ -67,6 +67,7 @@ export class ProductRepository implements IProductRepository {
           slug: dto.slug,
           sku: dto.sku,
           description: dto.description,
+          shortDescription: dto.shortDescription,
           originalPrice: dto.originalPrice,
           salePrice: dto.salePrice,
           stockOnHand: dto.stockOnHand,

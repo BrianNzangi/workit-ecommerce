@@ -21,6 +21,7 @@ import {
   validateRequiredBillingFields,
   formatPaystackAmount
 } from '@/lib/checkout/checkout-utils';
+import { CSRF_HEADER_NAME, ensureCsrfToken } from '@/lib/security/csrf';
 import { useCustomer, useUpdateCustomer } from '@/hooks/useCustomer';
 import { useShippingZones } from '@/hooks/useShippingZones';
 import { useStoreConfig } from '@/hooks/useStoreConfig';
@@ -207,19 +208,38 @@ export const useCheckout = (user: User) => {
 
     const sessionId = useCartStore.getState().sessionId;
 
-    const orderRes = await fetch("/api/checkout/initiate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(sessionId ? { "x-guest-id": sessionId } : {})
-      },
-      body: JSON.stringify({
-        shippingAddress,
-        billingAddress,
-        shippingMethodId: "standard",
-        ...(coupon?.code ? { couponCode: coupon.code } : {})
-      }),
-    });
+    const csrfPromise = ensureCsrfToken().catch(() => null);
+    const csrfTimeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000));
+    const csrfToken = await Promise.race([csrfPromise, csrfTimeout]);
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      ...(sessionId ? { "x-guest-id": sessionId } : {}),
+    };
+    if (csrfToken) {
+      headers[CSRF_HEADER_NAME] = csrfToken;
+    }
+
+    const controller = new AbortController();
+    const timeoutMs = 75000;
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+    let orderRes: Response;
+    try {
+      orderRes = await fetch("/api/checkout/initiate", {
+        method: "POST",
+        headers,
+        signal: controller.signal,
+        body: JSON.stringify({
+          shippingAddress,
+          billingAddress,
+          shippingMethodId: "standard",
+          ...(coupon?.code ? { couponCode: coupon.code } : {})
+        }),
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
 
     const orderData = await orderRes.json();
 

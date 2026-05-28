@@ -12,8 +12,6 @@ export class DrizzleUnitOfWork implements IUnitOfWork {
   constructor(private readonly db: DrizzleDb) {}
 
   async transaction<T>(work: () => Promise<T>): Promise<T> {
-    return this.db.transaction(async (_tx) => {
-      return work();
-    });
+    return work();
   }
 }

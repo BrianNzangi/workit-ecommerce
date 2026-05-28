@@ -13,15 +13,29 @@ export async function rateLimit(
     limit = 120,
     durationSeconds = 60,
 ): Promise<RateLimitResult> {
-    if (!redis) {
+    if (!redis || redis.status !== "ready") {
         return { success: true, limit, remaining: limit };
     }
 
+    const withTimeout = async <T>(promise: Promise<T>, timeoutMs = 250): Promise<T> => {
+        let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+        try {
+            return await Promise.race([
+                promise,
+                new Promise<T>((_, reject) => {
+                    timeoutHandle = setTimeout(() => reject(new Error("Redis operation timed out")), timeoutMs);
+                }),
+            ]);
+        } finally {
+            if (timeoutHandle) clearTimeout(timeoutHandle);
+        }
+    };
+
     try {
-        const requests = await redis.incr(key);
+        const requests = await withTimeout(redis.incr(key));
 
         if (requests === 1) {
-            await redis.expire(key, durationSeconds);
+            await withTimeout(redis.expire(key, durationSeconds));
         }
 
         const remaining = Math.max(0, limit - requests);
@@ -31,7 +45,7 @@ export async function rateLimit(
             success,
             limit,
             remaining,
-            retryAfter: !success ? await redis.ttl(key) : undefined,
+            retryAfter: !success ? await withTimeout(redis.ttl(key)) : undefined,
         };
     } catch (error) {
         // Fail open to avoid breaking the store if Redis is down

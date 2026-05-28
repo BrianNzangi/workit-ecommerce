@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { proxyFetch } from '@/lib/utils/proxy-utils';
 import { normalizeProducts } from '@/lib/product/product-normalization';
 import { getImageUrl } from '@/lib/image/image-utils';
@@ -144,7 +145,7 @@ export async function getHomepageLayout(): Promise<HomepageLayout> {
     }
 }
 
-export async function getHomepageBanners(): Promise<Record<string, StoreBanner[]>> {
+export const getHomepageBanners = cache(async (): Promise<Record<string, StoreBanner[]>> => {
     const response = await proxyFetch('/store/banners?enabled=true', {
         method: 'GET',
         cache: 'force-cache',
@@ -172,7 +173,7 @@ export async function getHomepageBanners(): Promise<Record<string, StoreBanner[]
         MIDDLE: sortBanners(banners, 'MIDDLE'),
         BOTTOM: sortBanners(banners, 'BOTTOM'),
     };
-}
+});
 
 export async function getStoreBanners(
     position?: string,
@@ -247,7 +248,7 @@ export async function getFirstBanner(
     return banners[0] || null;
 }
 
-export async function getFeaturedBlogs(): Promise<Blog[]> {
+export const getFeaturedBlogs = cache(async (): Promise<Blog[]> => {
     const response = await proxyFetch('/marketing/blog?limit=50&offset=0', {
         method: 'GET',
         next: { revalidate: 120 },
@@ -270,14 +271,12 @@ export async function getFeaturedBlogs(): Promise<Blog[]> {
     );
 
     return (featured.length > 0 ? featured : sorted).slice(0, 15);
-}
+});
 
-export async function getMostShoppedCollections(): Promise<MostShoppedCollection[]> {
+export const getMostShoppedCollections = cache(async (): Promise<MostShoppedCollection[]> => {
     const params = new URLSearchParams({
-        parentId: 'null',
-        includeChildren: 'true',
-        includeAssets: 'true',
-        take: '100',
+        mostShopped: 'true',
+        take: '20',
         skip: '0',
     });
 
@@ -292,34 +291,18 @@ export async function getMostShoppedCollections(): Promise<MostShoppedCollection
 
     const data = await response.json();
     const collections: Collection[] = Array.isArray(data) ? data : (data.collections || []);
-    const featuredCollections: MostShoppedCollection[] = [];
-    const addedIds = new Set<string>();
 
-    const findFeaturedRecursively = (items: Collection[]) => {
-        items.forEach((item) => {
-            if (item.showInMostShopped === true && !addedIds.has(item.id)) {
-                featuredCollections.push({
-                    id: item.id,
-                    name: item.name,
-                    slug: item.slug,
-                    mostShoppedSortOrder: item.mostShoppedSortOrder || 0,
-                    image: item.asset?.preview || item.asset?.source,
-                });
-                addedIds.add(item.id);
-            }
-
-            if (item.children?.length) {
-                findFeaturedRecursively(item.children);
-            }
-        });
-    };
-
-    findFeaturedRecursively(collections);
-
-    return featuredCollections.sort(
-        (a, b) => a.mostShoppedSortOrder - b.mostShoppedSortOrder
-    );
-}
+    return collections
+        .sort((a, b) => (a.mostShoppedSortOrder || 0) - (b.mostShoppedSortOrder || 0))
+        .slice(0, 8)
+        .map((item) => ({
+            id: item.id,
+            name: item.name,
+            slug: item.slug,
+            mostShoppedSortOrder: item.mostShoppedSortOrder || 0,
+            image: item.asset?.preview || item.asset?.source,
+        }));
+});
 
 export async function getHomepageCollections(
     options: { status?: 'active' | 'draft' | 'archived'; limit?: number } = {}

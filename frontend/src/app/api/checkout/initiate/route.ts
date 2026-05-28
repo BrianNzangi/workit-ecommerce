@@ -55,13 +55,24 @@ const parseJsonBody = async (response: Response) => {
   }
 };
 
+const fetchWithTimeout = async (url: string, options: RequestInit, timeoutMs = 60000) => {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    return response;
+  } finally {
+    clearTimeout(timer);
+  }
+};
+
 const getCartSnapshot = async (request: NextRequest) => {
   try {
-    const response = await fetch(`${getBackendUrl()}/cart`, {
+    const response = await fetchWithTimeout(`${getBackendUrl()}/cart`, {
       method: "GET",
       headers: getForwardHeaders(request),
       cache: "no-store",
-    });
+    }, 10000);
 
     if (!response.ok) return null;
     return await parseJsonBody(response);
@@ -74,12 +85,12 @@ export async function POST(request: NextRequest) {
   try {
     const payload = await request.json();
     const cartSnapshot = await getCartSnapshot(request);
-    const response = await fetch(`${getBackendUrl()}/checkout/initiate`, {
+    const response = await fetchWithTimeout(`${getBackendUrl()}/checkout/initiate`, {
       method: "POST",
       headers: getForwardHeaders(request),
       body: JSON.stringify(payload),
       cache: "no-store",
-    });
+    }, 60000);
     const responseBody = await parseJsonBody(response);
 
     if (response.ok) {

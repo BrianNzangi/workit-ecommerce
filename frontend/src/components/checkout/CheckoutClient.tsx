@@ -43,42 +43,44 @@ export default function CheckoutClient({ user }: CheckoutClientProps) {
 
   return (
     <section className="bg-[#F1F1F2] min-h-screen">
-      <SectionContainer className="px-10 sm:px-12 lg:px-16 py-6 grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="md:col-span-2 space-y-6">
-          <StepBilling
-            user={user}
-            isOpen={activeStep === 1}
-            onEdit={() => setActiveStep(1)}
-            onComplete={handleBillingSubmit}
-            data={stepData.billing}
-          />
+      <SectionContainer className="px-10 sm:px-12 lg:px-16 py-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="md:col-span-2 space-y-6">
+            <StepBilling
+              user={user}
+              isOpen={activeStep === 1}
+              onEdit={() => setActiveStep(1)}
+              onComplete={handleBillingSubmit}
+              data={stepData.billing}
+            />
 
-          <StepShipping
-            billingData={stepData.billing}
-            isOpen={activeStep === 2}
-            onEdit={() => setActiveStep(2)}
-            onComplete={handleShippingSubmit}
-            data={stepData.shipping}
-          />
+            <StepShipping
+              billingData={stepData.billing}
+              isOpen={activeStep === 2}
+              onEdit={() => setActiveStep(2)}
+              onComplete={handleShippingSubmit}
+              data={stepData.shipping}
+            />
 
-          <StepPayment
-            isOpen={activeStep === 3}
-            onEdit={() => setActiveStep(3)}
-            onComplete={handlePaymentSubmit}
-            data={stepData.payment}
-          />
-        </div>
+            <StepPayment
+              isOpen={activeStep === 3}
+              onEdit={() => setActiveStep(3)}
+              onComplete={handlePaymentSubmit}
+              data={stepData.payment}
+            />
+          </div>
 
-        <div>
-          <OrderSummary
-            shipping={stepData.totals.shipping}
-            vatRate={0.16}
-            coupon={coupon}
-            onPlaceOrder={handlePlaceOrder}
-            isOrderReady={isOrderReady || false} // Ensure boolean
-            loading={loading}
-            showPaymentInstruction={!!(stepData.payment.method && activeStep >= 3)} // Ensure boolean
-          />
+          <div>
+            <OrderSummary
+              shipping={stepData.totals.shipping}
+              vatRate={0.16}
+              coupon={coupon}
+              onPlaceOrder={handlePlaceOrder}
+              isOrderReady={isOrderReady || false}
+              loading={loading}
+              showPaymentInstruction={!!(stepData.payment.method && activeStep >= 3)}
+            />
+          </div>
         </div>
       </SectionContainer>
     </section>

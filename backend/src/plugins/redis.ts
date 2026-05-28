@@ -22,7 +22,8 @@ export default fp(async (fastify) => {
 
     const client = new Redis(redisUrl, {
         maxRetriesPerRequest: null,
-        retryStrategy: (times: number) => Math.min(times * 50, 2000),
+        connectTimeout: 1000,
+        retryStrategy: () => null,
     });
 
     fastify.decorate("redis", client);

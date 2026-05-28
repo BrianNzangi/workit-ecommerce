@@ -520,6 +520,7 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
         parentId: z.string().optional(),
         take: z.coerce.number().optional().default(1000),
         skip: z.coerce.number().optional().default(0),
+        mostShopped: z.coerce.boolean().optional(),
     });
 
     // Collections
@@ -530,7 +531,7 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
         },
         preHandler: [fastify.publicRateLimit],
     }, async (request, reply) => {
-        const { includeChildren, parentId, take, skip } = request.query as z.infer<typeof collectionsQuerySchema>;
+        const { includeChildren, parentId, take, skip, mostShopped } = request.query as z.infer<typeof collectionsQuerySchema>;
         const { collections } = schema;
 
         const cacheKey = buildCacheKey("store:collections:list", request.query as any);
@@ -542,6 +543,10 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
         }
 
         let whereClause = eq(collections.enabled, true);
+
+        if (mostShopped) {
+            whereClause = and(whereClause, eq(collections.showInMostShopped, true)) as any;
+        }
 
         if (parentId !== undefined) {
             if (parentId === 'null') {
@@ -717,11 +722,14 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
     fastify.get("/homepage-collections", {
         schema: {
             tags: ["Marketing"],
-            querystring: z.object({})
+            querystring: z.object({
+                slug: z.string().optional(),
+            })
         },
         preHandler: [fastify.publicRateLimit],
-    }, async (_request, reply) => {
-        const cacheKey = buildCacheKey("store:homepage-collections:list");
+    }, async (request, reply) => {
+        const { slug } = request.query as { slug?: string };
+        const cacheKey = buildCacheKey(`store:homepage-collections:${slug || "list"}`);
         const cached = await fastify.cache.get<{ collections: any[] }>(cacheKey);
         if (cached) {
             reply.header("x-cache", "HIT");
@@ -729,8 +737,13 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
             return cached;
         }
 
+        const conditions = [eq(schema.homepageCollections.enabled, true)];
+        if (slug) {
+            conditions.push(eq(schema.homepageCollections.slug, slug));
+        }
+
         const results = await db.query.homepageCollections.findMany({
-            where: eq(schema.homepageCollections.enabled, true),
+            where: and(...conditions),
             orderBy: [asc(schema.homepageCollections.sortOrder)],
             with: {
                 products: {

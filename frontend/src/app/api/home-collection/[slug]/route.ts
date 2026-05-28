@@ -9,7 +9,7 @@ export async function GET(
     const { slug } = await params;
 
     try {
-        const response = await proxyFetch('/store/homepage-collections?status=active', {
+        const response = await proxyFetch(`/store/homepage-collections?slug=${encodeURIComponent(slug)}&status=active`, {
             method: 'GET',
             next: { revalidate: 300 },
         });
