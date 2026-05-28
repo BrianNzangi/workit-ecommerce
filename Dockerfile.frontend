@@ -4,7 +4,7 @@
 FROM node:22-alpine AS base
 
 RUN apk add --no-cache libc6-compat python3 make g++
-RUN corepack enable && corepack prepare pnpm@10.28.2 --activate
+RUN corepack enable && corepack prepare pnpm@11.1.3 --activate
 
 WORKDIR /app
 
@@ -59,7 +59,7 @@ RUN NEXT_PHASE=phase-production-build DATABASE_URL=postgres://localhost:5432/dum
 # =========================
 FROM node:22-alpine AS runner
 
-RUN corepack enable && corepack prepare pnpm@10.28.2 --activate
+RUN corepack enable && corepack prepare pnpm@11.1.3 --activate
 
 WORKDIR /app
 ENV NODE_ENV=production

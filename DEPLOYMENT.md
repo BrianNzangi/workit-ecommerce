@@ -155,6 +155,10 @@ Suggested size:
 - memory: `2 GB`
 - CPU: `1.5`
 
+Recommended Dokploy limits:
+- Memory limit: `2G`
+- CPU limit: `1.5`
+
 ### 6.2 Redis
 
 In Dokploy:
@@ -168,6 +172,10 @@ In Dokploy:
 Suggested size:
 - memory: `512 MB`
 - CPU: `0.5`
+
+Recommended Dokploy limits:
+- Memory limit: `512M`
+- CPU limit: `0.5`
 
 ### 6.3 Typesense
 
@@ -193,6 +201,10 @@ Expose port:
 
 Add a persistent volume for `/data`.
 
+Recommended Dokploy limits:
+- Memory limit: `1G`
+- CPU limit: `1`
+
 ---
 
 ## 7) Deploy the backend
@@ -217,7 +229,13 @@ In Dokploy:
 12. Name the app `backend`
 13. Save the app and continue to variables
 
-For this repo, the backend Dockerfile’s final runtime image is the correct build target, so you do not need a custom build stage.
+For this repo, the backend Dockerfile's final runtime image is the correct build target, so you do not need a custom build stage.
+
+Important: if Dokploy shows a standalone pnpm install step in the logs, the app is not using the Dockerfile yet. Double-check that Build Type is Dockerfile and that Docker File is exactly Dockerfile.backend.
+
+Recommended Dokploy limits:
+- Memory limit: `1.5G`
+- CPU limit: `1`
 
 ### 7.2 Service variables
 
@@ -295,6 +313,10 @@ In Dokploy:
 
 For this repo, the frontend Dockerfile’s final runtime image is the correct target, so you do not need a custom build stage.
 
+Recommended Dokploy limits:
+- Memory limit: `2G`
+- CPU limit: `1.5`
+
 ### 8.2 Service variables
 
 ```bash
@@ -362,6 +384,10 @@ In Dokploy:
 13. Save the app and continue to variables
 
 For this repo, the admin Dockerfile’s final runtime image is the correct target, so you do not need a custom build stage.
+
+Recommended Dokploy limits:
+- Memory limit: `1G`
+- CPU limit: `0.5`
 
 ### 9.2 Service variables
 
