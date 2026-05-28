@@ -5,13 +5,6 @@ import MetaCookieInitializer from "../components/providers/MetaCookieInitializer
 import QueryProvider from "../components/providers/QueryProvider";
 import "./globals.css";
 import Script from "next/script";
-import { Hanken_Grotesk } from "next/font/google";
-
-const hankenGrotesk = Hanken_Grotesk({
-  subsets: ["latin"],
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
-  display: "swap",
-});
 
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
@@ -96,7 +89,7 @@ gtag('config', 'G-Y0DN0MB5CV');`,
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body suppressHydrationWarning className={`${hankenGrotesk.className} font-sans flex flex-col min-h-screen`}>
+      <body suppressHydrationWarning className="font-sans flex flex-col min-h-screen">
         <QueryProvider>
           <CartInitializer />
           <MetaCookieInitializer />

@@ -78,7 +78,12 @@ const nextConfig: NextConfig = {
     ];
   },
   async rewrites() {
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+    const backendUrl =
+      process.env.BACKEND_API_URL?.trim() ||
+      process.env.NEXT_PUBLIC_BACKEND_URL?.trim() ||
+      process.env.NEXT_PUBLIC_API_URL?.trim() ||
+      'http://localhost:3001';
+
     return [
       {
         source: '/uploads/:path*',
