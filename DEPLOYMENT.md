@@ -396,27 +396,27 @@ Do not deploy the frontend or admin before the backend is available.
 
 ## 11) Seed initial catalog content
 
-Before you switch the live site over, seed the initial catalog data from the admin panel.
+Before you switch the live site over, run the database seed so the initial collections and homepage collections exist.
 
-Open these pages in the admin app:
+Run this from the backend container or from the repo root on the server:
 
-- `http://localhost:3002/admin/collections`
-- `http://localhost:3002/admin/homepage-collections`
+```bash
+pnpm --filter @workit/db build
+pnpm --filter @workit/db seed
+```
 
-In production, use the live admin domain instead:
+The seed now creates:
+- the initial catalog collections
+- the homepage collections used by the admin pages
+- the default shipping methods
+- the admin user, if needed
+
+After seeding, verify these admin pages:
 
 - `https://admin.workit.co.ke/admin/collections`
 - `https://admin.workit.co.ke/admin/homepage-collections`
 
-Create the first set of parent collections, child collections, and homepage collections before going live. If these pages are empty, the storefront will not have curated collection data to show on launch.
-
-Recommended order:
-
-1. Create root collections
-2. Create nested collections if needed
-3. Create homepage collections
-4. Add products to those homepage collections
-5. Revisit the storefront and confirm the sections render
+If the seed runs correctly, those pages will already have records available in production.
 
 ---
 
