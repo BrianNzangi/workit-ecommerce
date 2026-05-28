@@ -2,6 +2,14 @@ import Typesense from "typesense";
 
 let client: Typesense.Client | null = null;
 
+function sanitizeHost(raw: string): string {
+    let h = raw.trim();
+    h = h.replace(/^https?:\/\//i, "");
+    h = h.replace(/\/.*$/, "");
+    h = h.replace(/:\d+$/, "");
+    return h;
+}
+
 function getTypesenseConfig(): {
     host: string;
     port: number;
@@ -10,7 +18,8 @@ function getTypesenseConfig(): {
     productsCollection: string;
     collectionsCollection: string;
 } | null {
-    const host = process.env.TYPESENSE_HOST;
+    const rawHost = process.env.TYPESENSE_HOST;
+    const host = sanitizeHost(rawHost || "");
     const port = Number(process.env.TYPESENSE_PORT || "8108");
     const protocol = process.env.TYPESENSE_PROTOCOL || "http";
     const apiKey = process.env.TYPESENSE_API_KEY;
@@ -19,6 +28,10 @@ function getTypesenseConfig(): {
 
     if (!host || !apiKey) {
         return null;
+    }
+
+    if (rawHost !== host) {
+        console.warn(`[typesense] Sanitized TYPESENSE_HOST: "${rawHost}" -> "${host}"`);
     }
 
     return { host, port, protocol, apiKey, productsCollection, collectionsCollection };
