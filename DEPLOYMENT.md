@@ -233,6 +233,8 @@ For this repo, the backend Dockerfile's final runtime image is the correct build
 
 Important: if Dokploy shows a standalone pnpm install step in the logs, the app is not using the Dockerfile yet. Double-check that Build Type is Dockerfile and that Docker File is exactly Dockerfile.backend.
 
+If pnpm still prompts about removing `node_modules`, add `CI=true` as a Dokploy build/environment variable for the app. That matches the Dockerfiles and prevents pnpm from asking for interactive confirmation in a no-TTY build.
+
 Recommended Dokploy limits:
 - Memory limit: `1.5G`
 - CPU limit: `1`
