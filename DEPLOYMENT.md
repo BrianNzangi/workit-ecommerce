@@ -1,660 +1,532 @@
-# Production Deployment — Single VPS with Coolify
+# Workit Ecommerce Deployment Guide
 
-## Server Spec
+This guide deploys the full stack on **Dokploy**.
 
-| Resource | Value |
-|----------|-------|
-| vCPU | **6 cores** |
-| RAM | **12 GB** |
-| Storage | **100 GB NVMe** (recommended) or 200 GB SSD |
-| Snapshot | **2 snapshots** |
-| Port | **300 Mbit/s** |
-| Traffic | Unlimited |
+Services:
+- `backend` = API at `api.workit.co.ke`
+- `frontend` = storefront at `workit.co.ke`
+- `admin` = admin panel at `admin.workit.co.ke`
+- `postgres` = PostgreSQL database
+- `redis` = cache and rate-limit store
+- `typesense` = search engine
 
-> **Choose NVMe over SSD.** PostgreSQL and Typesense benefit massively from low-latency random I/O.
-
----
-
-## Architecture
-
-```
-                      ┌──────────────────────────────────────┐
-                      │         SINGLE VPS SERVER            │
-                      │   6 vCPU · 12 GB · 100 GB NVMe      │
-                      │                                      │
-                      │   ┌──────────────┐                   │
-                      │   │   Coolify    │  (port 8000)      │
-                      │   │  (UI + API)  │   management UI   │
-                      │   └──────┬───────┘                   │
-                      │          │ manages                   │
-                      │          ▼                           │
-                      │   ┌──────────────┐  port 3000        │
-                      │   │   Frontend   │  storefront       │
-                      │   │  (Next.js)   │  workit.co.ke     │
-                      │   └──────────────┘                   │
-                      │   ┌──────────────┐  port 3001        │
-                      │   │   Backend    │  API               │
-                      │   │  (Fastify)   │  api.workit.co.ke  │
-                      │   └──────────────┘                   │
-                      │   ┌──────────────┐  port 3002        │
-                      │   │   Admin      │  dashboard         │
-                      │   │  (Next.js)   │  admin.workit.co.ke│
-                      │   └──────────────┘                   │
-                      │   ┌──────────────┐  port 5432        │
-                      │   │  PostgreSQL  │  database          │
-                      │   └──────────────┘                   │
-                      │   ┌──────────────┐  port 6379        │
-                      │   │    Redis     │  cache + queue     │
-                      │   └──────────────┘                   │
-                      │   ┌──────────────┐  port 8108        │
-                      │   │  Typesense   │  search engine     │
-                      │   └──────────────┘                   │
-                      └──────────────────────────────────────┘
-```
-
-### Resource allocation (single server)
-
-| Service | RAM | vCPU | Storage | Notes |
-|---------|-----|------|---------|-------|
-| **PostgreSQL** | **2 GB** | **1.5** | **~20–40 GB** | Main data store |
-| **Redis** | **512 MB** | **0.5** | — | Cache + job queue (minimal persistence) |
-| **Typesense** | **1 GB** | **1** | **~2–5 GB** | Search index |
-| **Backend** | **1.5 GB** | **1** | — | Fastify Node.js API |
-| **Frontend** | **2 GB** | **1.5** | — | Next.js SSR storefront |
-| **Admin** | **1 GB** | **0.5** | — | Next.js admin panel |
-| **OS + buffers** | **~1.5 GB** | **—** | **~15 GB** | Ubuntu, disk cache, Docker layers |
-| **Build cache** | — | — | **~10 GB** | `.next` builds, pnpm store, Docker layers |
-| **Free headroom** | **~2.5 GB** | **—** | **~30 GB** | Traffic spikes, growth, logs |
-| **Total** | **~12 GB** | **6** | **~100 GB** | |
+Dokploy handles:
+- app deployment
+- domains
+- SSL certificates
+- logs
+- environment variables
+- rollbacks
 
 ---
 
-## 1. Provision the VPS
+## 1) What you need first
 
-Any provider works. Recommended options:
+You already need:
+- a Linux VPS with a public IP
+- SSH access as root or sudo
+- DNS control for your domains
+- a GitHub repository connection
+- S3 or R2 for media uploads
 
-| Provider | Approx cost |
-|----------|------------|
-| Hetzner CX32 | €10.99/mo |
-| Netcup RS 2000 | ~€10/mo |
-| DigitalOcean Premium | $36/mo |
-| Vultr High Frequency | $32/mo |
-| Linode Dedicated | $36/mo |
+Recommended domains:
+- `workit.co.ke`
+- `admin.workit.co.ke`
+- `api.workit.co.ke`
+- `media.workit.co.ke` if you use a separate media host
 
-**OS:** Ubuntu 24.04 LTS
+Dokploy requires these ports to be free on the server:
+- `80`
+- `443`
+- `3000`
 
-### Initial setup
+---
+
+## 2) Install Dokploy
+
+SSH into the server:
 
 ```bash
-# SSH in as root
 ssh root@<SERVER_IP>
-
-# Create a deploy user
-adduser deploy
-usermod -aG sudo deploy
-
-# Harden SSH
-sed -i 's/^#PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
-sed -i 's/^#PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
-systemctl restart sshd
-
-# Set up firewall — only expose web ports + Coolify
-ufw allow OpenSSH
-ufw allow 80/tcp    # HTTP (Coolify proxy)
-ufw allow 443/tcp   # HTTPS (Coolify proxy)
-ufw allow 8000/tcp  # Coolify UI (or restrict to your IP)
-ufw --force enable
 ```
+
+Install Dokploy using the official script:
+
+```bash
+curl -sSL https://dokploy.com/install.sh | sh
+```
+
+If Docker is missing, the installer sets it up automatically.
+
+Open the Dokploy panel in your browser:
+
+```text
+http://<SERVER_IP>:3000
+```
+
+Create the Dokploy admin account, then secure the panel with a domain and HTTPS once you are ready.
+
+If you want to update Dokploy later, the official update command is the same installer with the `update` flag.
 
 ---
 
-## 2. Install Coolify
+## 3) Connect GitHub
 
-```bash
-curl -fsSL https://cdn.coollabs.io/coolify/install.sh | bash
-```
+In Dokploy:
 
-This installs Docker, Docker Compose, and Coolify automatically.
+1. Open **GitHub** integration
+2. Install and authorize the Dokploy GitHub app
+3. Connect the `workit-ecommerce` repository
 
-### Post-install
-
-1. Open `http://<SERVER_IP>:8000` in your browser
-2. Create an admin account
-3. **Settings → SSL** — enable auto SSL once you point domains to this server
-4. The local server is auto-registered as a Coolify server (rename it to something meaningful like **workit-vps**)
-
-### Add your GitHub repository
-
-1. **Coolify UI → Sources → GitHub → Connect**
-2. Authorize Coolify to access your GitHub account
-3. Select the `workit-ecommerce` repository
+Dokploy can then deploy Applications or Docker Compose projects from GitHub.
 
 ---
 
-## 3. Deploy Infrastructure via Coolify
+## 4) Create the project
 
-Coolify can manage databases natively. Go to **Databases** in the Coolify UI.
+In Dokploy:
 
-### 3.1 PostgreSQL
+1. Go to **Projects**
+2. Click **New Project**
+3. Name it `workit-ecommerce`
 
-**Databases → PostgreSQL → New**
-
-| Setting | Value |
-|---------|-------|
-| Name | `workit-db` |
-| Server | localhost |
-| PostgreSQL Version | `15` |
-| Port | `5432` (internal) |
-| Username | `postgres` |
-| Password | Generate a strong one |
-| Database | `workit-db` |
-| Volumes | `postgres_data` |
-| Memory Limit | `2G` |
-| CPU Limit | `1.5` |
-
-Coolify will auto-assign the `DATABASE_URL` connection string.
-
-### 3.2 Redis
-
-**Databases → Redis → New**
-
-| Setting | Value |
-|---------|-------|
-| Name | `workit-redis` |
-| Server | localhost |
-| Redis Version | `7` |
-| Port | `6379` (internal) |
-| Password | Generate a strong one |
-| Memory Limit | `512M` |
-| CPU Limit | `0.5` |
-
-### 3.3 Typesense
-
-Typesense is not a built-in Coolify database type. Deploy it as an **Application**:
-
-**Resources → New → Application**
-
-| Setting | Value |
-|---------|-------|
-| Name | `workit-typesense` |
-| Source | **Simple Dockerfile** |
-| Image | `typesense/typesense:27.1` |
-| Port | `8108` |
-| Server | localhost |
-
-**Environment Variables:**
-
-```bash
-TYPESENSE_DATA_DIR=/data
-TYPESENSE_API_KEY=<generate-a-typesense-api-key>
-TYPESENSE_ENABLE_CORS=true
-```
-
-**Volumes:** Mount `/data` to a named volume `typesense_data`.
-
-**Resource Limits:** Memory `1G`, CPU `1`.
+Keep all production resources inside this project.
 
 ---
 
-## 4. Deploy Application Services
+## 5) Configure project variables
 
-Create a **Project** first:
+Dokploy supports project-level variables and service-level variables.
 
-**Projects → New Project**
+Use **project-level variables** for shared secrets that multiple services need.
 
-- **Name:** `workit-ecommerce`
-- **Description:** Workit Ecommerce Platform
-
-Then add each service as a **Resource** inside this project.
-
-### 4.1 Backend (Fastify API)
-
-**Resources → New → Application**
-
-| Setting | Value |
-|---------|-------|
-| Name | `backend` |
-| Source | GitHub → `workit-ecommerce` |
-| Server | localhost |
-| Build Pack | Dockerfile |
-| Dockerfile Location | `/Dockerfile.backend` |
-| Port | `3001` |
-| Domains | `api.workit.co.ke` |
-
-**Environment Variables:**
+Create these project variables:
 
 ```bash
-# Database (use the internal Docker network hostname)
-# Coolify PostgreSQL creates a DNS entry: <database-name>-<uuid>.coolify
-DATABASE_URL=postgresql://postgres:<POSTGRES_PASSWORD>@<POSTGRES_HOST>:5432/workit-db
+POSTGRES_PASSWORD=<strong-password>
+REDIS_PASSWORD=<strong-password>
+TYPESENSE_API_KEY=<strong-api-key>
+BETTER_AUTH_SECRET=<strong-random-secret>
+INTERNAL_API_KEY=<strong-random-secret>
+PAYSTACK_SECRET_KEY=<your-paystack-secret>
+CRON_SECRET=<strong-random-secret>
+INDEXNOW_KEY=<your-indexnow-key>
 
-# Redis
-REDIS_URL=redis://default:<REDIS_PASSWORD>@<REDIS_HOST>:6379
-
-# Typesense
-TYPESENSE_HOST=<TYPESENSE_HOST>
-TYPESENSE_PORT=8108
-TYPESENSE_PROTOCOL=http
-TYPESENSE_API_KEY=<TYPESENSE_API_KEY>
-TYPESENSE_PRODUCTS_COLLECTION=products
-
-# Auth
-BETTER_AUTH_SECRET=<generate-a-secret>
-BETTER_AUTH_URL=https://api.workit.co.ke
-
-# URLs
-BACKEND_URL=https://api.workit.co.ke
-FRONTEND_URL=https://workit.co.ke
-ADMIN_URL=https://admin.workit.co.ke
-CORS_ORIGIN=https://workit.co.ke,https://admin.workit.co.ke
-BETTER_AUTH_TRUSTED_ORIGINS=https://workit.co.ke,https://admin.workit.co.ke
-
-# Internal API key (must match frontend/admin)
-INTERNAL_API_KEY=<generate-a-secure-random-string>
-
-# S3 / R2 storage
-S3_ENDPOINT=<your-s3-endpoint>
+S3_ENDPOINT=<your-s3-or-r2-endpoint>
 S3_BUCKET=<your-bucket>
 S3_REGION=auto
 S3_ACCESS_KEY=<your-access-key>
 S3_SECRET_KEY=<your-secret-key>
 S3_FORCE_PATH_STYLE=false
 S3_AUTO_CREATE_BUCKET=false
+
+PLUNK_API_KEY=<your-plunk-api-key>
+PLUNK_FROM_EMAIL=no-reply@workit.co.ke
+PLUNK_TEMPLATE_ID=<your-plunk-template-id>
+OTP_FROM_EMAIL=no-reply@workit.co.ke
+
+NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY=<your-paystack-public-key>
+NEXT_PUBLIC_PAYSTACK_ENABLED=true
+NEXT_PUBLIC_CURRENCY=KES
+NEXT_PUBLIC_SITE_NAME=Workit Store
+```
+
+Use **service-level variables** for variables that belong to only one app.
+
+---
+
+## 6) Deploy the databases
+
+Deploy the stateful infrastructure first.
+
+### 6.1 PostgreSQL
+
+In Dokploy:
+
+1. Go to **Databases**
+2. Click **New Database**
+3. Choose **PostgreSQL**
+4. Name it `workit-db`
+5. Set the database name to `workit-db`
+6. Set the username to `postgres`
+7. Set the password to the project variable `POSTGRES_PASSWORD`
+
+Suggested size:
+- memory: `2 GB`
+- CPU: `1.5`
+
+### 6.2 Redis
+
+In Dokploy:
+
+1. Go to **Databases**
+2. Click **New Database**
+3. Choose **Redis**
+4. Name it `workit-redis`
+5. Set the password to the project variable `REDIS_PASSWORD`
+
+Suggested size:
+- memory: `512 MB`
+- CPU: `0.5`
+
+### 6.3 Typesense
+
+Deploy Typesense as an **Application**.
+
+In Dokploy:
+
+1. Go to **Applications**
+2. Click **New Application**
+3. Choose the Git source or a raw image
+4. Use the image `typesense/typesense:27.1`
+5. Name it `workit-typesense`
+
+Service variables:
+```bash
+TYPESENSE_DATA_DIR=/data
+TYPESENSE_API_KEY=${{environment.TYPESENSE_API_KEY}}
+TYPESENSE_ENABLE_CORS=true
+```
+
+Expose port:
+- `8108`
+
+Add a persistent volume for `/data`.
+
+---
+
+## 7) Deploy the backend
+
+The backend is the Fastify API.
+
+### 7.1 Create the application
+
+In Dokploy:
+
+1. Go to **Applications**
+2. Click **New Application**
+3. Choose the GitHub repository
+4. Use `Dockerfile.backend`
+5. Name the app `backend`
+
+### 7.2 Service variables
+
+Add these backend-only variables:
+
+```bash
+NODE_ENV=production
+PORT=3001
+LOG_LEVEL=info
+PRINT_ROUTES=false
+STORAGE_REQUIRED=true
+LOW_STOCK_THRESHOLD=10
+
+DATABASE_URL=postgresql://postgres:${{environment.POSTGRES_PASSWORD}}@workit-db:5432/workit-db
+REDIS_URL=redis://default:${{environment.REDIS_PASSWORD}}@workit-redis:6379
+
+TYPESENSE_HOST=workit-typesense
+TYPESENSE_PORT=8108
+TYPESENSE_PROTOCOL=http
+TYPESENSE_API_KEY=${{environment.TYPESENSE_API_KEY}}
+TYPESENSE_PRODUCTS_COLLECTION=products
+TYPESENSE_COLLECTIONS_COLLECTION=collections
+TYPESENSE_REINDEX_SCHEDULE_ENABLED=true
+TYPESENSE_REINDEX_INTERVAL_MS=21600000
+
+BETTER_AUTH_URL=https://api.workit.co.ke
+BETTER_AUTH_TRUSTED_ORIGINS=https://workit.co.ke,https://admin.workit.co.ke
+
+CORS_ORIGIN=https://workit.co.ke,https://admin.workit.co.ke
+FRONTEND_URL=https://workit.co.ke
+ADMIN_URL=https://admin.workit.co.ke
+BACKEND_URL=https://api.workit.co.ke
 PUBLIC_MEDIA_URL=https://media.workit.co.ke/uploads
 
-# Feature flags — all DDD modules active
 USE_DDD_ORDER_MANAGEMENT=true
 USE_DDD_CATALOG=true
 USE_DDD_CUSTOMER=true
 USE_DDD_MARKETING=true
 USE_DDD_FULFILLMENT=true
-
-# Node
-NODE_ENV=production
-LOG_LEVEL=info
-PORT=3001
 ```
 
-### 4.2 Frontend (Storefront)
+### 7.3 Domain
 
-**Resources → New → Application**
+Add this domain in the backend app’s **Domains** tab:
 
-| Setting | Value |
-|---------|-------|
-| Name | `frontend` |
-| Source | GitHub → `workit-ecommerce` |
-| Server | localhost |
-| Build Pack | Dockerfile |
-| Dockerfile Location | `/Dockerfile.frontend` |
-| Port | `3000` |
-| Domains | `workit.co.ke` |
+```text
+api.workit.co.ke
+```
 
-**Build Args** — the Dockerfile uses `ARG` statements that must be available during build. In Coolify, set these in the **Build** tab or prefix with `build.`:
+Dokploy will wire the routing and HTTPS through Traefik.
+
+---
+
+## 8) Deploy the frontend
+
+The frontend is the public storefront.
+
+### 8.1 Create the application
+
+In Dokploy:
+
+1. Go to **Applications**
+2. Click **New Application**
+3. Choose the GitHub repository
+4. Use `Dockerfile.frontend`
+5. Name the app `frontend`
+
+### 8.2 Service variables
 
 ```bash
-NEXT_PUBLIC_BACKEND_URL=https://api.workit.co.ke
-NEXT_PUBLIC_API_URL=https://api.workit.co.ke
+NODE_ENV=production
+PORT=3000
+
+DATABASE_URL=postgresql://postgres:${{environment.POSTGRES_PASSWORD}}@workit-db:5432/workit-db
+REDIS_URL=redis://default:${{environment.REDIS_PASSWORD}}@workit-redis:6379
+
 BACKEND_URL=http://backend:3001
 BACKEND_API_URL=http://backend:3001
-INTERNAL_API_KEY=<same-as-backend>
-REDIS_URL=redis://default:<REDIS_PASSWORD>@<REDIS_HOST>:6379
-DATABASE_URL=postgresql://postgres:<POSTGRES_PASSWORD>@<POSTGRES_HOST>:5432/workit-db
-```
+NEXT_PUBLIC_BACKEND_URL=https://api.workit.co.ke
+NEXT_PUBLIC_API_URL=https://api.workit.co.ke
 
-**Environment Variables** (runtime):
+INTERNAL_API_KEY=${{environment.INTERNAL_API_KEY}}
+BETTER_AUTH_URL=https://api.workit.co.ke
+BETTER_AUTH_SECRET=${{environment.BETTER_AUTH_SECRET}}
+BETTER_AUTH_TRUSTED_ORIGINS=https://workit.co.ke,https://admin.workit.co.ke
 
-```bash
-# Auth
+NEXT_PUBLIC_FRONTEND_BASE_URL=https://workit.co.ke
+NEXT_PUBLIC_MEDIA_URL=https://media.workit.co.ke
 NEXT_PUBLIC_AUTH_BASE_URL=https://workit.co.ke
 NEXT_PUBLIC_AUTH_BASE_PATH=/api/auth
 NEXT_PUBLIC_AUTH_COOKIE_PREFIX=store-auth
-BETTER_AUTH_URL=https://api.workit.co.ke
-BETTER_AUTH_SECRET=<same-as-backend>
-BETTER_AUTH_TRUSTED_ORIGINS=https://workit.co.ke,https://admin.workit.co.ke
 NEXT_PUBLIC_AUTH_URL=https://workit.co.ke
 
-# Media
-NEXT_PUBLIC_MEDIA_URL=https://media.workit.co.ke
-
-# SEO
-NEXT_PUBLIC_FRONTEND_BASE_URL=https://workit.co.ke
 INDEXNOW_SITE_URL=https://workit.co.ke
-INDEXNOW_KEY=1362f663ee08495c823032577fefb4db
-
-# OTP Email
-OTP_FROM_EMAIL=no-reply@workit.co.ke
-RESEND_API_KEY=<your-resend-key>
-RESEND_FROM_EMAIL=no-reply@workit.co.ke
-
-# Node
-NODE_ENV=production
-PORT=3000
+INDEXNOW_KEY=${{environment.INDEXNOW_KEY}}
+NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY=${{environment.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY}}
+NEXT_PUBLIC_PAYSTACK_ENABLED=${{environment.NEXT_PUBLIC_PAYSTACK_ENABLED}}
+NEXT_PUBLIC_CURRENCY=${{environment.NEXT_PUBLIC_CURRENCY}}
+NEXT_PUBLIC_SITE_NAME=${{environment.NEXT_PUBLIC_SITE_NAME}}
 ```
 
-> **Important:** The `NEXT_PUBLIC_*` vars are baked into the JS bundle at build time. If you change them, you must rebuild the frontend. All other env vars can be changed at runtime.
+### 8.3 Domain
 
-### 4.3 Admin Panel
+Add this domain in the frontend app’s **Domains** tab:
 
-**Resources → New → Application**
-
-| Setting | Value |
-|---------|-------|
-| Name | `admin` |
-| Source | GitHub → `workit-ecommerce` |
-| Server | localhost |
-| Build Pack | Dockerfile |
-| Dockerfile Location | `/Dockerfile.admin` |
-| Port | `3002` |
-| Domains | `admin.workit.co.ke` |
-
-**Build Args:**
-
-```bash
-DATABASE_URL=postgresql://postgres:<POSTGRES_PASSWORD>@<POSTGRES_HOST>:5432/workit-db
-BACKEND_URL=http://backend:3001
-NEXT_PUBLIC_BACKEND_URL=https://api.workit.co.ke
-NEXT_PUBLIC_API_URL=https://api.workit.co.ke
-STOREFRONT_URL=https://workit.co.ke
+```text
+workit.co.ke
 ```
 
-**Environment Variables:**
+---
+
+## 9) Deploy the admin panel
+
+The admin panel is the back office.
+
+### 9.1 Create the application
+
+In Dokploy:
+
+1. Go to **Applications**
+2. Click **New Application**
+3. Choose the GitHub repository
+4. Use `Dockerfile.admin`
+5. Name the app `admin`
+
+### 9.2 Service variables
 
 ```bash
-# Auth
-BETTER_AUTH_SECRET=<same-as-backend>
-BETTER_AUTH_URL=https://api.workit.co.ke
-ADMIN_URL=https://admin.workit.co.ke
-NEXT_PUBLIC_AUTH_BASE_URL=https://admin.workit.co.ke
-NEXT_PUBLIC_AUTH_BASE_PATH=/api/auth
-NEXT_PUBLIC_AUTH_COOKIE_PREFIX=admin-auth
-NEXT_PUBLIC_ADMIN_BASE_URL=https://admin.workit.co.ke
-BETTER_AUTH_TRUSTED_ORIGINS=https://workit.co.ke,https://admin.workit.co.ke
-
-# URLs
-NEXT_PUBLIC_BACKEND_URL=https://api.workit.co.ke
-NEXT_PUBLIC_API_URL=https://api.workit.co.ke
-BACKEND_API_URL=http://backend:3001
-CORS_ORIGIN=https://workit.co.ke,https://admin.workit.co.ke
-
-# Media
-NEXT_PUBLIC_MEDIA_URL=https://media.workit.co.ke
-
-# Node
 NODE_ENV=production
 PORT=3002
 HOSTNAME=0.0.0.0
+
+DATABASE_URL=postgresql://postgres:${{environment.POSTGRES_PASSWORD}}@workit-db:5432/workit-db
+BACKEND_URL=http://backend:3001
+BACKEND_API_URL=http://backend:3001
+NEXT_PUBLIC_BACKEND_URL=https://api.workit.co.ke
+NEXT_PUBLIC_API_URL=https://api.workit.co.ke
+
+BETTER_AUTH_URL=https://api.workit.co.ke
+BETTER_AUTH_SECRET=${{environment.BETTER_AUTH_SECRET}}
+BETTER_AUTH_TRUSTED_ORIGINS=https://workit.co.ke,https://admin.workit.co.ke
+ADMIN_URL=https://admin.workit.co.ke
+NEXT_PUBLIC_ADMIN_BASE_URL=https://admin.workit.co.ke
+NEXT_PUBLIC_AUTH_BASE_URL=https://admin.workit.co.ke
+NEXT_PUBLIC_AUTH_BASE_PATH=/api/auth
+NEXT_PUBLIC_AUTH_COOKIE_PREFIX=admin-auth
+
+CORS_ORIGIN=https://workit.co.ke,https://admin.workit.co.ke
+NEXT_PUBLIC_MEDIA_URL=https://media.workit.co.ke
+```
+
+### 9.3 Domain
+
+Add this domain in the admin app’s **Domains** tab:
+
+```text
+admin.workit.co.ke
 ```
 
 ---
 
-## 5. Internal Service Discovery
+## 10) Deployment order
 
-All Coolify services on the same server can reach each other via Docker's internal network using the Coolify-generated DNS names:
+Use this exact order:
 
-| Service | Coolify internal hostname |
-|---------|--------------------------|
-| PostgreSQL | `workit-db` (or `<uuid>.coolify`) |
-| Redis | `workit-redis` (or `<uuid>.coolify`) |
-| Typesense | `workit-typesense` (or `<uuid>.coolify`) |
-| Backend | `backend` |
-| Frontend | `frontend` |
-| Admin | `admin` |
+1. Install Dokploy
+2. Connect GitHub
+3. Create the project
+4. Add project variables
+5. Deploy PostgreSQL
+6. Deploy Redis
+7. Deploy Typesense
+8. Deploy the backend
+9. Add the backend domain
+10. Deploy the frontend
+11. Add the frontend domain
+12. Deploy the admin panel
+13. Add the admin domain
+14. Run database migrations
+15. Seed initial collections and homepage collections
+16. Verify the site
 
-When configuring env vars, use these hostnames instead of `localhost` or IPs — they resolve on the Docker network.
-
----
-
-## 6. SSL / Domains
-
-Coolify auto-proxies via Caddy and issues Let's Encrypt certificates automatically.
-
-### DNS records
-
-Point all three domains to your **server IP**:
-
-```
-A  workit.co.ke       → <SERVER_IP>
-A  admin.workit.co.ke → <SERVER_IP>
-A  api.workit.co.ke   → <SERVER_IP>
-```
-
-### Coolify domain config
-
-Under each **Resource → Domains**, add the domain. Coolify will:
-
-- Configure the reverse proxy (Caddy)
-- Issue SSL certificates automatically
-- Redirect HTTP → HTTPS
-- Handle WebSocket proxying (if needed)
+Do not deploy the frontend or admin before the backend is available.
 
 ---
 
-## 7. Production Database Migrations
+## 11) Seed initial catalog content
 
-Coolify does **not** run DB migrations automatically. Apply schema changes after deploying new backend code.
+Before you switch the live site over, seed the initial catalog data from the admin panel.
 
-### Option A: Exec into the running backend container (quickest)
+Open these pages in the admin app:
+
+- `http://localhost:3002/admin/collections`
+- `http://localhost:3002/admin/homepage-collections`
+
+In production, use the live admin domain instead:
+
+- `https://admin.workit.co.ke/admin/collections`
+- `https://admin.workit.co.ke/admin/homepage-collections`
+
+Create the first set of parent collections, child collections, and homepage collections before going live. If these pages are empty, the storefront will not have curated collection data to show on launch.
+
+Recommended order:
+
+1. Create root collections
+2. Create nested collections if needed
+3. Create homepage collections
+4. Add products to those homepage collections
+5. Revisit the storefront and confirm the sections render
+
+---
+
+## 12) Database migrations
+
+Run migrations whenever the schema changes.
+
+Use the backend app terminal in Dokploy:
 
 ```bash
-docker exec -it <backend-container-id> sh
 cd /app
 pnpm --filter @workit/db build
 pnpm --dir /app/backend db:push
-exit
 ```
 
-### Option B: Temporary migration service in Coolify
-
-Create a **temporary resource**:
-
-- **Type:** Application
-- **Image:** `node:22-alpine`
-- **Command:** `pnpm --filter @workit/db build && pnpm --dir /app/backend db:push`
-- **Working Directory:** `/app`
-- **Volumes:** copy the repo source (or better, deploy once from GitHub source)
-
-Set `DATABASE_URL` env, deploy once, then delete the resource.
-
-### Option C: GitHub Actions (automated)
-
-Add a migration step to `.github/workflows/deploy.yml` that calls a Coolify webhook after building:
-
-```yaml
-- name: Run DB migration
-  if: ${{ contains(needs.detect-changes.outputs.services, 'backend') }}
-  run: |
-    curl -X POST https://<your-domain>/api/v1/deploy \
-      -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}" \
-      -H "Content-Type: application/json" \
-      -d '{"resourceUuid":"<migration-resource-uuid>","force":true}'
-```
-
-Create a migration "application" in Coolify (Dockerfile that runs the migration) and trigger it via API after backend builds.
+If the migration fails, inspect the backend logs first and fix the schema issue before retrying.
 
 ---
 
-## 8. Backups (using the 2 snapshots)
+## 13) Update flow
 
-### Cloud provider snapshots
+When you push a change to GitHub:
 
-Schedule both included snapshots:
+1. Pull or redeploy the relevant Dokploy application
+2. Rebuild `backend` if backend or shared packages changed
+3. Rebuild `frontend` if browser-facing variables or storefront code changed
+4. Rebuild `admin` if admin code or browser-facing variables changed
+5. Run migrations if the database schema changed
 
-| Snapshot | Schedule | Retention | Purpose |
-|----------|----------|-----------|---------|
-| **Daily** | 02:00 UTC | 7 days | Point-in-time recovery |
-| **Weekly** | Sunday 03:00 UTC | 4 weeks | Long-term recovery |
-
-### Logical DB backup (cron)
-
-In addition to snapshots, schedule a pg_dump to a backup directory:
-
-```bash
-# Add to crontab (crontab -e)
-0 4 * * * docker exec workit-postgres pg_dump -U postgres workit-db | gzip > /var/backups/postgres/workit-db-$(date +\%Y\%m\%d).sql.gz && find /var/backups/postgres/ -name "*.sql.gz" -mtime +30 -delete
-```
-
-### Critical data checklist
-
-Data that needs backup coverage:
-
-| Data | Backup method |
-|------|--------------|
-| PostgreSQL data | Snapshot + pg_dump |
-| Redis (cache) | Not critical — can rebuild |
-| Typesense index | Can reindex from DB |
-| S3 media files | Already redundant (Cloudflare R2) |
-| Application code | In GitHub |
+If you change any `NEXT_PUBLIC_*` variable, rebuild the affected Next.js app.
 
 ---
 
-## 9. Monitoring
+## 14) DNS and SSL
 
-### Coolify built-in
-
-- **Logs:** Real-time container logs for each resource
-- **Restart policy:** Automatic restart on failure
-- **Resource usage:** Basic CPU/memory per container
-
-### Lightweight monitoring (optional)
-
-If you want more visibility, deploy Prometheus + Node Exporter from `workit-monitoring/`:
-
-```bash
-cd workit-monitoring
-docker compose up -d
-```
-
-This runs on port 3003 (Grafana) and 9090 (Prometheus).
-
-With **~2.5 GB free headroom**, this monitoring stack adds negligible overhead (~300 MB).
-
----
-
-## 10. Deployment Workflow
-
-### Auto-deploy on git push
-
-1. Push code to `main` on GitHub
-2. GitHub Actions builds Docker images → pushes to GHCR
-3. Coolify detects the new image → pulls and redeploys
-
-### Manual deploy in Coolify UI
-
-1. Go to the resource
-2. Click **Deploy**
-3. Choose **Deploy** (latest commit) or **Rollback** to a previous version
-
-### Zero-downtime
-
-Coolify supports rolling updates. The backend already handles graceful shutdown via Fastify's built-in signals. Ensure health check endpoints are configured:
+Point your DNS records to the VPS IP:
 
 ```text
-GET /health/live   → 200 if the app process is running
-GET /health/ready  → 200 if the app is ready to serve requests
+A  workit.co.ke       -> <SERVER_IP>
+A  admin.workit.co.ke -> <SERVER_IP>
+A  api.workit.co.ke   -> <SERVER_IP>
 ```
 
-Add these as Coolify health check paths in each resource's settings.
+If you use a dedicated media host, point it to your storage provider instead of the VPS.
+
+Dokploy uses Traefik for routing and SSL. After you add the domain in the UI, Dokploy will provision HTTPS automatically.
 
 ---
 
-## 11. Resource Capacity & Traffic Estimates
+## 15) Health and verification
 
-| Traffic Level | Concurrent Users | Peak RAM | Notes |
-|---------------|-----------------|----------|-------|
-| Low | 0–100 | ~6 GB | Snappy, plenty of headroom |
-| Medium | 100–500 | ~8–9 GB | Comfortable, covers most ecommerce sites |
-| High | 500–2,000 | ~10–11 GB | May approach limits; monitor swap usage |
-| Peak burst | 2,000+ | >12 GB | Will swap; consider vertical scaling to 16 GB |
+After deploy, verify:
 
-At **medium traffic**, you're well within spec. The NVMe storage (vs SSD) makes a real difference when PostgreSQL and Typesense are under load — writes and full-text searches benefit from the lower latency.
+- `https://workit.co.ke`
+- `https://admin.workit.co.ke`
+- `https://api.workit.co.ke`
 
----
+Also confirm:
 
-## 12. Environment Variable Quick Reference
+- login works
+- cart loads
+- checkout starts
+- uploads resolve
+- search responds
+- admin pages load
 
-### Backend (required)
-
-| Variable | Source |
-|----------|--------|
-| `DATABASE_URL` | From Coolify PostgreSQL resource |
-| `REDIS_URL` | From Coolify Redis resource |
-| `TYPESENSE_API_KEY` | Set when creating Typesense resource |
-| `BETTER_AUTH_SECRET` | Generate via `openssl rand -hex 32` |
-| `INTERNAL_API_KEY` | Generate via `openssl rand -hex 32` |
-| `S3_ENDPOINT/ACCESS/SECRET` | From Cloudflare R2 / S3 provider |
-
-### Cross-service shared secrets
-
-These must be **identical** across services:
-
-| Secret | Set in |
-|--------|--------|
-| `BETTER_AUTH_SECRET` | Backend + Frontend + Admin |
-| `INTERNAL_API_KEY` | Backend + Frontend |
-| `POSTGRES_PASSWORD` | PostgreSQL backend + app connection strings |
-| `REDIS_PASSWORD` | Redis + app connection string |
-| `TYPESENSE_API_KEY` | Typesense + Backend |
+Use Dokploy logs if anything fails:
+- backend logs
+- frontend logs
+- admin logs
+- database logs
+- Typesense logs
 
 ---
 
-## 13. Troubleshooting
+## 16) Backups
 
-### "column does not exist"
+Back up:
+- PostgreSQL data
+- uploaded media not stored in R2/S3
+- the project variables and secrets safely outside the server
 
-Your deployed backend code expects a newer DB schema. Run the migration:
+Redis and Typesense are rebuildable, so database backups matter most.
+
+Example backup command:
 
 ```bash
-docker exec <backend-container> sh -c "cd /app && pnpm --filter @workit/db build && pnpm --dir /app/backend db:push"
+docker compose exec -T postgres pg_dump -U postgres workit-db | gzip > /var/backups/workit-db.sql.gz
 ```
-
-### Frontend build fails with DB connection error
-
-The Dockerfile sets `SKIP_DB_CHECK=true` for this reason. Check that this env var is present during build.
-
-### Auth cookies not working
-
-- Ensure `BETTER_AUTH_TRUSTED_ORIGINS` includes both storefront and admin domains
-- Frontend uses cookie prefix `store-auth`, admin uses `admin-auth` — they don't conflict
-- Both use `/api/auth` path — cookie path isolation handles this
-
-### Cross-origin errors in browser
-
-- `CORS_ORIGIN` on the backend must list all frontend origins
-- `NEXT_PUBLIC_BACKEND_URL` must be the public HTTPS URL, not internal
-
-### High memory usage
-
-Check if the backend's search reindex is running (`TYPESENSE_REINDEX_INTERVAL_MS`). If memory is tight, increase the interval or run reindex during off-peak hours.
 
 ---
 
-## 14. Commands Cheatsheet
+## 17) Rollback
 
-```bash
-# SSH into server
-ssh deploy@<SERVER_IP>
+If a deploy breaks production:
 
-# Check all running containers
-docker ps
+1. Roll back the failing Dokploy application
+2. Redeploy the previous image or commit
+3. Restore the database backup if the schema changed in a non-compatible way
 
-# View Coolify logs
-docker logs coolify --tail 100 -f
+Keep the last known-good deploy handy for each of the three apps.
 
-# Exec into a service container
-docker exec -it <container-name> sh
+---
 
-# Check PostgreSQL health
-docker exec workit-postgres pg_isready -U postgres
+## 18) Common mistakes
 
-# Run DB migration manually
-docker exec workit-postgres sh -c "cd /app && pnpm --filter @workit/db build && pnpm --dir /app/backend db:push"
-
-# Check disk usage
-df -h
-
-# Check memory usage
-free -h
-
-# List Coolify-managed resources
-docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-```
+- Using `localhost` instead of the Dokploy service name
+- Forgetting to set project variables before deploying apps
+- Changing `NEXT_PUBLIC_*` without rebuilding
+- Deploying frontend/admin before the backend
+- Skipping migrations after schema changes
+- Pointing DB or Redis at public hosts
+- Forgetting to add the domain in Dokploy after deployment
