@@ -66,10 +66,25 @@ async function ensureCollection(name: string, schema: any): Promise<void> {
     const tsClient = getTypesenseClient();
     if (!tsClient) return;
 
+    let existing: any[];
     try {
-        await tsClient.collections(name).retrieve();
-    } catch {
+        existing = await tsClient.collections().retrieve();
+    } catch (err) {
+        console.warn(`[typesense] Failed to list collections for "${name}":`, err);
+        return;
+    }
+
+    const exists = Array.isArray(existing) && existing.some((c: any) => c.name === name);
+    if (exists) {
+        console.log(`[typesense] Collection "${name}" already exists`);
+        return;
+    }
+
+    try {
         await tsClient.collections().create(schema);
+        console.log(`[typesense] Created collection "${name}"`);
+    } catch (err: any) {
+        console.error(`[typesense] Failed to create collection "${name}":`, err?.message || err);
     }
 }
 
@@ -114,6 +129,7 @@ export async function ensureTypesenseSchema(): Promise<void> {
             { name: "slug", type: "string" },
             { name: "sku", type: "string", optional: true },
             { name: "description", type: "string", optional: true },
+            { name: "shortDescription", type: "string", optional: true },
             { name: "enabled", type: "bool" },
             { name: "salePrice", type: "float", optional: true },
             { name: "originalPrice", type: "float", optional: true },
