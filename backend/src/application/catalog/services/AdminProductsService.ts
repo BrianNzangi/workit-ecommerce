@@ -78,7 +78,6 @@ export class AdminProductsService {
     const searchParams: ProductSearchParams = {
       limit,
       offset,
-      enabledOnly: params.enabled !== undefined ? undefined : true,
     };
 
     if (params.enabled !== undefined) {
@@ -307,7 +306,7 @@ export class AdminProductsService {
           name: row.name,
           slug: row.slug,
           sku: row.sku || null,
-          enabled: false,
+          enabled: row.enabled !== undefined ? row.enabled === "true" || row.enabled === true : true,
           condition: row.condition || "NEW",
         };
 
