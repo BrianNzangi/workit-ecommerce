@@ -36,7 +36,11 @@ export const catalogAdminRoutes: FastifyPluginAsync = async (fastify) => {
   // ─── POST /_admin ── Create product ──────────────────────────────────────
   fastify.post('/', { preHandler: preAdmin }, async (request, reply) => {
     try {
-      return await adminService().create(request.body as any);
+      const result = await adminService().create(request.body as any);
+      try {
+        await (fastify as any).cache.invalidateTags(['products', 'homepage-collections']);
+      } catch { /* cache may not be available */ }
+      return result;
     } catch (err: any) {
       if (err.statusCode) return reply.status(err.statusCode).send({ message: err.message });
       throw err;
@@ -129,7 +133,11 @@ export const catalogAdminRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.put('/:id', { preHandler: preAdmin }, async (request, reply) => {
     const { id } = request.params as any;
     try {
-      return await adminService().update(id, request.body);
+      const result = await adminService().update(id, request.body);
+      try {
+        await (fastify as any).cache.invalidateTags(['products', 'homepage-collections']);
+      } catch { /* cache may not be available */ }
+      return result;
     } catch (err: any) {
       if (err.statusCode) return reply.status(err.statusCode).send({ message: err.message });
       throw err;
@@ -140,7 +148,11 @@ export const catalogAdminRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.patch('/:id', { preHandler: preAdmin }, async (request, reply) => {
     const { id } = request.params as any;
     try {
-      return await adminService().update(id, request.body);
+      const result = await adminService().update(id, request.body);
+      try {
+        await (fastify as any).cache.invalidateTags(['products', 'homepage-collections']);
+      } catch { /* cache may not be available */ }
+      return result;
     } catch (err: any) {
       if (err.statusCode) return reply.status(err.statusCode).send({ message: err.message });
       throw err;
