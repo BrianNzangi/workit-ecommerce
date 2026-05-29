@@ -89,22 +89,39 @@ export class ProductRepository implements IProductRepository {
       collectionId,
       minPrice,
       maxPrice,
+      condition,
+      stockStatus,
       enabledOnly = true,
       limit = 50,
       offset = 0,
     } = params;
 
     // Build filter conditions
-    const conditions: ReturnType<typeof eq>[] = [
-      isNull(schema.products.deletedAt) as any,
+    const conditions: any[] = [
+      isNull(schema.products.deletedAt),
     ];
 
     if (enabledOnly) {
-      conditions.push(eq(schema.products.enabled, true) as any);
+      conditions.push(eq(schema.products.enabled, true));
     }
 
     if (brandId) {
-      conditions.push(eq(schema.products.brandId, brandId) as any);
+      conditions.push(eq(schema.products.brandId, brandId));
+    }
+
+    if (condition) {
+      conditions.push(eq(schema.products.condition as any, condition));
+    }
+
+    if (stockStatus) {
+      const stockExpr = sql<number>`coalesce(${schema.products.stockOnHand}, 0)`;
+      if (stockStatus === 'in_stock') {
+        conditions.push(sql`${stockExpr} > 0`);
+      } else if (stockStatus === 'low_stock') {
+        conditions.push(sql`${stockExpr} > 0 AND ${stockExpr} <= 10`);
+      } else if (stockStatus === 'out_of_stock') {
+        conditions.push(sql`${stockExpr} = 0`);
+      }
     }
 
     if (minPrice !== undefined) {
@@ -112,7 +129,7 @@ export class ProductRepository implements IProductRepository {
         or(
           gte(schema.products.salePrice, minPrice),
           and(isNull(schema.products.salePrice), gte(schema.products.originalPrice, minPrice)),
-        ) as any,
+        ),
       );
     }
 
@@ -121,7 +138,7 @@ export class ProductRepository implements IProductRepository {
         or(
           lte(schema.products.salePrice, maxPrice),
           and(isNull(schema.products.salePrice), lte(schema.products.originalPrice, maxPrice)),
-        ) as any,
+        ),
       );
     }
 
@@ -132,32 +149,26 @@ export class ProductRepository implements IProductRepository {
           ilike(schema.products.name, searchTerm),
           ilike(schema.products.description, searchTerm),
           ilike(schema.products.sku, searchTerm),
-        ) as any,
+        ),
       );
     }
 
-    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
-
-    // If filtering by collection, we need a subquery via productCollections join
+    // If filtering by collection, add subquery
     if (collectionId) {
-      // Get product IDs in this collection
       const productIdsInCollection = await db
         .select({ productId: schema.productCollections.productId })
         .from(schema.productCollections)
         .where(eq(schema.productCollections.collectionId, collectionId));
 
       const ids = productIdsInCollection.map((r: any) => r.productId);
-
       if (ids.length === 0) {
         return { products: [], total: 0 };
       }
-
-      conditions.push(inArray(schema.products.id, ids) as any);
+      conditions.push(inArray(schema.products.id, ids));
     }
 
     const finalWhere = conditions.length > 0 ? and(...conditions) : undefined;
 
-    // Execute count and data queries in parallel
     const [countResult, rows] = await Promise.all([
       db
         .select({ total: count() })
@@ -175,5 +186,34 @@ export class ProductRepository implements IProductRepository {
     const products = rows.map((raw: any) => this.mapper.toDomain(raw as ProductRecord));
 
     return { products, total };
+  }
+
+  async softDelete(id: string): Promise<void> {
+    await db
+      .update(schema.products as any)
+      .set({ deletedAt: new Date() } as any)
+      .where(eq(schema.products.id as any, id));
+  }
+
+  async countAll(): Promise<number> {
+    const [result] = await db
+      .select({ total: count() })
+      .from(schema.products);
+    return Number(result?.total ?? 0);
+  }
+
+  async findByIdentifier(identifier: string): Promise<Product | null> {
+    const raw = await db.query.products.findFirst({
+      where: and(
+        or(
+          eq(schema.products.id as any, identifier),
+          eq(schema.products.slug as any, identifier),
+        ),
+        isNull(schema.products.deletedAt) as any,
+      ) as any,
+    });
+
+    if (!raw) return null;
+    return this.mapper.toDomain(raw as ProductRecord);
   }
 }

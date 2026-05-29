@@ -127,6 +127,29 @@ export class CachedProductRepository implements IProductRepository {
     this.searchCache.clear();
   }
 
+  async softDelete(id: string): Promise<void> {
+    this.cache.delete(id);
+    this.clearSearchCache();
+    return this.repository.softDelete(id);
+  }
+
+  async countAll(): Promise<number> {
+    return this.repository.countAll();
+  }
+
+  async findByIdentifier(identifier: string): Promise<Product | null> {
+    const cacheKey = `ident:${identifier}`;
+    const cached = this.cache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.product;
+    }
+    const product = await this.repository.findByIdentifier(identifier);
+    if (product) {
+      this.cache.set(product.id, { product, expiresAt: Date.now() + this.ttlMs });
+    }
+    return product;
+  }
+
   /**
    * Build a cache key from search parameters.
    */
@@ -137,6 +160,8 @@ export class CachedProductRepository implements IProductRepository {
       params.collectionId || '',
       params.minPrice ?? '',
       params.maxPrice ?? '',
+      params.condition || '',
+      params.stockStatus || '',
       params.enabledOnly ?? true,
       params.limit ?? 50,
       params.offset ?? 0,

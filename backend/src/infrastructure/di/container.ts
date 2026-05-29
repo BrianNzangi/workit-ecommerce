@@ -114,6 +114,7 @@ export const DI_TOKENS = {
 
   // Catalog - Application Services
   SearchProductsService: 'SearchProductsService',
+  AdminProductsService: 'AdminProductsService',
 
   // Customer Management - Repositories
   CustomerRepository: 'ICustomerRepository',

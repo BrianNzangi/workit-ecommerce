@@ -14,6 +14,10 @@ export interface ProductSearchParams {
   maxPrice?: number;
   /** Only return enabled products. Defaults to true. */
   enabledOnly?: boolean;
+  /** Filter by product condition (NEW, USED, REFURBISHED). */
+  condition?: string;
+  /** Filter by stock status. */
+  stockStatus?: 'in_stock' | 'low_stock' | 'out_of_stock';
   /** Maximum number of results to return. */
   limit?: number;
   /** Number of results to skip (for pagination). */
@@ -62,4 +66,20 @@ export interface IProductRepository {
    * Returns the matching products and the total count (before pagination).
    */
   search(params: ProductSearchParams): Promise<ProductSearchResult>;
+
+  /**
+   * Soft-delete a product by setting its deletedAt timestamp.
+   */
+  softDelete(id: string): Promise<void>;
+
+  /**
+   * Count all non-deleted products (regardless of filters).
+   */
+  countAll(): Promise<number>;
+
+  /**
+   * Find a product by ID or slug.
+   * Returns null if no product matches.
+   */
+  findByIdentifier(identifier: string): Promise<Product | null>;
 }

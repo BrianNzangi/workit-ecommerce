@@ -2,7 +2,7 @@ import { Container, DI_TOKENS } from './container.js';
 import { ProductMapper } from '../persistence/mappers/ProductMapper.js';
 import { ProductRepository } from '../persistence/repositories/ProductRepository.js';
 import { StockAllocationService } from '../../domain/catalog/services/StockAllocationService.js';
-import { SearchProductsService } from '../../application/catalog/services/SearchProductsService.js';
+import { SearchProductsService, AdminProductsService } from '../../application/catalog/services/index.js';
 
 /**
  * Register all Catalog bounded context services in the DI container.
@@ -29,5 +29,9 @@ export function registerCatalog(container: Container): void {
   container.registerSingleton(
     DI_TOKENS.SearchProductsService,
     () => new SearchProductsService(container.resolve(DI_TOKENS.ProductRepository)),
+  );
+  container.registerSingleton(
+    DI_TOKENS.AdminProductsService,
+    () => new AdminProductsService(container.resolve(DI_TOKENS.ProductRepository)),
   );
 }
