@@ -17,6 +17,6 @@ COPY . .
 
 RUN pnpm build
 
-EXPOSE 3000
+EXPOSE 3002
 
 CMD ["pnpm", "--filter", "@workit/admin", "start"]
