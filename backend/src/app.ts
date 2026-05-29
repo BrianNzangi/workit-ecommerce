@@ -131,13 +131,11 @@ export const buildApp = async () => {
   });
 
   // Storage check
-  const requireStorageOnStartup =
-    process.env.STORAGE_REQUIRED === 'true' || process.env.NODE_ENV === 'production';
-
   try {
     await storageService.ensureBucketExists();
   } catch (err) {
-    if (requireStorageOnStartup) {
+    const fatal = process.env.STORAGE_REQUIRED === 'true';
+    if (fatal) {
       throw err;
     }
     app.log.warn({ err }, 'Storage unavailable during startup; continuing without upload support');

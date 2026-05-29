@@ -217,16 +217,25 @@ function getBooleanEnv(name: string, defaultValue: boolean): boolean {
     return value.toLowerCase() === "true" || value === "1";
 }
 
-const defaultEndpoint = process.env.S3_ENDPOINT
-    || "https://s3.amazonaws.com";
+const s3Endpoint = process.env.S3_ENDPOINT || "https://s3.amazonaws.com";
+const s3Region = process.env.S3_REGION || process.env.AWS_REGION || "auto";
+const s3ForcePathStyle = getBooleanEnv("S3_FORCE_PATH_STYLE", true);
+
+console.log("[storage] S3 config:", {
+    endpoint: s3Endpoint,
+    region: s3Region,
+    bucket: process.env.S3_BUCKET || "workit",
+    forcePathStyle: s3ForcePathStyle,
+    publicBaseUrl: process.env.PUBLIC_MEDIA_URL,
+});
 
 export const storageService = new StorageService({
-    endpoint: defaultEndpoint,
+    endpoint: s3Endpoint,
     accessKey: process.env.S3_ACCESS_KEY || "",
     secretKey: process.env.S3_SECRET_KEY || "",
     bucket: process.env.S3_BUCKET || "workit",
-    region: process.env.S3_REGION || "us-east-1",
-    forcePathStyle: getBooleanEnv("S3_FORCE_PATH_STYLE", false),
+    region: s3Region,
+    forcePathStyle: s3ForcePathStyle,
     autoCreateBucket: getBooleanEnv("S3_AUTO_CREATE_BUCKET", false),
     publicBaseUrl: process.env.PUBLIC_MEDIA_URL,
 });
