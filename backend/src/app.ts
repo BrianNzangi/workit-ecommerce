@@ -6,6 +6,8 @@ import { serializerCompiler, validatorCompiler, ZodTypeProvider } from 'fastify-
 
 import { storageService } from './lib/storage.js';
 import { bootstrapContainer } from './infrastructure/di/bootstrap.js';
+import { isTypesenseEnabled } from './services/search/typesense.client.js';
+import { db } from './lib/db.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -75,8 +77,37 @@ export const buildApp = async () => {
   });
 
   // Health checks
+  const startTime = Date.now();
+
   app.get('/health/live', async () => ({ status: 'ok', timestamp: new Date() }));
   app.get('/health/ready', async () => ({ status: 'ok', timestamp: new Date() }));
+
+  app.get('/health', async (_request, reply) => {
+    const checks: Record<string, any> = {};
+
+    checks.uptime = Math.floor((Date.now() - startTime) / 1000);
+    checks.timestamp = new Date().toISOString();
+
+    try {
+      await db.execute(db.sql`SELECT 1`);
+      checks.database = { status: 'ok' };
+    } catch (err: any) {
+      checks.database = { status: 'error', message: err?.message };
+    }
+
+    if (isTypesenseEnabled()) {
+      checks.typesense = { status: 'configured' };
+    } else {
+      checks.typesense = { status: 'disabled' };
+    }
+
+    const allOk = checks.database?.status === 'ok';
+
+    return reply.code(allOk ? 200 : 503).send({
+      status: allOk ? 'ok' : 'degraded',
+      checks,
+    });
+  });
 
   app.get('/test-deploy', async () => ({ status: 'v2-ddd', timestamp: new Date() }));
   app.get('/api', async () => ({
