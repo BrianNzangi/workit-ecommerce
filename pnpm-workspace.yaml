@@ -3,7 +3,6 @@ packages:
   - 'frontend'
   - 'admin'
   - 'packages/*'
-  # 'backend-old' is kept as reference only and is not part of the active workspace
 
 overrides:
   unrs-resolver: 'npm:is-buffer@^2.0.5'
