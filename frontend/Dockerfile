@@ -8,13 +8,18 @@ RUN corepack enable && corepack prepare pnpm@11.1.3 --activate
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# install deps
+COPY pnpm-lock.yaml ./
+COPY pnpm-workspace.yaml ./
 COPY package.json ./
+COPY frontend/package.json ./frontend/package.json
 
 RUN pnpm install --frozen-lockfile=false
 
-COPY . .
+# source
+COPY frontend ./frontend
 
-RUN pnpm build
+RUN pnpm --filter @workit/frontend build
 
 EXPOSE 3000
 

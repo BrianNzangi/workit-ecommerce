@@ -8,14 +8,18 @@ RUN corepack enable && corepack prepare pnpm@11.1.3 --activate
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# copy ONLY admin files (because context = admin/)
-COPY package.json pnpm-lock.yaml ./
+# install deps
+COPY pnpm-lock.yaml ./
+COPY pnpm-workspace.yaml ./
+COPY package.json ./
+COPY admin/package.json ./admin/package.json
 
 RUN pnpm install --frozen-lockfile=false
 
-COPY . .
+# source
+COPY admin ./admin
 
-RUN pnpm build
+RUN pnpm --filter @workit/admin build
 
 EXPOSE 3002
 
