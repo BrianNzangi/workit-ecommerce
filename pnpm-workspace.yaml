@@ -1,5 +1,7 @@
 packages:
   - 'backend'
+  - 'frontend'
+  - 'admin'
   - 'packages/*'
   # 'backend-old' is kept as reference only and is not part of the active workspace
 
