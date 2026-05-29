@@ -22,11 +22,11 @@ interface CatalogSeed {
 }
 
 const catalogCollections: CatalogSeed[] = [
-    { name: "Mobile & Tablets", slug: "mobile-tablets", mostShoppedSortOrder: 0, showInMenuHeader: false, showInMostShopped: false, sortOrder: 3 },
-    { name: "Mobile Phones", slug: "mobile-phones", mostShoppedSortOrder: 1, showInMenuHeader: false, showInMostShopped: false, sortOrder: 3 },
+    { name: "Android Smartphones", slug: "android-smartphones", mostShoppedSortOrder: 1, showInMenuHeader: true, showInMostShopped: true, sortOrder: 1 },
     { name: "Accessories", slug: "accessories", mostShoppedSortOrder: 1, showInMenuHeader: false, showInMostShopped: false, sortOrder: 2 },
     { name: "Appliances", slug: "appliances", mostShoppedSortOrder: 6, showInMenuHeader: false, showInMostShopped: false, sortOrder: 2 },
     { name: "Cameras", slug: "cameras", mostShoppedSortOrder: 3, showInMenuHeader: false, showInMostShopped: false, sortOrder: 2 },
+    { name: "Computer Accessories", slug: "computer-accessories", mostShoppedSortOrder: 2, showInMenuHeader: true, showInMostShopped: true, sortOrder: 2 },
     { name: "Desktop & Monitors", slug: "desktop-monitors", mostShoppedSortOrder: 4, showInMenuHeader: false, showInMostShopped: true, sortOrder: 2 },
     { name: "Electronics", slug: "electronics", mostShoppedSortOrder: 3, showInMenuHeader: false, showInMostShopped: true, sortOrder: 2 },
     { name: "Gaming", slug: "gaming", mostShoppedSortOrder: 5, showInMenuHeader: false, showInMostShopped: false, sortOrder: 2 },
@@ -37,6 +37,17 @@ const catalogCollections: CatalogSeed[] = [
     { name: "Surveillance & Security", slug: "surveillance-security", mostShoppedSortOrder: 4, showInMenuHeader: false, showInMostShopped: false, sortOrder: 2 },
     { name: "Television & Video", slug: "television-video", mostShoppedSortOrder: 1, showInMenuHeader: true, showInMostShopped: false, sortOrder: 2 },
     { name: "Wearable", slug: "wearable", mostShoppedSortOrder: 4, showInMenuHeader: false, showInMostShopped: false, sortOrder: 2 },
+    { name: "Earbuds", slug: "earbuds", mostShoppedSortOrder: 3, showInMenuHeader: true, showInMostShopped: true, sortOrder: 3 },
+    { name: "Mobile & Tablets", slug: "mobile-tablets", mostShoppedSortOrder: 0, showInMenuHeader: false, showInMostShopped: false, sortOrder: 3 },
+    { name: "Mobile Phones", slug: "mobile-phones", mostShoppedSortOrder: 1, showInMenuHeader: false, showInMostShopped: false, sortOrder: 3 },
+    { name: "Windows Laptops", slug: "windows-laptops", mostShoppedSortOrder: 4, showInMenuHeader: true, showInMostShopped: true, sortOrder: 4 },
+    { name: "Android Watches", slug: "android-watches", mostShoppedSortOrder: 5, showInMenuHeader: true, showInMostShopped: true, sortOrder: 5 },
+    { name: "Speakers", slug: "speakers", mostShoppedSortOrder: 6, showInMenuHeader: true, showInMostShopped: true, sortOrder: 6 },
+    { name: "Small Appliances", slug: "small-appliances", mostShoppedSortOrder: 7, showInMenuHeader: true, showInMostShopped: true, sortOrder: 7 },
+    { name: "Smart TVs", slug: "smart-tvs", mostShoppedSortOrder: 9, showInMenuHeader: true, showInMostShopped: true, sortOrder: 9 },
+    { name: "Video Games", slug: "video-games", mostShoppedSortOrder: 10, showInMenuHeader: true, showInMostShopped: true, sortOrder: 10 },
+    { name: "Large Appliances", slug: "large-appliances", mostShoppedSortOrder: 11, showInMenuHeader: true, showInMostShopped: true, sortOrder: 11 },
+    { name: "iPhone", slug: "iphone", mostShoppedSortOrder: 12, showInMenuHeader: true, showInMostShopped: true, sortOrder: 12 },
 ];
 
 interface HomepageSeed {
