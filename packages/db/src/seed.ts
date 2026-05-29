@@ -12,34 +12,56 @@ if (!connectionString) {
     process.exit(0);
 }
 
-const catalogCollections = [
-    { name: "Android Smartphones", slug: "android-smartphones" },
-    { name: "Computer Accessories", slug: "computer-accessories" },
-    { name: "Earbuds", slug: "earbuds" },
-    { name: "Windows Laptops", slug: "windows-laptops" },
-    { name: "Android Watches", slug: "android-watches" },
-    { name: "Speakers", slug: "speakers" },
-    { name: "Small Appliances", slug: "small-appliances" },
-    { name: "Home Audio", slug: "home-audio" },
-    { name: "Smart TVs", slug: "smart-tvs" },
-    { name: "Video Games", slug: "video-games" },
-    { name: "Large Appliances", slug: "large-appliances" },
-    { name: "iPhone", slug: "iphone" },
+interface CatalogSeed {
+    name: string;
+    slug: string;
+    mostShoppedSortOrder: number;
+    showInMenuHeader: boolean;
+    showInMostShopped: boolean;
+    sortOrder: number;
+}
+
+const catalogCollections: CatalogSeed[] = [
+    { name: "Mobile & Tablets", slug: "mobile-tablets", mostShoppedSortOrder: 0, showInMenuHeader: false, showInMostShopped: false, sortOrder: 3 },
+    { name: "Mobile Phones", slug: "mobile-phones", mostShoppedSortOrder: 1, showInMenuHeader: false, showInMostShopped: false, sortOrder: 3 },
+    { name: "Accessories", slug: "accessories", mostShoppedSortOrder: 1, showInMenuHeader: false, showInMostShopped: false, sortOrder: 2 },
+    { name: "Appliances", slug: "appliances", mostShoppedSortOrder: 6, showInMenuHeader: false, showInMostShopped: false, sortOrder: 2 },
+    { name: "Cameras", slug: "cameras", mostShoppedSortOrder: 3, showInMenuHeader: false, showInMostShopped: false, sortOrder: 2 },
+    { name: "Desktop & Monitors", slug: "desktop-monitors", mostShoppedSortOrder: 4, showInMenuHeader: false, showInMostShopped: true, sortOrder: 2 },
+    { name: "Electronics", slug: "electronics", mostShoppedSortOrder: 3, showInMenuHeader: false, showInMostShopped: true, sortOrder: 2 },
+    { name: "Gaming", slug: "gaming", mostShoppedSortOrder: 5, showInMenuHeader: false, showInMostShopped: false, sortOrder: 2 },
+    { name: "Home Audio", slug: "home-audio", mostShoppedSortOrder: 2, showInMenuHeader: false, showInMostShopped: false, sortOrder: 2 },
+    { name: "iPads & Tablets", slug: "ipads-tablets", mostShoppedSortOrder: 1, showInMenuHeader: false, showInMostShopped: false, sortOrder: 2 },
+    { name: "Laptops & Accessories", slug: "laptops-accessories", mostShoppedSortOrder: 3, showInMenuHeader: false, showInMostShopped: false, sortOrder: 2 },
+    { name: "Networking", slug: "networking", mostShoppedSortOrder: 6, showInMenuHeader: false, showInMostShopped: false, sortOrder: 2 },
+    { name: "Surveillance & Security", slug: "surveillance-security", mostShoppedSortOrder: 4, showInMenuHeader: false, showInMostShopped: false, sortOrder: 2 },
+    { name: "Television & Video", slug: "television-video", mostShoppedSortOrder: 1, showInMenuHeader: true, showInMostShopped: false, sortOrder: 2 },
+    { name: "Wearable", slug: "wearable", mostShoppedSortOrder: 4, showInMenuHeader: false, showInMostShopped: false, sortOrder: 2 },
 ];
 
-const homepageCollections = [
-    { title: "Android Smartphones", slug: "android-smartphones" },
-    { title: "Windows Laptops", slug: "windows-laptops" },
-    { title: "Smart TVs", slug: "smart-tvs" },
-    { title: "Home Audio", slug: "home-audio" },
-    { title: "Earbuds", slug: "earbuds" },
+interface HomepageSeed {
+    title: string;
+    slug: string;
+    sortOrder: number;
+}
+
+const homepageCollections: HomepageSeed[] = [
+    { title: "DAILY OFFERS", slug: "daily-offers", sortOrder: 0 },
+    { title: "BEST SELLING LAPTOPS", slug: "best-selling-laptops", sortOrder: 1 },
+    { title: "BLUETOOTH SPEAKERS", slug: "bluetooth-speakers", sortOrder: 2 },
+    { title: "TOP MONITORS", slug: "top-monitors", sortOrder: 3 },
+    { title: "FEATURED TELEVISIONS", slug: "featured-televisions", sortOrder: 4 },
+    { title: "HOME AUDIO", slug: "home-audio", sortOrder: 5 },
+    { title: "FEATURED HOME & KITCHEN APPLIANCES", slug: "featured-home-kitchen-appliances", sortOrder: 6 },
+    { title: "POPULAR NETWORKING DEVICES", slug: "popular-networking-devices", sortOrder: 7 },
+    { title: "FEATURED SMARTPHONES", slug: "featured-smartphones", sortOrder: 8 },
 ];
 
 function makeId(prefix: string, slug: string): string {
     return `${prefix}-${slug}`;
 }
 
-async function upsertCollection(database: any, item: { name: string; slug: string }, sortOrder: number) {
+async function upsertCollection(database: any, item: CatalogSeed) {
     const existing = await database.query.collections.findFirst({
         where: eq(schema.collections.slug, item.slug),
     });
@@ -52,10 +74,10 @@ async function upsertCollection(database: any, item: { name: string; slug: strin
         description: `${item.name} at Workit`,
         parentId: null,
         enabled: true,
-        showInMostShopped: true,
-        showInMenuHeader: true,
-        mostShoppedSortOrder: sortOrder,
-        sortOrder,
+        showInMostShopped: item.showInMostShopped,
+        showInMenuHeader: item.showInMenuHeader,
+        mostShoppedSortOrder: item.mostShoppedSortOrder,
+        sortOrder: item.sortOrder,
         assetId: null,
         createdAt: existing?.createdAt ?? now,
         updatedAt: now,
@@ -85,7 +107,7 @@ async function upsertCollection(database: any, item: { name: string; slug: strin
     return values.id;
 }
 
-async function upsertHomepageCollection(database: any, item: { title: string; slug: string }, sortOrder: number) {
+async function upsertHomepageCollection(database: any, item: HomepageSeed, sortOrder: number) {
     const existing = await database.query.homepageCollections.findFirst({
         where: eq(schema.homepageCollections.slug, item.slug),
     });
@@ -221,14 +243,14 @@ async function seed() {
         }
 
         console.log("Seeding catalog collections...");
-        for (const [index, collection] of catalogCollections.entries()) {
-            await upsertCollection(database, collection, index + 1);
+        for (const collection of catalogCollections) {
+            await upsertCollection(database, collection);
         }
         console.log(`✅ Seeded ${catalogCollections.length} collections.`);
 
         console.log("Seeding homepage collections...");
-        for (const [index, collection] of homepageCollections.entries()) {
-            await upsertHomepageCollection(database, collection, index + 1);
+        for (const collection of homepageCollections) {
+            await upsertHomepageCollection(database, collection, collection.sortOrder);
         }
         console.log(`✅ Seeded ${homepageCollections.length} homepage collections.`);
 
