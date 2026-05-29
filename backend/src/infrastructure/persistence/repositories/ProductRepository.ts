@@ -91,7 +91,7 @@ export class ProductRepository implements IProductRepository {
       maxPrice,
       condition,
       stockStatus,
-      enabledOnly = true,
+      enabledOnly,
       limit = 50,
       offset = 0,
     } = params;

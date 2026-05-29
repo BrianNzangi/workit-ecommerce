@@ -162,7 +162,7 @@ export class CachedProductRepository implements IProductRepository {
       params.maxPrice ?? '',
       params.condition || '',
       params.stockStatus || '',
-      params.enabledOnly ?? true,
+      params.enabledOnly ?? 'all',
       params.limit ?? 50,
       params.offset ?? 0,
     ];
