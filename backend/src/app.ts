@@ -7,7 +7,7 @@ import { serializerCompiler, validatorCompiler, ZodTypeProvider } from 'fastify-
 import { storageService } from './lib/storage.js';
 import { bootstrapContainer } from './infrastructure/di/bootstrap.js';
 import { isTypesenseEnabled } from './services/search/typesense.client.js';
-import { db } from './lib/db.js';
+import { db, sql } from './lib/db.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -89,7 +89,7 @@ export const buildApp = async () => {
     checks.timestamp = new Date().toISOString();
 
     try {
-      await db.execute(db.sql`SELECT 1`);
+      await db.execute(sql`SELECT 1`);
       checks.database = { status: 'ok' };
     } catch (err: any) {
       checks.database = { status: 'error', message: err?.message };
