@@ -17,6 +17,7 @@ export const productsRelations = relations(catalog.products, ({ many, one }) => 
     flashSaleProducts: many(promotions.flashSaleProducts),
     featuredDeals: many(promotions.featuredDeals),
     clearanceDeals: many(promotions.clearanceDeals),
+    views: many(analytics.productViews),
     brand: one(catalog.brands, {
         fields: [catalog.products.brandId],
         references: [catalog.brands.id],
@@ -347,8 +348,4 @@ export const productViewsRelations = relations(analytics.productViews, ({ one })
         fields: [analytics.productViews.productId],
         references: [catalog.products.id],
     }),
-}));
-
-export const productsToViewsRelations = relations(catalog.products, ({ many }) => ({
-    views: many(analytics.productViews),
 }));

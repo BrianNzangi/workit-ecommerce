@@ -63,8 +63,8 @@ export default async function ProductRecommendationsServer({
   const similarItems = Array.from(similarItemsMap.values()).slice(0, 5);
 
   return (
-    <section className="w-full bg-white py-6 md:py-8">
-      <SectionContainer className="px-6 sm:px-8 lg:px-16 mb-8 py-6">
+    <section className="w-full bg-white py-4 md:py-8">
+      <SectionContainer className="px-6 sm:px-8 lg:px-16 mb-8 py-4 md:py-6">
         <div className="pb-6 md:pb-8">
           <h2 className="mb-2 text-lg md:text-2xl font-bold text-secondary-900">
             Similar Items You Might Like

@@ -96,9 +96,11 @@ export default function ProductPage({
   return (
     <main className="bg-white font-sans">
       <SectionContainer className="px-6 sm:px-8 lg:px-16 py-6">
-        <Breadcrumbs paths={breadcrumbPaths} />
+        <div className="hidden md:block">
+          <Breadcrumbs paths={breadcrumbPaths} />
+        </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-[minmax(420px,1.3fr)_minmax(360px,1.1fr)_minmax(320px,0.8fr)] gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-[minmax(420px,1.3fr)_minmax(360px,1.1fr)_minmax(320px,0.8fr)] gap-4 md:gap-8">
           <ProductMediaColumn
             images={images}
             productName={product.name}
@@ -118,7 +120,7 @@ export default function ProductPage({
         </div>
 
         {product.description && (
-          <section className="border-t border-b border-gray-200 py-4 mt-10 md:mt-12">
+          <section className="border-t border-b border-gray-200 py-4 mt-6 md:mt-12">
             <h2 className="text-lg font-bold text-secondary-900 mb-4">More About This Item</h2>
             <div
               className="prose prose-sm max-w-none text-secondary-700 [&>p]:mb-3 [&>ul]:mb-5 [&>ol]:mb-5 [&>h1]:mb-4 [&>h2]:mb-4 [&>h3]:mb-4 [&>li]:mb-1.5 [&_a]:text-primary-900 [&_a]:underline [&_a:hover]:text-[#e04500]"
