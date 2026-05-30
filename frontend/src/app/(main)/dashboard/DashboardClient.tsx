@@ -10,6 +10,7 @@ import { BillingAddress } from "../../../components/user/BillingAddress";
 import { OrderStats } from "../../../components/user/OrderStats";
 import { RecentOrders } from "../../../components/user/RecentOrders";
 import { OrdersPage } from "../../../components/user/OrdersPage";
+import { SettingsPage } from "../../../components/user/SettingsPage";
 import SectionContainer from "@/components/layout/SectionContainer";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -74,6 +75,8 @@ export default function DashboardClient() {
         );
       case 'orders':
         return <OrdersPage />;
+      case 'settings':
+        return <SettingsPage />;
       default:
         return (
           <Card>

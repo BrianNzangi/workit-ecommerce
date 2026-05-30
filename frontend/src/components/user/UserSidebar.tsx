@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils/utils";
 import { Card, CardContent } from "@/components/ui/card";
+import { useAuth } from "@/hooks/useAuth";
 
 type ActiveSection = 'dashboard' | 'orders' | 'track-order' | 'wishlist' | 'compare' | 'cards-address' | 'browsing-history' | 'settings';
 
@@ -65,6 +66,12 @@ interface UserSidebarProps {
 }
 
 export function UserSidebar({ activeSection, onSectionChange }: UserSidebarProps) {
+  const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+  };
+
   return (
     <Card>
       <CardContent className="p-4">
@@ -90,7 +97,10 @@ export function UserSidebar({ activeSection, onSectionChange }: UserSidebarProps
             );
           })}
 
-          <button className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 w-full text-left transition-colors rounded">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 w-full text-left transition-colors rounded"
+          >
             <LogOut size={18} />
             Log-out
           </button>
