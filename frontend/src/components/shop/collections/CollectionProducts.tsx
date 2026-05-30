@@ -419,7 +419,11 @@ export default function CollectionProducts({
                 />
               </div>
             ) : (
-              <CollectionEmptyState categoryName={category?.name} />
+              <CollectionEmptyState
+                categoryName={category?.name}
+                categorySlug={category?.slug}
+                parentSlug={fullSlug.split('/').length > 1 ? fullSlug.split('/').slice(0, -1).join('/') : undefined}
+              />
             )}
           </main>
         </div>
