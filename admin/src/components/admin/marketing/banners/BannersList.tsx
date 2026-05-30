@@ -340,6 +340,8 @@ export function BannersList() {
                                                 >
                                                     {banner.campaign.name}
                                                 </Link>
+                                            ) : banner.promotionId ? (
+                                                <span className="text-primary-700">Promotion linked</span>
                                             ) : (
                                                 <span className="text-gray-400">-</span>
                                             )}
