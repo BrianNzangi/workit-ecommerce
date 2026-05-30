@@ -10,23 +10,29 @@ export default function Footer() {
       {/* Store Contact Details */}
       <div className="border-b border-t border-gray-300 bg-secondary-100/15">
         <SectionContainer className="px-10 sm:px-12 lg:px-16 py-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-32">
           <div className="flex items-center gap-4">
-            <FaPhone className="text-secondary-500 text-xl shrink-0" />
+            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shrink-0">
+              <FaPhone className="text-secondary-500 text-lg" />
+            </div>
             <div>
               <p className="text-semibold font-bold text-secondary-900">+254 700 000 000</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <FaEnvelope className="text-secondary-500 text-xl shrink-0" />
+            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shrink-0">
+              <FaEnvelope className="text-secondary-500 text-lg" />
+            </div>
             <div>
               <p className="text-semibold font-bold text-secondary-900">hello@shopworkit.co.ke</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <FaMapMarkerAlt className="text-secondary-500 text-xl shrink-0" />
+            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shrink-0">
+              <FaMapMarkerAlt className="text-secondary-500 text-lg" />
+            </div>
             <div>
-              <p className="text-semibold font-bold text-secondary-900">Nairobi, Kenya</p>
+              <p className="text-semibold font-bold text-secondary-900">Biashara Street, Nairobi CBD, Kenya</p>
             </div>
           </div>
           </div>
