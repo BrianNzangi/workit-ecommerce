@@ -488,6 +488,7 @@ Use the backend app terminal in Dokploy:
 cd /app
 pnpm --filter @workit/db build
 pnpm --dir /app/backend db:push
+$env:DATABASE_URL="postgresql://postgres:V7rOLhSkvyUjTN34Z2DK@workit-ecommerce-workit-database-x3fyx1:5432/workit-db"; npx tsx packages/db/src/seed.ts
 ```
 
 If the migration fails, inspect the backend logs first and fix the schema issue before retrying.
