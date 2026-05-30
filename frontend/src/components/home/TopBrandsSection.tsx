@@ -31,7 +31,7 @@ export default function TopBrandsSection() {
   if (!brands.length) return null;
 
   return (
-    <SectionContainer className="px-10 sm:px-12 lg:px-16 mb-8 py-6">
+    <SectionContainer className="px-10 sm:px-12 lg:px-16 py-8">
       <TopBrandsCarousel title="Top Brands" brands={brands} />
     </SectionContainer>
   );

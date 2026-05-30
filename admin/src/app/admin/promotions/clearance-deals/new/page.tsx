@@ -294,7 +294,7 @@ export default function NewClearanceDealPage() {
                                                     key={product.id}
                                                     type="button"
                                                     onClick={() => addProduct(product)}
-                                                    className="w-full px-4 py-2 text-left text-sm hover:bg-accent transition-colors flex items-center gap-2"
+                                                    className="w-full px-4 py-2 text-left text-sm hover:bg-muted transition-colors flex items-center gap-2"
                                                 >
                                                     {product.thumbnail && (
                                                         <img src={product.thumbnail} alt="" className="w-6 h-6 rounded-sm object-cover" />

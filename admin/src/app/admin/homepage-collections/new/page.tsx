@@ -231,7 +231,7 @@ export default function NewHomepageCollectionPage() {
                                                     key={product.id}
                                                     type="button"
                                                     onClick={() => addProduct(product)}
-                                                    className="w-full px-4 py-2 text-left text-sm hover:bg-accent transition-colors flex items-center gap-2"
+                                                    className="w-full px-4 py-2 text-left text-sm hover:bg-muted transition-colors flex items-center gap-2"
                                                 >
                                                     {product.assets?.[0]?.asset?.source ? (
                                                         <img

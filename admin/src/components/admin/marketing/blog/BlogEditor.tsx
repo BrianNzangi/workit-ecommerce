@@ -32,7 +32,7 @@ export function BlogEditor({ editor, error }: BlogEditorProps) {
                     <button
                         type="button"
                         onClick={() => editor?.chain().focus().toggleBold().run()}
-                        className={`p-2 rounded-sm hover:bg-accent ${editor?.isActive('bold') ? 'bg-accent' : ''}`}
+                        className={`p-2 rounded-sm hover:bg-muted ${editor?.isActive('bold') ? 'bg-primary/10' : ''}`}
                         title="Bold"
                     >
                         <Bold className="w-4 h-4" />
@@ -40,7 +40,7 @@ export function BlogEditor({ editor, error }: BlogEditorProps) {
                     <button
                         type="button"
                         onClick={() => editor?.chain().focus().toggleItalic().run()}
-                        className={`p-2 rounded-sm hover:bg-accent ${editor?.isActive('italic') ? 'bg-accent' : ''}`}
+                        className={`p-2 rounded-sm hover:bg-muted ${editor?.isActive('italic') ? 'bg-primary/10' : ''}`}
                         title="Italic"
                     >
                         <Italic className="w-4 h-4" />
@@ -49,7 +49,7 @@ export function BlogEditor({ editor, error }: BlogEditorProps) {
                     <button
                         type="button"
                         onClick={() => editor?.chain().focus().toggleBulletList().run()}
-                        className={`p-2 rounded-sm hover:bg-accent ${editor?.isActive('bulletList') ? 'bg-accent' : ''}`}
+                        className={`p-2 rounded-sm hover:bg-muted ${editor?.isActive('bulletList') ? 'bg-primary/10' : ''}`}
                         title="Bullet List"
                     >
                         <List className="w-4 h-4" />
@@ -57,7 +57,7 @@ export function BlogEditor({ editor, error }: BlogEditorProps) {
                     <button
                         type="button"
                         onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-                        className={`p-2 rounded-sm hover:bg-accent ${editor?.isActive('orderedList') ? 'bg-accent' : ''}`}
+                        className={`p-2 rounded-sm hover:bg-muted ${editor?.isActive('orderedList') ? 'bg-primary/10' : ''}`}
                         title="Numbered List"
                     >
                         <ListOrdered className="w-4 h-4" />
@@ -66,7 +66,7 @@ export function BlogEditor({ editor, error }: BlogEditorProps) {
                     <button
                         type="button"
                         onClick={addLink}
-                        className="p-2 rounded-sm hover:bg-accent"
+                        className="p-2 rounded-sm hover:bg-muted"
                         title="Add Link"
                     >
                         <Link2 className="w-4 h-4" />
@@ -74,7 +74,7 @@ export function BlogEditor({ editor, error }: BlogEditorProps) {
                     <button
                         type="button"
                         onClick={addImage}
-                        className="p-2 rounded-sm hover:bg-accent"
+                        className="p-2 rounded-sm hover:bg-muted"
                         title="Add Image"
                     >
                         <ImageIcon className="w-4 h-4" />

@@ -31,7 +31,7 @@ function Calendar({
           "text-muted-foreground rounded-sm w-8 font-normal text-[0.8rem]",
         week: "flex w-full mt-2",
         day: cn(
-          "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent rounded-sm",
+          "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-muted rounded-sm",
           props.mode === "range"
             ? "[&:has(>.day-range-end)]:rounded-r-sm [&:has(>.day-range-start)]:rounded-l-sm first:[&:has([aria-selected])]:rounded-l-sm last:[&:has([aria-selected])]:rounded-r-sm"
             : "[&:has([aria-selected])]:rounded-sm"
@@ -44,12 +44,12 @@ function Calendar({
         range_end: "day-range-end",
         selected:
           "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-        today: "bg-accent text-accent-foreground",
+        today: "bg-muted text-foreground",
         outside:
-          "text-muted-foreground aria-selected:bg-accent/50 aria-selected:text-muted-foreground",
+          "text-muted-foreground aria-selected:bg-muted/50 aria-selected:text-muted-foreground",
         disabled: "text-muted-foreground opacity-50",
         range_middle:
-          "aria-selected:bg-accent aria-selected:text-accent-foreground",
+          "aria-selected:bg-muted aria-selected:text-foreground",
         hidden: "invisible",
         ...classNames,
       }}
