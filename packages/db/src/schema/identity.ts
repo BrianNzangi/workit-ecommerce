@@ -89,4 +89,16 @@ export const verification = pgTable("verification", {
     updatedAt: timestamp('updatedAt')
 });
 
+export const customerPreferences = pgTable("customer_preferences", {
+    id: text("id").primaryKey().notNull(),
+    customerId: text("customerId").notNull().unique().references(() => users.id, { onDelete: 'cascade' }),
+    emailNotifications: boolean("emailNotifications").default(true).notNull(),
+    smsNotifications: boolean("smsNotifications").default(false).notNull(),
+    promoNotifications: boolean("promoNotifications").default(true).notNull(),
+    createdAt: timestamp("createdAt").notNull(),
+    updatedAt: timestamp("updatedAt").notNull(),
+}, (t) => ({
+    byCustomer: index("customer_preferences_customer_idx").on(t.customerId),
+}));
+
 // End of tables

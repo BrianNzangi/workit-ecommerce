@@ -169,13 +169,24 @@ export const homepageCollectionProductsRelations = relations(marketing.homepageC
 }));
 
 // Identity Relations
-export const usersRelations = relations(identity.users, ({ many }) => ({
+export const usersRelations = relations(identity.users, ({ many, one }) => ({
     sessions: many(identity.session),
     accounts: many(identity.account),
     orders: many(fulfillment.orders),
     carts: many(cart.carts),
     campaignRedemptions: many(marketing.campaignRedemptions),
     addresses: many(identity.addresses),
+    preferences: one(identity.customerPreferences, {
+        fields: [identity.users.id],
+        references: [identity.customerPreferences.customerId],
+    }),
+}));
+
+export const customerPreferencesRelations = relations(identity.customerPreferences, ({ one }) => ({
+    customer: one(identity.users, {
+        fields: [identity.customerPreferences.customerId],
+        references: [identity.users.id],
+    }),
 }));
 
 export const addressesRelations = relations(identity.addresses, ({ one }) => ({

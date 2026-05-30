@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, use } from 'react';
-import { Loader2, AlertCircle, ArrowLeft, Star, StarHalf } from 'lucide-react';
+import { Loader2, AlertCircle, ArrowLeft, Star, StarHalf, Bell, Mail, Smartphone } from 'lucide-react';
 import Link from 'next/link';
 import { AdminLayout } from '@/components/admin/layout/AdminLayout';
 import { ProtectedRoute } from '@/components/login/ProtectedRoute';
@@ -133,12 +133,21 @@ export default function CustomerInformationPage({ params }: { params: Promise<{ 
     const [tags, setTags] = useState<string[]>(['Vip Customer', 'Europe']);
     const [newTag, setNewTag] = useState('');
     const [saving, setSaving] = useState(false);
+    const [preferences, setPreferences] = useState<{ emailNotifications: boolean; smsNotifications: boolean; promoNotifications: boolean } | null>(null);
+    const [preferencesLoading, setPreferencesLoading] = useState(false);
+    const [preferencesSaving, setPreferencesSaving] = useState(false);
 
     useEffect(() => {
         if (id) {
             fetchCustomer();
         }
     }, [id]);
+
+    useEffect(() => {
+        if (id && customer) {
+            fetchPreferences();
+        }
+    }, [id, customer]);
 
     const fetchCustomer = async () => {
         try {
@@ -156,6 +165,44 @@ export default function CustomerInformationPage({ params }: { params: Promise<{ 
             setError(err instanceof Error ? err.message : 'Failed to load customer');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchPreferences = async () => {
+        try {
+            setPreferencesLoading(true);
+            const response = await fetch(`/api/admin/customers/${id}/preferences`);
+            const result = await response.json();
+            if (result.success && result.preferences) {
+                setPreferences(result.preferences);
+            }
+        } catch (err) {
+            console.error('Error fetching preferences:', err);
+        } finally {
+            setPreferencesLoading(false);
+        }
+    };
+
+    const updatePreference = async (key: 'emailNotifications' | 'smsNotifications' | 'promoNotifications', value: boolean) => {
+        const updated = { ...preferences, [key]: value };
+        setPreferences(updated as any);
+        setPreferencesSaving(true);
+        try {
+            const response = await fetch(`/api/admin/customers/${id}/preferences`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updated),
+            });
+            const result = await response.json();
+            if (!result.success) {
+                setPreferences(preferences);
+                toast({ title: 'Error', description: 'Failed to update preference', variant: 'error' });
+            }
+        } catch (err) {
+            setPreferences(preferences);
+            toast({ title: 'Error', description: 'Failed to update preference', variant: 'error' });
+        } finally {
+            setPreferencesSaving(false);
         }
     };
 
@@ -308,6 +355,79 @@ export default function CustomerInformationPage({ params }: { params: Promise<{ 
                                         rows={3}
                                     />
                                 </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card className="rounded border border-gray-200">
+                            <CardContent className="p-5">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="text-sm font-semibold text-gray-900">Notification Preferences</h3>
+                                    {preferencesSaving && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
+                                </div>
+                                {preferencesLoading ? (
+                                    <div className="flex items-center justify-center py-6">
+                                        <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+                                    </div>
+                                ) : preferences ? (
+                                    <div className="space-y-3">
+                                        <label className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                                            <div className="flex items-center gap-3">
+                                                <Mail size={16} className="text-gray-500" />
+                                                <div>
+                                                    <p className="text-sm font-medium text-gray-900">Email notifications</p>
+                                                    <p className="text-xs text-gray-500">Order updates & receipts</p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                role="switch"
+                                                aria-checked={preferences.emailNotifications}
+                                                onClick={() => updatePreference('emailNotifications', !preferences.emailNotifications)}
+                                                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${preferences.emailNotifications ? 'bg-primary-900' : 'bg-gray-200'}`}
+                                            >
+                                                <span className={`inline-block h-4 w-4 translate-y-0 rounded-full bg-white shadow transition-transform ${preferences.emailNotifications ? 'translate-x-4' : 'translate-x-0'}`} />
+                                            </button>
+                                        </label>
+                                        <label className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                                            <div className="flex items-center gap-3">
+                                                <Smartphone size={16} className="text-gray-500" />
+                                                <div>
+                                                    <p className="text-sm font-medium text-gray-900">SMS notifications</p>
+                                                    <p className="text-xs text-gray-500">Text messages for order status</p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                role="switch"
+                                                aria-checked={preferences.smsNotifications}
+                                                onClick={() => updatePreference('smsNotifications', !preferences.smsNotifications)}
+                                                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${preferences.smsNotifications ? 'bg-primary-900' : 'bg-gray-200'}`}
+                                            >
+                                                <span className={`inline-block h-4 w-4 translate-y-0 rounded-full bg-white shadow transition-transform ${preferences.smsNotifications ? 'translate-x-4' : 'translate-x-0'}`} />
+                                            </button>
+                                        </label>
+                                        <label className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                                            <div className="flex items-center gap-3">
+                                                <Bell size={16} className="text-gray-500" />
+                                                <div>
+                                                    <p className="text-sm font-medium text-gray-900">Promotions & deals</p>
+                                                    <p className="text-xs text-gray-500">Exclusive offers and discounts</p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                role="switch"
+                                                aria-checked={preferences.promoNotifications}
+                                                onClick={() => updatePreference('promoNotifications', !preferences.promoNotifications)}
+                                                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${preferences.promoNotifications ? 'bg-primary-900' : 'bg-gray-200'}`}
+                                            >
+                                                <span className={`inline-block h-4 w-4 translate-y-0 rounded-full bg-white shadow transition-transform ${preferences.promoNotifications ? 'translate-x-4' : 'translate-x-0'}`} />
+                                            </button>
+                                        </label>
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-gray-500 py-2">Unable to load preferences</p>
+                                )}
                             </CardContent>
                         </Card>
 

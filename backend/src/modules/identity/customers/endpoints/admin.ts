@@ -3,6 +3,12 @@ import { db, schema, eq, desc, ilike, inArray, and } from "../../../../lib/db.js
 import { v4 as uuidv4 } from "uuid";
 import { createCustomerSchema } from "@workit/validation";
 
+const defaultPreferences = {
+    emailNotifications: true,
+    smsNotifications: false,
+    promoNotifications: true,
+};
+
 export const customersAdminRoutes: FastifyPluginAsync = async (fastify) => {
     // List Customers
     fastify.get("/", {
@@ -140,6 +146,66 @@ export const customersAdminRoutes: FastifyPluginAsync = async (fastify) => {
         if (!Array.isArray(ids) || ids.length === 0) return { success: false };
         await db.delete(schema.users).where(inArray(schema.users.id, ids));
         return { success: true, count: ids.length };
+    });
+
+    // Get Customer Preferences
+    fastify.get("/:id/preferences", {
+        preHandler: [fastify.authenticate, fastify.authorizePermission('customers.manage')]
+    }, async (request, reply) => {
+        const { id } = request.params as any;
+        const customer = await db.query.users.findFirst({
+            where: eq(schema.users.id, id),
+        });
+        if (!customer) return reply.status(404).send({ message: "Customer not found" });
+
+        const prefs = await db.query.customerPreferences.findFirst({
+            where: eq(schema.customerPreferences.customerId, id),
+        });
+
+        return {
+            preferences: prefs || { customerId: id, ...defaultPreferences },
+            success: true
+        };
+    });
+
+    // Update Customer Preferences
+    fastify.put("/:id/preferences", {
+        preHandler: [fastify.authenticate, fastify.authorizePermission('customers.manage')]
+    }, async (request, reply) => {
+        const { id } = request.params as any;
+        const body = request.body as any;
+
+        const customer = await db.query.users.findFirst({
+            where: eq(schema.users.id, id),
+        });
+        if (!customer) return reply.status(404).send({ message: "Customer not found" });
+
+        const existing = await db.query.customerPreferences.findFirst({
+            where: eq(schema.customerPreferences.customerId, id),
+        });
+
+        const data = {
+            emailNotifications: body.emailNotifications ?? true,
+            smsNotifications: body.smsNotifications ?? false,
+            promoNotifications: body.promoNotifications ?? true,
+            updatedAt: new Date(),
+        };
+
+        if (existing) {
+            const [prefs] = await db.update(schema.customerPreferences)
+                .set(data)
+                .where(eq(schema.customerPreferences.customerId, id))
+                .returning();
+            return { preferences: prefs, success: true };
+        }
+
+        const [prefs] = await db.insert(schema.customerPreferences).values({
+            id: uuidv4(),
+            customerId: id,
+            ...data,
+            createdAt: new Date(),
+        }).returning();
+        return { preferences: prefs, success: true };
     });
 };
 
