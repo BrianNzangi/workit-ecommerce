@@ -11,5 +11,5 @@ export interface Brand {
         products: number;
     };
     collectionIds?: string[];
-    brandCollections?: { collectionId: string }[];
+    brandCollections?: { collectionId: string; collection?: { id: string; name: string; slug: string } }[];
 }

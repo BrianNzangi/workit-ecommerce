@@ -25,6 +25,7 @@ export const brandsAdminRoutes: FastifyPluginAsync = async (fastify) => {
             with: {
                 brandCollections: {
                     columns: { collectionId: true },
+                    with: { collection: { columns: { id: true, name: true, slug: true } } },
                 },
             },
         });
@@ -66,6 +67,7 @@ export const brandsAdminRoutes: FastifyPluginAsync = async (fastify) => {
             with: {
                 brandCollections: {
                     columns: { collectionId: true },
+                    with: { collection: { columns: { id: true, name: true, slug: true } } },
                 },
             },
         });
