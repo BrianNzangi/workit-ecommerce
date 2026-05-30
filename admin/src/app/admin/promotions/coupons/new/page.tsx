@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ProtectedRoute } from "@/components/login/ProtectedRoute";
 import { AdminLayout } from "@/components/admin/layout/AdminLayout";
@@ -48,8 +48,6 @@ type SelectedProduct = {
 export default function NewCouponPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
-    const [campaigns, setCampaigns] = useState<any[]>([]);
-    const [campaignId, setCampaignId] = useState<string>("");
     const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>([]);
     const [productSearch, setProductSearch] = useState("");
     const [productSuggestions, setProductSuggestions] = useState<any[]>([]);
@@ -70,13 +68,6 @@ export default function NewCouponPage() {
         process.env.NEXT_PUBLIC_AUTH_BASE_PATH?.trim() || '/api/auth',
         process.env.NEXT_PUBLIC_AUTH_BASE_URL?.trim() || authBaseURL,
     );
-
-    useEffect(() => {
-        fetch('/api/admin/marketing/campaigns/admin')
-            .then(r => r.json())
-            .then(d => setCampaigns(d.campaigns || []))
-            .catch(() => {});
-    }, []);
 
     const searchProducts = async (query: string) => {
         if (!query) {
@@ -131,7 +122,6 @@ export default function NewCouponPage() {
                     couponAmount: Number(form.couponAmount),
                     minAmount: Number(form.minAmount) || 0,
                     userLimit: Number(form.userLimit) || 0,
-                    campaignId: campaignId && campaignId !== "none" ? campaignId : undefined,
                     startDate: startDate?.toISOString(),
                     endDate: endDate?.toISOString(),
                     description: form.description,
@@ -182,22 +172,6 @@ export default function NewCouponPage() {
                         <Card className="rounded-sm shadow-none mb-6">
                             <CardContent className="p-6">
                                 <h2 className="text-sm font-semibold mb-4">Basic Information</h2>
-
-                                {/* Campaign Target */}
-                                <div className="mb-6 space-y-2">
-                                    <Label>Campaign Target</Label>
-                                    <Select value={campaignId} onValueChange={setCampaignId}>
-                                        <SelectTrigger className="rounded-sm bg-muted">
-                                            <SelectValue placeholder="No campaign" />
-                                        </SelectTrigger>
-                                        <SelectContent className="rounded-sm">
-                                            <SelectItem value="none">No campaign</SelectItem>
-                                            {campaigns.map((c: any) => (
-                                                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
 
                                 {/* Form Fields */}
                                 <div className="grid grid-cols-2 gap-4">
