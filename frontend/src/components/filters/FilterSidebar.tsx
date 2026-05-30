@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronDown, Search, X, SlidersHorizontal } from 'lucide-react';
 import he from 'he';
 import { useFilterData } from '@/hooks/useCollections';
@@ -61,6 +61,33 @@ export default function FilterSidebar({
     price: true,
   });
   const [expandedCategories, setExpandedCategories] = useState<Set<string | number>>(new Set());
+  const prevCategoryRef = useRef(selectedCategory);
+
+  // Auto-expand category tree to reveal the selected category
+  useEffect(() => {
+    if (!selectedCategory || selectedCategory === prevCategoryRef.current) return;
+    prevCategoryRef.current = selectedCategory;
+
+    const findPath = (tree: Category[], target: string | number): (string | number)[] => {
+      for (const node of tree) {
+        if (node.id === target) return [];
+        if (node.children) {
+          const found = findPath(node.children, target);
+          if (found !== null) return [node.id, ...found];
+        }
+      }
+      return null as unknown as (string | number)[];
+    };
+
+    const path = findPath(categories, selectedCategory);
+    if (path) {
+      setExpandedCategories(prev => {
+        const next = new Set(prev);
+        path.forEach(id => next.add(id));
+        return next;
+      });
+    }
+  }, [selectedCategory, categories]);
 
   useEffect(() => {
     onFilterChange({
@@ -131,17 +158,12 @@ export default function FilterSidebar({
           style={{ paddingLeft: `${level * 12 + 8}px` }}
         >
           <span className="truncate">{he.decode(cat.name)}</span>
-          <div className="flex items-center gap-1 shrink-0">
-            <span className={`text-xs ${isSelected ? 'text-primary-900' : 'text-gray-400'}`}>
-              {cat.count}
-            </span>
-            {hasChildren && (
-              <ChevronDown
-                size={14}
-                className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-              />
-            )}
-          </div>
+          {hasChildren && (
+            <ChevronDown
+              size={14}
+              className={`shrink-0 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+            />
+          )}
         </button>
         {hasChildren && isExpanded && (
           <div className="mt-0.5">
@@ -193,7 +215,7 @@ export default function FilterSidebar({
           />
         </button>
         {expandedSections.category && (
-          <div className="space-y-0.5 max-h-72 overflow-y-auto custom-scrollbar">
+          <div className="space-y-0.5">
             {categories.map(cat => renderCategoryNode(cat))}
           </div>
         )}

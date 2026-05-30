@@ -148,7 +148,6 @@ export default function ProductFilters({
             {level > 0 && <span className="w-1.5 h-1.5 bg-gray-300 rounded-full" />}
             {he.decode(cat.name)}
           </span>
-          <span className={`text-xs ${isSelected ? 'text-primary-900' : 'opacity-60'}`}>({cat.count})</span>
         </button>
         {hasChildren && (
           <div className="mt-1">
@@ -335,7 +334,7 @@ export default function ProductFilters({
                   <LayoutGrid size={14} />
                   Categories
                 </h3>
-                <div className="space-y-1 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                <div className="space-y-1 pr-2">
                   {categories.map(cat => renderCategoryItem(cat))}
                 </div>
               </section>
