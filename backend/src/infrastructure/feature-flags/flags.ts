@@ -45,9 +45,9 @@ export const featureFlags = {
    * When false, uses legacy Transaction Script implementation.
    *
    * Environment variable: USE_DDD_ORDER_MANAGEMENT
-   * Default: false (use legacy implementation)
+   * Default: true (use DDD implementation)
    */
-  useDDDOrderManagement: getFlag('USE_DDD_ORDER_MANAGEMENT', false),
+  useDDDOrderManagement: getFlag('USE_DDD_ORDER_MANAGEMENT', true),
 
   /**
    * USE_DDD_CATALOG
@@ -56,9 +56,9 @@ export const featureFlags = {
    * When false, uses legacy implementation.
    *
    * Environment variable: USE_DDD_CATALOG
-   * Default: false (use legacy implementation)
+   * Default: true (use DDD implementation)
    */
-  useDDDCatalog: getFlag('USE_DDD_CATALOG', false),
+  useDDDCatalog: getFlag('USE_DDD_CATALOG', true),
 
   /**
    * USE_DDD_CUSTOMER
@@ -67,9 +67,9 @@ export const featureFlags = {
    * When false, uses legacy implementation.
    *
    * Environment variable: USE_DDD_CUSTOMER
-   * Default: false (use legacy implementation)
+   * Default: true (use DDD implementation)
    */
-  useDDDCustomer: getFlag('USE_DDD_CUSTOMER', false),
+  useDDDCustomer: getFlag('USE_DDD_CUSTOMER', true),
 
   /**
    * USE_DDD_MARKETING
@@ -78,9 +78,9 @@ export const featureFlags = {
    * When false, uses legacy implementation.
    *
    * Environment variable: USE_DDD_MARKETING
-   * Default: false (use legacy implementation)
+   * Default: true (use DDD implementation)
    */
-  useDDDMarketing: getFlag('USE_DDD_MARKETING', false),
+  useDDDMarketing: getFlag('USE_DDD_MARKETING', true),
 
   /**
    * USE_DDD_FULFILLMENT
@@ -89,42 +89,24 @@ export const featureFlags = {
    * When false, uses legacy implementation.
    *
    * Environment variable: USE_DDD_FULFILLMENT
-   * Default: false (use legacy implementation)
+   * Default: true (use DDD implementation)
    */
-  useDDDFulfillment: getFlag('USE_DDD_FULFILLMENT', false),
-};
+  useDDDFulfillment: getFlag('USE_DDD_FULFILLMENT', true),
 
-/**
- * Check if all DDD contexts are enabled
- *
- * @returns true if all DDD contexts are enabled
- */
-export function allDDDContextsEnabled(): boolean {
-  return (
-    featureFlags.useDDDOrderManagement &&
-    featureFlags.useDDDCatalog &&
-    featureFlags.useDDDCustomer &&
-    featureFlags.useDDDMarketing &&
-    featureFlags.useDDDFulfillment
-  );
-}
+  /**
+   * USE_DDD_PROMOTIONS
+   *
+   * When true, promotions operations use the new DDD aggregates.
+   * When false, uses legacy Transaction Script implementation.
+   *
+   * Environment variable: USE_DDD_PROMOTIONS
+   * Default: true (use DDD implementation)
+   */
+  useDDDPromotions: getFlag('USE_DDD_PROMOTIONS', true),
+};
 
 export function isRouteMigrationEnabled(flag: boolean): boolean {
   return featureFlags.v2OnlyMode || flag;
 }
 
-/**
- * Get a summary of feature flag status
- *
- * @returns Object with flag status
- */
-export function getFeatureFlagStatus(): Record<string, boolean> {
-  return {
-    v2OnlyMode: featureFlags.v2OnlyMode,
-    useDDDOrderManagement: featureFlags.useDDDOrderManagement,
-    useDDDCatalog: featureFlags.useDDDCatalog,
-    useDDDCustomer: featureFlags.useDDDCustomer,
-    useDDDMarketing: featureFlags.useDDDMarketing,
-    useDDDFulfillment: featureFlags.useDDDFulfillment,
-  };
-}
+
