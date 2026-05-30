@@ -38,12 +38,12 @@ export function BrandsTable({ brands, onDelete }: BrandsTableProps) {
                     <TableHeader className="bg-gray-50">
                         <TableRow>
                             <TableHead>Brand</TableHead>
-                            <TableHead className="w-28">Slug</TableHead>
-                            <TableHead className="w-16 text-center">Products</TableHead>
-                            <TableHead className="w-20 text-center whitespace-nowrap">Featured Home</TableHead>
-                            <TableHead className="w-24 text-center whitespace-nowrap">Featured Collections</TableHead>
-                            <TableHead className="w-16 text-center">Status</TableHead>
-                            <TableHead className="w-20 text-right">Actions</TableHead>
+                            <TableHead className="w-40">Slug</TableHead>
+                            <TableHead className="w-24 text-center">Products</TableHead>
+                            <TableHead className="w-28 text-center whitespace-nowrap">Featured Home</TableHead>
+                            <TableHead className="w-32 text-center whitespace-nowrap">Featured Collections</TableHead>
+                            <TableHead className="w-20 text-center">Status</TableHead>
+                            <TableHead className="w-24 text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -128,12 +128,12 @@ export function BrandsTable({ brands, onDelete }: BrandsTableProps) {
                                     </TableCell>
 
                                     <TableCell>
-                                        <div className="flex items-center justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                                        <div className="flex items-center justify-end gap-1">
                                             <Button
                                                 asChild
                                                 variant="ghost"
                                                 size="icon"
-                                                className="h-7 w-7 text-gray-400 hover:text-primary-900 hover:bg-primary-50"
+                                                className="h-7 w-7 text-gray-400 hover:text-primary-900 hover:bg-primary-900/10"
                                             >
                                                 <Link href={`/admin/brands/${brand.id}/edit`}>
                                                     <Edit className="h-3.5 w-3.5" />
