@@ -109,8 +109,6 @@
   --radius-md: calc(var(--radius) - 1px);
   --radius-sm: calc(var(--radius) - 2px);
 
-  --font-sans: "Hanken Grotesk", system-ui, -apple-system, sans-serif;
-
   /* Primary Colors */
   --color-primary-900: var(--color-primary-900);
   --color-primary-800: var(--color-primary-800);
