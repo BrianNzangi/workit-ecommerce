@@ -17,34 +17,48 @@ export default function ProductCarousel({ products }: { products: HomepageCollec
     const hasNext = startIndex < maxStart;
 
     return (
-        <div className="relative group/carousel">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {visibleProducts.map((product) => (
-                    <ProductCard key={product.id} {...product} />
-                ))}
+        <>
+            {/* Mobile: horizontal snap scroll */}
+            <div className="md:hidden -mx-6 overflow-x-auto snap-x snap-mandatory scrollbar-hide">
+                <div className="flex gap-4 px-6">
+                    {products.map((product) => (
+                        <div key={product.id} className="snap-start shrink-0 w-[calc(50%-8px)]">
+                            <ProductCard {...product} />
+                        </div>
+                    ))}
+                </div>
             </div>
 
-            {hasPrev && (
-                <button
-                    type="button"
-                    onClick={() => setStartIndex(Math.max(0, startIndex - visibleCount))}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-9 h-9 flex items-center justify-center rounded-full bg-white shadow-md border border-gray-200 text-gray-700 hover:text-primary-900 hover:border-primary-900 transition-colors"
-                    aria-label="Previous products"
-                >
-                    <ChevronLeft size={18} />
-                </button>
-            )}
+            {/* Desktop: paginated grid with arrows */}
+            <div className="hidden md:block relative group/carousel">
+                <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    {visibleProducts.map((product) => (
+                        <ProductCard key={product.id} {...product} />
+                    ))}
+                </div>
 
-            {hasNext && (
-                <button
-                    type="button"
-                    onClick={() => setStartIndex(Math.min(maxStart, startIndex + visibleCount))}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-9 h-9 flex items-center justify-center rounded-full bg-white shadow-md border border-gray-200 text-gray-700 hover:text-primary-900 hover:border-primary-900 transition-colors"
-                    aria-label="Next products"
-                >
-                    <ChevronRight size={18} />
-                </button>
-            )}
-        </div>
+                {hasPrev && (
+                    <button
+                        type="button"
+                        onClick={() => setStartIndex(Math.max(0, startIndex - visibleCount))}
+                        className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-9 h-9 flex items-center justify-center rounded-full bg-white shadow-md border border-gray-200 text-gray-700 hover:text-primary-900 hover:border-primary-900 transition-colors"
+                        aria-label="Previous products"
+                    >
+                        <ChevronLeft size={18} />
+                    </button>
+                )}
+
+                {hasNext && (
+                    <button
+                        type="button"
+                        onClick={() => setStartIndex(Math.min(maxStart, startIndex + visibleCount))}
+                        className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-9 h-9 flex items-center justify-center rounded-full bg-white shadow-md border border-gray-200 text-gray-700 hover:text-primary-900 hover:border-primary-900 transition-colors"
+                        aria-label="Next products"
+                    >
+                        <ChevronRight size={18} />
+                    </button>
+                )}
+            </div>
+        </>
     );
 }
