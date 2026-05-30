@@ -38,9 +38,9 @@ export default function CollectionDirectory() {
                 <SectionContainer className="px-10 sm:px-12 lg:px-16 py-16">
                     <div className="space-y-8">
                         <div className="h-12 w-64 bg-gray-100 animate-pulse rounded-lg" />
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {[1, 2, 3, 4, 5, 6].map(i => (
-                                <div key={i} className="aspect-video bg-gray-100 animate-pulse rounded-2xl" />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                            {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+                                <div key={i} className="h-52 bg-gray-100 animate-pulse rounded-3xl" />
                             ))}
                         </div>
                     </div>
@@ -54,7 +54,7 @@ export default function CollectionDirectory() {
             <SectionContainer className="px-10 sm:px-12 lg:px-16 py-16">
                 <DirectoryHero />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {categories.map((l1: Category) => (
                         <CollectionGroup key={l1.id} collection={l1} />
                     ))}
