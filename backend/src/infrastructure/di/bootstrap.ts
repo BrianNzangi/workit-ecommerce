@@ -10,6 +10,7 @@ import { registerCatalog } from './registerCatalog.js';
 import { registerCustomerManagement } from './registerCustomerManagement.js';
 import { registerFulfillment } from './registerFulfillment.js';
 import { registerMarketing } from './registerMarketing.js';
+import { registerPromotions } from './registerPromotions.js';
 import { EventBus } from '../events/EventBus.js';
 import { DrizzleUnitOfWork } from '../persistence/unit-of-work/DrizzleUnitOfWork.js';
 import { IPaystackClient, PaystackVerificationData } from '../../domain/order-management/services/PaymentVerificationService.js';
@@ -71,4 +72,5 @@ export function bootstrapContainer(): void {
   registerFulfillment(container);
   registerMarketing(container);
   registerOrderManagement(container, paystackClient);
+  registerPromotions(container);
 }

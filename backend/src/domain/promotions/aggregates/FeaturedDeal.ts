@@ -106,12 +106,14 @@ export class FeaturedDeal extends AggregateRoot<string> {
 
   updateDetails(params: {
     title?: string;
+    productId?: string;
     discount?: number;
     dealType?: DealType;
     startDate?: Date;
     endDate?: Date;
   }): void {
     if (params.title) this.props.title = params.title;
+    if (params.productId) this.props.productId = params.productId;
     if (params.discount !== undefined) {
       if (params.discount < 0 || params.discount > 100) {
         throw new Error('Discount must be between 0 and 100');

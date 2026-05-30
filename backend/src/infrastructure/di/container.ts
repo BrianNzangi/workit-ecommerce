@@ -133,4 +133,22 @@ export const DI_TOKENS = {
 
   // Fulfillment - Repositories
   ShippingMethodRepository: 'IShippingMethodRepository',
+
+  // Promotions - Repositories
+  CouponRepository: 'ICouponRepository',
+  FlashSaleRepository: 'IFlashSaleRepository',
+  FeaturedDealRepository: 'IFeaturedDealRepository',
+  ClearanceDealRepository: 'IClearanceDealRepository',
+
+  // Promotions - Mappers
+  CouponMapper: 'CouponMapper',
+  FlashSaleMapper: 'FlashSaleMapper',
+  FeaturedDealMapper: 'FeaturedDealMapper',
+  ClearanceDealMapper: 'ClearanceDealMapper',
+
+  // Promotions - Application Services
+  AdminCouponService: 'AdminCouponService',
+  AdminFlashSaleService: 'AdminFlashSaleService',
+  AdminFeaturedDealService: 'AdminFeaturedDealService',
+  AdminClearanceDealService: 'AdminClearanceDealService',
 } as const;
