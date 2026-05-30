@@ -12,6 +12,7 @@ export class Banner extends Entity<string> {
   private readonly _collectionId: string | null;
   private readonly _productId: string | null;
   private readonly _campaignId: string | null;
+  private readonly _promotionId: string | null;
   private _updatedAt: Date;
   private readonly _createdAt: Date;
 
@@ -28,6 +29,7 @@ export class Banner extends Entity<string> {
     collectionId: string | null,
     productId: string | null,
     campaignId: string | null,
+    promotionId: string | null,
     createdAt: Date,
     updatedAt: Date,
   ) {
@@ -43,6 +45,7 @@ export class Banner extends Entity<string> {
     this._collectionId = collectionId;
     this._productId = productId;
     this._campaignId = campaignId;
+    this._promotionId = promotionId;
     this._createdAt = createdAt;
     this._updatedAt = updatedAt;
   }
@@ -60,6 +63,7 @@ export class Banner extends Entity<string> {
     collectionId?: string | null;
     productId?: string | null;
     campaignId?: string | null;
+    promotionId?: string | null;
   }): Banner {
     const now = new Date();
     return new Banner(
@@ -75,6 +79,7 @@ export class Banner extends Entity<string> {
       params.collectionId ?? null,
       params.productId ?? null,
       params.campaignId ?? null,
+      params.promotionId ?? null,
       now,
       now,
     );
@@ -93,6 +98,7 @@ export class Banner extends Entity<string> {
     collectionId: string | null;
     productId: string | null;
     campaignId: string | null;
+    promotionId: string | null;
     createdAt: Date;
     updatedAt: Date;
   }): Banner {
@@ -109,6 +115,7 @@ export class Banner extends Entity<string> {
       params.collectionId,
       params.productId,
       params.campaignId,
+      params.promotionId,
       params.createdAt,
       params.updatedAt,
     );
@@ -125,6 +132,7 @@ export class Banner extends Entity<string> {
   get collectionId(): string | null { return this._collectionId; }
   get productId(): string | null { return this._productId; }
   get campaignId(): string | null { return this._campaignId; }
+  get promotionId(): string | null { return this._promotionId; }
   get createdAt(): Date { return this._createdAt; }
   get updatedAt(): Date { return this._updatedAt; }
 }

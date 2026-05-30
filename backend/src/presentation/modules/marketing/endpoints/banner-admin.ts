@@ -84,6 +84,7 @@ export const bannerAdminRoutes: FastifyPluginAsync = async (fastify) => {
         collectionId: data.collectionId || null,
         productId: data.productId || null,
         campaignId: data.campaignId || null,
+        promotionId: data.promotionId || null,
         createdAt: now,
         updatedAt: now,
       }).returning();
@@ -119,6 +120,7 @@ export const bannerAdminRoutes: FastifyPluginAsync = async (fastify) => {
       if (data.collectionId !== undefined) updateData.collectionId = data.collectionId;
       if (data.productId !== undefined) updateData.productId = data.productId;
       if (data.campaignId !== undefined) updateData.campaignId = data.campaignId;
+      if (data.promotionId !== undefined) updateData.promotionId = data.promotionId;
 
       const [banner] = await db.update(schema.banners)
         .set(updateData)

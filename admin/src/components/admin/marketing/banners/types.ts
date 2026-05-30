@@ -10,6 +10,7 @@ export interface BannerFormData {
     collectionId: string;
     productId: string;
     campaignId: string;
+    promotionId: string;
     enabled: boolean;
     sortOrder: number;
     desktopImageId: string;
@@ -28,6 +29,12 @@ export interface BannerLinkedCampaign {
     name: string;
     slug: string;
     status?: string | null;
+}
+
+export interface BannerLinkedPromotion {
+    id: string;
+    title: string;
+    type: 'coupon' | 'flash_sale' | 'featured_deal' | 'clearance_deal';
 }
 
 export interface BannerAssetSelection {

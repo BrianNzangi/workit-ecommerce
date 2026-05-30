@@ -17,6 +17,7 @@ export const banners = pgTable("Banner", {
     collectionId: text("collectionId").references(() => collections.id, { onDelete: 'set null' }),
     productId: text("productId").references(() => products.id, { onDelete: 'set null' }),
     campaignId: text("campaignId").references(() => campaigns.id, { onDelete: 'set null' }),
+    promotionId: text("promotionId"),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 }, (t) => ({

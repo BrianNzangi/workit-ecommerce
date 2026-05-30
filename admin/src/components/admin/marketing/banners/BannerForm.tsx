@@ -3,11 +3,11 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/hooks/use-toast';
-import { BannerService, CampaignService, CollectionService, Collection, Asset, Campaign } from '@/lib/services';
+import { BannerService, CollectionService, Collection, Asset } from '@/lib/services';
 import { BannerBasicInfo } from './BannerBasicInfo';
 import { BannerDisplaySettings } from './BannerDisplaySettings';
 import { BannerImages } from './BannerImages';
-import { BannerFormMode, BannerFormData, BannerLinkedCampaign, BannerLinkedProduct } from './types';
+import { BannerFormMode, BannerFormData, BannerLinkedPromotion, BannerLinkedProduct } from './types';
 import { BannerFormHeader } from './BannerFormHeader';
 import { BannerFormError } from './BannerFormError';
 import { BannerSaveCard } from './BannerSaveCard';
@@ -21,6 +21,7 @@ const initialFormData: BannerFormData = {
     collectionId: '',
     productId: '',
     campaignId: '',
+    promotionId: '',
     enabled: true,
     sortOrder: 0,
     desktopImageId: '',
@@ -39,15 +40,15 @@ export function BannerForm({ mode = 'create', bannerId }: BannerFormProps) {
     const [loading, setLoading] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(isEdit);
     const [loadingCollections, setLoadingCollections] = useState(false);
-    const [loadingCampaigns, setLoadingCampaigns] = useState(false);
+    const [loadingPromotions, setLoadingPromotions] = useState(false);
     const [loadingAssets, setLoadingAssets] = useState(false);
     const [error, setError] = useState('');
     const [collections, setCollections] = useState<Collection[]>([]);
-    const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+    const [promotions, setPromotions] = useState<BannerLinkedPromotion[]>([]);
     const [selectedDesktopAsset, setSelectedDesktopAsset] = useState<Asset | null>(null);
     const [selectedMobileAsset, setSelectedMobileAsset] = useState<Asset | null>(null);
     const [selectedProduct, setSelectedProduct] = useState<BannerLinkedProduct | null>(null);
-    const [selectedCampaign, setSelectedCampaign] = useState<BannerLinkedCampaign | null>(null);
+    const [selectedPromotion, setSelectedPromotion] = useState<BannerLinkedPromotion | null>(null);
     const [formData, setFormData] = useState<BannerFormData>(initialFormData);
 
     const successTitle = useMemo(
@@ -68,16 +69,40 @@ export function BannerForm({ mode = 'create', bannerId }: BannerFormProps) {
         }
     };
 
-    const loadCampaigns = async () => {
-        setLoadingCampaigns(true);
+    const loadPromotions = async () => {
+        setLoadingPromotions(true);
         try {
-            const campaignService = new CampaignService();
-            const data = await campaignService.getCampaigns();
-            setCampaigns(data || []);
-        } catch (campaignError) {
-            console.error('Error loading campaigns:', campaignError);
+            const results: BannerLinkedPromotion[] = [];
+            const types = ['coupons', 'flash-sales', 'featured-deals', 'clearance-deals'] as const;
+            const typeLabels: Record<string, BannerLinkedPromotion['type']> = {
+                coupons: 'coupon',
+                'flash-sales': 'flash_sale',
+                'featured-deals': 'featured_deal',
+                'clearance-deals': 'clearance_deal',
+            };
+
+            await Promise.all(types.map(async (type) => {
+                try {
+                    const res = await fetch(`/api/promotions/${type}/admin`);
+                    const data = await res.json();
+                    const items = data.coupons || data.flashSales || data.featuredDeals || data.clearanceDeals || data.data || [];
+                    (Array.isArray(items) ? items : []).forEach((item: any) => {
+                        results.push({
+                            id: item.id,
+                            title: item.title || item.name || 'Untitled',
+                            type: typeLabels[type],
+                        });
+                    });
+                } catch {
+                    // silent
+                }
+            }));
+
+            setPromotions(results);
+        } catch {
+            // silent
         } finally {
-            setLoadingCampaigns(false);
+            setLoadingPromotions(false);
         }
     };
 
@@ -98,6 +123,7 @@ export function BannerForm({ mode = 'create', bannerId }: BannerFormProps) {
                 collectionId: banner.collectionId || '',
                 productId: banner.productId || '',
                 campaignId: banner.campaignId || '',
+                promotionId: banner.promotionId || '',
                 enabled: banner.enabled ?? true,
                 sortOrder: banner.sortOrder ?? 0,
                 desktopImageId: banner.desktopImageId || '',
@@ -116,16 +142,6 @@ export function BannerForm({ mode = 'create', bannerId }: BannerFormProps) {
                     }
                     : null
             );
-            setSelectedCampaign(
-                banner.campaign
-                    ? {
-                        id: banner.campaign.id,
-                        name: banner.campaign.name,
-                        slug: banner.campaign.slug,
-                        status: banner.campaign.status,
-                    }
-                    : null
-            );
         } catch (bannerError: any) {
             console.error('Error loading banner:', bannerError);
             setError(bannerError?.message || 'Failed to load banner.');
@@ -137,7 +153,7 @@ export function BannerForm({ mode = 'create', bannerId }: BannerFormProps) {
             setError('');
 
             if (!isEdit) {
-                await Promise.all([loadCollections(), loadCampaigns()]);
+                await Promise.all([loadCollections(), loadPromotions()]);
                 return;
             }
 
@@ -148,7 +164,7 @@ export function BannerForm({ mode = 'create', bannerId }: BannerFormProps) {
             }
 
             setFetchLoading(true);
-            await Promise.all([loadCollections(), loadCampaigns(), loadBanner(bannerId)]);
+            await Promise.all([loadCollections(), loadPromotions(), loadBanner(bannerId)]);
             setFetchLoading(false);
         };
 
@@ -171,23 +187,25 @@ export function BannerForm({ mode = 'create', bannerId }: BannerFormProps) {
 
     const handleProductChange = (product: BannerLinkedProduct | null) => {
         setSelectedProduct(product);
-        setSelectedCampaign(null);
+        setSelectedPromotion(null);
         setFormData((previous) => ({
             ...previous,
             productId: product?.id || '',
             collectionId: product ? '' : previous.collectionId,
+            promotionId: '',
             campaignId: '',
         }));
     };
 
-    const handleCampaignChange = (campaign: BannerLinkedCampaign | null) => {
-        setSelectedCampaign(campaign);
+    const handlePromotionChange = (promotion: BannerLinkedPromotion | null) => {
+        setSelectedPromotion(promotion);
         setSelectedProduct(null);
         setFormData((previous) => ({
             ...previous,
-            campaignId: campaign?.id || '',
+            promotionId: promotion?.id || '',
+            campaignId: '',
             productId: '',
-            collectionId: campaign ? '' : previous.collectionId,
+            collectionId: promotion ? '' : previous.collectionId,
         }));
     };
 
@@ -218,6 +236,7 @@ export function BannerForm({ mode = 'create', bannerId }: BannerFormProps) {
                 collectionId: formData.collectionId || '',
                 productId: formData.productId || '',
                 campaignId: formData.campaignId || '',
+                promotionId: formData.promotionId || '',
                 desktopImageId: formData.desktopImageId || '',
                 mobileImageId: formData.mobileImageId || '',
             };
@@ -264,13 +283,13 @@ export function BannerForm({ mode = 'create', bannerId }: BannerFormProps) {
                                 formData={formData}
                                 onChange={handleChange}
                                 collections={collections}
-                                campaigns={campaigns}
+                                promotions={promotions}
                                 selectedProduct={selectedProduct}
-                                selectedCampaign={selectedCampaign}
+                                selectedPromotion={selectedPromotion}
                                 onProductChange={handleProductChange}
-                                onCampaignChange={handleCampaignChange}
+                                onPromotionChange={handlePromotionChange}
                                 loadingCollections={loadingCollections}
-                                loadingCampaigns={loadingCampaigns}
+                                loadingPromotions={loadingPromotions}
                                 disabled={loading}
                             />
                             <BannerImages

@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { Check, ChevronDown, Link2, Megaphone, Package } from 'lucide-react';
-import { Campaign, Collection } from '@/lib/services';
+import { Collection } from '@/lib/services';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,7 +18,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/shared/utils/cn';
-import { BannerLinkedCampaign, BannerLinkedProduct } from './types';
+import { BannerLinkedPromotion, BannerLinkedProduct } from './types';
 import { BannerProductPicker } from './BannerProductPicker';
 import { findCollectionPath, getRootCollections } from '@/lib/banner/utils';
 
@@ -28,20 +28,20 @@ interface BannerFormData {
     slug: string;
     collectionId: string;
     productId: string;
-    campaignId: string;
+    promotionId: string;
 }
 
 interface BannerBasicInfoProps {
     formData: BannerFormData;
     onChange: (data: Partial<BannerFormData>) => void;
     collections: Collection[];
-    campaigns: Campaign[];
+    promotions: BannerLinkedPromotion[];
     selectedProduct: BannerLinkedProduct | null;
-    selectedCampaign: BannerLinkedCampaign | null;
+    selectedPromotion: BannerLinkedPromotion | null;
     onProductChange: (product: BannerLinkedProduct | null) => void;
-    onCampaignChange: (campaign: BannerLinkedCampaign | null) => void;
+    onPromotionChange: (promotion: BannerLinkedPromotion | null) => void;
     loadingCollections: boolean;
-    loadingCampaigns: boolean;
+    loadingPromotions: boolean;
     disabled?: boolean;
 }
 
@@ -49,13 +49,13 @@ export function BannerBasicInfo({
     formData,
     onChange,
     collections,
-    campaigns,
+    promotions,
     selectedProduct,
-    selectedCampaign,
+    selectedPromotion,
     onProductChange,
-    onCampaignChange,
+    onPromotionChange,
     loadingCollections,
-    loadingCampaigns,
+    loadingPromotions,
     disabled,
 }: BannerBasicInfoProps) {
     const rootCollections = useMemo(() => getRootCollections(collections), [collections]);
@@ -64,15 +64,24 @@ export function BannerBasicInfo({
         : [];
     const selectedCollectionLabel = selectedCollectionPath.map((item) => item.name).join(' / ');
 
-    const selectedCampaignLabel = selectedCampaign
-        ? `${selectedCampaign.name}${selectedCampaign.status ? ` (${selectedCampaign.status})` : ''}`
+    const selectedPromotionLabel = selectedPromotion
+        ? `${selectedPromotion.title} (${selectedPromotion.type.replace(/_/g, ' ')})`
         : '';
+
+    const typeLabel = (type: BannerLinkedPromotion['type']) => {
+        switch (type) {
+            case 'coupon': return 'Coupon';
+            case 'flash_sale': return 'Flash Sale';
+            case 'featured_deal': return 'Featured Deal';
+            case 'clearance_deal': return 'Clearance Deal';
+        }
+    };
 
     const renderLevel3Items = (items: Collection[]) =>
         items.map((collection) => (
             <DropdownMenuItem
                 key={collection.id}
-                onClick={() => onChange({ collectionId: collection.id, campaignId: '', productId: '' })}
+                onClick={() => onChange({ collectionId: collection.id, promotionId: '', productId: '' })}
                 className="flex items-center justify-between gap-3"
             >
                 <span>{collection.name}</span>
@@ -114,7 +123,7 @@ export function BannerBasicInfo({
                 return (
                     <DropdownMenuItem
                         key={collection.id}
-                        onClick={() => onChange({ collectionId: collection.id, campaignId: '', productId: '' })}
+                        onClick={() => onChange({ collectionId: collection.id, promotionId: '', productId: '' })}
                         className="flex items-center justify-between gap-3"
                     >
                         <span>{collection.name}</span>
@@ -132,7 +141,7 @@ export function BannerBasicInfo({
                     </DropdownMenuSubTrigger>
                     <DropdownMenuSubContent className="min-w-60 rounded-lg border-gray-200">
                         <DropdownMenuItem
-                            onClick={() => onChange({ collectionId: collection.id, campaignId: '', productId: '' })}
+                            onClick={() => onChange({ collectionId: collection.id, promotionId: '', productId: '' })}
                             className="flex items-center justify-between gap-3 font-medium"
                         >
                             <span>Use {collection.name}</span>
@@ -153,7 +162,7 @@ export function BannerBasicInfo({
                     Basic Information
                 </CardTitle>
                 <CardDescription className="font-medium text-secondary-500">
-                    Name, slug, and optional collection, product, or campaign association.
+                    Name, slug, and optional collection, product, or promotion association.
                 </CardDescription>
             </CardHeader>
 
@@ -257,14 +266,14 @@ export function BannerBasicInfo({
                         </Label>
 
                         <DropdownMenu>
-                            <DropdownMenuTrigger asChild disabled={disabled || loadingCampaigns}>
+                            <DropdownMenuTrigger asChild disabled={disabled || loadingPromotions}>
                                 <Button
                                     type="button"
                                     variant="outline"
                                     className="h-10 w-full justify-between border-gray-200 px-3 text-left font-normal text-secondary-900 hover:bg-white"
                                 >
-                                    <span className={cn('truncate', !selectedCampaignLabel && 'text-secondary-500')}>
-                                        {selectedCampaignLabel || 'Select campaign target'}
+                                    <span className={cn('truncate', !selectedPromotionLabel && 'text-secondary-500')}>
+                                        {selectedPromotionLabel || 'Select promotion target'}
                                     </span>
                                     <ChevronDown className="h-4 w-4 text-secondary-400" />
                                 </Button>
@@ -274,30 +283,24 @@ export function BannerBasicInfo({
                                 className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-72 rounded-lg border-gray-200"
                             >
                                 <DropdownMenuItem
-                                    onClick={() => onCampaignChange(null)}
+                                    onClick={() => onPromotionChange(null)}
                                     className="flex items-center justify-between gap-3"
                                 >
-                                    <span>No Campaign</span>
-                                    {!formData.campaignId ? (
+                                    <span>No Promotion</span>
+                                    {!formData.promotionId ? (
                                         <Check className="h-4 w-4 text-primary-700" />
                                     ) : null}
                                 </DropdownMenuItem>
-                                {campaigns.map((campaign) => (
+                                {promotions.map((promotion) => (
                                     <DropdownMenuItem
-                                        key={campaign.id}
-                                        onClick={() => onCampaignChange({
-                                            id: campaign.id,
-                                            name: campaign.name,
-                                            slug: campaign.slug,
-                                            status: campaign.status,
-                                        })}
+                                        key={promotion.id}
+                                        onClick={() => onPromotionChange(promotion)}
                                         className="flex items-center justify-between gap-3"
                                     >
                                         <span className="truncate">
-                                            {campaign.name}
-                                            {campaign.status ? ` (${campaign.status})` : ''}
+                                            {promotion.title} ({typeLabel(promotion.type)})
                                         </span>
-                                        {formData.campaignId === campaign.id ? (
+                                        {formData.promotionId === promotion.id ? (
                                             <Check className="h-4 w-4 text-primary-700" />
                                         ) : null}
                                     </DropdownMenuItem>
@@ -305,8 +308,8 @@ export function BannerBasicInfo({
                             </DropdownMenuContent>
                         </DropdownMenu>
 
-                        {loadingCampaigns ? (
-                            <p className="text-xs font-medium text-secondary-500">Loading campaigns...</p>
+                        {loadingPromotions ? (
+                            <p className="text-xs font-medium text-secondary-500">Loading promotions...</p>
                         ) : null}
                     </div>
                 </div>

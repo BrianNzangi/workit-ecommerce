@@ -19,6 +19,7 @@ export type Banner = {
     collectionId?: string;
     productId?: string;
     campaignId?: string;
+    promotionId?: string;
 };
 
 export type CreateBannerInput = {
@@ -33,6 +34,7 @@ export type CreateBannerInput = {
     collectionId?: string;
     productId?: string;
     campaignId?: string;
+    promotionId?: string;
 };
 
 export interface BannerListOptions {
