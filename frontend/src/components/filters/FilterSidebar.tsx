@@ -145,28 +145,33 @@ export default function FilterSidebar({
 
     return (
       <div key={cat.id}>
-        <button
-          onClick={() => {
-            if (hasChildren) {
-              toggleCategory(cat.id);
-            }
-            router.push(`/shop/collections/${cat.slug}`);
-          }}
-          className={`w-full flex items-center justify-between px-2 py-1.5 text-sm rounded transition-colors ${
+        <div
+          className={`flex items-center px-2 py-1.5 text-sm rounded transition-colors ${
             isSelected
               ? 'bg-primary-900/10 text-primary-900 font-semibold'
               : 'text-gray-700 hover:bg-gray-50'
           }`}
           style={{ paddingLeft: `${level * 12 + 8}px` }}
         >
-          <span className="truncate">{he.decode(cat.name)}</span>
+          <button
+            onClick={() => router.push(`/shop/collections/${cat.slug}`)}
+            className="flex-1 text-left truncate"
+          >
+            {he.decode(cat.name)}
+          </button>
           {hasChildren && (
-            <ChevronDown
-              size={14}
-              className={`shrink-0 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-            />
+            <button
+              onClick={() => toggleCategory(cat.id)}
+              className="shrink-0 p-0.5 rounded hover:bg-black/5 transition-colors"
+              aria-label={isExpanded ? 'Collapse' : 'Expand'}
+            >
+              <ChevronDown
+                size={14}
+                className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+              />
+            </button>
           )}
-        </button>
+        </div>
         {hasChildren && isExpanded && (
           <div className="mt-0.5">
             {cat.children!.map(child => renderCategoryNode(child, level + 1))}
