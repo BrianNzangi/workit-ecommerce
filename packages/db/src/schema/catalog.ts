@@ -23,6 +23,7 @@ export const brands = pgTable("Brand", {
     description: text("description"),
     logoUrl: text("logoUrl"),
     enabled: boolean("enabled").default(true).notNull(),
+    showInHomepage: boolean("showInHomepage").default(false).notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });

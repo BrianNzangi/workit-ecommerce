@@ -42,6 +42,7 @@ export function BrandForm({ brandId, mode }: BrandFormProps) {
         description: '',
         logoUrl: '',
         enabled: true,
+        showInHomepage: false,
     });
 
     const [collectionIds, setCollectionIds] = useState<string[]>([]);
@@ -87,6 +88,7 @@ export function BrandForm({ brandId, mode }: BrandFormProps) {
                     description: data.description || '',
                     logoUrl: data.logoUrl || '',
                     enabled: data.enabled,
+                    showInHomepage: data.showInHomepage ?? false,
                 });
                 if (data.brandCollections?.length) {
                     setCollectionIds(data.brandCollections.map((bc: any) => bc.collectionId));
@@ -354,6 +356,23 @@ export function BrandForm({ brandId, mode }: BrandFormProps) {
                             />
                             <span className="text-sm">Enabled</span>
                         </label>
+
+                        <div className="mt-4 pt-4 border-t border-gray-100">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    id="showInHomepage"
+                                    name="showInHomepage"
+                                    checked={formData.showInHomepage}
+                                    onChange={handleChange}
+                                    className="w-4 h-4 rounded-sm accent-primary"
+                                />
+                                <span className="text-sm font-medium">Featured in Home</span>
+                            </label>
+                            <p className="text-xs text-muted-foreground mt-1 ml-6">
+                                Show this brand in the Top Brands carousel on the homepage.
+                            </p>
+                        </div>
                     </CardContent>
                 </Card>
 

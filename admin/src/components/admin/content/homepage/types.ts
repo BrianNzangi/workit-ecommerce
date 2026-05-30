@@ -20,5 +20,6 @@ export const AVAILABLE_SECTIONS: Omit<HomepageSectionConfig, 'enabled' | 'order'
     { key: 'horizontal-banner', label: 'Horizontal Banner', description: 'Single wide promotional banner' },
     { key: 'homepage-collections', label: 'Homepage Collections', description: 'Product carousels organized by collection' },
     { key: 'featured-blogs', label: 'Featured Blogs', description: 'Latest blog posts grid' },
+    { key: 'top-brands', label: 'Top Brands', description: 'Horizontal carousel of brand logos featured on the homepage' },
     { key: 'about-workit', label: 'About Workit', description: 'Static about section with brand story' },
 ];

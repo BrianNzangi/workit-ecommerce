@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import CollectionSection from '@/components/home/CollectionSection';
+import TopBrandsSection from '@/components/home/TopBrandsSection';
 import MostShopped from '@/components/categories-grid/MostShopped';
 import HeroSection from '@/components/banners/HeroSection';
 import FeaturedBlogs from '@/components/blog/FeaturedBlogs';
@@ -127,6 +128,10 @@ export default async function Home() {
             <CollectionSection slug="featured-home-kitchen-appliances" title="FEATURED HOME & KITCHEN APPLIANCES" index={6} />
             <CollectionSection slug="popular-networking-devices" title="POPULAR NETWORKING DEVICES" index={7} />
             <CollectionSection slug="featured-smartphones" title="FEATURED SMARTPHONES" index={8} />
+
+            <Suspense fallback={null}>
+                <TopBrandsSection />
+            </Suspense>
 
             <Suspense fallback={<BlogGridSkeleton />}>
                 <FeaturedBlogsWrapper />

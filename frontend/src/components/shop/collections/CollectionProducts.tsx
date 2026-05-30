@@ -117,22 +117,38 @@ export default function CollectionProducts({
       return crumbs;
     }
 
-    const findPath = (target: Category, tree: Category[]): Category[] => {
-      for (const node of tree) {
-        if (Number(node.id) === Number(target.id)) return [node];
-        if (node.children) {
-          const found = findPath(target, node.children);
-          if (found.length) return [node, ...found];
-        }
-      }
-      return [];
+    // Runtime objects have Collection shape (id: string, parentId: string|null)
+    // but are typed as Category (id: number, parent: number). Use raw access.
+    const toRecord = (c: Category): Record<string, unknown> => c as unknown as Record<string, unknown>;
+    const getId = (c: Category): string => String(toRecord(c).id ?? '');
+    const getParentId = (c: Category): string | null => {
+      const v = toRecord(c).parentId;
+      return v != null ? String(v) : null;
     };
 
-    const ancestors = findPath(cat, allCats);
+    const flatMap = new Map<string, Category>();
+    const flatten = (nodes: Category[]) => {
+      for (const n of nodes) {
+        flatMap.set(getId(n), n);
+        if (n.children) flatten(n.children);
+      }
+    };
+    flatten(allCats);
+
+    const ancestors: Category[] = [];
+    let pid = getParentId(cat);
+    while (pid) {
+      const parent = flatMap.get(pid);
+      if (!parent) break;
+      ancestors.unshift(parent);
+      pid = getParentId(parent);
+    }
+
     crumbs.push({ label: 'Collections', href: '/shop/collections' });
     for (const a of ancestors) {
-      crumbs.push({ label: a.name, href: a.id === cat.id ? '' : `/shop/collections/${a.slug}` });
+      crumbs.push({ label: a.name, href: `/shop/collections/${a.slug}` });
     }
+    crumbs.push({ label: cat.name, href: '' });
     return crumbs;
   };
 

@@ -480,6 +480,32 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
         return payload;
     });
 
+    // Homepage Featured Brands
+    fastify.get("/brands/homepage-featured", {
+        schema: {
+            tags: ["Catalog"],
+            querystring: z.object({})
+        },
+        preHandler: [fastify.publicRateLimit],
+    }, async (_request, reply) => {
+        const cacheKey = buildCacheKey("store:brands:homepage-featured");
+        const cached = await fastify.cache.get<{ brands: any[] }>(cacheKey);
+        if (cached) {
+            reply.header("x-cache", "HIT");
+            reply.header("Cache-Control", `public, max-age=${TTL.brands}`);
+            return cached;
+        }
+        const results = await db.query.brands.findMany({
+            where: eq(schema.brands.showInHomepage, true),
+            orderBy: [asc(schema.brands.name as any)],
+        });
+        const payload = { brands: results };
+        await fastify.cache.set(cacheKey, payload, TTL.brands, ["brands"]);
+        reply.header("x-cache", "MISS");
+        reply.header("Cache-Control", `public, max-age=${TTL.brands}`);
+        return payload;
+    });
+
     // Featured Brands by Collection
     fastify.get("/brands/featured", {
         schema: {
