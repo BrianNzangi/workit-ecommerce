@@ -171,6 +171,12 @@ export function BannerForm({ mode = 'create', bannerId }: BannerFormProps) {
         init();
     }, [bannerId, isEdit]);
 
+    useEffect(() => {
+        if (!formData.promotionId || promotions.length === 0) return;
+        const match = promotions.find((p) => p.id === formData.promotionId);
+        if (match) setSelectedPromotion(match);
+    }, [formData.promotionId, promotions]);
+
     const handleChange = (patch: Partial<BannerFormData>) => {
         setFormData((previous) => ({ ...previous, ...patch }));
     };
