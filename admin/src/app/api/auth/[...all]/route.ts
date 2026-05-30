@@ -1,5 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const MAX_REQUESTS = Number(process.env.ADMIN_AUTH_RATE_LIMIT_MAX) || 10;
+const WINDOW_MS = (Number(process.env.ADMIN_AUTH_RATE_LIMIT_WINDOW_MS) || 60_000);
+
+function checkRateLimit(ip: string): boolean {
+    const now = Date.now();
+    const record = rateLimitMap.get(ip);
+
+    if (!record || now > record.resetAt) {
+        rateLimitMap.set(ip, { count: 1, resetAt: now + WINDOW_MS });
+        return true;
+    }
+
+    if (record.count >= MAX_REQUESTS) return false;
+
+    record.count++;
+    return true;
+}
+
+// Cleanup stale entries every 60s
+setInterval(() => {
+    const now = Date.now();
+    for (const [key, val] of rateLimitMap) {
+        if (now > val.resetAt) rateLimitMap.delete(key);
+    }
+}, 60_000);
+
 function getBackendUrl() {
     const env = process.env as Record<string, string | undefined>;
     return (
@@ -11,11 +38,23 @@ function getBackendUrl() {
     ).replace(/\/$/, '');
 }
 
-/**
- * Proxy all auth requests to the Fastify backend
- * This is optimized for production and handles cookie/header forwarding correctly.
- */
+function getClientIp(req: NextRequest): string {
+    const forwarded = req.headers.get('x-forwarded-for');
+    if (forwarded) return forwarded.split(',')[0]?.trim() || 'unknown';
+    return req.headers.get('x-real-ip') || 'unknown';
+}
+
 async function handler(req: NextRequest) {
+    if (req.method !== 'GET' && req.method !== 'HEAD') {
+        const ip = getClientIp(req);
+        if (!checkRateLimit(ip)) {
+            return NextResponse.json(
+                { error: 'Too many requests. Please try again later.' },
+                { status: 429 }
+            );
+        }
+    }
+
     const backendUrl = getBackendUrl();
     const path = req.nextUrl.pathname.replace('/api/auth', '/auth');
     const url = `${backendUrl}${path}${req.nextUrl.search}`;
@@ -23,11 +62,9 @@ async function handler(req: NextRequest) {
     try {
         const headers = new Headers(req.headers);
 
-        // Remove host header to avoid conflicts with backend
         headers.delete('host');
         headers.delete('connection');
 
-        // Ensure content-type is forwarded if present
         if (!headers.has('content-type')) {
             headers.set('content-type', 'application/json');
         }

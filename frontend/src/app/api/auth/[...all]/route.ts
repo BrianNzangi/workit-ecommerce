@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { checkAuthRateLimit } from "@/lib/security/auth-rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +14,23 @@ function getBackendUrl() {
   ).replace(/\/$/, "");
 }
 
+function getClientIp(request: NextRequest): string {
+  const forwarded = request.headers.get("x-forwarded-for");
+  if (forwarded) return forwarded.split(",")[0]?.trim() || "unknown";
+  return request.headers.get("x-real-ip") || "unknown";
+}
+
 async function handler(request: NextRequest) {
+  if (request.method !== "GET" && request.method !== "HEAD") {
+    const ip = getClientIp(request);
+    if (!checkAuthRateLimit(ip)) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        { status: 429 },
+      );
+    }
+  }
+
   const backendUrl = getBackendUrl();
   const path = request.nextUrl.pathname.replace("/api/auth", "/auth");
   const url = `${backendUrl}${path}${request.nextUrl.search}`;

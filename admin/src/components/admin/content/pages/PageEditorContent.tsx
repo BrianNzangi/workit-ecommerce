@@ -1,5 +1,6 @@
 import { History, FileText } from 'lucide-react';
 import { RichTextEditor } from '@/components/admin/shared/RichTextEditor';
+import DOMPurify from 'dompurify';
 
 interface PageEditorContentProps {
     content: string;
@@ -37,7 +38,7 @@ export function PageEditorContent({
             ) : (
                 <div className="rounded-lg bg-gray-50 p-6">
                     {content ? (
-                        <div dangerouslySetInnerHTML={{ __html: content.replace(/\n/g, '<br/>') }} />
+                        <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content.replace(/\n/g, '<br/>')) }} />
                     ) : (
                         <div className="flex flex-col items-center justify-center py-12 text-gray-400">
                             <div className="mb-3 rounded-full bg-gray-100 p-3">
