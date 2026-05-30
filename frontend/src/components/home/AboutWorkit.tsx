@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import Link from 'next/link';
 import SectionContainer from '@/components/layout/SectionContainer';
 
 export default function AboutWorkit() {
@@ -27,13 +28,41 @@ export default function AboutWorkit() {
         </h1>
         <div className="space-y-4">
           <p className="font-sans text-gray-700 text-sm md:text-md lg:text-lg">
-            {`Located on Biashara Street in the heart of the Nairobi CBD, Workit is your ultimate one-stop destination for cutting-edge technology and premium electronics at unbeatable prices. We cater to every aspect of your digital lifestyle, offering an extensive, handpicked selection of top-tier categories. Whether you are looking to upgrade your personal devices with the latest Mobile & Tablets, high-performance Laptops, or specialized Gaming Consoles and PC gear, we have you covered. We also power your home and business infrastructure with robust Desktops & Monitors, advanced Networking Devices, and state-of-the-art Surveillance & Security systems to keep you safe and connected.`}
+            Located on Biashara Street in the heart of the Nairobi CBD, Workit is your ultimate one-stop destination for cutting-edge technology and premium electronics at unbeatable prices. We cater to every aspect of your digital lifestyle, offering an extensive, handpicked selection of top-tier categories. Whether you are looking to upgrade your personal devices with the latest{' '}
+            <Link href="/shop/collections/mobile-phones" className="text-primary-900 hover:underline">Mobile & Tablets</Link>
+            , high-performance{' '}
+            <Link href="/shop/collections/laptops" className="text-primary-900 hover:underline">Laptops</Link>
+            , or specialized{' '}
+            <Link href="/shop/collections/gaming-consoles" className="text-primary-900 hover:underline">Gaming Consoles and PC gear</Link>
+            , we have you covered. We also power your home and business infrastructure with robust{' '}
+            <Link href="/shop/collections/desktops-monitors" className="text-primary-900 hover:underline">Desktops & Monitors</Link>
+            , advanced{' '}
+            <Link href="/shop/collections/networking" className="text-primary-900 hover:underline">Networking Devices</Link>
+            , and state-of-the-art{' '}
+            <Link href="/shop/collections/surveillance-security" className="text-primary-900 hover:underline">Surveillance & Security systems</Link>
+            {' '}to keep you safe and connected.
           </p>
           <p className="font-sans text-gray-700 text-sm md:text-md lg:text-lg">
-            {`Beyond personal tech, Workit brings entertainment and comfort into your living space. Explore our premium Electronics section, featuring immersive Television & Video setups, Smart TVs, and Home Audio equipment, alongside a comprehensive range of modern Kitchen, Small, and Large Appliances designed to make daily living effortless. Every single item in our inventory—from standard Computer Hardware to essential everyday Accessories—is guaranteed genuine and sourced from world-class brands like Lenovo.`}
+            Beyond personal tech, Workit brings entertainment and comfort into your living space. Explore our{' '}
+            <Link href="/shop/collections/electronics" className="text-primary-900 hover:underline">Electronics</Link>
+            {' '}section, featuring immersive{' '}
+            <Link href="/shop/collections/tvs-video" className="text-primary-900 hover:underline">Television & Video</Link>
+            {' '}setups,{' '}
+            <Link href="/shop/collections/smart-tvs" className="text-primary-900 hover:underline">Smart TVs</Link>
+            , and{' '}
+            <Link href="/shop/collections/home-audio" className="text-primary-900 hover:underline">Home Audio</Link>
+            {' '}equipment, alongside a comprehensive range of modern{' '}
+            <Link href="/shop/collections/kitchen-appliances" className="text-primary-900 hover:underline">Kitchen</Link>
+            ,{' '}
+            <Link href="/shop/collections/small-appliances" className="text-primary-900 hover:underline">Small</Link>
+            , and{' '}
+            <Link href="/shop/collections/large-appliances" className="text-primary-900 hover:underline">Large Appliances</Link>
+            {' '}designed to make daily living effortless. Every single item in our inventory—from standard Computer Hardware to essential everyday Accessories—is guaranteed genuine and sourced from world-class brands like Lenovo.
           </p>
           <p className="font-sans text-gray-700 text-sm md:text-md lg:text-lg">
-            {`At Workit, we don't just sell gadgets; we deliver an exceptional shopping experience. Our expert team is dedicated to providing friendly advice, highly competitive pricing, and fast, reliable delivery services across Kenya. Visit our physical store on Biashara Street today to experience seamless customer service, or browse our collections online to find the perfect tech solution tailored just for you. With Workit, you can shop with confidence, knowing you're getting the best deals on the latest technology, all backed by our commitment to quality and customer satisfaction. Join the Workit family and elevate your tech game today!`}
+            At Workit, we don't just sell gadgets; we deliver an exceptional shopping experience. Our expert team is dedicated to providing friendly advice, highly competitive pricing, and fast, reliable delivery services across Kenya. Visit our physical store on Biashara Street today to experience seamless customer service, or{' '}
+            <Link href="/shop/collections" className="text-primary-900 hover:underline">browse our collections online</Link>
+            {' '}to find the perfect tech solution tailored just for you. With Workit, you can shop with confidence, knowing you're getting the best deals on the latest technology, all backed by our commitment to quality and customer satisfaction. Join the Workit family and elevate your tech game today!
           </p>
         </div>
       </div>
