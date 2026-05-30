@@ -110,6 +110,32 @@ export default function CollectionProducts({
     return flattened;
   }, []);
 
+  const buildBreadcrumbs = (cat: Category | null | undefined, allCats: Category[], currentSlug: string) => {
+    const crumbs: { label: string; href?: string }[] = [{ label: 'Home', href: '/' }];
+    if (!cat) {
+      crumbs.push({ label: 'Collections', href: '/shop/collections' }, { label: currentSlug, href: '' });
+      return crumbs;
+    }
+
+    const findPath = (target: Category, tree: Category[]): Category[] => {
+      for (const node of tree) {
+        if (Number(node.id) === Number(target.id)) return [node];
+        if (node.children) {
+          const found = findPath(target, node.children);
+          if (found.length) return [node, ...found];
+        }
+      }
+      return [];
+    };
+
+    const ancestors = findPath(cat, allCats);
+    crumbs.push({ label: 'Collections', href: '/shop/collections' });
+    for (const a of ancestors) {
+      crumbs.push({ label: a.name, href: a.id === cat.id ? '' : `/shop/collections/${a.slug}` });
+    }
+    return crumbs;
+  };
+
   const categoryList = useMemo(() => flattenCategories(categories), [categories, flattenCategories]);
   const selectedCategorySlug = useMemo(() => {
     const categoryId = filterState.category;
@@ -226,23 +252,19 @@ export default function CollectionProducts({
         />
       </Head>
 
-      <SectionContainer className="px-10 sm:px-12 lg:px-16 mb-8 py-6 space-y-8">
+      <SectionContainer className="px-10 sm:px-12 lg:px-16 py-4 space-y-4">
         <Breadcrumbs
-          paths={[
-            { label: 'Home', href: '/' },
-            { label: 'Collections', href: '/shop/collections' },
-            { label: category?.name || fullSlug, href: '' },
-          ]}
+          paths={buildBreadcrumbs(category, categories, fullSlug)}
         />
 
         {/* Collection Title */}
         {category && (
           <div>
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-gray-900 tracking-tight">
+            <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 tracking-tight">
               {category.name}
             </h1>
             {category.description && (
-              <p className="mt-2 text-base md:text-lg text-gray-600 max-w-3xl">
+              <p className="mt-1 text-sm md:text-base text-gray-600 max-w-3xl">
                 {category.description}
               </p>
             )}
@@ -316,7 +338,7 @@ export default function CollectionProducts({
 
         {/* Filter Sidebar + Product Grid */}
         <section className="bg-[#F7F7F7] border-t border-gray-200 w-full">
-          <SectionContainer className="px-10 sm:px-12 lg:px-16 py-6">
+          <SectionContainer className="px-10 sm:px-12 lg:px-16 py-4">
           <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6 md:gap-8">
           {/* Desktop Sidebar */}
           <aside className="hidden md:block bg-white rounded-md border-2 border-gray-200">
