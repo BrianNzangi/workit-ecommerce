@@ -29,7 +29,9 @@ export default function Deals({ deals }: DealsProps) {
                         const imageUrl = getImageUrl(deal.desktopImage!.preview || deal.desktopImage!.source);
                         const ctaText = deal.product?.name
                             ? `View ${deal.product.name}`
-                            : `Shop ${deal.collection?.name || deal.title} Deals`;
+                            : deal.promotion
+                                ? `Shop ${deal.promotion.title}`
+                                : `Shop ${deal.collection?.name || deal.title} Deals`;
 
                         return (
                             <Link

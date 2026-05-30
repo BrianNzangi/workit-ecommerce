@@ -587,6 +587,32 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
     });
 
     // Banners
+    async function resolvePromotions(banners: any[]) {
+        const result: any[] = [...banners];
+        const promoIds: string[] = banners.filter((b: any) => b.promotionId).map((b: any) => b.promotionId as string);
+        if (promoIds.length === 0) return result;
+
+        const [coupons, flashSales, featuredDeals, clearanceDeals] = await Promise.all([
+            db.query.coupons.findMany({ where: inArray(schema.coupons.id, promoIds), columns: { id: true, title: true } }),
+            db.query.flashSales.findMany({ where: inArray(schema.flashSales.id, promoIds), columns: { id: true, title: true } }),
+            db.query.featuredDeals.findMany({ where: inArray(schema.featuredDeals.id, promoIds), columns: { id: true, title: true } }),
+            db.query.clearanceDeals.findMany({ where: inArray(schema.clearanceDeals.id, promoIds), columns: { id: true, title: true } }),
+        ]);
+
+        const promoMap = new Map<string, { title: string; type: string }>();
+        coupons.forEach((c: { id: string; title: string }) => promoMap.set(c.id, { title: c.title, type: 'coupon' }));
+        flashSales.forEach((f: { id: string; title: string }) => promoMap.set(f.id, { title: f.title, type: 'flash_sale' }));
+        featuredDeals.forEach((f: { id: string; title: string }) => promoMap.set(f.id, { title: f.title, type: 'featured_deal' }));
+        clearanceDeals.forEach((c: { id: string; title: string }) => promoMap.set(c.id, { title: c.title, type: 'clearance_deal' }));
+
+        for (const banner of result) {
+            if (banner.promotionId && promoMap.has(banner.promotionId)) {
+                banner.promotion = promoMap.get(banner.promotionId);
+            }
+        }
+        return result;
+    }
+
     fastify.get("/banners", {
         schema: {
             tags: ["Marketing"],
@@ -670,6 +696,7 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
                 position: true,
                 enabled: true,
                 sortOrder: true,
+                promotionId: true,
             },
             with: {
                 desktopImage: {
@@ -711,7 +738,7 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
                 },
             }
         });
-        const payload = { banners: results };
+        const payload = { banners: await resolvePromotions(results) };
         await fastify.cache.set(cacheKey, payload, TTL.banners, ["banners"]);
         reply.header("x-cache", "MISS");
         reply.header("Cache-Control", `public, max-age=${TTL.banners}`);

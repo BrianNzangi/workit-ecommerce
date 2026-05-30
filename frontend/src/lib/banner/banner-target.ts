@@ -29,6 +29,11 @@ export interface StoreBanner {
         name: string;
         slug: string;
     };
+    promotion?: {
+        id: string;
+        title: string;
+        type: string;
+    };
 }
 
 export function getBannerHref(banner?: StoreBanner | null): string | null {
@@ -46,6 +51,10 @@ export function getBannerHref(banner?: StoreBanner | null): string | null {
 
     if (banner.collection?.slug) {
         return `/shop/collections/${banner.collection.slug}`;
+    }
+
+    if (banner.promotion) {
+        return `/`;
     }
 
     return null;
