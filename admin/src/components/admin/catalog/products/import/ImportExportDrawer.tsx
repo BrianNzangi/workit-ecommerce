@@ -39,8 +39,16 @@ const TEMPLATE_JSON = JSON.stringify([
         name: 'Example Product',
         slug: 'example-product',
         sku: 'SKU-001',
+        description: 'Product description here',
+        salePrice: 1500,
+        originalPrice: 2000,
+        stockOnHand: 20,
+        enabled: true,
         condition: 'NEW',
         brandSlug: 'brand-slug',
+        collections: 'collection-slug-1|collection-slug-2',
+        vat: 16,
+        vatInclusive: true,
     },
 ], null, 2);
 
@@ -245,7 +253,7 @@ export function ImportExportDrawer({ isOpen, onClose, onImportSuccess }: ImportE
                                         <p className="text-xs text-destructive">{parseError}</p>
                                     )}
                                     <p className="text-xs text-muted-foreground">
-                                        Array of products with fields: name (required), slug (required), sku, condition, brandSlug
+                                        Array of products. Required: name, slug. Optional: sku, description, salePrice, originalPrice, stockOnHand, enabled, condition, brandSlug, collections (pipe-separated slugs), vat, vatInclusive
                                     </p>
                                 </div>
                             ) : (

@@ -420,9 +420,11 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
             return reply.status(400).send({ error: 'No data provided' });
         }
 
-        // Pre-fetch brands for lookup
+        // Pre-fetch brands and collections for lookup
         const allBrands = await (db as any).query.brands.findMany();
         const brandBySlug = new Map(allBrands.map((b: any) => [b.slug, b.id]));
+        const allCollections = await (db as any).query.collections.findMany();
+        const collectionBySlug = new Map(allCollections.map((c: any) => [c.slug, c.id]));
 
         let created = 0;
         let updated = 0;
@@ -443,9 +445,26 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
                     name: row.name,
                     slug: row.slug,
                     sku: row.sku || null,
-                    enabled: false,
+                    description: row.description || null,
+                    enabled: row.enabled === 'true' || row.enabled === true || false,
                     condition: row.condition || 'NEW',
                 };
+
+                if (row.salePrice !== undefined && row.salePrice !== null && row.salePrice !== '') {
+                    productData.salePrice = Number(row.salePrice);
+                }
+                if (row.originalPrice !== undefined && row.originalPrice !== null && row.originalPrice !== '') {
+                    productData.originalPrice = Number(row.originalPrice);
+                }
+                if (row.stockOnHand !== undefined && row.stockOnHand !== null && row.stockOnHand !== '') {
+                    productData.stockOnHand = Number(row.stockOnHand);
+                }
+                if (row.vat !== undefined && row.vat !== null && row.vat !== '') {
+                    productData.vat = Number(row.vat);
+                }
+                if (row.vatInclusive !== undefined && row.vatInclusive !== null && row.vatInclusive !== '') {
+                    productData.vatInclusive = row.vatInclusive === 'true' || row.vatInclusive === true || false;
+                }
 
                 // Resolve brand
                 if (row.brandSlug && brandBySlug.has(row.brandSlug)) {
@@ -473,6 +492,28 @@ export const productsAdminRoutes: FastifyPluginAsync = async (fastify) => {
                     created++;
                 }
                 touchedProductIds.add(productId);
+
+                // Resolve collections (pipe-separated slugs)
+                if (row.collections && typeof row.collections === 'string') {
+                    const collectionSlugs = row.collections.split('|').map((s: string) => s.trim()).filter(Boolean);
+                    const collectionIds = collectionSlugs
+                        .map((slug: string) => collectionBySlug.get(slug))
+                        .filter(Boolean);
+
+                    if (collectionIds.length > 0) {
+                        // Remove existing collection links
+                        await db.delete(schema.productCollections as any)
+                            .where(eq(schema.productCollections.productId as any, productId));
+
+                        // Insert new collection links
+                        await db.insert(schema.productCollections as any).values(
+                            collectionIds.map((collectionId: string) => ({
+                                productId,
+                                collectionId,
+                            }))
+                        );
+                    }
+                }
 
             } catch (err: any) {
                 errors.push(`Item ${i + 1} (${row.name || 'unknown'}): ${err.message}`);
