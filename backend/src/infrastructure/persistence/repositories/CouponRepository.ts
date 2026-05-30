@@ -132,6 +132,7 @@ export class CouponRepository implements ICouponRepository {
           title: persistence.title,
           code: persistence.code,
           bannerImageId: persistence.bannerImageId,
+          campaignId: persistence.campaignId,
           couponAmount: persistence.couponAmount,
           minAmount: persistence.minAmount,
           userLimit: persistence.userLimit,

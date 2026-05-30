@@ -5,6 +5,7 @@ export interface FlashSaleRecord {
   id: string;
   title: string;
   discount: number;
+  campaignId: string | null;
   startDate: Date;
   endDate: Date;
   status: string;
@@ -36,6 +37,7 @@ export class FlashSaleMapper {
       id: raw.id,
       title: raw.title,
       discount: raw.discount,
+      campaignId: raw.campaignId || undefined,
       startDate: raw.startDate,
       endDate: raw.endDate,
       status: raw.status as any,
@@ -48,6 +50,7 @@ export class FlashSaleMapper {
       id: flashSale.id,
       title: flashSale.title,
       discount: flashSale.discount,
+      campaignId: flashSale.campaignId || null,
       startDate: flashSale.startDate,
       endDate: flashSale.endDate,
       status: flashSale.status,

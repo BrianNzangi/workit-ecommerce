@@ -13,6 +13,7 @@ export interface CouponListRequest {
 export interface CreateCouponInput {
   title: string;
   bannerImageId?: string;
+  campaignId?: string;
   couponAmount: number;
   minAmount?: number;
   userLimit?: number;
@@ -26,6 +27,7 @@ export interface CreateCouponInput {
 export interface UpdateCouponInput {
   title?: string;
   bannerImageId?: string;
+  campaignId?: string;
   couponAmount?: number;
   minAmount?: number;
   userLimit?: number;
@@ -68,6 +70,7 @@ export class AdminCouponService {
         title: c.title,
         code: c.code,
         bannerImageId: c.bannerImageId,
+        campaignId: c.campaignId,
         couponAmount: c.couponAmount.amount,
         minAmount: c.minAmount.amount,
         userLimit: c.userLimit,
@@ -98,6 +101,7 @@ export class AdminCouponService {
         title: coupon.title,
         code: coupon.code,
         bannerImageId: coupon.bannerImageId,
+        campaignId: coupon.campaignId,
         couponAmount: coupon.couponAmount.amount,
         minAmount: coupon.minAmount.amount,
         userLimit: coupon.userLimit,
@@ -122,6 +126,7 @@ export class AdminCouponService {
       title: input.title,
       code: generatedCode,
       bannerImageId: input.bannerImageId,
+      campaignId: input.campaignId,
       couponAmount: Money.create(input.couponAmount, "KES"),
       minAmount: Money.create(input.minAmount ?? 0, "KES"),
       userLimit: input.userLimit ?? 0,
@@ -142,6 +147,7 @@ export class AdminCouponService {
         title: coupon.title,
         code: coupon.code,
         bannerImageId: coupon.bannerImageId,
+        campaignId: coupon.campaignId,
         couponAmount: coupon.couponAmount.amount,
         minAmount: coupon.minAmount.amount,
         userLimit: coupon.userLimit,
@@ -164,6 +170,7 @@ export class AdminCouponService {
 
     if (input.title !== undefined) existing.updateDetails({ title: input.title });
     if (input.bannerImageId !== undefined) existing.updateDetails({ bannerImageId: input.bannerImageId });
+    if (input.campaignId !== undefined) existing.updateDetails({ campaignId: input.campaignId });
     if (input.couponAmount !== undefined) existing.updateDetails({ couponAmount: Money.create(input.couponAmount, "KES") });
     if (input.minAmount !== undefined) existing.updateDetails({ minAmount: Money.create(input.minAmount, "KES") });
     if (input.userLimit !== undefined) existing.updateDetails({ userLimit: input.userLimit });

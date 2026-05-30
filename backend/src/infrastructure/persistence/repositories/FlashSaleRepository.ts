@@ -92,6 +92,7 @@ export class FlashSaleRepository implements IFlashSaleRepository {
         set: {
           title: persistence.title,
           discount: persistence.discount,
+          campaignId: persistence.campaignId,
           startDate: persistence.startDate,
           endDate: persistence.endDate,
           status: persistence.status,

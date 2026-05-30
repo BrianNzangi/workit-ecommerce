@@ -19,12 +19,12 @@ export const promotionsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
   // ─── COUPONS ────────────────────────────────────────────────────────────────
 
-  fastify.get('/coupons', { preHandler: preAdmin }, async (request) => {
+  fastify.get('/coupons/admin', { preHandler: preAdmin }, async (request) => {
     const q = request.query as any;
     return couponService().list({ limit: q.limit, offset: q.offset, status: q.status, q: q.q });
   });
 
-  fastify.post('/coupons', { preHandler: preAdmin }, async (request, reply) => {
+  fastify.post('/coupons/admin', { preHandler: preAdmin }, async (request, reply) => {
     try {
       const result = await couponService().create(request.body as any);
       await invalidatePromotions();
@@ -70,12 +70,12 @@ export const promotionsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
   // ─── FLASH SALES ────────────────────────────────────────────────────────────
 
-  fastify.get('/flash-sales', { preHandler: preAdmin }, async (request) => {
+  fastify.get('/flash-sales/admin', { preHandler: preAdmin }, async (request) => {
     const q = request.query as any;
     return flashSaleService().list({ limit: q.limit, offset: q.offset, status: q.status, q: q.q });
   });
 
-  fastify.post('/flash-sales', { preHandler: preAdmin }, async (request, reply) => {
+  fastify.post('/flash-sales/admin', { preHandler: preAdmin }, async (request, reply) => {
     try {
       const result = await flashSaleService().create(request.body as any);
       await invalidatePromotions();
@@ -121,12 +121,12 @@ export const promotionsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
   // ─── FEATURED DEALS ─────────────────────────────────────────────────────────
 
-  fastify.get('/featured-deals', { preHandler: preAdmin }, async (request) => {
+  fastify.get('/featured-deals/admin', { preHandler: preAdmin }, async (request) => {
     const q = request.query as any;
     return featuredDealService().list({ limit: q.limit, offset: q.offset, status: q.status, q: q.q });
   });
 
-  fastify.post('/featured-deals', { preHandler: preAdmin }, async (request, reply) => {
+  fastify.post('/featured-deals/admin', { preHandler: preAdmin }, async (request, reply) => {
     try {
       const result = await featuredDealService().create(request.body as any);
       await invalidatePromotions();
@@ -172,12 +172,12 @@ export const promotionsAdminRoutes: FastifyPluginAsync = async (fastify) => {
 
   // ─── CLEARANCE DEALS ────────────────────────────────────────────────────────
 
-  fastify.get('/clearance-deals', { preHandler: preAdmin }, async (request) => {
+  fastify.get('/clearance-deals/admin', { preHandler: preAdmin }, async (request) => {
     const q = request.query as any;
     return clearanceDealService().list({ limit: q.limit, offset: q.offset, status: q.status, q: q.q, deal: q.deal });
   });
 
-  fastify.post('/clearance-deals', { preHandler: preAdmin }, async (request, reply) => {
+  fastify.post('/clearance-deals/admin', { preHandler: preAdmin }, async (request, reply) => {
     try {
       const result = await clearanceDealService().create(request.body as any);
       await invalidatePromotions();

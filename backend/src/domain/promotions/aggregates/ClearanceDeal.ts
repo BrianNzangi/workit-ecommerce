@@ -5,6 +5,7 @@ export interface ClearanceDealProps {
   productId: string;
   title: string;
   discount: number;
+  campaignId?: string;
   type: string;
   deal: ClearanceDealSource;
   startDate: Date;
@@ -27,6 +28,7 @@ export class ClearanceDeal extends AggregateRoot<string> {
     productId: string;
     title: string;
     discount: number;
+    campaignId?: string;
     type?: string;
     deal: ClearanceDealSource;
     startDate: Date;
@@ -44,6 +46,7 @@ export class ClearanceDeal extends AggregateRoot<string> {
       productId: params.productId,
       title: params.title,
       discount: params.discount,
+      campaignId: params.campaignId,
       type: params.type || 'Promo',
       deal: params.deal,
       startDate: params.startDate,
@@ -68,6 +71,10 @@ export class ClearanceDeal extends AggregateRoot<string> {
 
   get discount(): number {
     return this.props.discount;
+  }
+
+  get campaignId(): string | undefined {
+    return this.props.campaignId;
   }
 
   get type(): string {
@@ -115,12 +122,14 @@ export class ClearanceDeal extends AggregateRoot<string> {
     title?: string;
     productId?: string;
     discount?: number;
+    campaignId?: string;
     type?: string;
     deal?: ClearanceDealSource;
     startDate?: Date;
     endDate?: Date;
   }): void {
     if (params.title) this.props.title = params.title;
+    if (params.campaignId !== undefined) this.props.campaignId = params.campaignId;
     if (params.productId) this.props.productId = params.productId;
     if (params.discount !== undefined) {
       if (params.discount < 0 || params.discount > 100) {

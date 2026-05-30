@@ -6,6 +6,7 @@ export interface FeaturedDealRecord {
   productId: string;
   title: string;
   discount: number;
+  campaignId: string | null;
   dealType: string;
   startDate: Date;
   endDate: Date;
@@ -21,6 +22,7 @@ export class FeaturedDealMapper {
       productId: raw.productId,
       title: raw.title,
       discount: raw.discount,
+      campaignId: raw.campaignId || undefined,
       dealType: raw.dealType as any,
       startDate: raw.startDate,
       endDate: raw.endDate,
@@ -34,6 +36,7 @@ export class FeaturedDealMapper {
       productId: featuredDeal.productId,
       title: featuredDeal.title,
       discount: featuredDeal.discount,
+      campaignId: featuredDeal.campaignId || null,
       dealType: featuredDeal.dealType,
       startDate: featuredDeal.startDate,
       endDate: featuredDeal.endDate,

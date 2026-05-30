@@ -6,6 +6,7 @@ export interface ClearanceDealRecord {
   productId: string;
   title: string;
   discount: number;
+  campaignId: string | null;
   type: string;
   deal: string;
   startDate: Date;
@@ -22,6 +23,7 @@ export class ClearanceDealMapper {
       productId: raw.productId,
       title: raw.title,
       discount: raw.discount,
+      campaignId: raw.campaignId || undefined,
       type: raw.type,
       deal: raw.deal as any,
       startDate: raw.startDate,
@@ -36,6 +38,7 @@ export class ClearanceDealMapper {
       productId: clearanceDeal.productId,
       title: clearanceDeal.title,
       discount: clearanceDeal.discount,
+      campaignId: clearanceDeal.campaignId || null,
       type: clearanceDeal.type,
       deal: clearanceDeal.deal,
       startDate: clearanceDeal.startDate,

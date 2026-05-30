@@ -13,6 +13,7 @@ export interface CreateFeaturedDealInput {
   productId: string;
   title: string;
   discount: number;
+  campaignId?: string;
   dealType: string;
   startDate: string;
   endDate: string;
@@ -23,6 +24,7 @@ export interface UpdateFeaturedDealInput {
   productId?: string;
   title?: string;
   discount?: number;
+  campaignId?: string;
   dealType?: string;
   startDate?: string;
   endDate?: string;
@@ -54,6 +56,7 @@ export class AdminFeaturedDealService {
         productId: f.productId,
         title: f.title,
         discount: f.discount,
+        campaignId: f.campaignId,
         dealType: f.dealType,
         startDate: f.startDate,
         endDate: f.endDate,
@@ -78,6 +81,7 @@ export class AdminFeaturedDealService {
         productId: featuredDeal.productId,
         title: featuredDeal.title,
         discount: featuredDeal.discount,
+        campaignId: featuredDeal.campaignId,
         dealType: featuredDeal.dealType,
         startDate: featuredDeal.startDate,
         endDate: featuredDeal.endDate,
@@ -97,6 +101,7 @@ export class AdminFeaturedDealService {
       productId: input.productId,
       title: input.title,
       discount: input.discount,
+      campaignId: input.campaignId,
       dealType: input.dealType as any,
       startDate: new Date(input.startDate),
       endDate: new Date(input.endDate),
@@ -111,6 +116,7 @@ export class AdminFeaturedDealService {
         productId: featuredDeal.productId,
         title: featuredDeal.title,
         discount: featuredDeal.discount,
+        campaignId: featuredDeal.campaignId,
         dealType: featuredDeal.dealType,
         startDate: featuredDeal.startDate,
         endDate: featuredDeal.endDate,
@@ -130,6 +136,7 @@ export class AdminFeaturedDealService {
 
     if (input.title !== undefined) existing.updateDetails({ title: input.title });
     if (input.productId !== undefined) existing.updateDetails({ productId: input.productId });
+    if (input.campaignId !== undefined) existing.updateDetails({ campaignId: input.campaignId });
     if (input.discount !== undefined) existing.updateDetails({ discount: input.discount });
     if (input.dealType !== undefined) existing.updateDetails({ dealType: input.dealType as any });
     if (input.startDate !== undefined) existing.updateDetails({ startDate: new Date(input.startDate) });

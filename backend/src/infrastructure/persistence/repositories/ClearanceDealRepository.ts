@@ -78,6 +78,7 @@ export class ClearanceDealRepository implements IClearanceDealRepository {
           productId: persistence.productId,
           title: persistence.title,
           discount: persistence.discount,
+          campaignId: persistence.campaignId,
           type: persistence.type,
           deal: persistence.deal,
           startDate: persistence.startDate,

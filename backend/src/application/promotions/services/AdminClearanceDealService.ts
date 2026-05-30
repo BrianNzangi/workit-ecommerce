@@ -14,6 +14,7 @@ export interface CreateClearanceDealInput {
   productId: string;
   title: string;
   discount: number;
+  campaignId?: string;
   type?: string;
   deal: string;
   startDate: string;
@@ -25,6 +26,7 @@ export interface UpdateClearanceDealInput {
   productId?: string;
   title?: string;
   discount?: number;
+  campaignId?: string;
   type?: string;
   deal?: string;
   startDate?: string;
@@ -59,6 +61,7 @@ export class AdminClearanceDealService {
         productId: c.productId,
         title: c.title,
         discount: c.discount,
+        campaignId: c.campaignId,
         type: c.type,
         deal: c.deal,
         startDate: c.startDate,
@@ -84,6 +87,7 @@ export class AdminClearanceDealService {
         productId: clearanceDeal.productId,
         title: clearanceDeal.title,
         discount: clearanceDeal.discount,
+        campaignId: clearanceDeal.campaignId,
         type: clearanceDeal.type,
         deal: clearanceDeal.deal,
         startDate: clearanceDeal.startDate,
@@ -104,6 +108,7 @@ export class AdminClearanceDealService {
       productId: input.productId,
       title: input.title,
       discount: input.discount,
+      campaignId: input.campaignId,
       type: input.type,
       deal: input.deal as any,
       startDate: new Date(input.startDate),
@@ -119,6 +124,7 @@ export class AdminClearanceDealService {
         productId: clearanceDeal.productId,
         title: clearanceDeal.title,
         discount: clearanceDeal.discount,
+        campaignId: clearanceDeal.campaignId,
         type: clearanceDeal.type,
         deal: clearanceDeal.deal,
         startDate: clearanceDeal.startDate,
@@ -139,6 +145,7 @@ export class AdminClearanceDealService {
 
     if (input.title !== undefined) existing.updateDetails({ title: input.title });
     if (input.productId !== undefined) existing.updateDetails({ productId: input.productId });
+    if (input.campaignId !== undefined) existing.updateDetails({ campaignId: input.campaignId });
     if (input.discount !== undefined) existing.updateDetails({ discount: input.discount });
     if (input.type !== undefined) existing.updateDetails({ type: input.type });
     if (input.deal !== undefined) existing.updateDetails({ deal: input.deal as any });

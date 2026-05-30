@@ -87,6 +87,7 @@ export class FeaturedDealRepository implements IFeaturedDealRepository {
           productId: persistence.productId,
           title: persistence.title,
           discount: persistence.discount,
+          campaignId: persistence.campaignId,
           dealType: persistence.dealType,
           startDate: persistence.startDate,
           endDate: persistence.endDate,

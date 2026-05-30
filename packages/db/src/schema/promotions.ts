@@ -1,6 +1,7 @@
 import { pgTable, text, varchar, integer, boolean, timestamp, index, pgEnum } from "drizzle-orm/pg-core";
 import { products } from "./catalog.js";
 import { assets } from "./catalog.js";
+import { campaigns } from "./marketing.js";
 
 export const promotionStatusEnum = pgEnum("PromotionStatus", ["ACTIVE", "INACTIVE", "EXPIRED", "DRAFT"]);
 export const dealTypeEnum = pgEnum("DealType", ["PERCENTAGE", "FIXED_AMOUNT", "BOGO", "FREE_SHIPPING"]);
@@ -17,11 +18,13 @@ export const coupons = pgTable("Coupon", {
     startDate: timestamp("startDate").notNull(),
     endDate: timestamp("endDate").notNull(),
     description: text("description"),
+    campaignId: text("campaignId").references(() => campaigns.id, { onDelete: 'set null' }),
     status: promotionStatusEnum("status").default('DRAFT').notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 }, (t) => ({
     byCode: index("Coupon_code_idx").on(t.code),
+    byCampaign: index("Coupon_campaign_idx").on(t.campaignId),
     byStatus: index("Coupon_status_idx").on(t.status),
     byDateRange: index("Coupon_date_range_idx").on(t.startDate, t.endDate),
 }));
@@ -42,10 +45,12 @@ export const flashSales = pgTable("FlashSale", {
     discount: integer("discount").notNull(),
     startDate: timestamp("startDate").notNull(),
     endDate: timestamp("endDate").notNull(),
+    campaignId: text("campaignId").references(() => campaigns.id, { onDelete: 'set null' }),
     status: promotionStatusEnum("status").default('DRAFT').notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 }, (t) => ({
+    byCampaign: index("FlashSale_campaign_idx").on(t.campaignId),
     byStatus: index("FlashSale_status_idx").on(t.status),
     byDateRange: index("FlashSale_date_range_idx").on(t.startDate, t.endDate),
 }));
@@ -67,10 +72,12 @@ export const featuredDeals = pgTable("FeaturedDeal", {
     dealType: dealTypeEnum("dealType").notNull(),
     startDate: timestamp("startDate").notNull(),
     endDate: timestamp("endDate").notNull(),
+    campaignId: text("campaignId").references(() => campaigns.id, { onDelete: 'set null' }),
     status: promotionStatusEnum("status").default('DRAFT').notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 }, (t) => ({
+    byCampaign: index("FeaturedDeal_campaign_idx").on(t.campaignId),
     byProduct: index("FeaturedDeal_product_idx").on(t.productId),
     byStatus: index("FeaturedDeal_status_idx").on(t.status),
     byDateRange: index("FeaturedDeal_date_range_idx").on(t.startDate, t.endDate),
@@ -85,10 +92,12 @@ export const clearanceDeals = pgTable("ClearanceDeal", {
     deal: clearanceDealSourceEnum("deal").notNull(),
     startDate: timestamp("startDate").notNull(),
     endDate: timestamp("endDate").notNull(),
+    campaignId: text("campaignId").references(() => campaigns.id, { onDelete: 'set null' }),
     status: promotionStatusEnum("status").default('DRAFT').notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 }, (t) => ({
+    byCampaign: index("ClearanceDeal_campaign_idx").on(t.campaignId),
     byProduct: index("ClearanceDeal_product_idx").on(t.productId),
     byDeal: index("ClearanceDeal_deal_idx").on(t.deal),
     byStatus: index("ClearanceDeal_status_idx").on(t.status),

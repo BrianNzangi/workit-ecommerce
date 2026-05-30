@@ -36,6 +36,7 @@ export class FlashSaleProduct extends Entity<string> {
 export interface FlashSaleProps {
   title: string;
   discount: number;
+  campaignId?: string;
   startDate: Date;
   endDate: Date;
   status: PromotionStatus;
@@ -56,6 +57,7 @@ export class FlashSale extends AggregateRoot<string> {
     id: string;
     title: string;
     discount: number;
+    campaignId?: string;
     startDate: Date;
     endDate: Date;
     status?: PromotionStatus;
@@ -71,6 +73,7 @@ export class FlashSale extends AggregateRoot<string> {
     return new FlashSale(params.id, {
       title: params.title,
       discount: params.discount,
+      campaignId: params.campaignId,
       startDate: params.startDate,
       endDate: params.endDate,
       status: params.status || 'DRAFT',
@@ -137,13 +140,19 @@ export class FlashSale extends AggregateRoot<string> {
     this.props.updatedAt = new Date();
   }
 
+  get campaignId(): string | undefined {
+    return this.props.campaignId;
+  }
+
   updateDetails(params: {
     title?: string;
     discount?: number;
+    campaignId?: string;
     startDate?: Date;
     endDate?: Date;
   }): void {
     if (params.title) this.props.title = params.title;
+    if (params.campaignId !== undefined) this.props.campaignId = params.campaignId;
     if (params.discount !== undefined) {
       if (params.discount < 0 || params.discount > 100) {
         throw new Error('Discount must be between 0 and 100');

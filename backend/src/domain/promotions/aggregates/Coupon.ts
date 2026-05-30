@@ -39,6 +39,7 @@ export interface CouponProps {
   title: string;
   code?: string;
   bannerImageId?: string;
+  campaignId?: string;
   couponAmount: Money;
   minAmount: Money;
   userLimit: number;
@@ -64,6 +65,7 @@ export class Coupon extends AggregateRoot<string> {
     title: string;
     code?: string;
     bannerImageId?: string;
+    campaignId?: string;
     couponAmount: Money;
     minAmount: Money;
     userLimit: number;
@@ -87,6 +89,7 @@ export class Coupon extends AggregateRoot<string> {
       title: params.title,
       code: params.code,
       bannerImageId: params.bannerImageId,
+      campaignId: params.campaignId,
       couponAmount: params.couponAmount,
       minAmount: params.minAmount,
       userLimit: params.userLimit,
@@ -114,6 +117,10 @@ export class Coupon extends AggregateRoot<string> {
 
   get bannerImageId(): string | undefined {
     return this.props.bannerImageId;
+  }
+
+  get campaignId(): string | undefined {
+    return this.props.campaignId;
   }
 
   get couponAmount(): Money {
@@ -176,6 +183,7 @@ export class Coupon extends AggregateRoot<string> {
   updateDetails(params: {
     title?: string;
     bannerImageId?: string;
+    campaignId?: string;
     couponAmount?: Money;
     minAmount?: Money;
     userLimit?: number;
@@ -185,6 +193,7 @@ export class Coupon extends AggregateRoot<string> {
   }): void {
     if (params.title) this.props.title = params.title;
     if (params.bannerImageId !== undefined) this.props.bannerImageId = params.bannerImageId;
+    if (params.campaignId !== undefined) this.props.campaignId = params.campaignId;
     if (params.couponAmount) this.props.couponAmount = params.couponAmount;
     if (params.minAmount) this.props.minAmount = params.minAmount;
     if (params.userLimit !== undefined) this.props.userLimit = params.userLimit;

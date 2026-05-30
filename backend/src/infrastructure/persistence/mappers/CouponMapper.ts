@@ -7,6 +7,7 @@ export interface CouponRecord {
   title: string;
   code: string | null;
   bannerImageId: string | null;
+  campaignId: string | null;
   couponAmount: number;
   minAmount: number;
   userLimit: number;
@@ -43,6 +44,7 @@ export class CouponMapper {
       title: raw.title,
       code: raw.code || undefined,
       bannerImageId: raw.bannerImageId || undefined,
+      campaignId: raw.campaignId || undefined,
       couponAmount: Money.create(raw.couponAmount, 'KES'),
       minAmount: Money.create(raw.minAmount, 'KES'),
       userLimit: raw.userLimit,
@@ -60,6 +62,7 @@ export class CouponMapper {
       title: coupon.title,
       code: coupon.code || null,
       bannerImageId: coupon.bannerImageId || null,
+      campaignId: coupon.campaignId || null,
       couponAmount: coupon.couponAmount.amount,
       minAmount: coupon.minAmount.amount,
       userLimit: coupon.userLimit,

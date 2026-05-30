@@ -12,6 +12,7 @@ export interface FlashSaleListRequest {
 export interface CreateFlashSaleInput {
   title: string;
   discount: number;
+  campaignId?: string;
   startDate: string;
   endDate: string;
   status?: string;
@@ -21,6 +22,7 @@ export interface CreateFlashSaleInput {
 export interface UpdateFlashSaleInput {
   title?: string;
   discount?: number;
+  campaignId?: string;
   startDate?: string;
   endDate?: string;
   status?: string;
@@ -51,6 +53,7 @@ export class AdminFlashSaleService {
         id: f.id,
         title: f.title,
         discount: f.discount,
+        campaignId: f.campaignId,
         startDate: f.startDate,
         endDate: f.endDate,
         status: f.status,
@@ -75,6 +78,7 @@ export class AdminFlashSaleService {
         id: flashSale.id,
         title: flashSale.title,
         discount: flashSale.discount,
+        campaignId: flashSale.campaignId,
         startDate: flashSale.startDate,
         endDate: flashSale.endDate,
         status: flashSale.status,
@@ -93,6 +97,7 @@ export class AdminFlashSaleService {
       id,
       title: input.title,
       discount: input.discount,
+      campaignId: input.campaignId,
       startDate: new Date(input.startDate),
       endDate: new Date(input.endDate),
       status: (input.status ?? "DRAFT") as any,
@@ -108,6 +113,7 @@ export class AdminFlashSaleService {
         id: flashSale.id,
         title: flashSale.title,
         discount: flashSale.discount,
+        campaignId: flashSale.campaignId,
         startDate: flashSale.startDate,
         endDate: flashSale.endDate,
         status: flashSale.status,
@@ -126,6 +132,7 @@ export class AdminFlashSaleService {
 
     if (input.title !== undefined) existing.updateDetails({ title: input.title });
     if (input.discount !== undefined) existing.updateDetails({ discount: input.discount });
+    if (input.campaignId !== undefined) existing.updateDetails({ campaignId: input.campaignId });
     if (input.startDate !== undefined) existing.updateDetails({ startDate: new Date(input.startDate) });
     if (input.endDate !== undefined) existing.updateDetails({ endDate: new Date(input.endDate) });
     if (input.status !== undefined) existing.updateStatus(input.status as any);
