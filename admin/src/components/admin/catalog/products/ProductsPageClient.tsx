@@ -19,6 +19,12 @@ import { ProductFilters } from './list/ProductFilters';
 import { ProductPagination } from './list/ProductPagination';
 import { ImportExportDrawer } from './import/ImportExportDrawer';
 import type { AdminProduct } from '@/lib/products/product.types';
+import { CSRF_COOKIE_NAME, CSRF_HEADER_NAME, ensureCsrfToken, getCookieValue, getSessionUrl } from '@/lib/auth/csrf';
+
+const AUTH_SESSION_URL = getSessionUrl(
+    process.env.NEXT_PUBLIC_AUTH_BASE_PATH || '/api/auth',
+    process.env.NEXT_PUBLIC_AUTH_BASE_URL || process.env.NEXT_PUBLIC_ADMIN_BASE_URL || '',
+);
 
 interface CollectionNode {
     id: string;
@@ -291,8 +297,12 @@ export default function ProductsPageClient() {
 
         setDeleteLoading(true);
         try {
+            const csrfToken = (await ensureCsrfToken(AUTH_SESSION_URL)) || getCookieValue(CSRF_COOKIE_NAME);
             const response = await fetch(`/api/admin/products/${productToDelete.id}`, {
                 method: 'DELETE',
+                headers: {
+                    ...(csrfToken ? { [CSRF_HEADER_NAME]: csrfToken } : {}),
+                },
             });
 
             if (response.ok || response.status === 204) {
