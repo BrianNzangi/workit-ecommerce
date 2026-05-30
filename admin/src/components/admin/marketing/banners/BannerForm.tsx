@@ -14,7 +14,7 @@ import { BannerSaveCard } from './BannerSaveCard';
 import { BannerFormSkeleton } from './BannerFormSkeleton';
 
 const initialFormData: BannerFormData = {
-    name: '',
+    title: '',
     description: '',
     slug: '',
     position: 'HERO',
@@ -116,7 +116,7 @@ export function BannerForm({ mode = 'create', bannerId }: BannerFormProps) {
             }
 
             setFormData({
-                name: banner.name || '',
+                title: banner.title || '',
                 description: banner.description || '',
                 slug: banner.slug || '',
                 position: banner.position || 'HERO',
@@ -210,7 +210,7 @@ export function BannerForm({ mode = 'create', bannerId }: BannerFormProps) {
     };
 
     const validate = () => {
-        if (!formData.name.trim()) return 'Banner name is required.';
+        if (!formData.title.trim()) return 'Banner name is required.';
         return null;
     };
 
@@ -225,7 +225,7 @@ export function BannerForm({ mode = 'create', bannerId }: BannerFormProps) {
                 throw new Error(validationError);
             }
 
-            const slug = formData.slug.trim() || formData.name
+            const slug = formData.slug.trim() || formData.title
                 .toLowerCase()
                 .replace(/[^a-z0-9]+/g, '-')
                 .replace(/(^-|-$)/g, '');
@@ -251,7 +251,7 @@ export function BannerForm({ mode = 'create', bannerId }: BannerFormProps) {
 
             toast({
                 title: successTitle,
-                description: `${payload.name} was saved successfully.`,
+                description: `${payload.title} was saved successfully.`,
                 variant: 'success',
             });
             router.push('/admin/marketing/banners');

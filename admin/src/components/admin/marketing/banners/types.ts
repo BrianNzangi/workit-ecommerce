@@ -3,7 +3,7 @@ import { Asset } from '@/lib/services';
 export type BannerFormMode = 'create' | 'edit';
 
 export interface BannerFormData {
-    name: string;
+    title: string;
     description: string;
     slug: string;
     position: string;

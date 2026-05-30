@@ -23,7 +23,7 @@ import { BannerProductPicker } from './BannerProductPicker';
 import { findCollectionPath, getRootCollections } from '@/lib/banner/utils';
 
 interface BannerFormData {
-    name: string;
+    title: string;
     description: string;
     slug: string;
     collectionId: string;
@@ -171,8 +171,8 @@ export function BannerBasicInfo({
                     <Label htmlFor="banner-name">Name *</Label>
                     <Input
                         id="banner-name"
-                        value={formData.name}
-                        onChange={(e) => onChange({ name: e.target.value })}
+                        value={formData.title}
+                        onChange={(e) => onChange({ title: e.target.value })}
                         placeholder="e.g., Summer Sale Hero"
                         className="border-gray-200 focus-visible:ring-primary-200"
                         disabled={disabled}

@@ -3,7 +3,7 @@ export type Banner = {
     linkUrl: string | null;
     createdAt: string;
     updatedAt: string;
-    name: string;
+    title: string;
     slug: string;
     description?: string;
     enabled: boolean;
@@ -23,7 +23,7 @@ export type Banner = {
 };
 
 export type CreateBannerInput = {
-    name: string;
+    title: string;
     slug: string;
     description?: string | null;
     enabled?: boolean;

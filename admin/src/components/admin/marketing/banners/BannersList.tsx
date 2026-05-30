@@ -115,7 +115,7 @@ export function BannersList() {
         const normalized = searchTerm.trim().toLowerCase();
         if (normalized) {
             result = result.filter((banner) =>
-                banner.name.toLowerCase().includes(normalized) ||
+                banner.title.toLowerCase().includes(normalized) ||
                 banner.slug.toLowerCase().includes(normalized)
             );
         }
@@ -189,7 +189,7 @@ export function BannersList() {
             setBanners((previous) => previous.filter((item) => item.id !== deleteTarget.id));
             toast({
                 title: 'Banner deleted',
-                description: `${deleteTarget.name} has been removed.`,
+                description: `${deleteTarget.title} has been removed.`,
                 variant: 'success',
             });
             setDeleteTarget(null);
@@ -299,7 +299,7 @@ export function BannersList() {
                                                 {banner.desktopImage ? (
                                                     <img
                                                         src={getImageUrl(banner.desktopImage.preview || banner.desktopImage.source || '')}
-                                                        alt={banner.name}
+                                                        alt={banner.title}
                                                         className="h-full w-full object-cover"
                                                     />
                                                 ) : (
@@ -309,7 +309,7 @@ export function BannersList() {
                                         </td>
                                         <td className="px-4 py-3">
                                             <div>
-                                                <p className="text-sm font-medium text-gray-900">{banner.name}</p>
+                                                <p className="text-sm font-medium text-gray-900">{banner.title}</p>
                                                 <p className="text-xs text-gray-400">{banner.slug}</p>
                                             </div>
                                         </td>
@@ -433,7 +433,7 @@ export function BannersList() {
                         <DialogTitle>Delete banner?</DialogTitle>
                         <DialogDescription>
                             {deleteTarget
-                                ? `This will permanently delete "${deleteTarget.name}". This action cannot be undone.`
+                                ? `This will permanently delete "${deleteTarget.title}". This action cannot be undone.`
                                 : 'This action cannot be undone.'}
                         </DialogDescription>
                     </DialogHeader>
