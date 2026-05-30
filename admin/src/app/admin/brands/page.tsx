@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ProtectedRoute } from '@/components/login/ProtectedRoute';
 import { AdminLayout } from '@/components/admin/layout/AdminLayout';
 import { toast } from '@/hooks/use-toast';
+import { Pagination } from '@/components/ui/Pagination';
 import { BrandService } from '@/lib/services/brands/brand.service';
 import {
     Brand,
@@ -15,6 +16,8 @@ import {
     BrandsDeleteDialog,
     BrandsTable,
 } from '@/components/admin/catalog/brands';
+
+const ITEMS_PER_PAGE = 10;
 
 interface BrandToDelete {
     id: string;
@@ -28,6 +31,7 @@ export default function BrandsPage() {
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [brandToDelete, setBrandToDelete] = useState<BrandToDelete | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
 
     const fetchBrands = useCallback(async () => {
         try {
@@ -50,6 +54,10 @@ export default function BrandsPage() {
     useEffect(() => {
         fetchBrands();
     }, [fetchBrands]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm]);
 
     const openDeleteDialog = useCallback((brandId: string, brandName: string) => {
         setBrandToDelete({ id: brandId, name: brandName });
@@ -101,6 +109,13 @@ export default function BrandsPage() {
         );
     }, [brands, searchTerm]);
 
+    const totalPages = Math.max(1, Math.ceil(filteredBrands.length / ITEMS_PER_PAGE));
+    const safePage = Math.min(currentPage, totalPages);
+    const paginatedBrands = useMemo(() => {
+        const start = (safePage - 1) * ITEMS_PER_PAGE;
+        return filteredBrands.slice(start, start + ITEMS_PER_PAGE);
+    }, [filteredBrands, safePage]);
+
     const showStats = !loading && brands.length > 0;
     const showEmpty = !loading && brands.length === 0;
     const showNoResults = !loading && brands.length > 0 && filteredBrands.length === 0;
@@ -128,11 +143,19 @@ export default function BrandsPage() {
                         {showNoResults ? (
                             <BrandsEmptyState searchTerm={searchTerm} />
                         ) : (
-                            <BrandsTable
-                                brands={filteredBrands}
-                                searchTerm={searchTerm}
-                                onDelete={openDeleteDialog}
-                            />
+                            <>
+                                <BrandsTable
+                                    brands={paginatedBrands}
+                                    onDelete={openDeleteDialog}
+                                />
+                                <Pagination
+                                    currentPage={safePage}
+                                    totalPages={totalPages}
+                                    totalItems={filteredBrands.length}
+                                    itemsPerPage={ITEMS_PER_PAGE}
+                                    onPageChange={setCurrentPage}
+                                />
+                            </>
                         )}
                     </>
                 )}

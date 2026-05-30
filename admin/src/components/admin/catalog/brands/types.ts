@@ -5,6 +5,7 @@ export interface Brand {
     description: string | null;
     logoUrl: string | null;
     enabled: boolean;
+    showInHomepage: boolean;
     createdAt: string;
     _count?: {
         products: number;

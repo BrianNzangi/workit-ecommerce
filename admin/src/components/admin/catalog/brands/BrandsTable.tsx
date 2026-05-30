@@ -1,6 +1,5 @@
-import { useMemo } from 'react';
 import Link from 'next/link';
-import { Edit, Trash2, Package } from 'lucide-react';
+import { Edit, Trash2, Package, Check, X } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -17,31 +16,16 @@ import { Brand } from './types';
 
 interface BrandsTableProps {
     brands: Brand[];
-    searchTerm?: string;
     onDelete: (brandId: string, brandName: string) => void;
 }
 
-export function BrandsTable({ brands, searchTerm = '', onDelete }: BrandsTableProps) {
-    const filteredBrands = useMemo(() => {
-        const normalizedSearch = searchTerm.trim().toLowerCase();
-        if (!normalizedSearch) return brands;
-
-        return brands.filter(
-            (brand) =>
-                brand.name.toLowerCase().includes(normalizedSearch) ||
-                brand.slug.toLowerCase().includes(normalizedSearch) ||
-                (brand.description || '').toLowerCase().includes(normalizedSearch)
-        );
-    }, [brands, searchTerm]);
-
-    if (filteredBrands.length === 0) {
+export function BrandsTable({ brands, onDelete }: BrandsTableProps) {
+    if (brands.length === 0) {
         return (
             <Card className="border-gray-200">
                 <CardContent className="py-12 text-center">
                     <Package className="mx-auto mb-2 h-8 w-8 text-gray-300" />
-                    <p className="text-sm text-gray-500">
-                        {searchTerm ? 'No brands match your search' : 'No brands found'}
-                    </p>
+                    <p className="text-sm text-gray-500">No brands found</p>
                 </CardContent>
             </Card>
         );
@@ -54,14 +38,16 @@ export function BrandsTable({ brands, searchTerm = '', onDelete }: BrandsTablePr
                     <TableHeader className="bg-gray-50">
                         <TableRow>
                             <TableHead>Brand</TableHead>
-                            <TableHead className="w-40">Slug</TableHead>
-                            <TableHead className="w-24 text-center">Products</TableHead>
-                            <TableHead className="w-24 text-center">Status</TableHead>
+                            <TableHead className="w-32">Slug</TableHead>
+                            <TableHead className="w-20 text-center">Products</TableHead>
+                            <TableHead className="w-24 text-center">Featured Home</TableHead>
+                            <TableHead className="w-28 text-center">Featured Collections</TableHead>
+                            <TableHead className="w-20 text-center">Status</TableHead>
                             <TableHead className="w-24 text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {filteredBrands.map((brand) => (
+                        {brands.map((brand) => (
                             <TableRow key={brand.id} className="group">
                                 <TableCell>
                                     <div className="flex items-center gap-3">
@@ -101,6 +87,25 @@ export function BrandsTable({ brands, searchTerm = '', onDelete }: BrandsTablePr
                                     <span className="inline-flex items-center justify-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
                                         {brand._count?.products || 0}
                                     </span>
+                                </TableCell>
+
+                                <TableCell className="text-center">
+                                    {brand.showInHomepage ? (
+                                        <Check className="mx-auto h-4 w-4 text-green-600" />
+                                    ) : (
+                                        <X className="mx-auto h-4 w-4 text-gray-300" />
+                                    )}
+                                </TableCell>
+
+                                <TableCell className="text-center">
+                                    {brand.brandCollections && brand.brandCollections.length > 0 ? (
+                                        <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+                                            <Check className="h-3 w-3" />
+                                            {brand.brandCollections.length}
+                                        </span>
+                                    ) : (
+                                        <X className="mx-auto h-4 w-4 text-gray-300" />
+                                    )}
                                 </TableCell>
 
                                 <TableCell className="text-center">
