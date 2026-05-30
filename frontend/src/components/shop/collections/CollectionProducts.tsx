@@ -360,7 +360,7 @@ export default function CollectionProducts({
           <aside className="hidden md:block bg-white rounded-md border-2 border-gray-200">
             <div className="sticky top-4 p-4">
               <FilterSidebar
-                selectedCategory={filterState.category ?? category?.id ?? null}
+                selectedCategory={filterState.category ?? (category ? String((category as unknown as Record<string, unknown>).id ?? '') : null)}
                 collectionSlug={selectedCategorySlug}
                 onFilterChange={handleFilterChange}
               />
@@ -370,7 +370,7 @@ export default function CollectionProducts({
           <CollectionMobileFilterDrawer
             open={mobileFiltersOpen}
             onClose={() => setMobileFiltersOpen(false)}
-            selectedCategory={filterState.category ?? category?.id ?? null}
+            selectedCategory={filterState.category ?? (category ? String((category as unknown as Record<string, unknown>).id ?? '') : null)}
             collectionSlug={selectedCategorySlug}
             onFilterChange={handleFilterChange}
           />

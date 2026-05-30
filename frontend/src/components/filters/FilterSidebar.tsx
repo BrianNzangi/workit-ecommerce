@@ -70,7 +70,7 @@ export default function FilterSidebar({
 
     const findPath = (tree: Category[], target: string | number): (string | number)[] => {
       for (const node of tree) {
-        if (node.id === target) return [];
+        if (String(node.id) === String(target)) return [];
         if (node.children) {
           const found = findPath(node.children, target);
           if (found !== null) return [node.id, ...found];
@@ -137,7 +137,7 @@ export default function FilterSidebar({
     priceRange.min === min && priceRange.max === max;
 
   const renderCategoryNode = (cat: Category, level = 0) => {
-    const isSelected = selectedCategory === cat.id;
+    const isSelected = selectedCategory != null && String(selectedCategory) === String(cat.id);
     const hasChildren = cat.children && cat.children.length > 0;
     const isExpanded = expandedCategories.has(cat.id);
 
