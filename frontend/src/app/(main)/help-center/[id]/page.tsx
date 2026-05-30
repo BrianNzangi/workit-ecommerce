@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import he from "he";
+import { sanitizeHtml } from "@/lib/utils/sanitize";
 import { ArrowLeft, Clock } from "lucide-react";
 
 interface Article {
@@ -106,7 +107,7 @@ const ArticlePage = () => {
 
         <div
           className="prose prose-gray max-w-none prose-headings:text-gray-900 prose-headings:font-bold prose-p:text-gray-600 prose-p:leading-relaxed prose-ul:text-gray-600 prose-ol:text-gray-600 prose-li:leading-relaxed prose-strong:text-gray-900"
-          dangerouslySetInnerHTML={{ __html: he.decode(article.content) }}
+          dangerouslySetInnerHTML={{ __html: sanitizeHtml(he.decode(article.content)) }}
         />
       </div>
     </main>

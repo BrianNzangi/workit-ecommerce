@@ -1,11 +1,10 @@
-import React from "react"
+import { sanitizeHtml } from "@/lib/utils/sanitize"
 
 interface ProductFeaturesProps {
   shortDescription: string
 }
 
 export default function ProductFeatures({ shortDescription }: ProductFeaturesProps) {
-  // If no short description, don't render anything
   if (!shortDescription || shortDescription.trim() === '') {
     return null
   }
@@ -17,7 +16,7 @@ export default function ProductFeatures({ shortDescription }: ProductFeaturesPro
       </h2>
       <div
         className="prose prose-gray max-w-none text-gray-700 leading-relaxed"
-        dangerouslySetInnerHTML={{ __html: shortDescription }}
+        dangerouslySetInnerHTML={{ __html: sanitizeHtml(shortDescription) }}
       />
     </section>
   )

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ChevronDown } from 'lucide-react';
 import he from 'he';
+import { sanitizeHtml } from '@/lib/utils/sanitize';
 
 interface PageData {
   id: number;
@@ -405,7 +406,7 @@ export default function PolicyPage({ slug }: PolicyPageProps) {
             <h1 className="text-3xl font-bold mb-6">{he.decode(pageData.title)}</h1>
             <div
               className="prose prose-sm md:prose-base max-w-none text-gray-700"
-              dangerouslySetInnerHTML={{ __html: pageData.content }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(pageData.content) }}
             />
           </div>
         </div>

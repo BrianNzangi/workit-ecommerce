@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { useBlogs } from '@/hooks/useBlogs';
 import Image from 'next/image';
+import { sanitizeHtml } from '@/lib/utils/sanitize';
 
 interface BlogPostClientProps {
   slug: string;
@@ -83,7 +84,7 @@ export default function BlogPostClient({ slug }: BlogPostClientProps) {
 
               <div
                 className="prose prose-lg max-w-none"
-                dangerouslySetInnerHTML={{ __html: blog.content || '' }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(blog.content || '') }}
               />
             </article>
           </div>

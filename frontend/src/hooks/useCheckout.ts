@@ -208,17 +208,14 @@ export const useCheckout = (user: User) => {
 
     const sessionId = useCartStore.getState().sessionId;
 
-    const csrfPromise = ensureCsrfToken().catch(() => null);
-    const csrfTimeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000));
-    const csrfToken = await Promise.race([csrfPromise, csrfTimeout]);
+    const csrfToken = await ensureCsrfToken().catch(() => null);
+    if (!csrfToken) throw new Error("CSRF token unavailable - cannot place order securely. Please refresh and try again.");
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       ...(sessionId ? { "x-guest-id": sessionId } : {}),
     };
-    if (csrfToken) {
-      headers[CSRF_HEADER_NAME] = csrfToken;
-    }
+    headers[CSRF_HEADER_NAME] = csrfToken;
 
     const controller = new AbortController();
     const timeoutMs = 75000;
@@ -313,7 +310,10 @@ export const useCheckout = (user: User) => {
             reject(new Error("Payment popup closed"));
           },
           callback: (response: PaystackResponse) => {
-            window.location.href = `/checkout/success?trxref=${response.trxref}&reference=${response.reference}&orderId=${order.id}`;
+            const trxref = encodeURIComponent(String(response.trxref || ''));
+            const ref = encodeURIComponent(String(response.reference || ''));
+            const oid = encodeURIComponent(String(order.id));
+            window.location.href = `/checkout/success?trxref=${trxref}&reference=${ref}&orderId=${oid}`;
             resolve();
           },
         };

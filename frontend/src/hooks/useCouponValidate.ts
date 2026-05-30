@@ -24,8 +24,9 @@ interface DiscountData {
 
 async function validateCoupon(payload: CouponPayload): Promise<DiscountData> {
     const csrfToken = await ensureCsrfToken();
+    if (!csrfToken) throw new Error("CSRF token unavailable");
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (csrfToken) headers[CSRF_HEADER_NAME] = csrfToken;
+    headers[CSRF_HEADER_NAME] = csrfToken;
 
     const res = await fetch('/api/coupons/validate', {
         method: 'POST',

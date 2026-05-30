@@ -5,6 +5,7 @@ import Link from "next/link"
 import SectionContainer from "@/components/layout/SectionContainer"
 import { Breadcrumb, Category } from "@/utils/breadcrumbs"
 import he from "he"
+import { sanitizeHtml } from "@/lib/utils/sanitize"
 import ProductMediaColumn from "@/components/product/ProductMediaColumn"
 import ProductInfoColumn from "@/components/product/ProductInfoColumn"
 import ProductPurchaseColumn from "@/components/product/ProductPurchaseColumn"
@@ -143,7 +144,7 @@ export default function ProductPage({
             <div
               className="prose prose-sm max-w-none text-secondary-700 [&>p]:mb-3 [&>ul]:mb-5 [&>ol]:mb-5 [&>h1]:mb-4 [&>h2]:mb-4 [&>h3]:mb-4 [&>li]:mb-1.5 [&_a]:text-primary-900 [&_a]:underline [&_a:hover]:text-[#e04500]"
               dangerouslySetInnerHTML={{
-                __html: he.decode(product.description!.trim()),
+                __html: sanitizeHtml(he.decode(product.description!.trim())),
               }}
             />
           </section>

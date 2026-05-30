@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ChevronRight, Home } from 'lucide-react';
 import SectionContainer from '@/components/layout/SectionContainer';
+import { sanitizeHtml } from '@/lib/utils/sanitize';
 import { SITE_CONFIG } from '@/lib/meta/meta';
 
 export const metadata: Metadata = {
@@ -76,7 +77,7 @@ export default async function AboutWorkitPage() {
               </h1>
               <div
                 className="prose prose-sm md:prose-base max-w-none text-gray-700 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:text-secondary-900 [&>h2]:mt-10 [&>h2]:mb-4 [&>h3]:text-lg [&>h3]:font-semibold [&>h3]:text-secondary-900 [&>p]:leading-relaxed [&>p]:mb-5 [&>ul]:mb-6 [&>ol]:mb-6 [&>li]:mb-2 [&_a]:text-primary-900 [&_a]:underline [&_a:hover]:text-[#e04500] [&_img]:rounded-lg"
-                dangerouslySetInnerHTML={{ __html: pageData.content }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(pageData.content) }}
               />
             </>
           ) : (

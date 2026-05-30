@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { Heart, Share2, MessageCircle } from "lucide-react"
 import he from "he"
+import { sanitizeHtml } from "@/lib/utils/sanitize"
 import toast from "react-hot-toast"
 import type { Product } from "@/types/product"
 
@@ -123,7 +124,7 @@ export default function ProductInfoColumn({ product }: ProductInfoColumnProps) {
           <div
             className="prose prose-xs max-w-none text-secondary-700 [&>p]:mb-2 [&>ul]:mb-4 [&>ol]:mb-4 [&>h1]:mb-3 [&>h2]:mb-3 [&>h3]:mb-3 [&>li]:mb-1 [&_a]:text-primary-900 [&_a]:underline [&_a:hover]:text-[#e04500]"
             dangerouslySetInnerHTML={{
-              __html: he.decode(product.short_description!.trim()),
+              __html: sanitizeHtml(he.decode(product.short_description!.trim())),
             }}
           />
         </section>

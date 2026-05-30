@@ -58,7 +58,7 @@ const generateSessionId = () => {
 const persistGuestCookie = (sessionId: string | null) => {
   if (!sessionId || typeof document === 'undefined') return;
   const maxAge = 60 * 60 * 24 * 30; // 30 days
-  const secure = typeof location !== 'undefined' && location.protocol === 'https:';
+  const secure = typeof location !== 'undefined' && (location.protocol === 'https:' || location.hostname !== 'localhost');
   document.cookie = [
     `guest_id=${sessionId}`,
     'Path=/',
@@ -80,9 +80,8 @@ const getHeaders = (sessionId: string | null) => {
 const getMutationHeaders = async (sessionId: string | null) => {
   const headers = getHeaders(sessionId);
   const csrfToken = await ensureCsrfToken();
-  if (csrfToken) {
-    headers[CSRF_HEADER_NAME] = csrfToken;
-  }
+  if (!csrfToken) throw new Error("CSRF token unavailable");
+  headers[CSRF_HEADER_NAME] = csrfToken;
   return headers;
 };
 

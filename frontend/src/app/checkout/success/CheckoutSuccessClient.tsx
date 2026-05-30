@@ -30,7 +30,7 @@ export default function CheckoutSuccessClient() {
       try {
         console.log('[CheckoutSuccess] Calling verify endpoint...');
         // Verify payment with Paystack API route
-        const response = await fetch(`/api/paystack/verify?reference=${reference || trxRef}&orderId=${orderId}`, {
+        const response = await fetch(`/api/paystack/verify?reference=${encodeURIComponent(reference || trxRef || '')}&orderId=${encodeURIComponent(orderId)}`, {
           method: 'GET',
         });
 

@@ -45,8 +45,8 @@ const getCookieValue = (name: string) => {
 
 const setCookieValue = (name: string, value: string) => {
     if (typeof document === "undefined") return;
-    const secure = typeof window !== "undefined" && window.location.protocol === "https:";
-    document.cookie = `${name}=${encodeURIComponent(value)}; path=/; samesite=lax${secure ? "; secure" : ""}`;
+    const secure = typeof window !== "undefined" && (window.location.protocol === "https:" || window.location.hostname !== "localhost");
+    document.cookie = `${name}=${encodeURIComponent(value)}; path=/; samesite=strict${secure ? "; secure" : ""}`;
 };
 
 const generateToken = () => {
@@ -55,7 +55,7 @@ const generateToken = () => {
         crypto.getRandomValues(bytes);
         return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
     }
-    return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    throw new Error("Crypto API unavailable - cannot generate secure token");
 };
 
 const getSessionUrl = () => {
@@ -89,10 +89,7 @@ const ensureCsrfToken = async () => {
             });
     }
     const token = await csrfRefreshPromise;
-    if (token) return token;
-    const fallback = generateToken();
-    setCookieValue(CSRF_COOKIE_NAME, fallback);
-    return fallback;
+    return token;
 };
 
 export const authClient = createAuthClient({
@@ -105,7 +102,7 @@ export const authClient = createAuthClient({
             if (SAFE_METHODS.has(method)) return;
 
             const token = (await ensureCsrfToken()) || getCookieValue(CSRF_COOKIE_NAME);
-            if (!token) return;
+            if (!token) throw new Error("CSRF token unavailable");
 
             const headers = context.headers instanceof Headers
                 ? context.headers

@@ -35,7 +35,7 @@ const getCookieValue = (key: string) => {
 const setCookieValue = (key: string, value: string) => {
   if (typeof document === "undefined") return;
 
-  const secure = window.location.protocol === "https:";
+  const secure = window.location.protocol === "https:" || window.location.hostname !== "localhost";
   document.cookie = [
     `${key}=${encodeURIComponent(value)}`,
     "Path=/",
