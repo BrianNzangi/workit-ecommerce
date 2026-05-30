@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { ChevronDown, Search, X, SlidersHorizontal } from 'lucide-react';
 import he from 'he';
 import { useFilterData } from '@/hooks/useCollections';
@@ -48,6 +49,7 @@ export default function FilterSidebar({
   collectionSlug,
   onFilterChange,
 }: FilterSidebarProps) {
+  const router = useRouter();
   const { data: filterData, isLoading: loading } = useFilterData(collectionSlug);
   const categories = filterData?.categories || [];
   const brands = filterData?.brands || [];
@@ -148,7 +150,7 @@ export default function FilterSidebar({
             if (hasChildren) {
               toggleCategory(cat.id);
             }
-            onFilterChange({ category: cat.id });
+            router.push(`/shop/collections/${cat.slug}`);
           }}
           className={`w-full flex items-center justify-between px-2 py-1.5 text-sm rounded transition-colors ${
             isSelected
@@ -174,16 +176,7 @@ export default function FilterSidebar({
     );
   };
 
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        <div className="h-6 w-20 bg-gray-100 rounded animate-pulse" />
-        {[1, 2, 3].map(i => (
-          <div key={i} className="h-4 bg-gray-100 rounded animate-pulse" style={{ width: `${60 + i * 10}%` }} />
-        ))}
-      </div>
-    );
-  }
+  if (loading) return null;
 
   return (
     <div className="space-y-6">
