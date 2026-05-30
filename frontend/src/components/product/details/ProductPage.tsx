@@ -14,6 +14,7 @@ import ProductInfoColumn from "@/components/product/details/ProductInfoColumn"
 import ProductPurchaseColumn from "@/components/product/details/ProductPurchaseColumn"
 import { Product } from "@/types/product"
 import { trackMetaEvent } from "@/lib/meta/meta-browser"
+import { trackView } from "@/lib/analytics/actions"
 
 export default function ProductPage({
   product,
@@ -89,7 +90,8 @@ export default function ProductPage({
         content_name: product.name,
       },
     })
-  }, [cartPrice, product.id, product.name])
+    void trackView(product.slug || product.id)
+  }, [cartPrice, product.id, product.name, product.slug])
 
   return (
     <main className="bg-white font-sans">

@@ -77,7 +77,7 @@ export default function ProductInfoColumn({ product }: ProductInfoColumnProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-2xl font-bold leading-[1.2] text-secondary-900">
+      <h1 className="text-xl lg:text-2xl font-bold leading-6 text-secondary-900">
         {product.name}
       </h1>
 
@@ -120,7 +120,7 @@ export default function ProductInfoColumn({ product }: ProductInfoColumnProps) {
       </div>
 
       {product.short_description && (
-        <section className="border-t border-gray-200 pt-2">
+        <section className="border-t border-gray-200">
           <div
             className="prose prose-xs max-w-none text-secondary-700 [&>p]:mb-2 [&>ul]:mb-4 [&>ol]:mb-4 [&>h1]:mb-3 [&>h2]:mb-3 [&>h3]:mb-3 [&>li]:mb-1 [&_a]:text-primary-900 [&_a]:underline [&_a:hover]:text-[#e04500]"
             dangerouslySetInnerHTML={{

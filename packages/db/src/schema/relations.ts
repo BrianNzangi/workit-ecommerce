@@ -5,6 +5,7 @@ import * as identity from "./identity.js";
 import * as fulfillment from "./fulfillment.js";
 import * as cart from "./cart.js";
 import * as promotions from "./promotions.js";
+import * as analytics from "./analytics.js";
 
 // Catalog Relations
 export const productsRelations = relations(catalog.products, ({ many, one }) => ({
@@ -339,4 +340,15 @@ export const clearanceDealsRelations = relations(promotions.clearanceDeals, ({ o
         fields: [promotions.clearanceDeals.productId],
         references: [catalog.products.id],
     }),
+}));
+
+export const productViewsRelations = relations(analytics.productViews, ({ one }) => ({
+    product: one(catalog.products, {
+        fields: [analytics.productViews.productId],
+        references: [catalog.products.id],
+    }),
+}));
+
+export const productsToViewsRelations = relations(catalog.products, ({ many }) => ({
+    views: many(analytics.productViews),
 }));

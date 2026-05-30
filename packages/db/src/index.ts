@@ -10,6 +10,7 @@ export * from "./schema/fulfillment.js";
 export * from "./schema/settings.js";
 export * from "./schema/cart.js";
 export * from "./schema/promotions.js";
+export * from "./schema/analytics.js";
 export * from "./schema/relations.js";
 
 // IMPORTANT: Also export everything as a 'schema' namespace
@@ -22,6 +23,7 @@ import * as fulfillment from "./schema/fulfillment.js";
 import * as settings from "./schema/settings.js";
 import * as cart from "./schema/cart.js";
 import * as promotions from "./schema/promotions.js";
+import * as analytics from "./schema/analytics.js";
 import * as relations from "./schema/relations.js";
 
 export const schema = {
@@ -33,6 +35,7 @@ export const schema = {
     ...settings,
     ...cart,
     ...promotions,
+    ...analytics,
     ...relations
 };
 

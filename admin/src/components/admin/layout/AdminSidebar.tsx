@@ -213,6 +213,17 @@ const menuSections: MenuSection[] = [
                 href: '/admin/marketing/banners',
                 icon: Image,
             },
+            {
+                label: 'Analytics',
+                icon: BarChart3,
+                children: [
+                    {
+                        label: 'Product Views',
+                        href: '/admin/analytics/views',
+                        icon: null,
+                    },
+                ],
+            },
         ],
     },
     {

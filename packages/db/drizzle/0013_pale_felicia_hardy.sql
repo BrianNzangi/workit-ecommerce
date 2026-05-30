@@ -1,0 +1,1 @@
+ALTER TABLE "Brand" ADD COLUMN "showInHomepage" boolean DEFAULT false NOT NULL;

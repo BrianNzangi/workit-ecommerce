@@ -1,6 +1,7 @@
 import { FastifyPluginAsync } from "fastify";
 import { db, schema, and, eq, or, ilike, desc, count, isNull, inArray, asc, isNotNull, gt, gte, lte, sql } from "../../../../lib/db.js";
 import { z } from "zod";
+import crypto from "node:crypto";
 import { productSearchService } from "../../../../services/search/product-search.service.js";
 import { buildCacheKey } from "../../../../lib/cache.js";
 import { enrichProductCampaigns, enrichProductsWithCampaigns, normalizeCampaignDate } from "../../../../lib/product-campaigns.js";
@@ -26,7 +27,7 @@ const productsQuerySchema = z.object({
     inStock: z.coerce.boolean().optional(),
     minPrice: z.coerce.number().optional(),
     maxPrice: z.coerce.number().optional(),
-    sortBy: z.enum(["popularity", "price_asc", "price_desc"]).optional().default("popularity"),
+    sortBy: z.enum(["popularity", "price_asc", "price_desc", "sales"]).optional().default("popularity"),
 });
 
 const bannersQuerySchema = z.object({
@@ -276,95 +277,206 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
         const totalPages = Math.max(1, Math.ceil(total / parsedLimit));
         const currentPage = Math.floor(parsedOffset / parsedLimit) + 1;
 
-        const orderBy =
-            sortBy === "price_asc"
-                ? [asc(schema.products.salePrice), asc(schema.products.createdAt)]
-                : sortBy === "price_desc"
-                    ? [desc(schema.products.salePrice), desc(schema.products.createdAt)]
-                    : [desc(schema.products.createdAt)];
+        const REVENUE_STATES_FOR_SALES = ["PAYMENT_SETTLED", "SHIPPED", "DELIVERED"] as const;
 
-        const results = await db.query.products.findMany({
-            where: whereClause,
-            limit: parsedLimit,
-            offset: parsedOffset,
-            orderBy,
-            columns: {
-                id: true,
-                name: true,
-                slug: true,
-                salePrice: true,
-                originalPrice: true,
-                stockOnHand: true,
-                condition: true,
-                createdAt: true,
-                updatedAt: true,
-            },
-            with: {
-                assets: {
-                    columns: {
-                        id: true,
-                        productId: true,
-                        assetId: true,
-                        sortOrder: true,
-                        featured: true,
-                    },
-                    with: {
-                        asset: {
-                            columns: {
-                                id: true,
-                                name: true,
-                                source: true,
-                                preview: true,
-                            },
-                        },
-                    },
-                },
-                brand: {
+        let results: any[];
+        if (sortBy === "sales") {
+            const salesRows = await db
+                .select({
+                    productId: schema.products.id,
+                    totalSold: sql<number>`coalesce(sum(${schema.orderLines.quantity}), 0)`,
+                })
+                .from(schema.products)
+                .leftJoin(schema.orderLines, eq(schema.products.id, schema.orderLines.productId))
+                .leftJoin(schema.orders, eq(schema.orderLines.orderId, schema.orders.id))
+                .where(and(
+                    ...whereClauses,
+                    or(
+                        isNull(schema.orders.state),
+                        inArray(schema.orders.state, REVENUE_STATES_FOR_SALES as unknown as typeof schema.orders.state),
+                    ),
+                ))
+                .groupBy(schema.products.id)
+                .orderBy(desc(sql`coalesce(sum(${schema.orderLines.quantity}), 0)`))
+                .limit(parsedLimit)
+                .offset(parsedOffset);
+            const ids = salesRows.map((r: any) => r.productId);
+            if (ids.length === 0) {
+                results = [];
+            } else {
+                const unordered = await db.query.products.findMany({
+                    where: inArray(schema.products.id, ids),
                     columns: {
                         id: true,
                         name: true,
                         slug: true,
-                    },
-                },
-                shippingMethod: {
-                    columns: {
-                        id: true,
-                        code: true,
-                        name: true,
-                        description: true,
-                        isExpress: true,
-                    },
-                },
-                campaignProducts: {
-                    columns: {
-                        id: true,
-                        campaignId: true,
-                        productId: true,
-                        sortOrder: true,
+                        salePrice: true,
+                        originalPrice: true,
+                        stockOnHand: true,
+                        condition: true,
+                        createdAt: true,
+                        updatedAt: true,
                     },
                     with: {
-                        campaign: {
+                        assets: {
+                            columns: {
+                                id: true,
+                                productId: true,
+                                assetId: true,
+                                sortOrder: true,
+                                featured: true,
+                            },
+                            with: {
+                                asset: {
+                                    columns: {
+                                        id: true,
+                                        name: true,
+                                        source: true,
+                                        preview: true,
+                                    },
+                                },
+                            },
+                        },
+                        brand: {
                             columns: {
                                 id: true,
                                 name: true,
                                 slug: true,
-                                type: true,
-                                status: true,
-                                startDate: true,
-                                endDate: true,
-                                discountType: true,
-                                discountValue: true,
-                                couponCode: true,
-                                minPurchaseAmount: true,
-                                maxDiscountAmount: true,
-                                usageLimit: true,
-                                usagePerCustomer: true,
+                            },
+                        },
+                        shippingMethod: {
+                            columns: {
+                                id: true,
+                                code: true,
+                                name: true,
+                                description: true,
+                                isExpress: true,
+                            },
+                        },
+                        campaignProducts: {
+                            columns: {
+                                id: true,
+                                campaignId: true,
+                                productId: true,
+                                sortOrder: true,
+                            },
+                            with: {
+                                campaign: {
+                                    columns: {
+                                        id: true,
+                                        name: true,
+                                        slug: true,
+                                        type: true,
+                                        status: true,
+                                        startDate: true,
+                                        endDate: true,
+                                        discountType: true,
+                                        discountValue: true,
+                                        couponCode: true,
+                                        minPurchaseAmount: true,
+                                        maxDiscountAmount: true,
+                                        usageLimit: true,
+                                        usagePerCustomer: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                });
+                const idOrder = new Map(ids.map((id: string, i: number) => [id, i]));
+                results = unordered.sort((a: any, b: any) => Number(idOrder.get(a.id) ?? 0) - Number(idOrder.get(b.id) ?? 0));
+            }
+        } else {
+            const orderBy =
+                sortBy === "price_asc"
+                    ? [asc(schema.products.salePrice), asc(schema.products.createdAt)]
+                    : sortBy === "price_desc"
+                        ? [desc(schema.products.salePrice), desc(schema.products.createdAt)]
+                        : [desc(schema.products.createdAt)];
+
+            results = await db.query.products.findMany({
+                where: whereClause,
+                limit: parsedLimit,
+                offset: parsedOffset,
+                orderBy,
+                columns: {
+                    id: true,
+                    name: true,
+                    slug: true,
+                    salePrice: true,
+                    originalPrice: true,
+                    stockOnHand: true,
+                    condition: true,
+                    createdAt: true,
+                    updatedAt: true,
+                },
+                with: {
+                    assets: {
+                        columns: {
+                            id: true,
+                            productId: true,
+                            assetId: true,
+                            sortOrder: true,
+                            featured: true,
+                        },
+                        with: {
+                            asset: {
+                                columns: {
+                                    id: true,
+                                    name: true,
+                                    source: true,
+                                    preview: true,
+                                },
+                            },
+                        },
+                    },
+                    brand: {
+                        columns: {
+                            id: true,
+                            name: true,
+                            slug: true,
+                        },
+                    },
+                    shippingMethod: {
+                        columns: {
+                            id: true,
+                            code: true,
+                            name: true,
+                            description: true,
+                            isExpress: true,
+                        },
+                    },
+                    campaignProducts: {
+                        columns: {
+                            id: true,
+                            campaignId: true,
+                            productId: true,
+                            sortOrder: true,
+                        },
+                        with: {
+                            campaign: {
+                                columns: {
+                                    id: true,
+                                    name: true,
+                                    slug: true,
+                                    type: true,
+                                    status: true,
+                                    startDate: true,
+                                    endDate: true,
+                                    discountType: true,
+                                    discountValue: true,
+                                    couponCode: true,
+                                    minPurchaseAmount: true,
+                                    maxDiscountAmount: true,
+                                    usageLimit: true,
+                                    usagePerCustomer: true,
+                                },
                             },
                         },
                     },
                 },
-            }
-        });
+            });
+        }
         const normalizedResults = enrichProductsWithCampaigns(results, { onlyActive: true });
         const payload = {
             products: normalizedResults.map(serializeProductListItem),
@@ -454,6 +566,33 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
         reply.header("x-cache", "MISS");
         reply.header("Cache-Control", `public, max-age=${TTL.productDetail}`);
         return payload;
+    });
+
+    // Track product view
+    fastify.post("/products/:idOrSlug/view", {
+        schema: {
+            tags: ["Catalog"],
+            params: z.object({
+                idOrSlug: z.string()
+            })
+        },
+        preHandler: [fastify.publicRateLimit],
+    }, async (request, reply) => {
+        const { idOrSlug } = request.params as { idOrSlug: string };
+        const product = await db.query.products.findFirst({
+            where: or(eq(schema.products.id, idOrSlug), eq(schema.products.slug, idOrSlug)),
+            columns: { id: true },
+        });
+        if (!product) return reply.status(404).send({ message: "Product not found" });
+
+        const sessionId = (request.cookies?.["session_id"]) || "anonymous";
+        const viewId = crypto.randomUUID();
+        await db.insert(schema.productViews).values({
+            id: viewId,
+            productId: product.id,
+            sessionId,
+        });
+        return { success: true };
     });
 
     // Brands

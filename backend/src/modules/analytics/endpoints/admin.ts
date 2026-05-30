@@ -400,6 +400,59 @@ export const analyticsAdminRoutes: FastifyPluginAsync = async (fastify) => {
         const overview = await buildDashboardOverview(Number(limit));
         return { orders: overview.recentOrders };
     });
+
+    fastify.get("/product-views", async (request) => {
+        const query = request.query as { days?: number; limit?: number };
+        const days = Number(query.days) || 30;
+        const limit = Number(query.limit) || 20;
+        const since = new Date(Date.now() - days * MS_PER_DAY);
+
+        const rows = await db
+            .select({
+                productId: schema.productViews.productId,
+                viewCount: sql<number>`count(*)::int`,
+                productName: schema.products.name,
+                productSlug: schema.products.slug,
+                productImage: schema.assets.preview,
+            })
+            .from(schema.productViews)
+            .innerJoin(schema.products, eq(schema.productViews.productId, schema.products.id))
+            .leftJoin(schema.productAssets, and(
+                eq(schema.productAssets.productId, schema.products.id),
+                eq(schema.productAssets.featured, true),
+            ))
+            .leftJoin(schema.assets, eq(schema.productAssets.assetId, schema.assets.id))
+            .where(gte(schema.productViews.createdAt, since))
+            .groupBy(
+                schema.productViews.productId,
+                schema.products.name,
+                schema.products.slug,
+                schema.assets.preview,
+                schema.products.id,
+            )
+            .orderBy(desc(sql`count(*)`))
+            .limit(limit);
+
+        return { views: rows };
+    });
+
+    fastify.get("/product-views/trend", async (request) => {
+        const query = request.query as { days?: number };
+        const days = Number(query.days) || 30;
+        const since = new Date(Date.now() - days * MS_PER_DAY);
+
+        const rows = await db
+            .select({
+                date: sql<string>`to_char("createdAt", 'YYYY-MM-DD')`,
+                count: sql<number>`count(*)::int`,
+            })
+            .from(schema.productViews)
+            .where(gte(schema.productViews.createdAt, since))
+            .groupBy(sql`to_char("createdAt", 'YYYY-MM-DD')`)
+            .orderBy(sql`to_char("createdAt", 'YYYY-MM-DD')`);
+
+        return { trend: rows };
+    });
 };
 
 export default analyticsAdminRoutes;

@@ -17,7 +17,7 @@ export default async function ProductRecommendationsServer({
 }: ProductRecommendationsServerProps) {
   const similarResponses = await Promise.all(
     categorySlugs.map((categorySlug) =>
-      proxyFetch(`/store/products?collection=${encodeURIComponent(categorySlug)}&limit=10`, {
+      proxyFetch(`/store/products?collection=${encodeURIComponent(categorySlug)}&sortBy=sales&limit=10`, {
         cache: "force-cache",
         next: { revalidate: revalidateSeconds },
         useRequestContext: false,
@@ -44,7 +44,7 @@ export default async function ProductRecommendationsServer({
 
   let alsoViewed: Product[] = [];
   try {
-    const alsoViewedResponse = await proxyFetch("/store/products?limit=20&offset=0", {
+    const alsoViewedResponse = await proxyFetch("/store/products?sortBy=sales&limit=20&offset=0", {
       cache: "force-cache",
       next: { revalidate: revalidateSeconds },
       useRequestContext: false,
