@@ -589,23 +589,45 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
             orderBy: [asc(collections.sortOrder)],
             with: {
                 asset: true,
+                products: true,
                 ...(includeChildren ? {
                     children: {
                         where: eq(schema.collections.enabled, true),
                         orderBy: [asc(schema.collections.sortOrder)],
                         with: {
                             asset: true,
+                            products: true,
                             children: {
                                 where: eq(schema.collections.enabled, true),
                                 orderBy: [asc(schema.collections.sortOrder)],
-                                with: { asset: true }
+                                with: {
+                                    asset: true,
+                                    products: true,
+                                }
                             }
                         }
                     }
                 } : {})
             }
         });
-        const payload = { collections: results };
+
+        const mapCollection = (col: any): any => ({
+            ...col,
+            _count: { products: col.products?.length || 0 },
+            children: col.children?.map((child: any) => ({
+                ...child,
+                _count: { products: child.products?.length || 0 },
+                children: child.children?.map((grandchild: any) => ({
+                    ...grandchild,
+                    _count: { products: grandchild.products?.length || 0 },
+                    products: undefined,
+                })),
+                products: undefined,
+            })),
+            products: undefined,
+        });
+
+        const payload = { collections: results.map(mapCollection) };
         await fastify.cache.set(cacheKey, payload, TTL.collections, ["collections"]);
         reply.header("x-cache", "MISS");
         reply.header("Cache-Control", `public, max-age=${TTL.collections}`);
