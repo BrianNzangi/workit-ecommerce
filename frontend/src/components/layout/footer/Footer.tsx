@@ -18,13 +18,13 @@ export default function Footer() {
             </div>
 
             {/* Right column - contact items */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 justify-self-end">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 justify-self-end">
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 bg-white border border-gray-300 rounded-full flex items-center justify-center shrink-0 mt-0.5">
                   <Phone className="text-secondary-500 size-4" />
                 </div>
                 <div>
-                  <p className="text-secondary-900 font-semibold text-[11px] tracking-widest mb-0.5">CALL CENTER</p>
+                  <p className="text-secondary-500 font-semibold text-[11px] tracking-widest mb-0.5">CALL CENTER</p>
                   <p className="font-semibold text-secondary-900">+254 796 053 143</p>
                 </div>
               </div>
@@ -33,7 +33,7 @@ export default function Footer() {
                   <Mail className="text-secondary-500 size-4" />
                 </div>
                 <div>
-                  <p className="text-secondary-900 font-semibold text-[11px] tracking-widest mb-0.5">EMAIL SUPPORT</p>
+                  <p className="text-secondary-500 font-semibold text-[11px] tracking-widest mb-0.5">EMAIL SUPPORT</p>
                   <p className="font-semibold text-secondary-900">hello@workit.co.ke</p>
                 </div>
               </div>
