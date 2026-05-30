@@ -13,38 +13,32 @@ export default function Footer() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
             {/* Left column - heading */}
             <div className="flex flex-col justify-center">
-              <h2 className="text-secondary-900 font-bold text-xl">We're Always Here To Help</h2>
+              <h2 className="text-secondary-900 font-bold text-xl">We&apos;re Always Here To Help</h2>
               <p className="text-secondary-600 text-sm mt-1">Reach out to us through any of these support channels</p>
             </div>
 
             {/* Right column - contact items */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              <div>
+              <div className="flex flex-col items-center text-center">
                 <p className="text-secondary-900 font-semibold text-[11px] tracking-widest mb-2">CALL CENTER</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white border border-gray-300 rounded-full flex items-center justify-center shrink-0">
-                    <Phone className="text-secondary-500 size-4" />
-                  </div>
-                  <p className="font-semibold text-secondary-900">+254 796 053 143</p>
+                <div className="w-10 h-10 bg-white border border-gray-300 rounded-full flex items-center justify-center shrink-0 mb-1">
+                  <Phone className="text-secondary-500 size-4" />
                 </div>
+                <p className="font-semibold text-secondary-900">+254 796 053 143</p>
               </div>
-              <div>
+              <div className="flex flex-col items-center text-center">
                 <p className="text-secondary-900 font-semibold text-[11px] tracking-widest mb-2">EMAIL SUPPORT</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white border border-gray-300 rounded-full flex items-center justify-center shrink-0">
-                    <Mail className="text-secondary-500 size-4" />
-                  </div>
-                  <p className="font-semibold text-secondary-900">hello@shopworkit.co.ke</p>
+                <div className="w-10 h-10 bg-white border border-gray-300 rounded-full flex items-center justify-center shrink-0 mb-1">
+                  <Mail className="text-secondary-500 size-4" />
                 </div>
+                <p className="font-semibold text-secondary-900">hello@shopworkit.co.ke</p>
               </div>
-              <div>
+              <div className="flex flex-col items-center text-center">
                 <p className="text-secondary-900 font-semibold text-[11px] tracking-widest mb-2">OUR LOCATION</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white border border-gray-300 rounded-full flex items-center justify-center shrink-0">
-                    <MapPin className="text-secondary-500 size-4" />
-                  </div>
-                  <p className="font-semibold text-secondary-900">Biashara Street, Nairobi CBD, Kenya</p>
+                <div className="w-10 h-10 bg-white border border-gray-300 rounded-full flex items-center justify-center shrink-0 mb-1">
+                  <MapPin className="text-secondary-500 size-4" />
                 </div>
+                <p className="font-semibold text-secondary-900">Biashara Street, Nairobi CBD, Kenya</p>
               </div>
             </div>
           </div>
@@ -66,7 +60,7 @@ export default function Footer() {
                 <li><Link href="/shop/collections/gaming-consoles" className="text-gray-400 hover:text-white transition-colors">Gaming & PC</Link></li>
                 <li><Link href="/shop/collections/tvs-video" className="text-gray-400 hover:text-white transition-colors">TVs & Video</Link></li>
                 <li><Link href="/shop/collections/home-audio" className="text-gray-400 hover:text-white transition-colors">Home Audio</Link></li>
-                <li className="pt-1"><Link href="/shop/collections" className="text-primary-400 hover:text-white transition-colors font-medium">All Collections →</Link></li>
+                <li className="pt-1"><Link href="/shop/collections" className="text-primary-400 hover:text-white transition-colors font-medium">All Categories →</Link></li>
               </ul>
             </div>
 
