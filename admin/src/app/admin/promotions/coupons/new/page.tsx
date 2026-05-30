@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ProtectedRoute } from "@/components/login/ProtectedRoute";
 import { AdminLayout } from "@/components/admin/layout/AdminLayout";
@@ -22,10 +22,11 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { ArrowLeft, Upload, Search, X, CalendarIcon, Trash2 } from "lucide-react";
+import { ArrowLeft, Search, CalendarIcon, Trash2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { cn } from "@/lib/shared/utils/cn";
+import { CSRF_COOKIE_NAME, CSRF_HEADER_NAME, ensureCsrfToken, getCookieValue, getSessionUrl } from '@/lib/auth/csrf';
 import {
     Table,
     TableBody,
@@ -46,10 +47,9 @@ type SelectedProduct = {
 
 export default function NewCouponPage() {
     const router = useRouter();
-    const fileInputRef = useRef<HTMLInputElement>(null);
     const [loading, setLoading] = useState(false);
-    const [bannerImage, setBannerImage] = useState<string | null>(null);
-    const [bannerImageId, setBannerImageId] = useState<string | null>(null);
+    const [campaigns, setCampaigns] = useState<any[]>([]);
+    const [campaignId, setCampaignId] = useState<string>("");
     const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>([]);
     const [productSearch, setProductSearch] = useState("");
     const [productSuggestions, setProductSuggestions] = useState<any[]>([]);
@@ -65,27 +65,18 @@ export default function NewCouponPage() {
         status: "ACTIVE",
     });
 
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
+    const authBaseURL = typeof window !== 'undefined' ? window.location.origin : '';
+    const authSessionUrl = getSessionUrl(
+        process.env.NEXT_PUBLIC_AUTH_BASE_PATH?.trim() || '/api/auth',
+        process.env.NEXT_PUBLIC_AUTH_BASE_URL?.trim() || authBaseURL,
+    );
 
-        const formData = new FormData();
-        formData.append("file", file);
-
-        try {
-            const res = await fetch("/api/catalog/assets", {
-                method: "POST",
-                body: formData,
-            });
-            const data = await res.json();
-            if (data.success && data.asset) {
-                setBannerImageId(data.asset.id);
-                setBannerImage(URL.createObjectURL(file));
-            }
-        } catch {
-            toast({ title: "Error", description: "Failed to upload image", variant: "error" });
-        }
-    };
+    useEffect(() => {
+        fetch('/api/admin/marketing/campaigns/admin')
+            .then(r => r.json())
+            .then(d => setCampaigns(d.campaigns || []))
+            .catch(() => {});
+    }, []);
 
     const searchProducts = async (query: string) => {
         if (!query) {
@@ -128,15 +119,19 @@ export default function NewCouponPage() {
         e.preventDefault();
         setLoading(true);
         try {
+            const csrfToken = (await ensureCsrfToken(authSessionUrl)) || getCookieValue(CSRF_COOKIE_NAME);
+            const headers: Record<string, string> = { "Content-Type": "application/json" };
+            if (csrfToken) headers[CSRF_HEADER_NAME] = csrfToken;
+
             const res = await fetch("/api/promotions/coupons/admin", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers,
                 body: JSON.stringify({
                     title: form.title,
-                    bannerImageId,
                     couponAmount: Number(form.couponAmount),
                     minAmount: Number(form.minAmount) || 0,
                     userLimit: Number(form.userLimit) || 0,
+                    campaignId: campaignId && campaignId !== "none" ? campaignId : undefined,
                     startDate: startDate?.toISOString(),
                     endDate: endDate?.toISOString(),
                     description: form.description,
@@ -188,43 +183,20 @@ export default function NewCouponPage() {
                             <CardContent className="p-6">
                                 <h2 className="text-sm font-semibold mb-4">Basic Information</h2>
 
-                                {/* Banner Image Upload */}
-                                <div
-                                    className="border border-dashed rounded-sm p-8 text-center cursor-pointer hover:bg-muted/50 transition-colors mb-6"
-                                    onClick={() => fileInputRef.current?.click()}
-                                >
-                                    <input
-                                        ref={fileInputRef}
-                                        type="file"
-                                        accept="image/jpeg,image/png,image/gif"
-                                        className="hidden"
-                                        onChange={handleImageUpload}
-                                    />
-                                    {bannerImage ? (
-                                        <div className="relative inline-block">
-                                            <img src={bannerImage} alt="Banner" className="max-h-40 mx-auto rounded-sm" />
-                                            <button
-                                                type="button"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setBannerImage(null);
-                                                    setBannerImageId(null);
-                                                }}
-                                                className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-0.5"
-                                            >
-                                                <X className="w-3 h-3" />
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <>
-                                            <Upload className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
-                                            <p className="text-sm font-medium">Banner Image</p>
-                                            <p className="text-xs text-muted-foreground mt-1">
-                                                Allowed *.jpeg, *.jpg, *.png, *.gif
-                                            </p>
-                                            <p className="text-xs text-muted-foreground">Max size of 3.1 MB</p>
-                                        </>
-                                    )}
+                                {/* Campaign Target */}
+                                <div className="mb-6 space-y-2">
+                                    <Label>Campaign Target</Label>
+                                    <Select value={campaignId} onValueChange={setCampaignId}>
+                                        <SelectTrigger className="rounded-sm bg-muted">
+                                            <SelectValue placeholder="No campaign" />
+                                        </SelectTrigger>
+                                        <SelectContent className="rounded-sm">
+                                            <SelectItem value="none">No campaign</SelectItem>
+                                            {campaigns.map((c: any) => (
+                                                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 </div>
 
                                 {/* Form Fields */}

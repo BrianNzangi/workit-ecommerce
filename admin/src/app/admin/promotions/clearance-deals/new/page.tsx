@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ProtectedRoute } from "@/components/login/ProtectedRoute";
 import { AdminLayout } from "@/components/admin/layout/AdminLayout";
@@ -21,10 +21,11 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { ArrowLeft, Search, X, CalendarIcon, Trash2 } from "lucide-react";
+import { ArrowLeft, Search, CalendarIcon, Trash2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { cn } from "@/lib/shared/utils/cn";
+import { CSRF_COOKIE_NAME, CSRF_HEADER_NAME, ensureCsrfToken, getCookieValue, getSessionUrl } from '@/lib/auth/csrf';
 import {
     Table,
     TableBody,
@@ -45,6 +46,8 @@ type SelectedProduct = {
 export default function NewClearanceDealPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
+    const [campaigns, setCampaigns] = useState<any[]>([]);
+    const [campaignId, setCampaignId] = useState<string>("");
     const [selectedProduct, setSelectedProduct] = useState<SelectedProduct | null>(null);
     const [productSearch, setProductSearch] = useState("");
     const [productSuggestions, setProductSuggestions] = useState<any[]>([]);
@@ -58,6 +61,19 @@ export default function NewClearanceDealPage() {
         deal: "FLASH_SALE",
         status: "ACTIVE",
     });
+
+    const authBaseURL = typeof window !== 'undefined' ? window.location.origin : '';
+    const authSessionUrl = getSessionUrl(
+        process.env.NEXT_PUBLIC_AUTH_BASE_PATH?.trim() || '/api/auth',
+        process.env.NEXT_PUBLIC_AUTH_BASE_URL?.trim() || authBaseURL,
+    );
+
+    useEffect(() => {
+        fetch('/api/admin/marketing/campaigns/admin')
+            .then(r => r.json())
+            .then(d => setCampaigns(d.campaigns || []))
+            .catch(() => {});
+    }, []);
 
     const searchProducts = async (query: string) => {
         if (!query) {
@@ -102,12 +118,17 @@ export default function NewClearanceDealPage() {
         }
         setLoading(true);
         try {
+            const csrfToken = (await ensureCsrfToken(authSessionUrl)) || getCookieValue(CSRF_COOKIE_NAME);
+            const headers: Record<string, string> = { "Content-Type": "application/json" };
+            if (csrfToken) headers[CSRF_HEADER_NAME] = csrfToken;
+
             const res = await fetch("/api/promotions/clearance-deals/admin", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers,
                 body: JSON.stringify({
                     title: form.title,
                     discount: Number(form.discount),
+                    campaignId: campaignId && campaignId !== "none" ? campaignId : undefined,
                     type: form.type,
                     deal: form.deal,
                     productId: selectedProduct.id,
@@ -159,6 +180,21 @@ export default function NewClearanceDealPage() {
                         <Card className="rounded-sm shadow-none mb-6">
                             <CardContent className="p-6">
                                 <h2 className="text-sm font-semibold mb-4">Basic Information</h2>
+
+                                <div className="mb-6 space-y-2">
+                                    <Label>Campaign Target</Label>
+                                    <Select value={campaignId} onValueChange={setCampaignId}>
+                                        <SelectTrigger className="rounded-sm bg-muted">
+                                            <SelectValue placeholder="No campaign" />
+                                        </SelectTrigger>
+                                        <SelectContent className="rounded-sm">
+                                            <SelectItem value="none">No campaign</SelectItem>
+                                            {campaigns.map((c: any) => (
+                                                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
