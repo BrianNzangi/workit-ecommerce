@@ -115,12 +115,12 @@ export const bannerAdminRoutes: FastifyPluginAsync = async (fastify) => {
       if (data.position !== undefined) updateData.position = data.position;
       if (data.enabled !== undefined) updateData.enabled = data.enabled;
       if (data.sortOrder !== undefined) updateData.sortOrder = data.sortOrder;
-      if (data.desktopImageId !== undefined) updateData.desktopImageId = data.desktopImageId;
-      if (data.mobileImageId !== undefined) updateData.mobileImageId = data.mobileImageId;
-      if (data.collectionId !== undefined) updateData.collectionId = data.collectionId;
-      if (data.productId !== undefined) updateData.productId = data.productId;
-      if (data.campaignId !== undefined) updateData.campaignId = data.campaignId;
-      if (data.promotionId !== undefined) updateData.promotionId = data.promotionId;
+      if (data.desktopImageId !== undefined) updateData.desktopImageId = data.desktopImageId || null;
+      if (data.mobileImageId !== undefined) updateData.mobileImageId = data.mobileImageId || null;
+      if (data.collectionId !== undefined) updateData.collectionId = data.collectionId || null;
+      if (data.productId !== undefined) updateData.productId = data.productId || null;
+      if (data.campaignId !== undefined) updateData.campaignId = data.campaignId || null;
+      if (data.promotionId !== undefined) updateData.promotionId = data.promotionId || null;
 
       const [banner] = await db.update(schema.banners)
         .set(updateData)

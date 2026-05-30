@@ -233,12 +233,12 @@ export function BannerForm({ mode = 'create', bannerId }: BannerFormProps) {
             const payload = {
                 ...formData,
                 slug,
-                collectionId: formData.collectionId || '',
-                productId: formData.productId || '',
-                campaignId: formData.campaignId || '',
-                promotionId: formData.promotionId || '',
-                desktopImageId: formData.desktopImageId || '',
-                mobileImageId: formData.mobileImageId || '',
+                collectionId: formData.collectionId || null,
+                productId: formData.productId || null,
+                campaignId: formData.campaignId || null,
+                promotionId: formData.promotionId || null,
+                desktopImageId: formData.desktopImageId || null,
+                mobileImageId: formData.mobileImageId || null,
             };
 
             const bannerService = new BannerService();

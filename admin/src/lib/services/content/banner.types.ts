@@ -25,16 +25,16 @@ export type Banner = {
 export type CreateBannerInput = {
     name: string;
     slug: string;
-    description?: string;
+    description?: string | null;
     enabled?: boolean;
     position?: string;
     sortOrder?: number;
-    desktopImageId?: string;
-    mobileImageId?: string;
-    collectionId?: string;
-    productId?: string;
-    campaignId?: string;
-    promotionId?: string;
+    desktopImageId?: string | null;
+    mobileImageId?: string | null;
+    collectionId?: string | null;
+    productId?: string | null;
+    campaignId?: string | null;
+    promotionId?: string | null;
 };
 
 export interface BannerListOptions {
