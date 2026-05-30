@@ -19,26 +19,32 @@ export default function Footer() {
 
             {/* Right column - contact items */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              <div className="flex flex-col items-center text-center">
-                <p className="text-secondary-900 font-semibold text-[11px] tracking-widest mb-2">CALL CENTER</p>
-                <div className="w-10 h-10 bg-white border border-gray-300 rounded-full flex items-center justify-center shrink-0 mb-1">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 bg-white border border-gray-300 rounded-full flex items-center justify-center shrink-0 mt-0.5">
                   <Phone className="text-secondary-500 size-4" />
                 </div>
-                <p className="font-semibold text-secondary-900">+254 796 053 143</p>
+                <div>
+                  <p className="text-secondary-900 font-semibold text-[11px] tracking-widest mb-0.5">CALL CENTER</p>
+                  <p className="font-semibold text-secondary-900">+254 796 053 143</p>
+                </div>
               </div>
-              <div className="flex flex-col items-center text-center">
-                <p className="text-secondary-900 font-semibold text-[11px] tracking-widest mb-2">EMAIL SUPPORT</p>
-                <div className="w-10 h-10 bg-white border border-gray-300 rounded-full flex items-center justify-center shrink-0 mb-1">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 bg-white border border-gray-300 rounded-full flex items-center justify-center shrink-0 mt-0.5">
                   <Mail className="text-secondary-500 size-4" />
                 </div>
-                <p className="font-semibold text-secondary-900">hello@shopworkit.co.ke</p>
+                <div>
+                  <p className="text-secondary-900 font-semibold text-[11px] tracking-widest mb-0.5">EMAIL SUPPORT</p>
+                  <p className="font-semibold text-secondary-900">hello@shopworkit.co.ke</p>
+                </div>
               </div>
-              <div className="flex flex-col items-center text-center">
-                <p className="text-secondary-900 font-semibold text-[11px] tracking-widest mb-2">OUR LOCATION</p>
-                <div className="w-10 h-10 bg-white border border-gray-300 rounded-full flex items-center justify-center shrink-0 mb-1">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 bg-white border border-gray-300 rounded-full flex items-center justify-center shrink-0 mt-0.5">
                   <MapPin className="text-secondary-500 size-4" />
                 </div>
-                <p className="font-semibold text-secondary-900">Biashara Street, Nairobi CBD, Kenya</p>
+                <div>
+                  <p className="text-secondary-900 font-semibold text-[11px] tracking-widest mb-0.5">OUR LOCATION</p>
+                  <p className="font-semibold text-secondary-900">Biashara Street, Nairobi CBD, Kenya</p>
+                </div>
               </div>
             </div>
           </div>
