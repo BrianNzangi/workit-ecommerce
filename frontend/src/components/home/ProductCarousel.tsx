@@ -19,10 +19,10 @@ export default function ProductCarousel({ products }: { products: HomepageCollec
     return (
         <>
             {/* Mobile: horizontal snap scroll */}
-            <div className="md:hidden -mx-6 overflow-x-auto snap-x snap-mandatory scrollbar-hide">
-                <div className="flex gap-4 px-6">
+            <div className="md:hidden overflow-x-auto snap-x snap-mandatory">
+                <div className="flex gap-4">
                     {products.map((product) => (
-                        <div key={product.id} className="snap-start shrink-0 w-[calc(50%-8px)]">
+                        <div key={product.id} className="snap-start shrink-0 w-[45%]">
                             <ProductCard {...product} />
                         </div>
                     ))}
