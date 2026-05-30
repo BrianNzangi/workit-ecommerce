@@ -27,19 +27,32 @@ export function CustomersList() {
             const result = await customerService.getCustomers({ limit: 500 });
             const customersList = Array.isArray(result) ? result : (result.customers || []);
             
-            // Enrich customers with order data
+            // Enrich customers with order data and notification preferences
             const enrichedCustomers = await Promise.all(
                 customersList.map(async (customer: any) => {
                     try {
-                        const ordersResponse: any = await customerService.getCustomerOrders(customer.id);
-                        const ordersArray = Array.isArray(ordersResponse) ? ordersResponse : (ordersResponse?.orders || []);
-                        const totalSpent = ordersArray.reduce((sum: number, order: any) => sum + (order.total || 0), 0);
-                        
+                        let ordersArray: any[] = [];
+                        let totalSpent = 0;
+                        try {
+                            const ordersResponse: any = await customerService.getCustomerOrders(customer.id);
+                            ordersArray = Array.isArray(ordersResponse) ? ordersResponse : (ordersResponse?.orders || []);
+                            totalSpent = ordersArray.reduce((sum: number, order: any) => sum + (order.total || 0), 0);
+                        } catch {}
+
+                        let notifications = undefined;
+                        try {
+                            const prefsResponse = await fetch(`/api/admin/customers/${customer.id}/preferences`).then(r => r.json());
+                            if (prefsResponse?.success) {
+                                notifications = prefsResponse.preferences;
+                            }
+                        } catch {}
+
                         return {
                             ...customer,
                             location: customer.location || customer.city || 'Nairobi, Kenya',
                             ordersCount: ordersArray.length,
                             totalSpent,
+                            notifications,
                         };
                     } catch {
                         return {

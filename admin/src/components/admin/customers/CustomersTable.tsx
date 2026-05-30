@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Link from 'next/link';
-import { Eye, Pencil, Trash2 } from 'lucide-react';
+import { Eye, Pencil, Trash2, Mail, Smartphone, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Pagination } from '@/components/ui/Pagination';
@@ -14,7 +14,7 @@ interface CustomersTableProps {
 const ITEMS_PER_PAGE = 10;
 
 const formatCurrency = (amount: number) =>
-    `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    `KES ${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 export function CustomersTable({ customers }: CustomersTableProps) {
     const [currentPage, setCurrentPage] = useState(1);
@@ -81,6 +81,12 @@ export function CustomersTable({ customers }: CustomersTableProps) {
                             <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
                                 Spent
                             </th>
+                            <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500">
+                                Notifications
+                            </th>
+                            <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500">
+                                Action
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
@@ -118,6 +124,27 @@ export function CustomersTable({ customers }: CustomersTableProps) {
                                     </td>
                                     <td className="px-4 py-3 text-right text-sm font-semibold text-gray-900">
                                         {formatCurrency(customer.totalSpent || 0)}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        <div className="flex items-center justify-center gap-2">
+                                            <div className={`flex items-center justify-center w-7 h-7 rounded-full ${customer.notifications?.emailNotifications ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-400'}`} title={`Email: ${customer.notifications?.emailNotifications ? 'On' : 'Off'}`}>
+                                                <Mail size={14} />
+                                            </div>
+                                            <div className={`flex items-center justify-center w-7 h-7 rounded-full ${customer.notifications?.smsNotifications ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`} title={`SMS: ${customer.notifications?.smsNotifications ? 'On' : 'Off'}`}>
+                                                <Smartphone size={14} />
+                                            </div>
+                                            <div className={`flex items-center justify-center w-7 h-7 rounded-full ${customer.notifications?.promoNotifications ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-400'}`} title={`Promos: ${customer.notifications?.promoNotifications ? 'On' : 'Off'}`}>
+                                                <Bell size={14} />
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="px-4 py-3 text-center">
+                                        <Button asChild variant="ghost" size="sm" className="rounded hover:bg-gray-100">
+                                            <Link href={`/admin/customers/${customer.id}`}>
+                                                <Eye size={16} className="mr-1" />
+                                                View
+                                            </Link>
+                                        </Button>
                                     </td>
                                 </tr>
                             );

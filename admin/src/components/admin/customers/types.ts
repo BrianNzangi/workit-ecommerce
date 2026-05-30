@@ -10,6 +10,11 @@ export interface CustomerRecord {
     location?: string;
     ordersCount?: number;
     totalSpent?: number;
+    notifications?: {
+        emailNotifications: boolean;
+        smsNotifications: boolean;
+        promoNotifications: boolean;
+    };
 }
 
 export interface OrderRecord {
