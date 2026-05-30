@@ -25,7 +25,7 @@ export default function HomepageCollection({
 
     const renderCollection = (collection: HomepageCollectionData) => (
         <section key={collection.id} aria-label={collection.title}>
-            <SectionContainer className="px-10 sm:px-12 lg:px-16 mb-8 py-6">
+            <SectionContainer className="px-6 sm:px-8 lg:px-16 mb-8 py-6">
                 <div className="flex items-end justify-between mb-4">
                     <div className="space-y-0">
                         <h2 className="text-lg md:text-xl font-extrabold text-secondary-900">

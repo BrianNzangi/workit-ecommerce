@@ -8,7 +8,7 @@ function Skeleton({ className }: { className?: string }) {
 export function HeroSectionSkeleton() {
   return (
     <section aria-label="Loading banners" className="w-full">
-      <SectionContainer className="px-10 sm:px-12 lg:px-16 py-6">
+      <SectionContainer className="px-6 sm:px-8 lg:px-16 py-6">
         <Skeleton className="w-full h-45 md:h-75 rounded-sm" />
       </SectionContainer>
       <div className="flex justify-center gap-2 mt-2">
@@ -23,7 +23,7 @@ export function HeroSectionSkeleton() {
 export function CategoriesSkeleton() {
   return (
     <section aria-label="Loading categories" className="py-2 sm:py-4 lg:py-4">
-      <SectionContainer className="px-10 sm:px-12 lg:px-16">
+      <SectionContainer className="px-6 sm:px-8 lg:px-16">
         <Skeleton className="h-7 w-40 mb-6" />
         <div className="grid grid-cols-8 gap-2 lg:gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
@@ -41,7 +41,7 @@ export function CategoriesSkeleton() {
 export function DealsSkeleton() {
   return (
     <section aria-label="Loading deals" className="py-6 md:py-8">
-      <SectionContainer className="px-10 sm:px-12 lg:px-16">
+      <SectionContainer className="px-6 sm:px-8 lg:px-16">
         <Skeleton className="h-7 w-24 mb-6" />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -56,7 +56,7 @@ export function DealsSkeleton() {
 export function BlogGridSkeleton() {
   return (
     <section aria-label="Loading blog posts" className="py-6 md:py-8">
-      <SectionContainer className="px-10 sm:px-12 lg:px-16 mb-8 py-6">
+      <SectionContainer className="px-6 sm:px-8 lg:px-16 mb-8 py-6">
         <div className="flex justify-between items-center mb-6">
           <Skeleton className="h-7 w-40" />
           <Skeleton className="h-4 w-20" />
@@ -80,7 +80,7 @@ export function BlogGridSkeleton() {
 export function BannerSkeleton() {
   return (
     <section aria-label="Loading banner" className="py-2 md:py-4">
-      <SectionContainer className="px-10 sm:px-12 lg:px-16">
+      <SectionContainer className="px-6 sm:px-8 lg:px-16">
         <Skeleton className="w-full h-52 rounded-md" />
       </SectionContainer>
     </section>
@@ -90,7 +90,7 @@ export function BannerSkeleton() {
 export function CollectionSkeleton() {
   return (
     <section aria-label="Loading collection" className="py-2 md:py-4">
-      <SectionContainer className="px-10 sm:px-12 lg:px-16 mb-8 py-6">
+      <SectionContainer className="px-6 sm:px-8 lg:px-16 mb-8 py-6">
         <div className="flex items-end justify-between mb-4">
           <div className="space-y-1">
             <Skeleton className="h-6 w-48" />

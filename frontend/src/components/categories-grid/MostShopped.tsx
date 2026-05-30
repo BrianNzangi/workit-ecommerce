@@ -13,7 +13,7 @@ export default function MostShopped({ collections }: MostShoppedProps) {
 
     return (
         <section aria-label="Most shopped collections" className="py-2 sm:py-4 lg:py-4">
-            <SectionContainer className="px-10 sm:px-12 lg:px-16">
+            <SectionContainer className="px-6 sm:px-8 lg:px-16">
                 <div className="flex items-center justify-between mb-6">
                     <h2 className="text-lg md:text-2xl font-bold text-gray-900">
                         Most Shopped
