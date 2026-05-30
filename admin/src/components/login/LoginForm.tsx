@@ -25,7 +25,6 @@ export function LoginForm() {
             const result = await signIn.email({
                 email,
                 password,
-                callbackURL: '/admin/dashboard',
             });
 
             if (result.error) {
@@ -53,8 +52,7 @@ export function LoginForm() {
                     return;
                 }
 
-                router.push('/admin/dashboard');
-                router.refresh();
+                window.location.href = '/admin/dashboard';
             }
         } catch (err) {
             setError('An error occurred. Please try again.');
