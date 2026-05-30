@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { Edit, Trash2, Package } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { getImageUrl } from '@/lib/shared/images/image-utils';
 import {
     Table,
     TableBody,
@@ -66,12 +66,11 @@ export function BrandsTable({ brands, searchTerm = '', onDelete }: BrandsTablePr
                                 <TableCell>
                                     <div className="flex items-center gap-3">
                                         {brand.logoUrl ? (
-                                            <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded border border-gray-200 bg-gray-50">
-                                                <Image
-                                                    src={brand.logoUrl}
+                                            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded border border-gray-200 bg-gray-50">
+                                                <img
+                                                    src={getImageUrl(brand.logoUrl)}
                                                     alt={brand.name}
-                                                    fill
-                                                    className="object-contain p-1"
+                                                    className="h-full w-full object-contain p-1"
                                                 />
                                             </div>
                                         ) : (

@@ -95,12 +95,19 @@ export function getImageUrl(url: string | undefined | null): string {
         return '';
     }
 
-    // If it's a full URL (http/https), prefer local /uploads proxy in local dev
+    // If it's a full URL (http/https), prefer relative /uploads path through the proxy
     if (url.startsWith('http://') || url.startsWith('https://')) {
         const localProxyPath = getLocalUploadsProxyPath(url);
         if (localProxyPath) {
             return localProxyPath;
         }
+        // Strip the CDN/backend domain for /uploads/ paths so they route through the proxy rewrite
+        try {
+            const parsed = new URL(url);
+            if (parsed.pathname.startsWith('/uploads/')) {
+                return `${parsed.pathname}${parsed.search}`;
+            }
+        } catch {}
         return url;
     }
 
