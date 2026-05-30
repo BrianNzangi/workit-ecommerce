@@ -76,7 +76,7 @@ export default function ProductInfoColumn({ product }: ProductInfoColumnProps) {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <h1 className="text-2xl font-bold leading-[1.2] text-secondary-900">
         {product.name}
       </h1>

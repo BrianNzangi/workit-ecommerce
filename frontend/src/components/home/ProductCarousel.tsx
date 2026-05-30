@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import ProductCard from '../product/ProductCard';
+import ProductCard from '../product/cards/ProductCard';
 import type { HomepageCollectionData } from '@/lib/homepage/homepage-data';
 
 export default function ProductCarousel({ products }: { products: HomepageCollectionData['products'] }) {

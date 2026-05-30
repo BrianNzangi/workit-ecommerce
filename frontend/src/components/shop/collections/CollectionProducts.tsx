@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import ColProductGrid from '@/components/product/ColProductGrid';
+import ColProductGrid from '@/components/product/cards/ColProductGrid';
 import ProductPagination from '@/components/ui/ProductPagination';
 import CollectionHeaderBannerLoader from '@/components/banners/CollectionHeaderBannerLoader';
 import FilterSidebar from '@/components/filters/FilterSidebar';

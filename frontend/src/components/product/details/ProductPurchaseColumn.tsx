@@ -4,7 +4,7 @@ import { useState } from "react"
 import { ShoppingCart, Tag, ChevronRight, Handshake, ShieldCheck, Undo2 } from "lucide-react"
 import toast from "react-hot-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import ProductBenefits from "@/components/product/ProductBenefits"
+import ProductBenefits from "@/components/product/details/ProductBenefits"
 import { getProductPriceDisplay, getProductPromotionBadge } from "@/lib/product/product-promotion"
 import { useCartStore } from "@/store/cartStore"
 import type { Product } from "@/types/product"
@@ -96,7 +96,7 @@ export default function ProductPurchaseColumn({
 
   return (
     <>
-      <div className="flex flex-col gap-6 border-l border-gray-200 pl-0 md:pl-6">
+      <div className="flex flex-col gap-4 border-l-0 md:border-l border-gray-200 pl-0 md:pl-6">
         <div className="border-b border-gray-200 pb-8">
           {promotionBadge && (
             <div className="mb-4 flex">
@@ -124,7 +124,7 @@ export default function ProductPurchaseColumn({
             )}
           </div>
 
-          <div className="mt-4">
+          <div className="mt-2">
             {isAvailable ? (
               <div className="flex items-center gap-2">
                 <span className={`inline-flex h-2.5 w-2.5 rounded-full ${isLowStock ? "bg-accent-500" : "bg-accent-600"}`} />
@@ -143,7 +143,7 @@ export default function ProductPurchaseColumn({
 
           {couponCode && (
             <div className="mt-4">
-              <div                 className="flex min-w-70 items-start gap-3 rounded-md border border-dashed border-primary-300 bg-primary-100/10 px-4 py-3">
+              <div className="flex min-w-70 items-start gap-3 rounded-md border border-dashed border-primary-300 bg-primary-100/10 px-4 py-3">
                 <span className="mt-0.5 shrink-0 text-primary-900">
                   <Tag size={17} strokeWidth={2} />
                 </span>

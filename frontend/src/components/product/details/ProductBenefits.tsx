@@ -4,7 +4,7 @@ import { ChevronRight, Handshake, ShieldCheck, Undo2 } from "lucide-react"
 
 export default function ProductBenefits() {
   return (
-    <div className="mt-2 space-y-4 text-left">
+    <div className="space-y-4 text-left">
       <div className="flex items-start gap-3">
         <span className="rounded-full bg-accent-100 p-2 text-accent-900">
           <ShieldCheck size={20} />

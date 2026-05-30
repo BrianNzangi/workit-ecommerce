@@ -7,9 +7,11 @@ import Breadcrumbs from "@/components/ui/Breadcrumbs"
 import { Category } from "@/utils/breadcrumbs"
 import he from "he"
 import { sanitizeHtml } from "@/lib/utils/sanitize"
-import ProductMediaColumn from "@/components/product/ProductMediaColumn"
-import ProductInfoColumn from "@/components/product/ProductInfoColumn"
-import ProductPurchaseColumn from "@/components/product/ProductPurchaseColumn"
+import ProductMediaColumn from "@/components/product/details/ProductMediaColumn"
+
+import ProductInfoColumn from "@/components/product/details/ProductInfoColumn"
+
+import ProductPurchaseColumn from "@/components/product/details/ProductPurchaseColumn"
 import { Product } from "@/types/product"
 import { trackMetaEvent } from "@/lib/meta/meta-browser"
 
@@ -91,7 +93,7 @@ export default function ProductPage({
 
   return (
     <main className="bg-white font-sans">
-      <SectionContainer className="px-6 sm:px-8 lg:px-16 mb-8 py-6 pb-24 md:pb-6">
+      <SectionContainer className="px-6 sm:px-8 lg:px-16 py-6">
         <Breadcrumbs paths={breadcrumbPaths} />
 
         <div className="grid grid-cols-1 xl:grid-cols-[minmax(420px,1.3fr)_minmax(360px,1.1fr)_minmax(320px,0.8fr)] gap-8">
@@ -114,7 +116,7 @@ export default function ProductPage({
         </div>
 
         {product.description && (
-          <section className="mt-10 border-t border-gray-200 pt-8">
+          <section className="border-t border-b border-gray-200 py-4 mt-10 md:mt-12">
             <h2 className="text-lg font-bold text-secondary-900 mb-4">More About This Item</h2>
             <div
               className="prose prose-sm max-w-none text-secondary-700 [&>p]:mb-3 [&>ul]:mb-5 [&>ol]:mb-5 [&>h1]:mb-4 [&>h2]:mb-4 [&>h3]:mb-4 [&>li]:mb-1.5 [&_a]:text-primary-900 [&_a]:underline [&_a:hover]:text-[#e04500]"
