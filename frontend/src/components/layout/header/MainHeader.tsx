@@ -43,7 +43,7 @@ export default function MainHeader({
     return (
         <header id="site-header">
             <div className="font-sans text-secondary-900 border-b border-gray-300">
-                <SectionContainer className="px-10 sm:px-12 lg:px-16 py-4">
+                <SectionContainer className="px-6 sm:px-8 lg:px-16 py-4">
                   <div className="flex items-center justify-between gap-4 flex-wrap md:flex-nowrap">
                     <Link
                         href="/"
@@ -106,7 +106,7 @@ export default function MainHeader({
                     </div>
                 </SectionContainer>
 
-                <div className="md:hidden px-4 pb-2">
+                <div className="md:hidden px-6 pb-4">
                     <SearchBar />
                 </div>
 

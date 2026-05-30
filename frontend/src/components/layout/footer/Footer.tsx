@@ -9,7 +9,7 @@ export default function Footer() {
     <footer>
       {/* Store Contact Details */}
       <div className="border-b border-t border-gray-300 bg-gray-100/50">
-        <SectionContainer className="px-10 sm:px-12 lg:px-16 py-8">
+        <SectionContainer className="px-6 sm:px-8 lg:px-16 py-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
             {/* Left column - heading */}
             <div className="flex flex-col justify-center">
@@ -18,7 +18,7 @@ export default function Footer() {
             </div>
 
             {/* Right column - contact items */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 justify-self-end">
+            <div className="grid grid-cols-2 sm:grid-cols-2 gap-8 md:justify-self-end">
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 bg-white border border-gray-300 rounded-full flex items-center justify-center shrink-0 mt-0.5">
                   <Phone className="text-secondary-500 size-4" />
@@ -44,7 +44,7 @@ export default function Footer() {
 
       {/* Main Links */}
       <div className="bg-secondary-900">
-        <SectionContainer className="px-10 sm:px-12 lg:px-16 py-12">
+        <SectionContainer className="px-6 sm:px-8 lg:px-16 py-12">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
 
             {/* SHOP - Categories */}
@@ -114,14 +114,14 @@ export default function Footer() {
 
       {/* Bottom bar */}
       <div className="border-t border-secondary-800 bg-secondary-900">
-        <SectionContainer className="px-10 sm:px-12 lg:px-16 py-6">
+        <SectionContainer className="px-6 sm:px-8 lg:px-16 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm text-gray-500">&copy; 2020 - {new Date().getFullYear()} Workit. All rights reserved.</p>
             <div className="flex items-center space-x-4">
-              <a href="https://www.facebook.com/shopworkitkenya" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="text-gray-400 hover:text-primary-900 transition-colors">
+              <a href="https://www.facebook.com/shopworkitkenya" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="bg-primary-100 px-2 py-2 rounded-full text-primary-900 hover:text-primary-900 transition-colors">
                 <Facebook className="size-5" />
               </a>
-              <a href="https://www.instagram.com/shopworkitkenya/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-gray-400 hover:text-primary-900 transition-colors">
+              <a href="https://www.instagram.com/shopworkitkenya/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="bg-primary-100 px-2 py-2 rounded-full text-primary-900 hover:text-primary-900 transition-colors">
                 <Instagram className="size-5" />
               </a>
             </div>
