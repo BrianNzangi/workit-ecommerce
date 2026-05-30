@@ -62,11 +62,11 @@ export const catalogAdminRoutes: FastifyPluginAsync = async (fastify) => {
   // ─── GET /_admin/template ── Download CSV template ───────────────────────
   fastify.get('/template', { preHandler: preAdmin }, async (_request, reply) => {
     const headers = [
-      'name', 'slug', 'sku', 'description', 'salePrice', 'originalPrice',
+      'name', 'slug', 'description', 'salePrice', 'originalPrice',
       'stockOnHand', 'enabled', 'condition', 'brandSlug', 'collections', 'vat', 'vatInclusive',
     ];
     const sampleRow = [
-      'Example Product', 'example-product', 'SKU-001', 'Product description here',
+      'Example Product', 'example-product', 'Product description here',
       '1500', '2000', '20', 'true', 'NEW', 'brand-slug', 'collection-slug-1|collection-slug-2',
       '16', 'true',
     ];

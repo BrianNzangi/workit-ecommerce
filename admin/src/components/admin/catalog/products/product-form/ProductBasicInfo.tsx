@@ -16,6 +16,7 @@ interface ProductBasicInfoProps {
     handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
     setFormData: (data: any) => void;
     brands: Brand[];
+    mode?: 'create' | 'edit';
 }
 
 export function ProductBasicInfo({
@@ -23,6 +24,7 @@ export function ProductBasicInfo({
     handleChange,
     setFormData,
     brands,
+    mode,
 }: ProductBasicInfoProps) {
     return (
         <div className="rounded-lg bg-white p-5">
@@ -76,17 +78,19 @@ export function ProductBasicInfo({
                     </Select>
                 </div>
 
-                <div className="space-y-2">
-                    <Label htmlFor="sku">SKU</Label>
-                    <Input
-                        id="sku"
-                        name="sku"
-                        value={formData.sku}
-                        onChange={handleChange}
-                        placeholder="e.g., WH-001"
-                        className="font-mono text-sm"
-                    />
-                </div>
+                {mode === 'edit' && (
+                    <div className="space-y-2">
+                        <Label htmlFor="sku">SKU</Label>
+                        <Input
+                            id="sku"
+                            name="sku"
+                            value={formData.sku}
+                            onChange={handleChange}
+                            placeholder="e.g., WH-001"
+                            className="font-mono text-sm"
+                        />
+                    </div>
+                )}
 
                 <div className="space-y-2">
                     <Label htmlFor="condition">Condition <span className="text-destructive">*</span></Label>

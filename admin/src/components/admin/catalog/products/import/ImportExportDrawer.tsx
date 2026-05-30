@@ -38,7 +38,6 @@ const TEMPLATE_JSON = JSON.stringify([
     {
         name: 'Example Product',
         slug: 'example-product',
-        sku: 'SKU-001',
         description: 'Product description here',
         salePrice: 1500,
         originalPrice: 2000,
@@ -253,7 +252,7 @@ export function ImportExportDrawer({ isOpen, onClose, onImportSuccess }: ImportE
                                         <p className="text-xs text-destructive">{parseError}</p>
                                     )}
                                     <p className="text-xs text-muted-foreground">
-                                        Array of products. Required: name, slug. Optional: sku, description, salePrice, originalPrice, stockOnHand, enabled, condition, brandSlug, collections (pipe-separated slugs), vat, vatInclusive
+                                        Array of products. Required: name, slug. Optional: description, salePrice, originalPrice, stockOnHand, enabled, condition, brandSlug, collections (pipe-separated slugs), vat, vatInclusive. SKU is auto-assigned on import.
                                     </p>
                                 </div>
                             ) : (

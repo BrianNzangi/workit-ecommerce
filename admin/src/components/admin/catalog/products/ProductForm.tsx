@@ -115,6 +115,7 @@ export function ProductForm({ productId, mode }: ProductFormProps) {
                             handleChange={handleChange}
                             setFormData={setFormData}
                             brands={brands}
+                            mode={mode}
                         />
                         <ProductImages
                             existingImages={existingImages}

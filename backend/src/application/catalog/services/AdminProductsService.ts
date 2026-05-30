@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import { db, schema, eq, inArray, desc } from "@workit/db";
+import { db, schema, eq, inArray, desc, sql } from "@workit/db";
 import {
   IProductRepository,
   ProductSearchParams,
@@ -127,11 +127,16 @@ export class AdminProductsService {
       throw Object.assign(new Error("Product with this slug already exists"), { statusCode: 400 });
     }
 
+    let skuValue = input.sku;
+    if (!skuValue) {
+      skuValue = await this.generateNextSku();
+    }
+
     const product = Product.create({
       id,
       name: input.name,
       slug: input.slug,
-      sku: input.sku ? ProductSKU.create(input.sku) : null,
+      sku: ProductSKU.create(skuValue),
       description: input.description,
       shortDescription: input.shortDescription,
       originalPrice: input.originalPrice != null ? Money.create(input.originalPrice, "KES") : null,
@@ -302,31 +307,44 @@ export class AdminProductsService {
           continue;
         }
 
-        const productData: any = {
-          name: row.name,
-          slug: row.slug,
-          sku: row.sku || null,
-          enabled: row.enabled !== undefined ? row.enabled === "true" || row.enabled === true : true,
-          condition: row.condition || "NEW",
-        };
-
-        if (row.brandSlug && brandBySlug.has(row.brandSlug)) {
-          productData.brandId = brandBySlug.get(row.brandSlug);
-        }
-
         const existing = await this.productRepository.findByIdentifier(row.slug);
 
         if (existing) {
+          const updateData: any = {
+            name: row.name,
+            enabled: row.enabled !== undefined ? row.enabled === "true" || row.enabled === true : true,
+            condition: row.condition || "NEW",
+            updatedAt: new Date(),
+          };
+
+          if (row.brandSlug && brandBySlug.has(row.brandSlug)) {
+            updateData.brandId = brandBySlug.get(row.brandSlug);
+          }
+
           await db
             .update(schema.products as any)
-            .set({ ...productData, updatedAt: new Date() })
+            .set(updateData)
             .where(eq(schema.products.id as any, existing.id));
           updated++;
         } else {
           const productId = uuidv4();
+          const sku = await this.generateNextSku();
+          const insertData: any = {
+            id: productId,
+            name: row.name,
+            slug: row.slug,
+            sku,
+            enabled: row.enabled !== undefined ? row.enabled === "true" || row.enabled === true : true,
+            condition: row.condition || "NEW",
+          };
+
+          if (row.brandSlug && brandBySlug.has(row.brandSlug)) {
+            insertData.brandId = brandBySlug.get(row.brandSlug);
+          }
+
           await db
             .insert(schema.products as any)
-            .values({ ...productData, id: productId });
+            .values(insertData);
           created++;
         }
       } catch (err: any) {
@@ -391,6 +409,17 @@ export class AdminProductsService {
     );
 
     return headers.join(",") + "\n" + rows.join("\n") + "\n";
+  }
+
+  private async generateNextSku(): Promise<string> {
+    const result = await db.execute(sql`
+      SELECT MAX(CAST(sku AS INTEGER)) AS max_sku
+      FROM "Product"
+      WHERE sku ~ '^\\d+$'
+    `);
+    const maxSku = result.rows?.[0]?.max_sku ?? null;
+    const nextNumber = maxSku ? Number(maxSku) + 1 : 10001;
+    return String(nextNumber);
   }
 
   private async enrichWithRelations(products: Product[]): Promise<AdminProductRow[]> {
