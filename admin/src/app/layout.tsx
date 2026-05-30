@@ -1,5 +1,18 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import localFont from "next/font/local";
+
+const hanken = localFont({
+  src: [
+    {
+      path: "./fonts/hanken-grotesk-latin-wght-normal.woff2",
+      weight: "100 900",
+      style: "normal",
+    },
+  ],
+  variable: "--font-sans",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Workit Admin Panel",
@@ -16,15 +29,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body className="hanken-grotesk-admin font-sans antialiased">
+      <head />
+      <body className={`${hanken.variable} font-sans antialiased`}>
         <ApolloProvider>
           {children}
           <Toaster />
@@ -33,4 +39,3 @@ export default function RootLayout({
     </html>
   );
 }
-

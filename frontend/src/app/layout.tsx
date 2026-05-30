@@ -5,10 +5,23 @@ import MetaCookieInitializer from "../components/providers/MetaCookieInitializer
 import QueryProvider from "../components/providers/QueryProvider";
 import "./globals.css";
 import Script from "next/script";
+import localFont from "next/font/local";
 
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
 const AuthModalWrapper = dynamic(() => import("../components/auth/AuthModalWrapper"));
+
+const hanken = localFont({
+  src: [
+    {
+      path: "./fonts/hanken-grotesk-latin-wght-normal.woff2",
+      weight: "100 900",
+      style: "normal",
+    },
+  ],
+  variable: "--font-sans",
+  display: "swap",
+});
 
 import { SITE_CONFIG, DEFAULT_OG, DEFAULT_TWITTER } from "@/lib/meta/meta";
 
@@ -81,13 +94,6 @@ gtag('config', 'G-Y0DN0MB5CV');`,
           }}
         />
 
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&display=swap"
-          rel="stylesheet"
-        />
-
         {/* JSON-LD SEO */}
         <Script
           id="workit-jsonld"
@@ -96,7 +102,7 @@ gtag('config', 'G-Y0DN0MB5CV');`,
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body suppressHydrationWarning className="font-sans flex flex-col min-h-screen">
+      <body suppressHydrationWarning className={`${hanken.variable} font-sans flex flex-col min-h-screen`}>
         <QueryProvider>
           <CartInitializer />
           <MetaCookieInitializer />
@@ -117,7 +123,7 @@ gtag('config', 'G-Y0DN0MB5CV');`,
               boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
               padding: '16px',
               fontSize: '14px',
-              fontFamily: '"Hanken Grotesk", sans-serif',
+              fontFamily: 'var(--font-sans)',
             },
             success: {
               style: {
