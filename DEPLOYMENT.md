@@ -456,11 +456,12 @@ Do not deploy the frontend or admin before the backend is available.
 
 Before you switch the live site over, run the database seed so the initial collections and homepage collections exist.
 
-Run this from the backend container or from the repo root on the server:
+In Dokploy, use the **backend** app terminal:
 
 ```bash
-pnpm --filter @workit/db build
-pnpm --filter @workit/db seed
+cd /app/packages/db
+pnpm build
+pnpm seed
 ```
 
 The seed now creates:
@@ -482,14 +483,23 @@ If the seed runs correctly, those pages will already have records available in p
 
 Run migrations whenever the schema changes.
 
-Use the backend app terminal in Dokploy:
+During local development, connect to the production database via SSH tunnel or VPN and run:
 
 ```bash
-cd /app
-pnpm --filter @workit/db build
-pnpm --dir /app/backend db:push
-$env:DATABASE_URL="postgresql://postgres:V7rOLhSkvyUjTN34Z2DK@workit-ecommerce-workit-database-x3fyx1:5432/workit-db"; npx tsx packages/db/src/seed.ts
+cd packages/db
+pnpm build
+pnpm exec drizzle-kit migrate
 ```
+
+In Dokploy, use the **backend** app terminal:
+
+```bash
+cd /app/packages/db
+pnpm build
+pnpm exec drizzle-kit migrate
+```
+
+The `DATABASE_URL` environment variable is already injected by Dokploy, so no manual URL is needed inside the container.
 
 If the migration fails, inspect the backend logs first and fix the schema issue before retrying.
 
