@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { SlidersHorizontal } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import ColProductGrid from '@/components/product/ColProductGrid';
 import ProductPagination from '@/components/ui/ProductPagination';
 import CollectionHeaderBannerLoader from '@/components/banners/CollectionHeaderBannerLoader';
@@ -380,16 +381,17 @@ export default function CollectionProducts({
             {/* Sort Bar */}
             <div className="flex items-center justify-between flex-wrap gap-3">
               <div className="flex items-center gap-3">
-                <button
+                <Button
+                  variant="outline"
                   onClick={() => setMobileFiltersOpen(true)}
-                  className="md:hidden h-10 px-4 flex items-center gap-2 border border-gray-200 bg-white text-sm font-medium rounded-md hover:bg-gray-50"
+                  className="md:hidden h-10"
                 >
                   <SlidersHorizontal size={16} />
                   Filters
                   {(filterState.brand?.length || filterState.minPrice !== undefined || filterState.maxPrice !== undefined) && (
                     <span className="w-2 h-2 rounded-full bg-primary-900" />
                   )}
-                </button>
+                </Button>
                 <p className="text-sm text-gray-500">
                   {pagination.total > 0
                     ? `${pagination.total} product${pagination.total !== 1 ? 's' : ''} found`

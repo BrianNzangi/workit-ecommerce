@@ -1,6 +1,15 @@
 'use client';
 
 import { SlidersHorizontal, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerFooter,
+  DrawerClose,
+} from '@/components/ui/drawer';
 import FilterSidebar from '@/components/filters/FilterSidebar';
 
 interface CollectionMobileFilterDrawerProps {
@@ -27,27 +36,23 @@ export default function CollectionMobileFilterDrawer({
   collectionSlug,
   onFilterChange,
 }: CollectionMobileFilterDrawerProps) {
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-50 md:hidden">
-      <div
-        className="absolute inset-0 bg-black/40"
-        onClick={onClose}
-      />
-      <div className="absolute left-0 top-0 h-full w-[85%] max-w-sm bg-white shadow-2xl flex flex-col animate-in slide-in-from-left duration-300">
-        <div className="flex items-center justify-between p-4 border-b border-gray-100">
-          <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-            <SlidersHorizontal size={18} className="text-primary-900" />
-            Filters
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-50 rounded-full transition-colors"
-          >
-            <X size={20} className="text-gray-400" />
-          </button>
-        </div>
+    <Drawer open={open} onOpenChange={(o) => { if (!o) onClose(); }} direction="left">
+      <DrawerContent side="left" className="w-[85%] max-w-sm">
+        <DrawerHeader className="border-b border-gray-100">
+          <div className="flex items-center justify-between">
+            <DrawerTitle className="flex items-center gap-2">
+              <SlidersHorizontal size={18} className="text-primary-900" />
+              Filters
+            </DrawerTitle>
+            <DrawerClose asChild>
+              <button className="p-2 hover:bg-gray-50 rounded-full transition-colors">
+                <X size={20} className="text-gray-400" />
+              </button>
+            </DrawerClose>
+          </div>
+        </DrawerHeader>
+
         <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
           <FilterSidebar
             selectedCategory={selectedCategory}
@@ -55,15 +60,15 @@ export default function CollectionMobileFilterDrawer({
             onFilterChange={onFilterChange}
           />
         </div>
-        <div className="p-4 border-t border-gray-100">
-          <button
-            onClick={onClose}
-            className="w-full py-3 bg-primary-900 text-white text-sm font-bold rounded-lg hover:bg-primary-800 transition-colors"
-          >
-            Show Results
-          </button>
-        </div>
-      </div>
-    </div>
+
+        <DrawerFooter className="border-t border-gray-100">
+          <DrawerClose asChild>
+            <Button className="w-full bg-primary-900 hover:bg-primary-800 text-white">
+              Show Results
+            </Button>
+          </DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }

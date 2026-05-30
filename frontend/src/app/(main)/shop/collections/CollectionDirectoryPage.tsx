@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { useCollections } from '@/hooks/useCollections';
+import SectionContainer from '@/components/layout/SectionContainer';
 import DirectoryHero from '@/components/shop/collections/DirectoryHero';
 import CollectionGroup from '@/components/shop/collections/CollectionGroup';
 
@@ -33,20 +34,24 @@ export default function CollectionDirectory() {
 
     if (loading) {
         return (
-            <div className="max-w-7xl mx-auto px-4 py-12 space-y-8">
-                <div className="h-12 w-64 bg-gray-200 animate-pulse rounded-lg" />
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {[1, 2, 3, 4, 5, 6].map(i => (
-                        <div key={i} className="h-64 bg-gray-100 animate-pulse rounded-2xl" />
-                    ))}
-                </div>
+            <div className="min-h-screen bg-white">
+                <SectionContainer className="px-10 sm:px-12 lg:px-16 py-16">
+                    <div className="space-y-8">
+                        <div className="h-12 w-64 bg-gray-100 animate-pulse rounded-lg" />
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {[1, 2, 3, 4, 5, 6].map(i => (
+                                <div key={i} className="aspect-video bg-gray-100 animate-pulse rounded-2xl" />
+                            ))}
+                        </div>
+                    </div>
+                </SectionContainer>
             </div>
         );
     }
 
     return (
         <div className="min-h-screen bg-white">
-            <div className="max-w-7xl mx-auto px-4 py-16">
+            <SectionContainer className="px-10 sm:px-12 lg:px-16 py-16">
                 <DirectoryHero />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
@@ -54,7 +59,7 @@ export default function CollectionDirectory() {
                         <CollectionGroup key={l1.id} collection={l1} />
                     ))}
                 </div>
-            </div>
+            </SectionContainer>
         </div>
     );
 }
