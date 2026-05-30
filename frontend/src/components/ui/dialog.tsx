@@ -3,6 +3,7 @@
 import { ReactNode } from "react";
 import { X } from "lucide-react";
 import { Button } from "./button";
+import { cn } from "@/lib/utils/utils";
 
 interface DialogProps {
   open: boolean;
@@ -70,6 +71,15 @@ interface DialogTitleProps {
 
 export function DialogTitle({ children }: DialogTitleProps) {
   return <h3 className="text-lg font-semibold">{children}</h3>;
+}
+
+interface DialogDescriptionProps {
+  children: ReactNode;
+  className?: string;
+}
+
+export function DialogDescription({ children, className }: DialogDescriptionProps) {
+  return <p className={cn("text-sm text-gray-500", className)}>{children}</p>;
 }
 
 interface DialogFooterProps {

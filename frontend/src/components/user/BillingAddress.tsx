@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCustomer, useUpdateCustomer } from "@/hooks/useCustomer";
 
 interface BillingAddressData {
@@ -63,24 +64,25 @@ export function BillingAddress() {
 
   return (
     <>
-      <div className="bg-white border border-gray-100 shadow-xs rounded-xs p-6 flex flex-col h-full">
-        <h2 className="text-xl font-semibold mb-6">Billing Address</h2>
-
-        <div className="flex-1">
+      <Card className="flex flex-col h-full">
+        <CardHeader>
+          <CardTitle>Billing Address</CardTitle>
+        </CardHeader>
+        <CardContent className="flex-1">
           {loading ? (
             <div className="space-y-2">
-              <div className="h-5 bg-gray-200 rounded-xs animate-pulse"></div>
-              <div className="h-4 bg-gray-200 rounded-xs animate-pulse"></div>
-              <div className="h-4 bg-gray-200 rounded-xs animate-pulse"></div>
-              <div className="h-4 bg-gray-200 rounded-xs animate-pulse"></div>
+              <div className="h-5 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
             </div>
           ) : error ? (
-            <div className="text-center text-gray-500">
+            <div className="text-center text-gray-500 py-4">
               <p>{error}</p>
               <p className="text-sm mt-2">Please add your billing information.</p>
             </div>
           ) : !billingAddress.first_name && !billingAddress.last_name ? (
-            <div className="text-center text-gray-500">
+            <div className="text-center text-gray-500 py-4">
               <p>No billing address set up yet.</p>
               <p className="text-sm mt-2">Click edit to add your billing information.</p>
             </div>
@@ -104,9 +106,8 @@ export function BillingAddress() {
               )}
             </div>
           )}
-        </div>
-
-        <div className="mt-auto pt-4">
+        </CardContent>
+        <CardFooter>
           <Button
             variant="outline"
             size="sm"
@@ -116,11 +117,14 @@ export function BillingAddress() {
             <Edit size={16} />
             Edit
           </Button>
-        </div>
-      </div>
+        </CardFooter>
+      </Card>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen} title="Edit Billing Address">
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Billing Address</DialogTitle>
+          </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -209,7 +213,7 @@ export function BillingAddress() {
                     id="county"
                     value={editData.county}
                     onChange={(e) => setEditData({ ...editData, county: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-xs focus:outline-none focus:ring-2 focus:ring-primary-900 appearance-none pr-10"
+                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-900 appearance-none pr-10"
                   >
                     <option value="">Select County</option>
                     <option value="Nairobi">Nairobi</option>

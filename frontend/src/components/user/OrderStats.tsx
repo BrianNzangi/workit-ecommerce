@@ -1,6 +1,7 @@
 "use client";
 
 import { Package, Clock, CheckCircle } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface OrderStatsProps {
   totalOrders: number;
@@ -35,25 +36,30 @@ export function OrderStats({ totalOrders, pendingOrders, completedOrders, loadin
   ];
 
   return (
-    <div className="bg-white shadow-xs p-6">
-      <div className="space-y-4">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <div key={stat.label} className="flex items-center justify-between p-4 border border-gray-200">
-              <div className="flex items-center gap-3">
-                <div className={`p-4 rounded-full ${stat.bgColor}`}>
-                  <Icon className={stat.color} size={20} />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">{stat.label}</p>
-                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+    <Card>
+      <CardHeader>
+        <CardTitle>Order Statistics</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          {stats.map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <div key={stat.label} className="flex items-center justify-between p-4 border border-gray-200">
+                <div className="flex items-center gap-3">
+                  <div className={`p-3 rounded-full ${stat.bgColor}`}>
+                    <Icon className={stat.color} size={20} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">{stat.label}</p>
+                    <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

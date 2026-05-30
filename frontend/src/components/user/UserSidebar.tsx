@@ -13,6 +13,7 @@ import {
   LogOut
 } from "lucide-react";
 import { cn } from "@/lib/utils/utils";
+import { Card, CardContent } from "@/components/ui/card";
 
 type ActiveSection = 'dashboard' | 'orders' | 'track-order' | 'cart' | 'wishlist' | 'compare' | 'cards-address' | 'browsing-history' | 'settings';
 
@@ -71,35 +72,36 @@ interface UserSidebarProps {
 
 export function UserSidebar({ activeSection, onSectionChange }: UserSidebarProps) {
   return (
-    <div className="bg-white border border-gray-100 shadow-xs p-6">
-      <nav className="space-y-2">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = activeSection === item.key;
+    <Card>
+      <CardContent className="p-4">
+        <nav className="space-y-1">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeSection === item.key;
 
-          return (
-            <button
-              key={item.key}
-              onClick={() => onSectionChange(item.key)}
-              className={cn(
-                "flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors w-full text-left",
-                isActive
-                  ? "bg-primary-900 text-white"
-                  : "text-gray-700 hover:bg-gray-100"
-              )}
-            >
-              <Icon size={18} />
-              {item.label}
-            </button>
-          );
-        })}
+            return (
+              <button
+                key={item.key}
+                onClick={() => onSectionChange(item.key)}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors w-full text-left rounded",
+                  isActive
+                    ? "bg-primary-900 text-white"
+                    : "text-gray-700 hover:bg-gray-100"
+                )}
+              >
+                <Icon size={18} />
+                {item.label}
+              </button>
+            );
+          })}
 
-        {/* Log Out */}
-        <button className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 w-full text-left transition-colors">
-          <LogOut size={18} />
-          Log-out
-        </button>
-      </nav>
-    </div>
+          <button className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 w-full text-left transition-colors rounded">
+            <LogOut size={18} />
+            Log-out
+          </button>
+        </nav>
+      </CardContent>
+    </Card>
   );
 }

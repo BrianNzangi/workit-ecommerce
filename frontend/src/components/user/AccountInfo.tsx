@@ -6,7 +6,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface AccountInfoData {
   name: string;
@@ -54,18 +55,22 @@ export function AccountInfo() {
 
   return (
     <>
-      <div className="bg-white border border-gray-100 shadow-xs p-6 flex flex-col h-full">
-        <h2 className="text-xl font-semibold mb-6">Account Information</h2>
-
-        <div className="flex-1">
+      <Card className="flex flex-col h-full">
+        <CardHeader>
+          <CardTitle>Account Information</CardTitle>
+        </CardHeader>
+        <CardContent className="flex-1">
           <div className="space-y-2">
             <p className="text-lg font-medium text-gray-900">{accountInfo.name}</p>
-            <p className="text-gray-600">Phone Number: {accountInfo.phone}</p>
-            <p className="text-gray-600">Email: {accountInfo.email}</p>
+            {accountInfo.phone && (
+              <p className="text-gray-600">Phone: {accountInfo.phone}</p>
+            )}
+            {accountInfo.email && (
+              <p className="text-gray-600">Email: {accountInfo.email}</p>
+            )}
           </div>
-        </div>
-
-        <div className="mt-auto pt-4">
+        </CardContent>
+        <CardFooter>
           <Button
             variant="outline"
             size="sm"
@@ -75,11 +80,14 @@ export function AccountInfo() {
             <Edit size={16} />
             Edit
           </Button>
-        </div>
-      </div>
+        </CardFooter>
+      </Card>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen} title="Edit Account Information">
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Account Information</DialogTitle>
+          </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>

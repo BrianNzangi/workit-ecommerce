@@ -1,11 +1,12 @@
 import { Suspense } from "react";
 import DashboardClient from "./DashboardClient";
+import SectionContainer from "@/components/layout/SectionContainer";
 
 export default function DashboardPage() {
   return (
     <Suspense fallback={
       <main className="min-h-screen bg-[#F0F0F1] font-sans">
-        <div className="max-w-7xl mx-auto px-4 py-8">
+        <SectionContainer className="px-10 sm:px-12 lg:px-16 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             <div className="lg:col-span-1">
               <div className="animate-pulse">
@@ -23,7 +24,7 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
-        </div>
+        </SectionContainer>
       </main>
     }>
       <DashboardClient />
