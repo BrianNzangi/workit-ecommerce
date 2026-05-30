@@ -15,7 +15,7 @@ export default function ProductRecommendations({
 }: ProductRecommendationsProps) {
   return (
     <section className="mt-12 w-full bg-white py-6 md:py-8">
-      <SectionContainer className="px-10 sm:px-12 lg:px-16 mb-8 py-6">
+      <SectionContainer className="px-6 sm:px-8 lg:px-16 mb-8 py-6">
         <div className="pb-6 md:pb-8">
           <h2 className="mb-2 text-lg md:text-2xl font-bold text-secondary-900">
             Similar Items You Might Like

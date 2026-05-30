@@ -3,7 +3,8 @@
 import React, { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import SectionContainer from "@/components/layout/SectionContainer"
-import { Breadcrumb, Category } from "@/utils/breadcrumbs"
+import Breadcrumbs from "@/components/ui/Breadcrumbs"
+import { Category } from "@/utils/breadcrumbs"
 import he from "he"
 import { sanitizeHtml } from "@/lib/utils/sanitize"
 import ProductMediaColumn from "@/components/product/ProductMediaColumn"
@@ -44,27 +45,17 @@ export default function ProductPage({
     return chain;
   };
 
-  const breadcrumbs: Breadcrumb[] = [];
+  const breadcrumbPaths: { label: string; href?: string }[] = [{ label: "Home", href: "/" }];
   if (product.categories && product.categories.length > 0 && flattenedCategories.length > 0) {
     const primaryCat =
       flattenedCategories.find((c) => String(c.id) === String(product.categories![0].id)) ||
       product.categories[0];
     const chain = buildChain(primaryCat, flattenedCategories);
     chain.forEach((c) => {
-      breadcrumbs.push({
-        name: c.name,
-        slug: c.slug,
-        id: c.id,
-        url: `/shop/collections/${c.slug}`,
-      });
+      breadcrumbPaths.push({ label: c.name, href: `/shop/collections/${c.slug}` });
     });
   }
-
-  if (breadcrumbs.length === 0) {
-    breadcrumbs.push({ name: "Home", slug: "", url: "/" });
-  } else if (breadcrumbs[0].name !== "Home") {
-    breadcrumbs.unshift({ name: "Home", slug: "", url: "/" });
-  }
+  breadcrumbPaths.push({ label: product.name });
 
   const [selectedIdx, setSelectedIdx] = useState(0)
   const images = product.images || []
@@ -100,24 +91,8 @@ export default function ProductPage({
 
   return (
     <main className="bg-white font-sans">
-      <SectionContainer className="px-10 sm:px-12 lg:px-16 mb-8 py-6">
-        <nav className="mb-6 flex flex-wrap items-center gap-2 text-sm text-gray-500">
-          {breadcrumbs.map((crumb, idx) => {
-            const crumbName = he.decode(crumb.name)
-            return (
-              <React.Fragment key={crumb.url}>
-                {idx > 0 && <span className="px-1 text-gray-300">/</span>}
-                {idx < breadcrumbs.length - 1 ? (
-                  <Link href={crumb.url} className="transition hover:text-secondary-900 hover:underline">
-                    {crumbName}
-                  </Link>
-                ) : (
-                  <span className="text-gray-700 font-medium">{crumbName}</span>
-                )}
-              </React.Fragment>
-            )
-          })}
-        </nav>
+      <SectionContainer className="px-6 sm:px-8 lg:px-16 mb-8 py-6 pb-24 md:pb-6">
+        <Breadcrumbs paths={breadcrumbPaths} />
 
         <div className="grid grid-cols-1 xl:grid-cols-[minmax(420px,1.3fr)_minmax(360px,1.1fr)_minmax(320px,0.8fr)] gap-8">
           <ProductMediaColumn

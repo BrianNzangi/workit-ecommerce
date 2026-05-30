@@ -123,7 +123,7 @@ export default async function ProductDetailPage({ params }: Props) {
       console.error(`[ProductDetailPage] Backend error ${productResponse.status} for slug: ${slug}`);
       recordSsrRenderTime('/deal-details/[slug]', Date.now() - startedAt);
       return (
-      <SectionContainer className="px-4 sm:px-6 lg:px-8 py-10 text-center">
+      <SectionContainer className="px-6 sm:px-8 lg:px-16 py-10 text-center">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Product not found</h1>
           <p className="text-gray-600 mb-4">
             The product you're looking for doesn't exist or has been removed.
@@ -210,7 +210,7 @@ export default async function ProductDetailPage({ params }: Props) {
     console.error('Error fetching product:', error);
     recordSsrRenderTime('/deal-details/[slug]', Date.now() - startedAt);
     return (
-      <SectionContainer className="px-4 sm:px-6 lg:px-8 py-10 text-center">
+      <SectionContainer className="px-6 sm:px-8 lg:px-16 py-10 text-center">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Error loading product</h1>
         <p className="text-gray-600 mb-4">
           Something went wrong while loading this product. Please try again later.
