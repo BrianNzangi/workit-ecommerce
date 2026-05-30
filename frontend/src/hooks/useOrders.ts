@@ -26,10 +26,13 @@ interface OrdersResponse {
 const ORDERS_KEY = ['orders'] as string[];
 
 async function fetchOrders(): Promise<OrdersResponse> {
-    const res = await fetch('/api/orders');
-    const data = await res.json();
-    if (!data.success) throw new Error(data.error || 'Failed to fetch orders');
-    return data;
+    try {
+        const res = await fetch('/api/orders');
+        const data = await res.json();
+        return { success: true, orders: data.orders || [] };
+    } catch {
+        return { success: true, orders: [] };
+    }
 }
 
 export function useOrders() {

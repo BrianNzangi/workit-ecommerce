@@ -4,6 +4,17 @@ import { headers } from "next/headers";
 
 export const dynamic = 'force-dynamic';
 
+const getBackendUrl = () => {
+  const env = process.env as Record<string, string | undefined>;
+  return (
+    env.BACKEND_API_URL ||
+    env.BACKEND_URL ||
+    env.NEXT_PUBLIC_BACKEND_URL ||
+    env.NEXT_PUBLIC_API_URL ||
+    'http://127.0.0.1:3001'
+  ).replace(/\/$/, '');
+};
+
 export async function GET(request: NextRequest) {
   try {
     const session = await auth.api.getSession({
@@ -12,36 +23,34 @@ export async function GET(request: NextRequest) {
 
     if (!session?.user) {
       return NextResponse.json({
-        success: false,
-        error: 'Not authenticated',
+        success: true,
         orders: [],
-      }, { status: 401 });
+        total: 0,
+      });
     }
 
-    const { user } = session;
-
-    const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3001';
     const headerList = await headers();
+    const BACKEND_URL = getBackendUrl();
 
-    // Fetch orders from the new backend fulfillment module
-    // This uses the session cookie forward to authenticate
-    console.log(`Fetching orders for user ID: ${user.id} from backend...`);
     const res = await fetch(`${BACKEND_URL}/fulfillment/orders`, {
       headers: {
         'cookie': headerList.get('cookie') || '',
-      }
+      },
     });
 
     if (!res.ok) {
-      throw new Error(`Backend returned ${res.status}`);
+      console.warn(`Backend orders API returned ${res.status}; returning empty orders`);
+      return NextResponse.json({
+        success: true,
+        orders: [],
+        total: 0,
+      });
     }
 
     const data = await res.json();
     const backendOrders = data.orders || [];
 
-    // Map backend orders to the format expected by the frontend UI
     const transformedOrders = backendOrders.map((order: any) => {
-      // Map backend states to UI statuses
       let status = 'processing';
       const state = order.state?.toUpperCase();
 
@@ -75,8 +84,9 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching orders:', error);
     return NextResponse.json({
-      success: false,
-      error: 'Failed to fetch orders',
-    }, { status: 500 });
+      success: true,
+      orders: [],
+      total: 0,
+    });
   }
 }

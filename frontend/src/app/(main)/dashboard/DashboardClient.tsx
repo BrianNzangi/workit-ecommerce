@@ -13,7 +13,7 @@ import { OrdersPage } from "../../../components/user/OrdersPage";
 import SectionContainer from "@/components/layout/SectionContainer";
 import { Card, CardContent } from "@/components/ui/card";
 
-type ActiveSection = 'dashboard' | 'orders' | 'track-order' | 'cart' | 'wishlist' | 'compare' | 'cards-address' | 'browsing-history' | 'settings';
+type ActiveSection = 'dashboard' | 'orders' | 'track-order' | 'wishlist' | 'compare' | 'cards-address' | 'browsing-history' | 'settings';
 
 export default function DashboardClient() {
   const { customer, isAuthenticated, loading: authLoading } = useAuth();
@@ -31,7 +31,7 @@ export default function DashboardClient() {
 
   useEffect(() => {
     const section = searchParams.get('section') as ActiveSection;
-    if (section && ['dashboard', 'orders', 'track-order', 'cart', 'wishlist', 'compare', 'cards-address', 'browsing-history', 'settings'].includes(section)) {
+    if (section && ['dashboard', 'orders', 'track-order', 'wishlist', 'compare', 'cards-address', 'browsing-history', 'settings'].includes(section)) {
       setActiveSection(section);
     }
   }, [searchParams]);

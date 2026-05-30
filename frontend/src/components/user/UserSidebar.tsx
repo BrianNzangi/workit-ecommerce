@@ -4,7 +4,6 @@ import {
   LayoutDashboard,
   Package,
   Truck,
-  ShoppingCart,
   Heart,
   GitCompare,
   CreditCard,
@@ -15,7 +14,7 @@ import {
 import { cn } from "@/lib/utils/utils";
 import { Card, CardContent } from "@/components/ui/card";
 
-type ActiveSection = 'dashboard' | 'orders' | 'track-order' | 'cart' | 'wishlist' | 'compare' | 'cards-address' | 'browsing-history' | 'settings';
+type ActiveSection = 'dashboard' | 'orders' | 'track-order' | 'wishlist' | 'compare' | 'cards-address' | 'browsing-history' | 'settings';
 
 const navItems = [
   {
@@ -32,11 +31,6 @@ const navItems = [
     label: "Track Order",
     key: "track-order" as ActiveSection,
     icon: Truck,
-  },
-  {
-    label: "Shopping Cart",
-    key: "cart" as ActiveSection,
-    icon: ShoppingCart,
   },
   {
     label: "Wishlist",
