@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Upload, Download, FileDown, FileJson } from 'lucide-react';
+import { Upload, Download, FileDown, FileJson, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -54,6 +54,7 @@ export function ImportExportDrawer({ isOpen, onClose, onImportSuccess }: ImportE
     const [jsonInput, setJsonInput] = useState('');
     const [parseError, setParseError] = useState<string | null>(null);
     const [importResults, setImportResults] = useState<any>(null);
+    const [copied, setCopied] = useState(false);
 
     const validateJson = (): any[] | null => {
         setParseError(null);
@@ -263,11 +264,31 @@ export function ImportExportDrawer({ isOpen, onClose, onImportSuccess }: ImportE
                                     </div>
 
                                     {importResults.errors && importResults.errors.length > 0 && (
-                                        <div className="max-h-48 overflow-y-auto space-y-1">
-                                            <p className="text-sm font-medium">Errors:</p>
-                                            {importResults.errors.map((err: string, idx: number) => (
-                                                <p key={idx} className="text-xs text-destructive">{err}</p>
-                                            ))}
+                                        <div className="space-y-2">
+                                            <div className="flex items-center justify-between">
+                                                <p className="text-sm font-medium">Errors:</p>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(
+                                                            importResults.errors.join('\n')
+                                                        );
+                                                        setCopied(true);
+                                                        setTimeout(() => setCopied(false), 2000);
+                                                    }}
+                                                    className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                                                >
+                                                    {copied ? (
+                                                        <Check className="h-3 w-3 text-green-500" />
+                                                    ) : (
+                                                        <Copy className="h-3 w-3" />
+                                                    )}
+                                                    {copied ? 'Copied' : 'Copy all'}
+                                                </button>
+                                            </div>
+                                            <pre className="max-h-48 overflow-y-auto whitespace-pre-wrap break-words rounded-md border bg-muted/50 p-3 text-xs text-destructive select-all">
+                                                {importResults.errors.join('\n')}
+                                            </pre>
                                         </div>
                                     )}
                                 </div>

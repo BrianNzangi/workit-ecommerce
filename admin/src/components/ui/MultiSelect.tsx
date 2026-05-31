@@ -1,7 +1,7 @@
 'use client';
 
-import { Check, ChevronDown, X } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import { Check, ChevronDown, ChevronUp, ChevronRight, X } from 'lucide-react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { cn } from '@/lib/shared/utils/cn';
 
 interface MultiSelectOption {
@@ -24,6 +24,7 @@ export function MultiSelect({
     placeholder = 'Select...',
 }: MultiSelectProps) {
     const [open, setOpen] = useState(false);
+    const [expanded, setExpanded] = useState<Set<string>>(new Set());
     const containerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -36,12 +37,62 @@ export function MultiSelect({
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    const hasChildren = useMemo(() => {
+        const result = new Set<string>();
+        for (let i = 0; i < options.length; i++) {
+            const currentIndent = options[i].indent ?? 0;
+            for (let j = i + 1; j < options.length; j++) {
+                const nextIndent = options[j].indent ?? 0;
+                if (nextIndent > currentIndent) {
+                    result.add(options[i].value);
+                    break;
+                }
+                if (nextIndent <= currentIndent) break;
+            }
+        }
+        return result;
+    }, [options]);
+
+    const visibleOptions = useMemo(() => {
+        const result: MultiSelectOption[] = [];
+        const collapsedStack: number[] = [];
+
+        for (const option of options) {
+            const indent = option.indent ?? 0;
+
+            while (collapsedStack.length > 0 && collapsedStack[collapsedStack.length - 1] >= indent) {
+                collapsedStack.pop();
+            }
+
+            if (collapsedStack.length > 0) continue;
+
+            result.push(option);
+
+            if (hasChildren.has(option.value) && !expanded.has(option.value)) {
+                collapsedStack.push(indent);
+            }
+        }
+
+        return result;
+    }, [options, expanded, hasChildren]);
+
     const toggle = (value: string) => {
         onChange(
             selected.includes(value)
                 ? selected.filter((v) => v !== value)
                 : [...selected, value]
         );
+        setOpen(false);
+    };
+
+    const toggleExpand = (value: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setExpanded((prev) => {
+            const next = new Set(prev);
+            if (next.has(value)) next.delete(value);
+            else next.add(value);
+            return next;
+        });
     };
 
     const selectedLabels = options
@@ -82,7 +133,11 @@ export function MultiSelect({
                         ))
                     )}
                 </span>
-                <ChevronDown className="ml-2 h-4 w-4 shrink-0 text-secondary-400" />
+                {open ? (
+                    <ChevronUp className="ml-2 h-4 w-4 shrink-0 text-secondary-400" />
+                ) : (
+                    <ChevronDown className="ml-2 h-4 w-4 shrink-0 text-secondary-400" />
+                )}
             </button>
 
             {open && (
@@ -91,8 +146,10 @@ export function MultiSelect({
                         {options.length === 0 ? (
                             <p className="px-3 py-2 text-sm text-secondary-400">No options available</p>
                         ) : (
-                            options.map((option) => {
+                            visibleOptions.map((option) => {
                                 const isSelected = selected.includes(option.value);
+                                const isExpandable = hasChildren.has(option.value);
+                                const isExpanded = expanded.has(option.value);
                                 return (
                                     <button
                                         key={option.value}
@@ -102,8 +159,22 @@ export function MultiSelect({
                                             "flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors",
                                             isSelected ? "bg-secondary-100" : "hover:bg-secondary-50"
                                         )}
-                                        style={{ paddingLeft: `${(option.indent || 0) * 12 + 8}px` }}
+                                        style={{ paddingLeft: `${(option.indent || 0) * 16 + 8}px` }}
                                     >
+                                        {isExpandable ? (
+                                            <span
+                                                onClick={(e) => toggleExpand(option.value, e)}
+                                                className="shrink-0 cursor-pointer"
+                                            >
+                                                {isExpanded ? (
+                                                    <ChevronDown className="h-3.5 w-3.5 text-secondary-400" />
+                                                ) : (
+                                                    <ChevronRight className="h-3.5 w-3.5 text-secondary-400" />
+                                                )}
+                                            </span>
+                                        ) : (
+                                            <span className="w-3.5 shrink-0" />
+                                        )}
                                         <div className={cn(
                                             "flex h-4 w-4 shrink-0 items-center justify-center rounded-sm",
                                             isSelected
