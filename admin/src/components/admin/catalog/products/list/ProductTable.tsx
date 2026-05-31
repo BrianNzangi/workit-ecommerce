@@ -137,6 +137,7 @@ export function ProductTable({ products, onDelete }: ProductTableProps) {
                         <TableRow className="border-b border-secondary-100">
                             <TableHead className="w-16">Image</TableHead>
                             <TableHead>Product</TableHead>
+                            <TableHead className="w-28">SKU</TableHead>
                             <TableHead>Collections</TableHead>
                             <TableHead className="w-24">Homepage</TableHead>
                             <TableHead className="w-28">Price</TableHead>
@@ -167,6 +168,11 @@ export function ProductTable({ products, onDelete }: ProductTableProps) {
                                             {truncateText(product.slug, 30)}
                                         </span>
                                     </Link>
+                                </TableCell>
+                                <TableCell>
+                                    <code className="text-xs font-mono text-secondary-500">
+                                        {product.sku || '—'}
+                                    </code>
                                 </TableCell>
                                 <TableCell>
                                     <div className="text-sm max-w-48">

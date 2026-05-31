@@ -298,6 +298,8 @@ export class AdminProductsService {
     let skipped = 0;
     const errors: string[] = [];
 
+    let nextSku = await this.generateNextSku();
+
     for (let i = 0; i < products.length; i++) {
       const row = products[i];
       try {
@@ -328,7 +330,8 @@ export class AdminProductsService {
           updated++;
         } else {
           const productId = uuidv4();
-          const sku = await this.generateNextSku();
+          const sku = nextSku;
+          nextSku = String(Number(nextSku) + 1);
           const insertData: any = {
             id: productId,
             name: row.name,

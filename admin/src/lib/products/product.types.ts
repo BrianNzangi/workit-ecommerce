@@ -2,6 +2,7 @@ export interface AdminProduct {
     id: string;
     name: string;
     slug: string;
+    sku: string | null;
     description: string | null;
     shortDescription: string | null;
     salePrice: number | null;
