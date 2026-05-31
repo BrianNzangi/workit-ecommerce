@@ -1,6 +1,44 @@
 import { headers as nextHeaders } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
+const canonicalizeImportKey = (key: string) => String(key).trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+
+const normalizeImportRow = (row: any) => {
+    const normalized: Record<string, any> = {};
+    for (const [key, value] of Object.entries(row ?? {})) {
+        normalized[canonicalizeImportKey(key)] = value;
+    }
+
+    const pick = (...keys: string[]) => {
+        for (const key of keys) {
+            const normalizedKey = canonicalizeImportKey(key);
+            if (normalized[normalizedKey] !== undefined) return normalized[normalizedKey];
+        }
+        return undefined;
+    };
+
+    return {
+        name: pick('name'),
+        slug: pick('slug'),
+        sku: pick('sku'),
+        description: pick('description'),
+        shortDescription: pick('shortDescription', 'short_description', 'short description'),
+        salePrice: pick('salePrice', 'sale_price', 'sale price'),
+        originalPrice: pick('originalPrice', 'original_price', 'original price'),
+        stockOnHand: pick('stockOnHand', 'stock_on_hand', 'stock on hand'),
+        enabled: pick('enabled', 'isEnabled', 'is_enabled'),
+        condition: pick('condition'),
+        brandSlug: pick('brandSlug', 'brand_slug', 'brand slug'),
+        brandId: pick('brandId', 'brand_id', 'brand id'),
+        shippingMethodId: pick('shippingMethodId', 'shipping_method_id', 'shipping method id'),
+        vat: pick('vat'),
+        vatInclusive: pick('vatInclusive', 'vat_inclusive', 'vat inclusive'),
+        collections: pick('collections', 'collectionSlugs', 'collection_slugs', 'collection slugs'),
+        assetIds: pick('assetIds', 'asset_ids', 'asset ids'),
+        homepageCollections: pick('homepageCollections', 'homepage_collections', 'homepage collections'),
+    };
+};
+
 function getBackendUrl() {
     const env = process.env as Record<string, string | undefined>;
     return (
@@ -29,11 +67,17 @@ export async function POST(request: NextRequest) {
 
     try {
         const body = await request.json();
-        const { products } = body;
+        const incomingProducts = Array.isArray(body?.products)
+            ? body.products
+            : Array.isArray(body?.csvData)
+                ? body.csvData
+                : null;
 
-        if (!Array.isArray(products) || products.length === 0) {
+        if (!Array.isArray(incomingProducts) || incomingProducts.length === 0) {
             return NextResponse.json({ error: 'No products provided' }, { status: 400 });
         }
+
+        const products = incomingProducts.map(normalizeImportRow);
 
         const backendUrl = getBackendUrl();
         const url = `${backendUrl}/catalog/products/_admin/import`;

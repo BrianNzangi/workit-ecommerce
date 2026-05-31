@@ -62,8 +62,22 @@ export function createCacheStore(redis: RedisClient | null, log?: FastifyBaseLog
         };
     }
 
+    const cacheGetTimeoutMs = Number(process.env.REDIS_CACHE_GET_TIMEOUT_MS ?? 150);
+    const cacheWriteTimeoutMs = Number(process.env.REDIS_CACHE_WRITE_TIMEOUT_MS ?? 150);
+    const cacheInvalidateTimeoutMs = Number(process.env.REDIS_CACHE_INVALIDATE_TIMEOUT_MS ?? 200);
+    const failureThreshold = Number(process.env.REDIS_CACHE_FAILURE_THRESHOLD ?? 3);
+    const circuitCooldownMs = Number(process.env.REDIS_CACHE_CIRCUIT_COOLDOWN_MS ?? 30_000);
+    const verboseFailureCount = Number(process.env.REDIS_CACHE_VERBOSE_FAILURES ?? 3);
+
+    let consecutiveFailures = 0;
+    let circuitOpenUntil = 0;
+    let circuitOpenLoggedUntil = 0;
+    let circuitCloseLogged = false;
+
     const isRedisReady = () => Boolean(redis && redis.status === "ready");
-    const withTimeout = async <T>(promise: Promise<T>, timeoutMs = 2000): Promise<T> => {
+    const isCircuitOpen = () => Date.now() < circuitOpenUntil;
+
+    const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number): Promise<T> => {
         let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
         try {
             return await Promise.race([
@@ -77,74 +91,145 @@ export function createCacheStore(redis: RedisClient | null, log?: FastifyBaseLog
         }
     };
 
-    return {
+    const openCircuit = (operation: string) => {
+        const now = Date.now();
+        circuitOpenUntil = now + circuitCooldownMs;
+        if (circuitOpenLoggedUntil < circuitOpenUntil) {
+            circuitOpenLoggedUntil = circuitOpenUntil;
+            log?.warn(
+                { operation, failures: consecutiveFailures, cooldownMs: circuitCooldownMs },
+                "Redis cache circuit opened; temporarily bypassing cache",
+            );
+        }
+    };
+
+    const recordSuccess = () => {
+        if (consecutiveFailures > 0) {
+            consecutiveFailures = 0;
+        }
+        if (circuitOpenUntil > 0 && !isCircuitOpen() && !circuitCloseLogged) {
+            circuitCloseLogged = true;
+            circuitOpenUntil = 0;
+            circuitOpenLoggedUntil = 0;
+            log?.info("Redis cache circuit closed after recovery");
+        }
+    };
+
+    const reportFailure = (operation: string, details: Record<string, unknown>, error: unknown) => {
+        consecutiveFailures += 1;
+        circuitCloseLogged = false;
+
+        const level =
+            consecutiveFailures <= verboseFailureCount
+                ? "error"
+                : consecutiveFailures === verboseFailureCount + 1
+                    ? "warn"
+                    : "debug";
+
+        const message =
+            consecutiveFailures <= verboseFailureCount
+                ? `Redis cache ${operation} failed`
+                : `Redis cache ${operation} failed; suppressing repeated logs`;
+
+        const payload = { err: error, ...details };
+        if (level === "error") {
+            log?.error(payload, message);
+        } else if (level === "warn") {
+            log?.warn(payload, message);
+        } else {
+            log?.debug(payload, message);
+        }
+
+        if (consecutiveFailures >= failureThreshold) {
+            openCircuit(operation);
+        }
+    };
+
+    const store: CacheStore = {
         enabled: true,
         async get<T>(key: string): Promise<T | null> {
-            if (!isRedisReady()) {
+            if (!isRedisReady() || isCircuitOpen()) {
                 return null;
             }
             try {
-                const data = await withTimeout(redis.get(key));
+                const data = await withTimeout(redis.get(key), cacheGetTimeoutMs);
+                recordSuccess();
                 return data ? (JSON.parse(data) as T) : null;
             } catch (error) {
-                log?.error({ err: error, key }, "Redis cache get failed");
+                reportFailure("get", { key }, error);
                 return null;
             }
         },
         async set(key: string, value: unknown, ttlSeconds: number, tags?: string[]): Promise<void> {
-            if (!isRedisReady()) {
+            if (!isRedisReady() || isCircuitOpen()) {
                 return;
             }
+
+            let payload: string;
             try {
-                const payload = JSON.stringify(value);
-                const pipeline = redis.pipeline();
-                pipeline.set(key, payload, "EX", ttlSeconds);
-
-                if (Array.isArray(tags) && tags.length > 0) {
-                    tags.forEach((tag) => {
-                        const tagSet = tagKey(tag);
-                        pipeline.sadd(tagSet, key);
-                        pipeline.expire(tagSet, ttlSeconds);
-                    });
-                }
-
-                await withTimeout(pipeline.exec());
+                payload = JSON.stringify(value);
             } catch (error) {
-                log?.error({ err: error, key }, "Redis cache set failed");
+                reportFailure("set", { key }, error);
+                return;
             }
+
+            void (async () => {
+                try {
+                    const pipeline = redis.pipeline();
+                    pipeline.set(key, payload, "EX", ttlSeconds);
+
+                    if (Array.isArray(tags) && tags.length > 0) {
+                        tags.forEach((tag) => {
+                            const setKey = tagKey(tag);
+                            pipeline.sadd(setKey, key);
+                            pipeline.expire(setKey, ttlSeconds);
+                        });
+                    }
+
+                    await withTimeout(pipeline.exec(), cacheWriteTimeoutMs);
+                    recordSuccess();
+                } catch (error) {
+                    reportFailure("set", { key }, error);
+                }
+            })();
         },
         async del(keys: string | string[]): Promise<void> {
-            if (!isRedisReady()) {
+            if (!isRedisReady() || isCircuitOpen()) {
                 return;
             }
             try {
                 const list = Array.isArray(keys) ? keys : [keys];
                 if (list.length > 0) {
-                    await withTimeout(redis.del(...list));
+                    await withTimeout(redis.del(...list), cacheInvalidateTimeoutMs);
+                    recordSuccess();
                 }
             } catch (error) {
-                log?.error({ err: error, keys }, "Redis cache delete failed");
+                reportFailure("delete", { keys }, error);
             }
         },
         async invalidateTag(tag: string): Promise<void> {
-            if (!isRedisReady()) {
+            if (!isRedisReady() || isCircuitOpen()) {
                 return;
             }
             try {
                 const setKey = tagKey(tag);
-                const keys = await withTimeout(redis.smembers(setKey));
+                const keys = await withTimeout(redis.smembers(setKey), cacheInvalidateTimeoutMs);
                 if (keys.length > 0) {
-                    await withTimeout(redis.del(...keys));
+                    await withTimeout(redis.del(...keys), cacheInvalidateTimeoutMs);
                 }
-                await withTimeout(redis.del(setKey));
+                await withTimeout(redis.del(setKey), cacheInvalidateTimeoutMs);
+                recordSuccess();
             } catch (error) {
-                log?.error({ err: error, tag }, "Redis cache tag invalidation failed");
+                reportFailure("invalidateTag", { tag }, error);
             }
         },
         async invalidateTags(tags: string[]): Promise<void> {
-            setImmediate(async () => {
-                await Promise.all(tags.map((tag) => this.invalidateTag(tag)));
-            });
+            if (!Array.isArray(tags) || tags.length === 0) {
+                return;
+            }
+            void Promise.all(tags.map((tag) => store.invalidateTag(tag)));
         },
     };
+
+    return store;
 }

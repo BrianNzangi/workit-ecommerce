@@ -41,16 +41,16 @@ const bannersQuerySchema = z.object({
 
 export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
     const TTL = {
-        productsList: 300,
-        productSearch: 60,
-        productDetail: 300,
-        brands: 1800,
-        collections: 7200,
-        banners: 3600,
-        homepageCollections: 3600,
-        campaigns: 120,
-        shipping: 900,
-        policies: 3600,
+        productsList: 600,
+        productSearch: 120,
+        productDetail: 900,
+        brands: 3600,
+        collections: 14400,
+        banners: 7200,
+        homepageCollections: 7200,
+        campaigns: 300,
+        shipping: 3600,
+        policies: 86400,
     };
 
     // Helper to get all sub-collection IDs recursively

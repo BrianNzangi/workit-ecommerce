@@ -7,6 +7,7 @@ import {
 import { Product, ProductCondition } from "../../../domain/catalog/entities/Product.js";
 import { ProductSKU } from "../../../domain/catalog/value-objects/ProductSKU.js";
 import { Money } from "../../../domain/order-management/value-objects/Money.js";
+import { normalizeImportRow, type NormalizedImportRow } from "./import-normalization.js";
 
 export interface AdminListRequest {
   limit?: number;
@@ -298,17 +299,25 @@ export class AdminProductsService {
 
     const parseBool = (val: any): boolean | undefined => {
       if (val === undefined || val === null) return undefined;
-      return val === true || val === "true";
+      if (typeof val === "boolean") return val;
+      const normalized = String(val).trim().toLowerCase();
+      if (!normalized) return undefined;
+      return ["true", "1", "yes", "y"].includes(normalized);
     };
 
     const parseNum = (val: any): number | undefined => {
       if (val === undefined || val === null) return undefined;
-      const n = Number(val);
+      const trimmed = typeof val === "string" ? val.trim() : val;
+      if (trimmed === "") return undefined;
+      const n = Number(trimmed);
       return isNaN(n) ? undefined : n;
     };
 
     const parseCollectionSlugs = (val: any): string[] => {
       if (!val) return [];
+      if (Array.isArray(val)) {
+        return val.map((s) => String(s).trim()).filter(Boolean);
+      }
       return String(val).split("|").map((s: string) => s.trim()).filter(Boolean);
     };
 
@@ -320,20 +329,23 @@ export class AdminProductsService {
     let nextSku = await this.generateNextSku();
 
     for (let i = 0; i < products.length; i++) {
-      const row = products[i];
+      const row = normalizeImportRow(products[i]);
+      const productName = String(row.name ?? "").trim();
+      const productSlug = String(row.slug ?? "").trim();
+      const rowLabel = productName || productSlug || "unknown";
       try {
-        if (!row.name || !row.slug) {
+        if (!productName || !productSlug) {
           errors.push(`Item ${i + 1}: Missing required fields (name, slug)`);
           skipped++;
           continue;
         }
 
-        let existing = await this.productRepository.findByIdentifier(row.slug);
+        let existing = await this.productRepository.findByIdentifier(productSlug);
 
         if (!existing) {
           const softDeleted = await db.query.products.findFirst({
             where: and(
-              eq(schema.products.slug as any, row.slug),
+              eq(schema.products.slug as any, productSlug),
               sql`"deletedAt" IS NOT NULL`,
             ) as any,
           });
@@ -342,13 +354,13 @@ export class AdminProductsService {
               .update(schema.products as any)
               .set({ deletedAt: null, updatedAt: new Date() })
               .where(eq(schema.products.id as any, softDeleted.id));
-            existing = await this.productRepository.findByIdentifier(row.slug);
+            existing = await this.productRepository.findByIdentifier(productSlug);
           }
         }
 
         if (existing) {
           const updateData: any = {
-            name: row.name,
+            name: productName,
             enabled: parseBool(row.enabled) ?? true,
             condition: row.condition || "NEW",
             updatedAt: new Date(),
@@ -362,8 +374,9 @@ export class AdminProductsService {
           const stockOnHand = parseNum(row.stockOnHand);
           if (stockOnHand !== undefined) updateData.stockOnHand = stockOnHand;
 
-          if (row.brandSlug && brandBySlug.has(row.brandSlug)) {
-            updateData.brandId = brandBySlug.get(row.brandSlug);
+          const brandLookup = String(row.brandSlug || row.brandId || "").trim();
+          if (brandLookup && (brandBySlug.has(brandLookup) || allBrands.some((b: any) => b.id === brandLookup))) {
+            updateData.brandId = brandBySlug.get(brandLookup) ?? brandLookup;
           }
 
           await db
@@ -391,7 +404,7 @@ export class AdminProductsService {
           }
 
           if (unresolvedCollections.length > 0) {
-            errors.push(`Item ${i + 1} (${row.name}): collection slug(s) not found: ${unresolvedCollections.join(", ")}`);
+            errors.push(`Item ${i + 1} (${productName}): collection slug(s) not found: ${unresolvedCollections.join(", ")}`);
           }
 
           updated++;
@@ -400,7 +413,10 @@ export class AdminProductsService {
           const sku = nextSku;
           nextSku = String(Number(nextSku) + 1);
 
-          const brandId = row.brandSlug ? brandBySlug.get(row.brandSlug) : undefined;
+          const brandLookup = String(row.brandSlug || row.brandId || "").trim();
+          const brandId = brandLookup
+            ? brandBySlug.get(brandLookup) ?? allBrands.find((b: any) => b.id === brandLookup)?.id
+            : undefined;
           const salePrice = parseNum(row.salePrice);
           const originalPrice = parseNum(row.originalPrice);
           const stockOnHand = parseNum(row.stockOnHand);
@@ -409,18 +425,18 @@ export class AdminProductsService {
 
           const insertData: any = {
             id: productId,
-            name: row.name,
-            slug: row.slug,
+            name: productName,
+            slug: productSlug,
             sku,
             description: row.description ?? null,
-            shortDescription: null,
+            shortDescription: row.shortDescription ?? null,
             salePrice: salePrice ?? null,
             originalPrice: originalPrice ?? null,
             stockOnHand: stockOnHand ?? 20,
             enabled: parseBool(row.enabled) ?? true,
             condition: row.condition || "NEW",
             brandId: brandId ?? null,
-            shippingMethodId: "standard",
+            shippingMethodId: String(row.shippingMethodId || "standard").trim() || "standard",
             vat: vat ?? 0,
             vatInclusive: vatInclusive ?? true,
             createdAt: new Date(),
@@ -447,13 +463,13 @@ export class AdminProductsService {
           }
 
           if (unresolvedCollections.length > 0) {
-            errors.push(`Item ${i + 1} (${row.name}): collection slug(s) not found: ${unresolvedCollections.join(", ")}`);
+            errors.push(`Item ${i + 1} (${productName}): collection slug(s) not found: ${unresolvedCollections.join(", ")}`);
           }
 
           created++;
         }
       } catch (err: any) {
-        errors.push(`Item ${i + 1} (${row.name || "unknown"}): ${err.message}`);
+        errors.push(`Item ${i + 1} (${rowLabel}): ${err.message}`);
         skipped++;
       }
     }

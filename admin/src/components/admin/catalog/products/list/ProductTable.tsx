@@ -27,8 +27,8 @@ function ProductImage({ asset, name }: { asset: any; name: string }) {
 
     if (!asset || error) {
         return (
-            <div className="flex h-12 w-12 items-center justify-center rounded-md bg-secondary-50">
-                <ImageIcon className="h-5 w-5 text-secondary-300" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-secondary-50">
+                <ImageIcon className="h-4 w-4 text-secondary-300" />
             </div>
         );
     }
@@ -36,8 +36,8 @@ function ProductImage({ asset, name }: { asset: any; name: string }) {
     const source = asset.asset?.source ?? asset.source ?? null;
     if (!source) {
         return (
-            <div className="flex h-12 w-12 items-center justify-center rounded-md bg-secondary-50">
-                <ImageIcon className="h-5 w-5 text-secondary-300" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-secondary-50">
+                <ImageIcon className="h-4 w-4 text-secondary-300" />
             </div>
         );
     }
@@ -47,9 +47,9 @@ function ProductImage({ asset, name }: { asset: any; name: string }) {
             src={getImageUrl(source)}
             alt={name}
             loading="lazy"
-            width={48}
-            height={48}
-            className="h-12 w-12 rounded-md object-cover"
+            width={36}
+            height={36}
+            className="h-9 w-9 rounded-md object-cover scale-80"
             onError={() => setError(true)}
         />
     );
