@@ -46,8 +46,6 @@ const TEMPLATE_JSON = JSON.stringify([
         condition: 'NEW',
         brandSlug: 'brand-slug',
         collections: 'collection-slug-1|collection-slug-2',
-        vat: 16,
-        vatInclusive: true,
     },
 ], null, 2);
 
@@ -252,7 +250,7 @@ export function ImportExportDrawer({ isOpen, onClose, onImportSuccess }: ImportE
                                         <p className="text-xs text-destructive">{parseError}</p>
                                     )}
                                     <p className="text-xs text-muted-foreground">
-                                        Array of products. Required: name, slug. Optional: description, salePrice, originalPrice, stockOnHand, enabled, condition, brandSlug, collections (pipe-separated slugs), vat, vatInclusive. SKU is auto-assigned on import.
+                                        Array of products. Required: name, slug. Optional: description, salePrice, originalPrice, stockOnHand, enabled, condition, brandSlug, collections (pipe-separated slugs). SKU is auto-assigned on import. VAT defaults to 0, VAT inclusive defaults to true.
                                     </p>
                                 </div>
                             ) : (

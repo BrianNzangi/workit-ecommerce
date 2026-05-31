@@ -63,12 +63,11 @@ export const catalogAdminRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get('/template', { preHandler: preAdmin }, async (_request, reply) => {
     const headers = [
       'name', 'slug', 'description', 'salePrice', 'originalPrice',
-      'stockOnHand', 'enabled', 'condition', 'brandSlug', 'collections', 'vat', 'vatInclusive',
+      'stockOnHand', 'enabled', 'condition', 'brandSlug', 'collections',
     ];
     const sampleRow = [
       'Example Product', 'example-product', 'Product description here',
       '1500', '2000', '20', 'true', 'NEW', 'brand-slug', 'collection-slug-1|collection-slug-2',
-      '16', 'true',
     ];
     const csv = headers.join(',') + '\n' + sampleRow.join(',') + '\n';
     reply.header('Content-Type', 'text/csv');

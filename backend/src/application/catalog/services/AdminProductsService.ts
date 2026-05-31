@@ -293,6 +293,25 @@ export class AdminProductsService {
     const allBrands = await (db as any).query.brands.findMany();
     const brandBySlug = new Map(allBrands.map((b: any) => [b.slug, b.id]));
 
+    const allCollections = await (db as any).query.collections.findMany();
+    const collectionBySlug = new Map(allCollections.map((c: any) => [c.slug, c.id]));
+
+    const parseBool = (val: any): boolean | undefined => {
+      if (val === undefined || val === null) return undefined;
+      return val === true || val === "true";
+    };
+
+    const parseNum = (val: any): number | undefined => {
+      if (val === undefined || val === null) return undefined;
+      const n = Number(val);
+      return isNaN(n) ? undefined : n;
+    };
+
+    const parseCollectionSlugs = (val: any): string[] => {
+      if (!val) return [];
+      return String(val).split("|").map((s: string) => s.trim()).filter(Boolean);
+    };
+
     let created = 0;
     let updated = 0;
     let skipped = 0;
@@ -314,10 +333,18 @@ export class AdminProductsService {
         if (existing) {
           const updateData: any = {
             name: row.name,
-            enabled: row.enabled !== undefined ? row.enabled === "true" || row.enabled === true : true,
+            enabled: parseBool(row.enabled) ?? true,
             condition: row.condition || "NEW",
             updatedAt: new Date(),
           };
+
+          if (row.description !== undefined) updateData.description = row.description;
+          const salePrice = parseNum(row.salePrice);
+          if (salePrice !== undefined) updateData.salePrice = salePrice;
+          const originalPrice = parseNum(row.originalPrice);
+          if (originalPrice !== undefined) updateData.originalPrice = originalPrice;
+          const stockOnHand = parseNum(row.stockOnHand);
+          if (stockOnHand !== undefined) updateData.stockOnHand = stockOnHand;
 
           if (row.brandSlug && brandBySlug.has(row.brandSlug)) {
             updateData.brandId = brandBySlug.get(row.brandSlug);
@@ -327,6 +354,22 @@ export class AdminProductsService {
             .update(schema.products as any)
             .set(updateData)
             .where(eq(schema.products.id as any, existing.id));
+
+          const collectionSlugs = parseCollectionSlugs(row.collections);
+          if (collectionSlugs.length > 0) {
+            await db
+              .delete(schema.productCollections as any)
+              .where(eq(schema.productCollections.productId as any, existing.id));
+            for (const slug of collectionSlugs) {
+              const colId = collectionBySlug.get(slug);
+              if (colId) {
+                await db
+                  .insert(schema.productCollections as any)
+                  .values({ id: uuidv4(), productId: existing.id, collectionId: colId });
+              }
+            }
+          }
+
           updated++;
         } else {
           const productId = uuidv4();
@@ -337,9 +380,21 @@ export class AdminProductsService {
             name: row.name,
             slug: row.slug,
             sku,
-            enabled: row.enabled !== undefined ? row.enabled === "true" || row.enabled === true : true,
+            enabled: parseBool(row.enabled) ?? true,
             condition: row.condition || "NEW",
           };
+
+          if (row.description !== undefined) insertData.description = row.description;
+          const salePrice = parseNum(row.salePrice);
+          if (salePrice !== undefined) insertData.salePrice = salePrice;
+          const originalPrice = parseNum(row.originalPrice);
+          if (originalPrice !== undefined) insertData.originalPrice = originalPrice;
+          const stockOnHand = parseNum(row.stockOnHand);
+          if (stockOnHand !== undefined) insertData.stockOnHand = stockOnHand;
+          const vat = parseNum(row.vat);
+          if (vat !== undefined) insertData.vat = vat;
+          const vatInclusive = parseBool(row.vatInclusive);
+          if (vatInclusive !== undefined) insertData.vatInclusive = vatInclusive;
 
           if (row.brandSlug && brandBySlug.has(row.brandSlug)) {
             insertData.brandId = brandBySlug.get(row.brandSlug);
@@ -348,6 +403,17 @@ export class AdminProductsService {
           await db
             .insert(schema.products as any)
             .values(insertData);
+
+          const collectionSlugs = parseCollectionSlugs(row.collections);
+          for (const slug of collectionSlugs) {
+            const colId = collectionBySlug.get(slug);
+            if (colId) {
+              await db
+                .insert(schema.productCollections as any)
+                .values({ id: uuidv4(), productId, collectionId: colId });
+            }
+          }
+
           created++;
         }
       } catch (err: any) {
