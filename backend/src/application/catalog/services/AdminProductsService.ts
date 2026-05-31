@@ -549,14 +549,17 @@ export class AdminProductsService {
   }
 
   private async generateNextSku(): Promise<string> {
-    const allSkus = await db.execute(sql`
-      SELECT sku FROM "Product" WHERE sku IS NOT NULL AND sku ~ '^\\d+$'
-    `);
-    const maxSku = (allSkus.rows || []).reduce((max: number, r: any) => {
-      const n = parseInt(String(r.sku).trim(), 10);
+    const all = await db.query.products.findMany({
+      columns: { sku: true },
+    });
+    const maxSku = (all || []).reduce((max: number, p: any) => {
+      if (!p.sku) return max;
+      const n = parseInt(p.sku, 10);
       return isNaN(n) ? max : Math.max(max, n);
     }, 0);
-    return String(maxSku > 0 ? maxSku + 1 : 10001);
+    const next = maxSku > 0 ? maxSku + 1 : 10001;
+    console.log('[generateNextSku] count:', (all || []).length, 'maxSku:', maxSku, 'next:', next);
+    return String(next);
   }
 
   private async enrichWithRelations(products: Product[]): Promise<AdminProductRow[]> {
