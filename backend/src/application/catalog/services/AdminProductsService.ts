@@ -469,7 +469,23 @@ export class AdminProductsService {
           created++;
         }
       } catch (err: any) {
-        errors.push(`Item ${i + 1} (${rowLabel}): ${err.message}`);
+        const pgCodeMap: Record<string, string> = {
+          '23505': 'duplicate key',
+          '23503': 'foreign key violation',
+          '23502': 'missing required field',
+          '23514': 'check constraint violation',
+          '22001': 'value too long',
+        };
+        const codeLabel = pgCodeMap[err?.code] || 'error';
+
+        const detail = err?.detail || '';
+        const msg = (err?.message || String(err))
+          .replace(/^Failed query:\s*/i, '')
+          .replace(/\s*[\n\r]+\s*params:.*$/s, '')
+          .replace(/\s+/g, ' ')
+          .trim();
+        const cause = detail || msg.slice(msg.lastIndexOf(' - ') + 3) || msg;
+        errors.push(`Item ${i + 1} (${rowLabel}): ${codeLabel} — ${cause}`);
         skipped++;
       }
     }

@@ -270,9 +270,14 @@ export function ImportExportDrawer({ isOpen, onClose, onImportSuccess }: ImportE
                                                 <button
                                                     type="button"
                                                     onClick={() => {
-                                                        navigator.clipboard.writeText(
-                                                            importResults.errors.join('\n')
-                                                        );
+                                                        const header = [
+                                                            `Total: ${importResults.total}`,
+                                                            `Created: ${importResults.created}`,
+                                                            `Updated: ${importResults.updated}`,
+                                                            `Skipped: ${importResults.skipped}`,
+                                                        ].join('\n');
+                                                        const body = importResults.errors.join('\n');
+                                                        navigator.clipboard.writeText(`${header}\n\n${body}`);
                                                         setCopied(true);
                                                         setTimeout(() => setCopied(false), 2000);
                                                     }}
