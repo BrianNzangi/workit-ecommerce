@@ -476,23 +476,15 @@ export class AdminProductsService {
           '23514': 'check constraint violation',
           '22001': 'value too long',
         };
-        const code = err?.code;
+        const pgErr = err?.cause ?? err;
+        const code = pgErr?.code;
         const codeLabel = code ? (pgCodeMap[code] || `pg:${code}`) : 'unknown';
 
-        const detail = err?.detail || '';
-        const constraint = err?.constraint || '';
-        const rawMessage = err?.message || String(err);
-        const lines = rawMessage.split(/\n/).map((l: string) => l.trim()).filter(Boolean);
-        const sqlLine = lines.find((l: string) => /insert|update|delete|select/i.test(l)) || '';
-        const nonSqlLines = lines.filter((l: string) => !/^(Failed query:|insert|update|delete|select|params:)/i.test(l));
-        const errorLine = nonSqlLines.find((l: string) => /violate|constraint|duplicate|null|required|foreign|unique|not null/i.test(l)) || '';
-        const readable = detail || errorLine || constraint || nonSqlLines[0] || sqlLine;
+        const detail = pgErr?.detail || '';
+        const constraint = pgErr?.constraint || pgErr?.constraint_name || '';
+        const readable = [detail, constraint].filter(Boolean).join(' — ') || 'insert failed';
 
-        console.error(`[importProducts] Item ${i + 1} failed:`, Object.fromEntries(
-          ['code', 'detail', 'constraint', 'severity', 'schema', 'table', 'column', 'routine', 'cause']
-            .filter(k => err[k] != null)
-            .map(k => [k, err[k]])
-        ));
+        console.error(`[importProducts] Item ${i + 1} failed:`, { code, detail, constraint });
         errors.push(`Item ${i + 1} (${rowLabel}): ${codeLabel} — ${readable}`);
         skipped++;
       }
@@ -557,14 +549,14 @@ export class AdminProductsService {
   }
 
   private async generateNextSku(): Promise<string> {
-    const result = await db.execute(sql`
-      SELECT MAX(CAST(sku AS INTEGER)) AS max_sku
-      FROM "Product"
-      WHERE sku ~ '^\\d+$'
+    const allSkus = await db.execute(sql`
+      SELECT sku FROM "Product" WHERE sku IS NOT NULL AND sku ~ '^\\d+$'
     `);
-    const maxSku = result.rows?.[0]?.max_sku ?? null;
-    const nextNumber = maxSku ? Number(maxSku) + 1 : 10001;
-    return String(nextNumber);
+    const maxSku = (allSkus.rows || []).reduce((max: number, r: any) => {
+      const n = parseInt(String(r.sku).trim(), 10);
+      return isNaN(n) ? max : Math.max(max, n);
+    }, 0);
+    return String(maxSku > 0 ? maxSku + 1 : 10001);
   }
 
   private async enrichWithRelations(products: Product[]): Promise<AdminProductRow[]> {
