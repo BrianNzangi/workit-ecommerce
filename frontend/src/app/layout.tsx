@@ -101,6 +101,27 @@ gtag('config', 'G-Y0DN0MB5CV');`,
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+
+        {/* Monetumo CMP */}
+        <link rel="stylesheet" href="https://b-cdn.monetumo.com/cls-css/workit-co-ke.css" />
+        <Script
+          id="monetumo-cmp"
+          strategy="beforeInteractive"
+          src="https://b-cdn.monetumo.com/cmp/workit-co-ke.js"
+          data-cfasync="false"
+        />
+        <Script
+          id="gpt"
+          strategy="afterInteractive"
+          src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"
+          data-cfasync="false"
+        />
+        <Script
+          id="monetumo-bundle"
+          strategy="afterInteractive"
+          src="https://b-cdn.monetumo.com/bundles/workit-co-ke.js"
+          data-cfasync="false"
+        />
       </head>
       <body suppressHydrationWarning className={`${hanken.variable} font-sans flex flex-col min-h-screen`}>
         <QueryProvider>

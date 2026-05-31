@@ -38,6 +38,11 @@ export function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
     const sessionCookie = getSessionCookie(request, { cookiePrefix });
 
+    // Redirect /brands to /brand
+    if (pathname === "/brands" || pathname === "/brands/") {
+        return NextResponse.redirect(new URL("/brand", request.url));
+    }
+
     // Protect /account routes
     if (pathname.startsWith("/account") && !sessionCookie) {
         return NextResponse.redirect(new URL("/login", request.url));
