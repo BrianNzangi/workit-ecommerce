@@ -476,16 +476,29 @@ export class AdminProductsService {
           '23514': 'check constraint violation',
           '22001': 'value too long',
         };
-        const codeLabel = pgCodeMap[err?.code] || 'error';
+        const code = err?.code;
+        const codeLabel = code ? (pgCodeMap[code] || `pg:${code}`) : 'unknown';
 
         const detail = err?.detail || '';
-        const msg = (err?.message || String(err))
+        const constraint = err?.constraint || '';
+        const rawMessage = err?.message || String(err);
+        const lines = rawMessage.split(/\n/).map((l: string) => l.trim()).filter(Boolean);
+        const sqlLine = lines.find((l: string) => /insert|update|delete|select/i.test(l)) || '';
+        const errorLine = lines.find((l: string) => /violate|constraint|duplicate|null|required|foreign|unique|not null/i.test(l)) || '';
+        const msg = rawMessage
           .replace(/^Failed query:\s*/i, '')
           .replace(/\s*[\n\r]+\s*params:.*$/s, '')
           .replace(/\s+/g, ' ')
           .trim();
-        const cause = detail || msg.slice(msg.lastIndexOf(' - ') + 3) || msg;
-        errors.push(`Item ${i + 1} (${rowLabel}): ${codeLabel} — ${cause}`);
+        const readable = detail || errorLine || constraint || msg;
+        const note = sqlLine ? ` (sql: ${sqlLine.slice(0, 80)}...)` : '';
+
+        console.error(`[importProducts] Item ${i + 1} failed:`, Object.fromEntries(
+          ['code', 'detail', 'constraint', 'severity', 'schema', 'table', 'column', 'routine']
+            .filter(k => err[k] != null)
+            .map(k => [k, err[k]])
+        ));
+        errors.push(`Item ${i + 1} (${rowLabel}): ${codeLabel} — ${readable}${note}`);
         skipped++;
       }
     }
