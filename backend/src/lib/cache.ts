@@ -63,7 +63,7 @@ export function createCacheStore(redis: RedisClient | null, log?: FastifyBaseLog
     }
 
     const isRedisReady = () => Boolean(redis && redis.status === "ready");
-    const withTimeout = async <T>(promise: Promise<T>, timeoutMs = 250): Promise<T> => {
+    const withTimeout = async <T>(promise: Promise<T>, timeoutMs = 2000): Promise<T> => {
         let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
         try {
             return await Promise.race([
@@ -87,7 +87,7 @@ export function createCacheStore(redis: RedisClient | null, log?: FastifyBaseLog
                 const data = await withTimeout(redis.get(key));
                 return data ? (JSON.parse(data) as T) : null;
             } catch (error) {
-                log?.error({ error, key }, "Redis cache get failed");
+                log?.error({ err: error, key }, "Redis cache get failed");
                 return null;
             }
         },
@@ -110,7 +110,7 @@ export function createCacheStore(redis: RedisClient | null, log?: FastifyBaseLog
 
                 await withTimeout(pipeline.exec());
             } catch (error) {
-                log?.error({ error, key }, "Redis cache set failed");
+                log?.error({ err: error, key }, "Redis cache set failed");
             }
         },
         async del(keys: string | string[]): Promise<void> {
@@ -123,7 +123,7 @@ export function createCacheStore(redis: RedisClient | null, log?: FastifyBaseLog
                     await withTimeout(redis.del(...list));
                 }
             } catch (error) {
-                log?.error({ error, keys }, "Redis cache delete failed");
+                log?.error({ err: error, keys }, "Redis cache delete failed");
             }
         },
         async invalidateTag(tag: string): Promise<void> {
@@ -138,7 +138,7 @@ export function createCacheStore(redis: RedisClient | null, log?: FastifyBaseLog
                 }
                 await withTimeout(redis.del(setKey));
             } catch (error) {
-                log?.error({ error, tag }, "Redis cache tag invalidation failed");
+                log?.error({ err: error, tag }, "Redis cache tag invalidation failed");
             }
         },
         async invalidateTags(tags: string[]): Promise<void> {

@@ -17,7 +17,7 @@ export async function rateLimit(
         return { success: true, limit, remaining: limit };
     }
 
-    const withTimeout = async <T>(promise: Promise<T>, timeoutMs = 250): Promise<T> => {
+    const withTimeout = async <T>(promise: Promise<T>, timeoutMs = 2000): Promise<T> => {
         let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
         try {
             return await Promise.race([
