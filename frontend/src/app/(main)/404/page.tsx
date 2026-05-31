@@ -1,10 +1,16 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
+import SectionContainer from '@/components/layout/SectionContainer';
 
-export default function NotFound() {
+export const metadata: Metadata = {
+  title: '404 - Page Not Found',
+};
+
+export default function NotFoundPage() {
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center px-6 sm:px-12 lg:px-16">
-      <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-24 max-w-5xl w-full py-16">
+    <SectionContainer className="px-6 sm:px-8 lg:px-16 py-12">
+      <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-24 mx-auto">
         <div className="flex-1 text-center lg:text-left">
           <h1 className="text-8xl sm:text-9xl font-bold text-gray-900 tracking-tight">404</h1>
           <h2 className="mt-4 text-2xl sm:text-3xl font-semibold text-gray-800">Page not found</h2>
@@ -13,7 +19,7 @@ export default function NotFound() {
           </p>
           <Link
             href="/"
-            className="mt-8 inline-flex items-center justify-center rounded-full bg-black px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-gray-800"
+            className="mt-8 inline-flex items-center justify-center rounded-sm bg-primary-900 px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-gray-800"
           >
             BACK TO HOME
           </Link>
@@ -29,6 +35,6 @@ export default function NotFound() {
           />
         </div>
       </div>
-    </div>
+    </SectionContainer>
   );
 }
