@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import { db, schema, eq, inArray, desc, sql } from "@workit/db";
+import { db, schema, eq, and, inArray, desc, sql } from "@workit/db";
 import {
   IProductRepository,
   ProductSearchParams,
@@ -328,7 +328,23 @@ export class AdminProductsService {
           continue;
         }
 
-        const existing = await this.productRepository.findByIdentifier(row.slug);
+        let existing = await this.productRepository.findByIdentifier(row.slug);
+
+        if (!existing) {
+          const softDeleted = await db.query.products.findFirst({
+            where: and(
+              eq(schema.products.slug as any, row.slug),
+              sql`"deletedAt" IS NOT NULL`,
+            ) as any,
+          });
+          if (softDeleted) {
+            await db
+              .update(schema.products as any)
+              .set({ deletedAt: null, updatedAt: new Date() })
+              .where(eq(schema.products.id as any, softDeleted.id));
+            existing = await this.productRepository.findByIdentifier(row.slug);
+          }
+        }
 
         if (existing) {
           const updateData: any = {
