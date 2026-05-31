@@ -109,25 +109,25 @@ export default async function Home() {
                 <HorizontalBannerWrapper />
             </Suspense>
 
-            <CollectionSection slug="daily-offers" title="DAILY OFFERS" index={0} />
-            <CollectionSection slug="best-selling-laptops" title="BEST SELLING LAPTOPS" index={1} />
-            <CollectionSection slug="bluetooth-speakers" title="BLUETOOTH SPEAKERS" index={2} />
+            <CollectionSection slug="daily-offers" title="Daily Offers" index={0} />
+            <CollectionSection slug="best-selling-laptops" title="Best Selling Laptops" index={1} />
+            <CollectionSection slug="bluetooth-speakers" title="Bluetooth Speakers" index={2} />
 
             <Suspense fallback={<BannerSkeleton />}>
                 <MiddleBannerWrapper />
             </Suspense>
 
-            <CollectionSection slug="top-monitors" title="TOP MONITORS" index={3} />
-            <CollectionSection slug="featured-televisions" title="FEATURED TELEVISIONS" index={4} />
-            <CollectionSection slug="home-audio" title="HOME AUDIO" index={5} />
+            <CollectionSection slug="top-monitors" title="Top Monitors" index={3} />
+            <CollectionSection slug="featured-televisions" title="Featured Televisions" index={4} />
+            <CollectionSection slug="home-audio" title="Home Audio" index={5} />
 
             <Suspense fallback={<BannerSkeleton />}>
                 <BottomBannerWrapper />
             </Suspense>
 
-            <CollectionSection slug="featured-home-kitchen-appliances" title="FEATURED HOME & KITCHEN APPLIANCES" index={6} />
-            <CollectionSection slug="popular-networking-devices" title="POPULAR NETWORKING DEVICES" index={7} />
-            <CollectionSection slug="featured-smartphones" title="FEATURED SMARTPHONES" index={8} />
+            <CollectionSection slug="featured-home-kitchen" title="Featured Home & Kitchen" index={6} />
+            <CollectionSection slug="popular-networking-devices" title="Popular Networking Devices" index={7} />
+            <CollectionSection slug="featured-smartphones" title="Featured Smartphones" index={8} />
 
             <Suspense fallback={null}>
                 <TopBrandsSection />
