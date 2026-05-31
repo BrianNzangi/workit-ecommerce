@@ -142,9 +142,9 @@ export function createCacheStore(redis: RedisClient | null, log?: FastifyBaseLog
             }
         },
         async invalidateTags(tags: string[]): Promise<void> {
-            for (const tag of tags) {
-                await this.invalidateTag(tag);
-            }
+            setImmediate(async () => {
+                await Promise.all(tags.map((tag) => this.invalidateTag(tag)));
+            });
         },
     };
 }
