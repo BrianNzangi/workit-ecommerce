@@ -208,7 +208,7 @@ export default function ProductCard({
                         </div>
                         {regularPrice && regularPrice > displayPrice && (
                             <div className="flex items-center gap-2">
-                                <span className="text-gray-500 text-sm md:text-base line-through">
+                                <span className="text-primary-900 text-sm md:text-base line-through">
                                     Kes {regularPrice.toLocaleString('en-US', { maximumFractionDigits: 0 })}
                                 </span>
                             </div>
