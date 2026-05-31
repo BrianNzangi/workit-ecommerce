@@ -71,6 +71,7 @@ export async function GET(request: NextRequest) {
       id: brand.id,
       name: brand.name,
       slug: brand.slug,
+      logoUrl: brand.logoUrl || null,
       link: `/brand/${brand.slug}`,
       count: brand._count?.products || 0,
     })) : [];

@@ -619,6 +619,41 @@ export const storePublicRoutes: FastifyPluginAsync = async (fastify) => {
         return payload;
     });
 
+    // Brand Detail by Slug
+    fastify.get("/brands/:slug", {
+        schema: {
+            tags: ["Catalog"],
+        },
+        preHandler: [fastify.publicRateLimit],
+    }, async (request, reply) => {
+        const { slug } = request.params as { slug: string };
+        const cacheKey = buildCacheKey("store:brand:detail", { slug } as any);
+        const cached = await fastify.cache.get<{ brand: any }>(cacheKey);
+        if (cached) {
+            reply.header("x-cache", "HIT");
+            reply.header("Cache-Control", `public, max-age=${TTL.brands}`);
+            return cached;
+        }
+
+        const brand = await db.query.brands.findFirst({
+            where: eq(schema.brands.slug, slug),
+        });
+        if (!brand) {
+            return reply.status(404).send({ error: "Brand not found" });
+        }
+
+        const [{ count: productCount }] = await db
+            .select({ count: count() })
+            .from(schema.products)
+            .where(and(eq(schema.products.brandId, brand.id), isNull(schema.products.deletedAt)));
+
+        const payload = { brand: { ...brand, productCount: Number(productCount) } };
+        await fastify.cache.set(cacheKey, payload, TTL.brands, ["brands"]);
+        reply.header("x-cache", "MISS");
+        reply.header("Cache-Control", `public, max-age=${TTL.brands}`);
+        return payload;
+    });
+
     // Homepage Featured Brands
     fastify.get("/brands/homepage-featured", {
         schema: {
