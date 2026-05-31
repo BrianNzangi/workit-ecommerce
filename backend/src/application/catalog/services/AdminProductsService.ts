@@ -355,6 +355,8 @@ export class AdminProductsService {
             .set(updateData)
             .where(eq(schema.products.id as any, existing.id));
 
+          const unresolvedCollections: string[] = [];
+
           const collectionSlugs = parseCollectionSlugs(row.collections);
           if (collectionSlugs.length > 0) {
             await db
@@ -366,8 +368,14 @@ export class AdminProductsService {
                 await db
                   .insert(schema.productCollections as any)
                   .values({ id: uuidv4(), productId: existing.id, collectionId: colId });
+              } else {
+                unresolvedCollections.push(slug);
               }
             }
+          }
+
+          if (unresolvedCollections.length > 0) {
+            errors.push(`Item ${i + 1} (${row.name}): collection slug(s) not found: ${unresolvedCollections.join(", ")}`);
           }
 
           updated++;
@@ -404,6 +412,8 @@ export class AdminProductsService {
             .insert(schema.products as any)
             .values(insertData);
 
+          const unresolvedCollections: string[] = [];
+
           const collectionSlugs = parseCollectionSlugs(row.collections);
           for (const slug of collectionSlugs) {
             const colId = collectionBySlug.get(slug);
@@ -411,7 +421,13 @@ export class AdminProductsService {
               await db
                 .insert(schema.productCollections as any)
                 .values({ id: uuidv4(), productId, collectionId: colId });
+            } else {
+              unresolvedCollections.push(slug);
             }
+          }
+
+          if (unresolvedCollections.length > 0) {
+            errors.push(`Item ${i + 1} (${row.name}): collection slug(s) not found: ${unresolvedCollections.join(", ")}`);
           }
 
           created++;
