@@ -286,9 +286,12 @@ export function ImportExportDrawer({ isOpen, onClose, onImportSuccess }: ImportE
                                                     {copied ? 'Copied' : 'Copy all'}
                                                 </button>
                                             </div>
-                                            <pre className="max-h-48 overflow-y-auto whitespace-pre-wrap break-words rounded-md border bg-muted/50 p-3 text-xs text-destructive select-all">
-                                                {importResults.errors.join('\n')}
-                                            </pre>
+                                            <textarea
+                                                readOnly
+                                                value={importResults.errors.join('\n')}
+                                                className="max-h-48 w-full resize-none rounded-md border bg-muted/50 p-3 text-xs text-destructive font-mono"
+                                                onFocus={(e) => e.currentTarget.select()}
+                                            />
                                         </div>
                                     )}
                                 </div>
