@@ -383,30 +383,34 @@ export class AdminProductsService {
           const productId = uuidv4();
           const sku = nextSku;
           nextSku = String(Number(nextSku) + 1);
+
+          const brandId = row.brandSlug ? brandBySlug.get(row.brandSlug) : undefined;
+          const salePrice = parseNum(row.salePrice);
+          const originalPrice = parseNum(row.originalPrice);
+          const stockOnHand = parseNum(row.stockOnHand);
+          const vat = parseNum(row.vat);
+          const vatInclusive = parseBool(row.vatInclusive);
+
           const insertData: any = {
             id: productId,
             name: row.name,
             slug: row.slug,
             sku,
+            description: row.description ?? null,
+            shortDescription: null,
+            salePrice: salePrice ?? null,
+            originalPrice: originalPrice ?? null,
+            stockOnHand: stockOnHand ?? 20,
             enabled: parseBool(row.enabled) ?? true,
             condition: row.condition || "NEW",
+            brandId: brandId ?? null,
+            shippingMethodId: "standard",
+            vat: vat ?? 0,
+            vatInclusive: vatInclusive ?? true,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            deletedAt: null,
           };
-
-          if (row.description !== undefined) insertData.description = row.description;
-          const salePrice = parseNum(row.salePrice);
-          if (salePrice !== undefined) insertData.salePrice = salePrice;
-          const originalPrice = parseNum(row.originalPrice);
-          if (originalPrice !== undefined) insertData.originalPrice = originalPrice;
-          const stockOnHand = parseNum(row.stockOnHand);
-          if (stockOnHand !== undefined) insertData.stockOnHand = stockOnHand;
-          const vat = parseNum(row.vat);
-          if (vat !== undefined) insertData.vat = vat;
-          const vatInclusive = parseBool(row.vatInclusive);
-          if (vatInclusive !== undefined) insertData.vatInclusive = vatInclusive;
-
-          if (row.brandSlug && brandBySlug.has(row.brandSlug)) {
-            insertData.brandId = brandBySlug.get(row.brandSlug);
-          }
 
           await db
             .insert(schema.products as any)
