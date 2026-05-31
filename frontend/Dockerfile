@@ -23,4 +23,4 @@ RUN pnpm --filter @workit/frontend build
 
 EXPOSE 3000
 
-CMD ["pnpm", "--filter", "@workit/frontend", "start"]
+CMD node /app/frontend/scripts/fetch-ads.mjs && pnpm --filter @workit/frontend start
