@@ -338,7 +338,7 @@ export default function ProductsPageClient() {
         <ProtectedRoute>
             <AdminLayout>
                     <div className="space-y-6">
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between bg-white rounded-lg p-3 sm:p-4">
                             <h1 className="text-2xl font-bold tracking-tight">Products</h1>
                             <div className="flex items-center gap-2">
                                 <ProductFilters

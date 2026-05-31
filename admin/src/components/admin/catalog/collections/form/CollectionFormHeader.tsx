@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowLeft, Save } from 'lucide-react';
+import { Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface CollectionFormHeaderProps {
@@ -13,14 +13,8 @@ interface CollectionFormHeaderProps {
 
 export function CollectionFormHeader({ title, description, onSave, onCancel, loading, uploading }: CollectionFormHeaderProps) {
     return (
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6 bg-white rounded-lg p-3 sm:p-4">
             <div>
-                <Button asChild variant="ghost" size="sm" className="mb-2 -ml-2 text-gray-500 hover:text-gray-900">
-                    <Link href="/admin/collections">
-                        <ArrowLeft className="w-4 h-4 mr-1" />
-                        Collections
-                    </Link>
-                </Button>
                 <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
                 {description && <p className="text-sm text-gray-500 mt-0.5">{description}</p>}
             </div>

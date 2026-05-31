@@ -15,7 +15,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Search, X, Trash2, ImageIcon } from "lucide-react";
+import { Search, X, Trash2, ImageIcon } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { HomepageCollectionService } from "@/lib/services";
 import { getImageUrl } from "@/lib/shared/images/image-utils";
@@ -123,11 +123,8 @@ export default function NewHomepageCollectionPage() {
             <AdminLayout>
                 <div className="p-6">
                     {/* Header */}
-                    <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center justify-between mb-6 bg-white rounded-lg p-3 sm:p-4">
                         <div className="flex items-center gap-3">
-                            <Button variant="ghost" size="icon" onClick={() => router.push("/admin/homepage-collections")}>
-                                <ArrowLeft className="w-4 h-4" />
-                            </Button>
                             <h1 className="text-lg font-semibold">Add New Homepage Collection</h1>
                         </div>
                         <Select value={String(form.enabled)} onValueChange={(v) => setForm({ ...form, enabled: v === "true" })}>

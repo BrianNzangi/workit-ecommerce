@@ -122,7 +122,7 @@ export default function ProductViewsPage() {
             </div>
 
             {/* Date Filter */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 bg-white rounded-lg p-3 sm:p-4">
                 <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-gray-400" />
                     <select

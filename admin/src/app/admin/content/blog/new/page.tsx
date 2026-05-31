@@ -7,7 +7,7 @@ import { AdminLayout } from "@/components/admin/layout/AdminLayout";
 import { useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import TiptapLink from "@tiptap/extension-link";
-import { ArrowLeft, Save, Eye } from "lucide-react";
+import { Save, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { BlogService } from "@/lib/services/content/blog.service";
@@ -124,11 +124,7 @@ export default function NewBlogPage() {
             <AdminLayout>
                 <div className="p-6">
                     {/* Header */}
-                    <div className="mb-6">
-                        <Button variant="ghost" size="sm" onClick={() => router.push("/admin/content/blog")} className="mb-3 rounded-sm">
-                            <ArrowLeft className="w-4 h-4 mr-1" />
-                            Back to Blog Posts
-                        </Button>
+                    <div className="mb-6 bg-white rounded-lg p-3 sm:p-4">
                         <div className="flex items-center justify-between">
                             <h1 className="text-lg font-semibold">Add blog post</h1>
                             <div className="flex items-center gap-2">

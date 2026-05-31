@@ -21,7 +21,7 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { ArrowLeft, Search, CalendarIcon, Trash2 } from "lucide-react";
+import { Search, CalendarIcon, Trash2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { cn } from "@/lib/shared/utils/cn";
@@ -139,11 +139,8 @@ export default function NewFlashSalePage() {
             <AdminLayout>
                 <div className="p-6">
                     {/* Header */}
-                    <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center justify-between mb-6 bg-white rounded-lg p-3 sm:p-4">
                         <div className="flex items-center gap-3">
-                            <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                                <ArrowLeft className="w-4 h-4" />
-                            </Button>
                             <h1 className="text-lg font-semibold">Create New Flash Sales</h1>
                         </div>
                         <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>

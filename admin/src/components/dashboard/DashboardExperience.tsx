@@ -32,7 +32,7 @@ export function DashboardExperience() {
 
     return (
         <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between bg-white rounded-lg p-3 sm:p-4">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
                     <p className="text-sm text-muted-foreground">

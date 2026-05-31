@@ -4,10 +4,9 @@ import { Button } from '@/components/ui/button';
 
 export function HomepageCollectionsHeader() {
     return (
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6 bg-white rounded-lg p-3 sm:p-4 flex items-center justify-between">
             <div>
                 <h1 className="mb-2 text-2xl font-bold text-gray-900">Homepage Collections</h1>
-                <p className="text-gray-600">Manage featured collections displayed on your homepage</p>
             </div>
 
             <Button asChild className="bg-primary-900 text-white hover:bg-primary-800">

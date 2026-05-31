@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 
 export function CustomersPageHeader() {
     return (
-        <div className="mb-5 flex items-center justify-between">
+        <div className="mb-5 bg-white rounded-lg p-3 sm:p-4 flex items-center justify-between">
             <h1 className="text-xl font-semibold text-gray-900">Customers</h1>
 
             <div className="flex items-center gap-2">

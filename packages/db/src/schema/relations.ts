@@ -219,6 +219,7 @@ export const ordersRelations = relations(fulfillment.orders, ({ one, many }) => 
         references: [identity.users.id],
     }),
     lines: many(fulfillment.orderLines),
+    payments: many(fulfillment.payments),
     campaignRedemptions: many(marketing.campaignRedemptions),
     shippingAddress: one(identity.addresses, {
         fields: [fulfillment.orders.shippingAddressId],

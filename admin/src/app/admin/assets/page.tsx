@@ -221,10 +221,9 @@ export default function AssetsPage() {
         <ProtectedRoute>
             <AdminLayout>
                 <div className="space-y-6">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between bg-white rounded-lg p-3 sm:p-4">
                         <div>
                             <h1 className="text-2xl font-semibold text-gray-900">Assets</h1>
-                            <p className="text-sm text-gray-500 mt-1">{total} file{total !== 1 ? 's' : ''}</p>
                         </div>
                         <Button onClick={() => setUploadDialogOpen(true)}>
                             <Upload className="w-4 h-4 mr-2" />

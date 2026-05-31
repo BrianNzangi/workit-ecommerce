@@ -1,7 +1,5 @@
 'use client';
 
-import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useProductForm } from './product-form/useProductForm';
 import { ProductBasicInfo } from './product-form/ProductBasicInfo';
@@ -57,14 +55,7 @@ export function ProductForm({ productId, mode }: ProductFormProps) {
 
     return (
         <div className="space-y-6">
-            <div className="space-y-1">
-                <Button variant="ghost" asChild className="h-8 px-2 -ml-2 text-sm text-muted-foreground hover:text-foreground">
-                    <Link href="/admin/products" className="flex items-center gap-1.5">
-                        <ArrowLeft className="h-4 w-4" />
-                        Back to Products
-                    </Link>
-                </Button>
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between bg-white rounded-lg p-3 sm:p-4">
                     <div>
                         <h1 className="text-2xl font-bold tracking-tight">
                             {mode === 'edit' ? 'Edit Product' : 'Add New Product'}
@@ -98,7 +89,6 @@ export function ProductForm({ productId, mode }: ProductFormProps) {
                                     : 'Publish Product'}
                     </Button>
                 </div>
-            </div>
             </div>
 
             <form id="product-form" onSubmit={(e) => e.preventDefault()}>

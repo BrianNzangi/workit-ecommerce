@@ -127,7 +127,7 @@ export default function CouponsPage() {
         <ProtectedRoute>
             <AdminLayout>
                 <div className="p-6 space-y-6">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between bg-white rounded-lg p-3 sm:p-4">
                         <h1 className="text-2xl font-semibold">Coupons</h1>
                         <Button onClick={() => router.push("/admin/promotions/coupons/new")} className="rounded-sm">
                             <Plus className="w-4 h-4 mr-2" />

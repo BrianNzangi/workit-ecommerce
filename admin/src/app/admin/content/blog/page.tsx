@@ -109,7 +109,7 @@ export default function BlogPage() {
             <AdminLayout>
                 <div className="p-6">
                     {/* Header */}
-                    <div className="flex items-center justify-between mb-5">
+                    <div className="flex items-center justify-between mb-5 bg-white rounded-lg p-3 sm:p-4">
                         <h1 className="text-lg font-semibold">Blog Posts</h1>
                         <div className="flex items-center gap-2">
                             <div className="relative w-56">

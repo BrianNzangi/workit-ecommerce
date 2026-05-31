@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Upload, X } from 'lucide-react';
+import { Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -206,10 +206,7 @@ export function BrandForm({ brandId, mode }: BrandFormProps) {
     if (fetchLoading) {
         return (
             <div className="p-6">
-                <div className="flex items-center gap-3 mb-6">
-                    <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                        <ArrowLeft className="w-4 h-4" />
-                    </Button>
+                <div className="flex items-center gap-3 mb-6 bg-white rounded-lg p-3 sm:p-4">
                     <h1 className="text-lg font-semibold">
                         {mode === 'edit' ? 'Edit Brand' : 'New Brand'}
                     </h1>
@@ -226,11 +223,8 @@ export function BrandForm({ brandId, mode }: BrandFormProps) {
     return (
         <div className="p-6">
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                    <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                        <ArrowLeft className="w-4 h-4" />
-                    </Button>
+            <div className="flex items-center justify-between mb-6 bg-white rounded-lg p-3 sm:p-4">
+                <div>
                     <h1 className="text-lg font-semibold">
                         {mode === 'edit' ? 'Edit Brand' : 'New Brand'}
                     </h1>
