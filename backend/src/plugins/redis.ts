@@ -22,8 +22,16 @@ export default fp(async (fastify) => {
 
     const client = new Redis(redisUrl, {
         maxRetriesPerRequest: null,
-        connectTimeout: 1000,
-        retryStrategy: () => null,
+        connectTimeout: 5000,
+        retryStrategy: (times) => Math.min(times * 100, 3000),
+    });
+
+    client.on("error", (err) => {
+        fastify.log.error({ err, url: redisUrl.replace(/\/\/.*@/, "//***@") }, "Redis connection error");
+    });
+
+    client.on("ready", () => {
+        fastify.log.info("Redis connected and ready");
     });
 
     fastify.decorate("redis", client);
