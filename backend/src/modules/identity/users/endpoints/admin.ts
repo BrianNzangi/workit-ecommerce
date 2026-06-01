@@ -61,6 +61,19 @@ export const usersAdminRoutes: FastifyPluginAsync = async (fastify) => {
             updatedAt: new Date(),
         }).returning();
 
+        // Insert account record so Better Auth recognises this as a credential user
+        if (data.password) {
+            await db.insert(schema.account).values({
+                id: uuidv4(),
+                userId: id,
+                accountId: data.email,
+                providerId: 'email',
+                password,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            });
+        }
+
         return user;
     });
 
@@ -80,9 +93,11 @@ export const usersAdminRoutes: FastifyPluginAsync = async (fastify) => {
             updateData.role = role;
         }
 
+        let hashedPassword: string | undefined;
         if (password) {
             const bcrypt = await import("bcryptjs");
-            updateData.password = await (bcrypt.default || bcrypt).hash(password, 10);
+            hashedPassword = await (bcrypt.default || bcrypt).hash(password, 10);
+            updateData.password = hashedPassword;
         }
 
         // Keep `name` in sync when firstName/lastName change
@@ -96,6 +111,29 @@ export const usersAdminRoutes: FastifyPluginAsync = async (fastify) => {
             .returning();
 
         if (!user) return reply.status(404).send({ message: "User not found" });
+
+        // If a password was set, ensure an account record exists (handles both new and retroactive cases)
+        if (hashedPassword) {
+            const existingAccount = await db.query.account.findFirst({
+                where: eq(schema.account.userId, id),
+            });
+            if (existingAccount) {
+                await db.update(schema.account)
+                    .set({ password: hashedPassword, updatedAt: new Date() })
+                    .where(eq(schema.account.userId, id));
+            } else {
+                await db.insert(schema.account).values({
+                    id: uuidv4(),
+                    userId: id,
+                    accountId: user.email,
+                    providerId: 'email',
+                    password: hashedPassword,
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                });
+            }
+        }
+
         return user;
     });
 
