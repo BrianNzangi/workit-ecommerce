@@ -7,6 +7,7 @@ import { collectionsRoutes } from "./catalog/collections/index.js";
 import { usersRoutes } from "./identity/users/index.js";
 import { settingsRoutes } from "./site/settings/index.js";
 import { storeRoutes } from "./site/store/index.js";
+import { reviewsRoutes } from "./reviews/index.js";
 import { cronRoutes } from "./cron/index.js";
 import { featureFlags } from "../infrastructure/feature-flags/flags.js";
 import { catalogRoutes as dddCatalogRoutes } from "../presentation/modules/catalog/index.js";
@@ -47,6 +48,9 @@ export const appModules: FastifyPluginAsync = async (fastify) => {
 
     // Marketing (Content Management)
     await fastify.register(dddMarketingRoutes, { prefix: "/marketing" });
+
+    // Reviews
+    await fastify.register(reviewsRoutes, { prefix: "/catalog/reviews" });
 
     // Site / Storefront
     await fastify.register(settingsRoutes, { prefix: "/site/settings" });

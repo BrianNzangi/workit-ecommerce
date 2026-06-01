@@ -10,4 +10,5 @@ export const emailStatusEnum = pgEnum("EmailStatus", ['PENDING', 'SENT', 'OPENED
 export const orderStateEnum = pgEnum("OrderState", ['CREATED', 'PAYMENT_PENDING', 'PAYMENT_AUTHORIZED', 'PAYMENT_SETTLED', 'SHIPPED', 'DELIVERED', 'CANCELLED']);
 export const paymentStateEnum = pgEnum("PaymentState", ['PENDING', 'AUTHORIZED', 'SETTLED', 'DECLINED', 'CANCELLED', 'ERROR']);
 export const productConditionEnum = pgEnum("ProductCondition", ['NEW', 'REFURBISHED']);
+export const reviewStatusEnum = pgEnum("ReviewStatus", ['PENDING', 'APPROVED', 'REJECTED']);
 export const subscriberStatusEnum = pgEnum("SubscriberStatus", ['SUBSCRIBED', 'UNSUBSCRIBED', 'BOUNCED', 'COMPLAINED']);

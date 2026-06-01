@@ -18,6 +18,7 @@ import {
     BarChart3,
     Building2,
     Percent,
+    Star,
 } from 'lucide-react';
 
 import {
@@ -89,6 +90,11 @@ const menuSections: MenuSection[] = [
                     { label: 'Segments', href: '/admin/customers/segments' },
                 ],
             },
+            {
+                label: 'Reviews',
+                href: '/admin/reviews',
+                icon: Star,
+            },
         ],
     },
     {
@@ -142,6 +148,7 @@ const menuSections: MenuSection[] = [
                 label: 'Analytics',
                 icon: BarChart3,
                 children: [
+                    { label: 'Dashboard', href: '/admin/analytics' },
                     { label: 'Product Views', href: '/admin/analytics/views' },
                 ],
             },

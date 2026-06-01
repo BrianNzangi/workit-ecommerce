@@ -6,6 +6,7 @@ import * as fulfillment from "./fulfillment.js";
 import * as cart from "./cart.js";
 import * as promotions from "./promotions.js";
 import * as analytics from "./analytics.js";
+import * as reviewsSchema from "./reviews.js";
 
 // Catalog Relations
 export const productsRelations = relations(catalog.products, ({ many, one }) => ({
@@ -18,6 +19,7 @@ export const productsRelations = relations(catalog.products, ({ many, one }) => 
     featuredDeals: many(promotions.featuredDeals),
     clearanceDeals: many(promotions.clearanceDeals),
     views: many(analytics.productViews),
+    reviews: many(reviewsSchema.reviews),
     brand: one(catalog.brands, {
         fields: [catalog.products.brandId],
         references: [catalog.brands.id],
@@ -348,5 +350,20 @@ export const productViewsRelations = relations(analytics.productViews, ({ one })
     product: one(catalog.products, {
         fields: [analytics.productViews.productId],
         references: [catalog.products.id],
+    }),
+}));
+
+export const reviewsRelations = relations(reviewsSchema.reviews, ({ one }) => ({
+    product: one(catalog.products, {
+        fields: [reviewsSchema.reviews.productId],
+        references: [catalog.products.id],
+    }),
+    customer: one(identity.users, {
+        fields: [reviewsSchema.reviews.customerId],
+        references: [identity.users.id],
+    }),
+    order: one(fulfillment.orders, {
+        fields: [reviewsSchema.reviews.orderId],
+        references: [fulfillment.orders.id],
     }),
 }));

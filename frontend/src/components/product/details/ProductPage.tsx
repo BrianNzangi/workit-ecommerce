@@ -15,6 +15,7 @@ import ProductPurchaseColumn from "@/components/product/details/ProductPurchaseC
 import { Product } from "@/types/product"
 import { trackMetaEvent } from "@/lib/meta/meta-browser"
 import { trackView } from "@/lib/analytics/actions"
+import { ProductReviews } from "@/components/product/details/ProductReviews"
 
 export default function ProductPage({
   product,
@@ -119,17 +120,26 @@ export default function ProductPage({
           </div>
         </div>
 
-        {product.description && (
-          <section className="border-t border-b border-gray-200 py-4 mt-6 md:mt-12">
-            <h2 className="text-lg font-bold text-secondary-900 mb-4">More About This Item</h2>
-            <div
-              className="prose prose-sm max-w-none text-secondary-700 [&>p]:mb-3 [&>ul]:mb-5 [&>ol]:mb-5 [&>h1]:mb-4 [&>h2]:mb-4 [&>h3]:mb-4 [&>li]:mb-1.5 [&_a]:text-primary-900 [&_a]:underline [&_a:hover]:text-[#e04500]"
-              dangerouslySetInnerHTML={{
-                __html: sanitizeHtml(he.decode(product.description!.trim())),
-              }}
-            />
-          </section>
-        )}
+        <section className="border-t border-b border-gray-200 py-4 mt-6 md:mt-12">
+          <div className="grid grid-cols-1 md:grid-cols-8 gap-8">
+            <div className="md:col-span-5">
+              <h2 className="text-lg font-bold text-secondary-900 mb-4">More About This Item</h2>
+              {product.description ? (
+                <div
+                  className="prose prose-sm max-w-none text-secondary-700 [&>p]:mb-3 [&>ul]:mb-5 [&>ol]:mb-5 [&>h1]:mb-4 [&>h2]:mb-4 [&>h3]:mb-4 [&>li]:mb-1.5 [&_a]:text-primary-900 [&_a]:underline [&_a:hover]:text-[#e04500]"
+                  dangerouslySetInnerHTML={{
+                    __html: sanitizeHtml(he.decode(product.description.trim())),
+                  }}
+                />
+              ) : (
+                <p className="text-sm text-gray-500">No description provided.</p>
+              )}
+            </div>
+            <div className="md:col-span-3 md:border-l md:border-gray-200 md:pl-8">
+              <ProductReviews productId={product.id} />
+            </div>
+          </div>
+        </section>
       </SectionContainer>
     </main>
   )
