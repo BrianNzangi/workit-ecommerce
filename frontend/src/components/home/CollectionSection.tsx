@@ -44,7 +44,7 @@ export default function CollectionSection({ slug, title, index }: CollectionSect
         <section ref={ref} aria-label={title}>
             <SectionContainer className="px-6 sm:px-8 lg:px-16 py-4">
                 <div className="flex items-end justify-between mb-4">
-                    <h2 className="text-lg md:text-xl font-black text-secondary-900">
+                    <h2 className="text-lg md:text-xl font-bold text-secondary-900">
                         {title}
                     </h2>
                     <Link

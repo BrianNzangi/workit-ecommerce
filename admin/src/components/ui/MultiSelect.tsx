@@ -82,7 +82,6 @@ export function MultiSelect({
                 ? selected.filter((v) => v !== value)
                 : [...selected, value]
         );
-        setOpen(false);
     };
 
     const toggleExpand = (value: string, e: React.MouseEvent) => {

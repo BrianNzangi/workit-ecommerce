@@ -55,6 +55,7 @@ export function useProductForm({ productId, mode }: UseProductFormProps) {
         vat: '0',
         vatInclusive: true,
         enabled: true,
+        tags: '',
     });
 
     const [taxSettings, setTaxSettings] = useState<{ default_tax_rate: number; tax_name: string }>({
@@ -136,6 +137,7 @@ export function useProductForm({ productId, mode }: UseProductFormProps) {
                 vat: data.vat?.toString() || '0',
                 vatInclusive: data.vatInclusive ?? true,
                 enabled: data.enabled ?? true,
+                tags: data.tags || '',
             });
 
             if (data.assets && data.assets.length > 0) {
@@ -278,6 +280,10 @@ export function useProductForm({ productId, mode }: UseProductFormProps) {
         );
     };
 
+    const handleTagsChange = (tags: string) => {
+        setFormData((prev) => ({ ...prev, tags }));
+    };
+
     const handleSubmit = async (publish?: boolean) => {
         setLoading(true);
         setError('');
@@ -330,6 +336,7 @@ export function useProductForm({ productId, mode }: UseProductFormProps) {
                 assetIds: allAssetIds,
                 collections: getAllSelectedAndParentIds(),
                 homepageCollections: selectedHomepageCollections,
+                tags: formData.tags ? formData.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
                 enabled: mode === 'edit' ? formData.enabled : (publish ?? false),
             };
 
@@ -388,6 +395,7 @@ export function useProductForm({ productId, mode }: UseProductFormProps) {
         toggleCollection,
         toggleExpanded,
         toggleHomepageCollection,
+        handleTagsChange,
         handleSubmit,
     };
 }

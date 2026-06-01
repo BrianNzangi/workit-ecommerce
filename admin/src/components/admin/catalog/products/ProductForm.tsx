@@ -10,6 +10,7 @@ import { ProductPricing } from './product-form/ProductPricing';
 import { ProductInventory } from './product-form/ProductInventory';
 import { ProductCollections } from './product-form/ProductCollections';
 import { ProductHomepageCollections } from './product-form/ProductHomepageCollections';
+import { ProductTags } from './product-form/ProductTags';
 
 interface ProductFormProps {
     productId?: string;
@@ -41,6 +42,7 @@ export function ProductForm({ productId, mode }: ProductFormProps) {
         removeExistingImage,
         toggleCollection,
         toggleHomepageCollection,
+        handleTagsChange,
         handleSubmit,
     } = useProductForm({ productId, mode });
 
@@ -145,6 +147,10 @@ export function ProductForm({ productId, mode }: ProductFormProps) {
                             homepageCollections={homepageCollections}
                             selectedHomepageCollections={selectedHomepageCollections}
                             toggleHomepageCollection={toggleHomepageCollection}
+                        />
+                        <ProductTags
+                            tags={formData.tags}
+                            onChange={handleTagsChange}
                         />
                     </div>
                 </div>
