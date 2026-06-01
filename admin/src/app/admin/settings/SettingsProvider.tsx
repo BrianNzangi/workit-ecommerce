@@ -35,6 +35,7 @@ interface SettingsContextValue {
     handleSave: () => Promise<void>;
     handleCancel: () => void;
     onUpdateUserRole: (userId: string, newRole: UserRole) => Promise<void>;
+    onUpdateUser: (userId: string, data: { firstName?: string; lastName?: string; email?: string; role?: UserRole; password?: string }) => Promise<void>;
     onToggleUserStatus: (userId: string, enabled: boolean) => Promise<void>;
     onDeleteUser: (userId: string) => Promise<void>;
     onCreateUser: (user: any) => Promise<void>;
@@ -194,6 +195,19 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         }
     };
 
+    const handleUpdateUser = async (userId: string, data: { firstName?: string; lastName?: string; email?: string; role?: UserRole; password?: string }) => {
+        if (!canManageUsers) return;
+        try {
+            await settingsService.updateAdminUser(userId, data);
+            toast({ title: 'Success', description: 'User updated successfully', variant: 'success' });
+            fetchAdminUsers();
+        } catch (error: any) {
+            console.error('Error updating user:', error);
+            toast({ title: 'Error', description: getErrorMessage(error, 'Failed to update user'), variant: 'error' });
+            throw error;
+        }
+    };
+
     const handleCreateUser = async (user: any) => {
         if (!canManageUsers) return;
         try {
@@ -263,6 +277,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         handleSave,
         handleCancel,
         onUpdateUserRole: handleUpdateUserRole,
+        onUpdateUser: handleUpdateUser,
         onToggleUserStatus: handleToggleUserStatus,
         onDeleteUser: handleDeleteUser,
         onCreateUser: handleCreateUser,

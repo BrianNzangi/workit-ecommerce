@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { signIn, signOut } from '@/lib/auth/auth-client';
 import { normalizeAdminRole } from '@/lib/auth/rbac';
 import { useRouter } from 'next/navigation';
-import { Lock, Mail } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff } from 'lucide-react';
 import { FormInput } from './FormInput';
 import { SubmitButton } from './SubmitButton';
 import { ErrorAlert } from './ErrorAlert';
@@ -13,6 +13,7 @@ export function LoginForm() {
     const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
@@ -99,7 +100,7 @@ export function LoginForm() {
                 {/* Password Field */}
                 <FormInput
                     id="password"
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     label="Password"
                     value={password}
                     onChange={setPassword}
@@ -110,9 +111,11 @@ export function LoginForm() {
                     extraAction={
                         <button
                             type="button"
-                            className="text-sm text-primary-700 hover:text-primary-900 font-medium transition-colors"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="text-secondary-400 hover:text-secondary-600 transition-colors"
+                            tabIndex={-1}
                         >
-                            Forgot?
+                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                     }
                 />

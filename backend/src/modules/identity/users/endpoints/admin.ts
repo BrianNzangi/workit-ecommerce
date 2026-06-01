@@ -75,11 +75,14 @@ export const usersAdminRoutes: FastifyPluginAsync = async (fastify) => {
             return reply.status(400).send({ message: "Invalid role. Allowed values: SUPER_ADMIN, ADMIN, EDITOR, CUSTOMER." });
         }
 
-        // Don't allow updating password via this endpoint for now to keep it simple
-        // If password is sent, hash it or ignore it. Let's ignore it to avoid accidental changes.
         const { password, role: _incomingRole, ...updateData } = data;
         if (role) {
             updateData.role = role;
+        }
+
+        if (password) {
+            const bcrypt = await import("bcryptjs");
+            updateData.password = await (bcrypt.default || bcrypt).hash(password, 10);
         }
 
         // Keep `name` in sync when firstName/lastName change

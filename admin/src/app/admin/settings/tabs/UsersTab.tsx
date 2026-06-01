@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Trash2, Plus, X, UserPlus, Search } from 'lucide-react';
+import { Trash2, Plus, X, UserPlus, Search, Eye, EyeOff, Pencil } from 'lucide-react';
 import { AdminUser } from './index';
 import type { UserRole } from '@/lib/auth/rbac';
 import { Badge } from '@/components/ui/Badge';
@@ -18,6 +18,14 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
+} from '@/components/ui/dialog';
 
 interface UsersTabProps {
     adminUsers: AdminUser[];
@@ -31,6 +39,13 @@ interface UsersTabProps {
         lastName?: string;
         password: string;
         role: UserRole;
+    }) => Promise<void>;
+    onUpdateUser?: (userId: string, data: {
+        firstName?: string;
+        lastName?: string;
+        email?: string;
+        role?: UserRole;
+        password?: string;
     }) => Promise<void>;
     readOnly?: boolean;
 }
@@ -65,9 +80,11 @@ export default function UsersTab({
     onToggleUserStatus,
     onDeleteUser,
     onCreateUser,
+    onUpdateUser,
     readOnly = false,
 }: UsersTabProps) {
     const [showNewUserForm, setShowNewUserForm] = useState(false);
+    const [showNewUserPassword, setShowNewUserPassword] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [newUser, setNewUser] = useState({
         email: '',
@@ -77,6 +94,56 @@ export default function UsersTab({
         role: 'ADMIN' as UserRole,
     });
     const [creatingUser, setCreatingUser] = useState(false);
+    const [editUser, setEditUser] = useState<AdminUser | null>(null);
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [editFormData, setEditFormData] = useState({ firstName: '', lastName: '', email: '', role: 'ADMIN' as UserRole, password: '' });
+    const [showEditPassword, setShowEditPassword] = useState(false);
+    const [savingEdit, setSavingEdit] = useState(false);
+    const [editError, setEditError] = useState('');
+
+    const openEditDialog = (user: AdminUser) => {
+        setEditUser(user);
+        setEditFormData({
+            firstName: user.firstName || '',
+            lastName: user.lastName || '',
+            email: user.email,
+            role: user.role as UserRole,
+            password: '',
+        });
+        setShowEditPassword(false);
+        setEditError('');
+        setEditDialogOpen(true);
+    };
+
+    const handleSaveEdit = async () => {
+        if (!editUser) return;
+        setEditError('');
+        if (!editFormData.email) {
+            setEditError('Email is required.');
+            return;
+        }
+        setSavingEdit(true);
+        try {
+            const data: any = {
+                firstName: editFormData.firstName,
+                lastName: editFormData.lastName,
+                email: editFormData.email,
+                role: editFormData.role,
+            };
+            if (editFormData.password) {
+                if (editFormData.password.length < 8) {
+                    setEditError('Password must be at least 8 characters.');
+                    setSavingEdit(false);
+                    return;
+                }
+                data.password = editFormData.password;
+            }
+            await onUpdateUser?.(editUser.id, data);
+            setEditDialogOpen(false);
+        } finally {
+            setSavingEdit(false);
+        }
+    };
     const [formError, setFormError] = useState('');
 
     const filteredUsers = adminUsers.filter((user) => {
@@ -144,6 +211,107 @@ export default function UsersTab({
                 )}
             </div>
 
+            <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Edit User</DialogTitle>
+                        <DialogDescription>
+                            Update user details or reset their password.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {editError && (
+                        <div className="p-3 bg-red-50 rounded-lg text-sm text-red-700">
+                            {editError}
+                        </div>
+                    )}
+
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="edit_first_name">First Name</Label>
+                                <Input
+                                    id="edit_first_name"
+                                    type="text"
+                                    value={editFormData.firstName}
+                                    onChange={(e) => setEditFormData({ ...editFormData, firstName: e.target.value })}
+                                    className="h-9"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="edit_last_name">Last Name</Label>
+                                <Input
+                                    id="edit_last_name"
+                                    type="text"
+                                    value={editFormData.lastName}
+                                    onChange={(e) => setEditFormData({ ...editFormData, lastName: e.target.value })}
+                                    className="h-9"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="edit_email">Email</Label>
+                            <Input
+                                id="edit_email"
+                                type="email"
+                                value={editFormData.email}
+                                onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
+                                className="h-9"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label>Role</Label>
+                            <Select
+                                value={editFormData.role}
+                                onValueChange={(value) => setEditFormData({ ...editFormData, role: value as UserRole })}
+                            >
+                                <SelectTrigger className="w-full h-9">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="SUPER_ADMIN">Super Admin</SelectItem>
+                                    <SelectItem value="ADMIN">Admin</SelectItem>
+                                    <SelectItem value="EDITOR">Editor</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="edit_password">New Password <span className="text-xs text-secondary-400 font-normal">(leave blank to keep current)</span></Label>
+                            <div className="relative">
+                                <Input
+                                    id="edit_password"
+                                    type={showEditPassword ? 'text' : 'password'}
+                                    value={editFormData.password}
+                                    onChange={(e) => setEditFormData({ ...editFormData, password: e.target.value })}
+                                    placeholder="Min. 8 characters"
+                                    className="h-9 pr-9"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowEditPassword(!showEditPassword)}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-secondary-400 hover:text-secondary-600 transition-colors"
+                                    tabIndex={-1}
+                                >
+                                    {showEditPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <DialogFooter className="gap-2">
+                        <Button variant="outline" onClick={() => setEditDialogOpen(false)} className="h-9">
+                            Cancel
+                        </Button>
+                        <Button onClick={handleSaveEdit} disabled={savingEdit} className="bg-primary-800 hover:bg-primary-900 text-white h-9">
+                            {savingEdit ? 'Saving...' : 'Save Changes'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
             {showNewUserForm && !readOnly && (
                 <div className="bg-white rounded-lg p-5">
                     <div className="mb-4">
@@ -197,14 +365,24 @@ export default function UsersTab({
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="new_user_password">Password</Label>
-                                <Input
-                                    id="new_user_password"
-                                    type="password"
-                                    value={newUser.password}
-                                    onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                                    placeholder="Min. 8 characters"
-                                    className="h-9"
-                                />
+                                <div className="relative">
+                                    <Input
+                                        id="new_user_password"
+                                        type={showNewUserPassword ? 'text' : 'password'}
+                                        value={newUser.password}
+                                        onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                                        placeholder="Min. 8 characters"
+                                        className="h-9 pr-9"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowNewUserPassword(!showNewUserPassword)}
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 text-secondary-400 hover:text-secondary-600 transition-colors"
+                                        tabIndex={-1}
+                                    >
+                                        {showNewUserPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -319,15 +497,26 @@ export default function UsersTab({
                                     </TableCell>
                                     {!readOnly && (
                                         <TableCell className="text-right">
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() => onDeleteUser(user.id)}
-                                                className="text-red-600 hover:text-red-700 hover:bg-red-50 h-8 w-8"
-                                                title="Delete user"
-                                            >
-                                                <Trash2 className="w-3.5 h-3.5" />
-                                            </Button>
+                                            <div className="flex items-center justify-end gap-1">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => openEditDialog(user)}
+                                                    className="text-secondary-600 hover:text-secondary-900 hover:bg-secondary-100 h-8 w-8"
+                                                    title="Edit user"
+                                                >
+                                                    <Pencil className="w-3.5 h-3.5" />
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => onDeleteUser(user.id)}
+                                                    className="text-red-600 hover:text-red-700 hover:bg-red-50 h-8 w-8"
+                                                    title="Delete user"
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                </Button>
+                                            </div>
                                         </TableCell>
                                     )}
                                 </TableRow>
