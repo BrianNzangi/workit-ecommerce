@@ -1,5 +1,5 @@
 import { FastifyPluginAsync } from "fastify";
-import { db, schema, eq, desc, ilike, or, inArray } from "../../../../lib/db.js";
+import { db, schema, eq, asc, desc, ilike, or, inArray } from "../../../../lib/db.js";
 import { v4 as uuidv4 } from "uuid";
 
 async function syncBrandCollections(brandId: string, collectionIds: string[]) {
@@ -21,7 +21,7 @@ export const brandsAdminRoutes: FastifyPluginAsync = async (fastify) => {
         preHandler: [fastify.authenticate, fastify.authorizePermission('catalog.manage')]
     }, async () => {
         const results = await (db as any).query.brands.findMany({
-            orderBy: [desc(schema.brands.name as any)],
+            orderBy: [asc(schema.brands.name as any)],
             with: {
                 brandCollections: {
                     columns: { collectionId: true },
@@ -82,7 +82,7 @@ export const brandsAdminRoutes: FastifyPluginAsync = async (fastify) => {
         const { collectionSlug } = request.query as any;
         if (!collectionSlug) {
             const results = await db.query.brands.findMany({
-                orderBy: [desc(schema.brands.name as any)],
+                orderBy: [asc(schema.brands.name as any)],
                 with: {
                     brandCollections: {
                         columns: { collectionId: true },
