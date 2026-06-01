@@ -67,7 +67,7 @@ export const usersAdminRoutes: FastifyPluginAsync = async (fastify) => {
                 id: uuidv4(),
                 userId: id,
                 accountId: data.email,
-                providerId: 'email',
+                providerId: 'credential',
                 password,
                 createdAt: new Date(),
                 updatedAt: new Date(),
@@ -119,14 +119,14 @@ export const usersAdminRoutes: FastifyPluginAsync = async (fastify) => {
             });
             if (existingAccount) {
                 await db.update(schema.account)
-                    .set({ password: hashedPassword, updatedAt: new Date() })
+                    .set({ password: hashedPassword, providerId: 'credential', updatedAt: new Date() })
                     .where(eq(schema.account.userId, id));
             } else {
                 await db.insert(schema.account).values({
                     id: uuidv4(),
                     userId: id,
                     accountId: user.email,
-                    providerId: 'email',
+                    providerId: 'credential',
                     password: hashedPassword,
                     createdAt: new Date(),
                     updatedAt: new Date(),
