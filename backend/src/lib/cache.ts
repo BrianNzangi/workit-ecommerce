@@ -8,6 +8,7 @@ export interface CacheStore {
     del(keys: string | string[]): Promise<void>;
     invalidateTag(tag: string): Promise<void>;
     invalidateTags(tags: string[]): Promise<void>;
+    clearProxyCache(): Promise<void>;
 }
 
 const tagKey = (tag: string) => `cache:tag:${tag}`;
@@ -57,6 +58,9 @@ export function createCacheStore(redis: RedisClient | null, log?: FastifyBaseLog
                 return;
             },
             async invalidateTags() {
+                return;
+            },
+            async clearProxyCache() {
                 return;
             },
         };
@@ -228,6 +232,23 @@ export function createCacheStore(redis: RedisClient | null, log?: FastifyBaseLog
                 return;
             }
             void Promise.all(tags.map((tag) => store.invalidateTag(tag)));
+        },
+        async clearProxyCache(): Promise<void> {
+            if (!isRedisReady() || isCircuitOpen()) {
+                return;
+            }
+            try {
+                const keys = await withTimeout(
+                    redis.keys('proxy:*'),
+                    cacheInvalidateTimeoutMs,
+                );
+                if (keys.length > 0) {
+                    await withTimeout(redis.del(...keys), cacheInvalidateTimeoutMs);
+                }
+                recordSuccess();
+            } catch (error) {
+                reportFailure('clearProxyCache', {}, error);
+            }
         },
     };
 

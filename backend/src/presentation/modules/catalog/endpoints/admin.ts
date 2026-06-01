@@ -37,8 +37,17 @@ export const catalogAdminRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.post('/', { preHandler: preAdmin }, async (request, reply) => {
     try {
       const result = await adminService().create(request.body as any);
+      const createdProduct = (result as any)?.product;
+      const productId = createdProduct?.id;
+      if (productId) {
+        await enqueueSearchSync(
+          { type: 'search.sync', payload: { productIds: [productId] } },
+          `create:${productId}`,
+        );
+      }
       try {
-        await (fastify as any).cache.invalidateTags(['products', 'homepage-collections']);
+        await (fastify as any).cache.invalidateTags(['products', 'homepage-collections', 'collections']);
+        await (fastify as any).cache.clearProxyCache();
       } catch { /* cache may not be available */ }
       return result;
     } catch (err: any) {
@@ -99,7 +108,8 @@ export const catalogAdminRoutes: FastifyPluginAsync = async (fastify) => {
         `import:${touchedIds.length}`,
       );
       try {
-        await (fastify as any).cache.invalidateTags(['products', 'homepage-collections']);
+        await (fastify as any).cache.invalidateTags(['products', 'homepage-collections', 'collections']);
+        await (fastify as any).cache.clearProxyCache();
       } catch { /* cache may not be available */ }
     }
 
@@ -115,7 +125,8 @@ export const catalogAdminRoutes: FastifyPluginAsync = async (fastify) => {
       `bulk-delete:${ids?.length}`,
     );
     try {
-      await (fastify as any).cache.invalidateTags(['products', 'homepage-collections']);
+      await (fastify as any).cache.invalidateTags(['products', 'homepage-collections', 'collections']);
+      await (fastify as any).cache.clearProxyCache();
     } catch { /* cache may not be available */ }
     return result;
   });
@@ -133,8 +144,13 @@ export const catalogAdminRoutes: FastifyPluginAsync = async (fastify) => {
     const { id } = request.params as any;
     try {
       const result = await adminService().update(id, request.body);
+      await enqueueSearchSync(
+        { type: 'search.sync', payload: { productIds: [id] } },
+        `update:${id}`,
+      );
       try {
-        await (fastify as any).cache.invalidateTags(['products', 'homepage-collections']);
+        await (fastify as any).cache.invalidateTags(['products', 'homepage-collections', 'collections']);
+        await (fastify as any).cache.clearProxyCache();
       } catch { /* cache may not be available */ }
       return result;
     } catch (err: any) {
@@ -148,8 +164,13 @@ export const catalogAdminRoutes: FastifyPluginAsync = async (fastify) => {
     const { id } = request.params as any;
     try {
       const result = await adminService().update(id, request.body);
+      await enqueueSearchSync(
+        { type: 'search.sync', payload: { productIds: [id] } },
+        `update:${id}`,
+      );
       try {
-        await (fastify as any).cache.invalidateTags(['products', 'homepage-collections']);
+        await (fastify as any).cache.invalidateTags(['products', 'homepage-collections', 'collections']);
+        await (fastify as any).cache.clearProxyCache();
       } catch { /* cache may not be available */ }
       return result;
     } catch (err: any) {
@@ -168,7 +189,8 @@ export const catalogAdminRoutes: FastifyPluginAsync = async (fastify) => {
         `delete:${id}`,
       );
       try {
-        await (fastify as any).cache.invalidateTags(['products', 'homepage-collections']);
+        await (fastify as any).cache.invalidateTags(['products', 'homepage-collections', 'collections']);
+        await (fastify as any).cache.clearProxyCache();
       } catch { /* cache may not be available */ }
       return result;
     } catch (err: any) {
