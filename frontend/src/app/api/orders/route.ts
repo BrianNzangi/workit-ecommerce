@@ -64,12 +64,13 @@ export async function GET(request: NextRequest) {
 
       return {
         id: order.code || order.id,
+        backendId: order.id,
         date_created: order.createdAt,
         status: status,
         total: order.total.toLocaleString(),
         currency: order.currencyCode || 'KES',
         line_items: (order.lines || []).map((line: any) => ({
-          name: line.name || 'Unknown Product',
+          name: line.product?.name || 'Unknown Product',
           quantity: line.quantity,
           price: line.linePrice.toLocaleString(),
         })),

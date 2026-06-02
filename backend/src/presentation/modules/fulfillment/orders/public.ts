@@ -1,5 +1,5 @@
 import { FastifyPluginAsync } from 'fastify';
-import { db, desc, eq, schema } from '@workit/db';
+import { db, desc, eq, or, schema } from '@workit/db';
 
 export const orderPublicRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get(
@@ -45,13 +45,19 @@ export const orderPublicRoutes: FastifyPluginAsync = async (fastify) => {
       const user = request.storefrontUser as { id?: string } | undefined;
 
       const order = await db.query.orders.findFirst({
-        where: eq(schema.orders.id, id),
+        where: or(
+          eq(schema.orders.id, id),
+          eq(schema.orders.code, id),
+        ),
         with: {
           lines: {
             with: {
               product: true,
             },
           },
+          customer: true,
+          shippingAddress: true,
+          payments: true,
         },
       });
 

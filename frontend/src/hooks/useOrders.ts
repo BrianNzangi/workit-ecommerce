@@ -39,6 +39,8 @@ export function useOrders() {
     return useQuery({
         queryKey: ORDERS_KEY,
         queryFn: fetchOrders,
-        staleTime: 2 * 60 * 1000,
+        staleTime: 0,
+        refetchInterval: 15 * 1000,
+        refetchOnWindowFocus: true,
     });
 }
