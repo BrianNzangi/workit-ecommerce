@@ -2,8 +2,8 @@
 
 import { useRef, useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { getImageUrl } from '@/lib/image/image-utils';
 
 interface CategoryItem {
   id: string;
@@ -66,13 +66,12 @@ export default function ShopByCategoryCarousel({
             >
               <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden bg-gray-100 border-2 border-gray-100 group-hover/card:border-primary-900/30 transition-colors flex items-center justify-center">
                 {cat.image ? (
-                  <Image
-                    src={cat.image}
+                  <img
+                    src={getImageUrl(cat.image)}
                     alt={cat.name}
-                    width={96}
-                    height={96}
                     className="w-full h-full object-cover"
-                    unoptimized
+                    loading="lazy"
+                    decoding="async"
                   />
                 ) : (
                   <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-gray-300">
