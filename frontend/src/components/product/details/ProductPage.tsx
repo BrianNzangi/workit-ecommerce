@@ -96,7 +96,7 @@ export default function ProductPage({
 
   return (
     <main className="bg-white font-sans">
-      <SectionContainer className="px-6 sm:px-8 lg:px-16 py-6">
+      <SectionContainer className="py-6">
         <div className="hidden md:block">
           <Breadcrumbs paths={breadcrumbPaths} />
         </div>

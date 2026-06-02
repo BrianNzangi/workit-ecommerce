@@ -38,17 +38,17 @@
   --color-primary-100: #ffd9d6;
   --color-primary-50: #ffecea;
 
-  /* Brand Colors - Accent (Teal) */
-  --color-accent-900: #00755f;
-  --color-accent-800: #30826e;
-  --color-accent-700: #4b907d;
-  --color-accent-600: #629d8c;
-  --color-accent-500: #79ab9c;
-  --color-accent-400: #8fb9ac;
-  --color-accent-300: #a6c6bc;
-  --color-accent-200: #bcd4cc;
-  --color-accent-100: #d2e2dd;
-  --color-accent-50: #e8f1ee;
+  /* Brand Colors - Accent (Green) */
+  --color-accent-900: #4caf50;
+  --color-accent-800: #61b763;
+  --color-accent-700: #74c075;
+  --color-accent-600: #86c886;
+  --color-accent-500: #98d097;
+  --color-accent-400: #aad8a8;
+  --color-accent-300: #bbe0ba;
+  --color-accent-200: #cce8cb;
+  --color-accent-100: #ddf0dc;
+  --color-accent-50: #eef7ee;
 
   /* Brand Colors - Secondary (Gray) */
   --color-secondary-900: #060709;

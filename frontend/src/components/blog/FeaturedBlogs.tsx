@@ -15,7 +15,7 @@ export default function FeaturedBlogs({ blogs }: FeaturedBlogsProps) {
 
     return (
         <section className="py-6 md:py-8">
-            <SectionContainer className="px-6 sm:px-8 lg:px-16 mb-8 py-6">
+            <SectionContainer className="mb-8 py-6">
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-lg md:text-2xl font-bold text-gray-900">
                         From Our Blog

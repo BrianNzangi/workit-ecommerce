@@ -40,7 +40,7 @@ export default function DashboardClient() {
   if (authLoading) {
     return (
       <main className="min-h-screen bg-[#F0F0F1] font-sans">
-        <SectionContainer className="px-10 sm:px-12 lg:px-16 py-8 flex items-center justify-center">
+        <SectionContainer className="py-8 flex items-center justify-center">
           <div className="animate-pulse text-gray-500">Loading...</div>
         </SectionContainer>
       </main>
@@ -91,7 +91,7 @@ export default function DashboardClient() {
 
   return (
     <main className="min-h-screen bg-[#F0F0F1] font-sans">
-      <SectionContainer className="px-10 sm:px-12 lg:px-16 py-8">
+      <SectionContainer className="py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-1">
             <UserSidebar activeSection={activeSection} onSectionChange={setActiveSection} />

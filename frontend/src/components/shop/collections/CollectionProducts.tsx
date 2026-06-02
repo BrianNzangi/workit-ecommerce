@@ -269,7 +269,7 @@ export default function CollectionProducts({
         />
       </Head>
 
-      <SectionContainer className="px-10 sm:px-12 lg:px-16 py-4 space-y-4">
+      <SectionContainer className="py-4 space-y-4">
         <Breadcrumbs
           paths={buildBreadcrumbs(category, categories, fullSlug)}
         />
@@ -355,7 +355,7 @@ export default function CollectionProducts({
 
         {/* Filter Sidebar + Product Grid */}
         <section className="bg-[#F7F7F7] border-t border-gray-200 w-full">
-          <SectionContainer className="px-10 sm:px-12 lg:px-16 py-4">
+          <SectionContainer className="py-4">
           <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6 md:gap-8">
           {/* Desktop Sidebar */}
           <aside className="hidden md:block bg-white rounded-md border-2 border-gray-200">

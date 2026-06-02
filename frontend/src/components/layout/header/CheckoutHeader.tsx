@@ -31,7 +31,7 @@ export default function CheckoutHeader() {
   return (
     <header id="checkout-header">
       <div className="font-sans text-secondary-900 border-b border-gray-300 bg-white">
-        <SectionContainer className="px-10 sm:px-12 lg:px-16 py-4">
+        <SectionContainer className="py-4">
           <div className="flex items-center justify-between gap-4">
             {/* Logo */}
             <Link

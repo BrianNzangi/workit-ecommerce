@@ -6,7 +6,7 @@ export default function ShopCollectionsPage() {
   return (
     <Suspense fallback={
       <main className="min-h-screen bg-white font-sans">
-        <SectionContainer className="px-10 sm:px-12 lg:px-16 py-16">
+        <SectionContainer className="py-16">
           <div className="space-y-8">
             <div className="h-12 w-64 bg-gray-100 animate-pulse rounded-lg mb-16" />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

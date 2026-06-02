@@ -18,7 +18,7 @@ const HelpCenterPage = () => {
       <HelpFAQ />
 
       <section className="pb-20 bg-white font-sans border-t border-gray-200">
-        <SectionContainer className="px-8">
+        <SectionContainer>
           <ContactForm />
         </SectionContainer>
       </section>

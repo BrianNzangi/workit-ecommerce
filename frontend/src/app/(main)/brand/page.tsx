@@ -28,7 +28,7 @@ function BrandDirectoryPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white">
-        <SectionContainer className="px-10 sm:px-12 lg:px-16 py-16">
+        <SectionContainer className="py-16">
           <div className="space-y-8">
             <div className="h-12 w-64 bg-gray-100 animate-pulse rounded-lg" />
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
@@ -45,7 +45,7 @@ function BrandDirectoryPage() {
   if (brands.length === 0) {
     return (
       <div className="min-h-screen bg-white">
-        <SectionContainer className="px-10 sm:px-12 lg:px-16 py-16">
+        <SectionContainer className="py-16">
           <Breadcrumbs paths={[{ label: 'Home', href: '/' }, { label: 'Brands' }]} />
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mt-6 mb-4">Shop by Brand</h1>
           <p className="text-gray-500">No brands available yet.</p>

@@ -5,7 +5,7 @@ import SectionContainer from '@/components/layout/SectionContainer';
 export default function AboutWorkit() {
   return (
     <section>
-      <SectionContainer className="px-6 sm:px-8 lg:px-16 mb-8 py-6">
+      <SectionContainer className="mb-8 py-6">
       {/* START ADVERTISER: Awin (USD) from awin.com */}
       <div className="flex justify-center gap-6 mb-12">
         <a rel="sponsored" href="https://www.awin1.com/cread.php?s=531761&v=4032&q=173734&r=2523901">

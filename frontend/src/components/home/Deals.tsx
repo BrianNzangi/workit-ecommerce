@@ -17,13 +17,13 @@ export default function Deals({ deals }: DealsProps) {
     if (visibleDeals.length === 0) return null;
 
     return (
-        <section aria-label="Deals and promotions" className="py-6 md:py-8">
-        <SectionContainer className="px-6 sm:px-8 lg:px-16">
+        <section aria-label="Deals and promotions" className="py-2 md:py-4">
+        <SectionContainer className="">
                 <h2 className="text-lg md:text-2xl font-bold text-gray-900 mb-6">
                     Deals
                 </h2>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                     {visibleDeals.map((deal) => {
                         const bannerHref = getBannerHref(deal)!;
                         const imageUrl = getImageUrl(deal.desktopImage!.preview || deal.desktopImage!.source);

@@ -19,8 +19,8 @@ export default function ProductCarousel({ products }: { products: HomepageCollec
     return (
         <>
             {/* Mobile: horizontal snap scroll */}
-            <div className="md:hidden overflow-x-auto snap-x snap-mandatory">
-                <div className="flex gap-4">
+            <div className="md:hidden overflow-x-auto snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                <div className="flex gap-2">
                     {products.map((product) => (
                         <div key={product.id} className="snap-start shrink-0 w-[45%]">
                             <ProductCard {...product} />
@@ -31,7 +31,7 @@ export default function ProductCarousel({ products }: { products: HomepageCollec
 
             {/* Desktop: paginated grid with arrows */}
             <div className="hidden md:block relative group/carousel">
-                <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
                     {visibleProducts.map((product) => (
                         <ProductCard key={product.id} {...product} />
                     ))}

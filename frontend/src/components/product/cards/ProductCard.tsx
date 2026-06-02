@@ -129,7 +129,7 @@ export default function ProductCard({
             onFocus={prefetchProduct}
             onTouchStart={prefetchProduct}
         >
-            <div className="p-3 border border-gray-200 bg-white h-full flex flex-col rounded-md">
+            <div className="p-2 border border-gray-200 bg-white h-full flex flex-col rounded-md">
                 <div className="relative w-full aspect-square overflow-hidden rounded-md mb-3">
                     {image || images?.[0]?.url ? (
                         <Image
@@ -146,7 +146,7 @@ export default function ProductCard({
                     )}
 
                     {savingsLabel && (
-                        <span className="absolute bottom-2 left-2 z-10 inline-flex rounded-sm bg-accent-200 px-2 py-2 text-xs font-bold leading-none text-accent-900">
+                        <span className="absolute bottom-2 left-2 z-10 inline-flex rounded-sm bg-accent-100 px-2 py-2 text-xs font-bold leading-none text-accent-900">
                             {savingsLabel}
                         </span>
                     )}

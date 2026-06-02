@@ -122,7 +122,7 @@ export default function HeroSection({ banners }: HeroSectionProps) {
             aria-roledescription="carousel"
             aria-label="Homepage banner carousel"
         >
-            <SectionContainer className="px-6 sm:px-8 lg:px-16 py-6">
+            <SectionContainer className="py-4">
                 <div
                     className="relative w-full overflow-hidden rounded-sm bg-secondary-900"
                     onTouchStart={onTouchStart}

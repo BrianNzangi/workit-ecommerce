@@ -15,7 +15,7 @@ export default function SectionContainer({
   return (
     <div
       className={cn(
-        "mx-auto",
+        "mx-auto px-4 sm:px-4 lg:px-16 py-4",
         fluid ? "w-full max-w-none" : "container",
         className,
       )}

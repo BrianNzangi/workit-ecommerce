@@ -13,7 +13,7 @@ interface BrandItem {
 
 function LoadingSkeleton() {
   return (
-    <SectionContainer className="px-6 sm:px-8 lg:px-16 py-8">
+    <SectionContainer className="py-8">
       <div className="space-y-4">
         <div className="h-7 w-32 bg-gray-200 rounded animate-pulse" />
         <div className="flex gap-4">
@@ -57,7 +57,7 @@ export default function TopBrandsSection() {
   if (!brands.length) return null;
 
   return (
-    <SectionContainer className="px-6 sm:px-8 lg:px-16 py-8">
+    <SectionContainer className="py-8">
       <TopBrandsCarousel title="Top Brands" brands={brands} />
     </SectionContainer>
   );

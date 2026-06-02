@@ -49,7 +49,7 @@ const contactDetails = [
 export default function ContactUsPage() {
   return (
     <main className="min-h-screen bg-white">
-      <SectionContainer className="px-10 sm:px-12 lg:px-16 mb-8 py-6">
+      <SectionContainer className="mb-8 py-6">
         <nav className="flex items-center gap-2 text-sm text-gray-500 mb-8">
           <Link href="/" className="hover:text-primary-900 transition inline-flex items-center gap-1.5">
             <Home size={14} />

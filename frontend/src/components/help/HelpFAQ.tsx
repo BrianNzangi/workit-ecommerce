@@ -58,7 +58,7 @@ const HelpFAQ = () => {
   if (loading) {
     return (
       <section className="py-16 bg-white font-sans">
-        <SectionContainer className="px-8">
+        <SectionContainer>
           <div className="flex gap-8">
             <div className="w-64 shrink-0 animate-pulse space-y-3">
               {[1, 2, 3].map((i) => (
@@ -82,7 +82,7 @@ const HelpFAQ = () => {
   if (categories.length === 0) {
     return (
       <section className="py-16 bg-white font-sans">
-        <SectionContainer className="px-8 text-center text-gray-400 py-20">
+        <SectionContainer className="text-center text-gray-400 py-20">
           <p>No help articles found. Please check back later.</p>
         </SectionContainer>
       </section>

@@ -6,7 +6,7 @@ import MegaMenu from '@/components/menu/MegaMenu';
 export default function MenuHeader() {
   return (
     <div className="bg-primary-900 text-white hidden md:block relative">
-      <SectionContainer className="px-10 sm:px-12 lg:px-16">
+      <SectionContainer className="py-0">
         <div className="flex justify-between items-center">
           <MegaMenu />
         </div>

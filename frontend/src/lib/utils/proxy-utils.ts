@@ -33,7 +33,7 @@ export async function proxyFetch(path: string, options: ProxyFetchOptions = {}) 
             const ip = headerList.get('x-forwarded-for') || headerList.get('x-real-ip') || 'unknown';
 
             // Limit to 100 requests per minute per IP for proxy routes
-            const limiter = await rateLimit(ip, 120, 60);
+            const limiter = await rateLimit(ip, 600, 60);
 
             if (!limiter.success) {
                 return new Response(JSON.stringify({

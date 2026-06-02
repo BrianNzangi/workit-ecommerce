@@ -57,7 +57,7 @@ export default async function AboutWorkitPage() {
 
   return (
     <main className="bg-white min-h-screen">
-      <SectionContainer className="px-10 sm:px-12 lg:px-16 mb-8 py-6">
+      <SectionContainer className="mb-8 py-6">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-gray-500 mb-8">
           <Link href="/" className="hover:text-primary-900 transition inline-flex items-center gap-1.5">

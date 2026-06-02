@@ -35,7 +35,7 @@ export default function CollectionDirectory() {
     if (loading) {
         return (
             <div className="min-h-screen bg-white">
-                <SectionContainer className="px-10 sm:px-12 lg:px-16 py-16">
+                <SectionContainer className="py-16">
                     <div className="space-y-8">
                         <div className="h-12 w-64 bg-gray-100 animate-pulse rounded-lg" />
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">

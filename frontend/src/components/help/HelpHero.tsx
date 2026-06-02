@@ -17,7 +17,7 @@ const HelpHero = () => {
 
   return (
     <section className="bg-white py-16 font-sans border-b border-gray-200">
-      <SectionContainer className="px-8">
+      <SectionContainer>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="max-w-xl">
             <h1 className="text-4xl font-bold mb-4 text-gray-900">Help Center</h1>

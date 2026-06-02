@@ -12,8 +12,8 @@ export default function MostShopped({ collections }: MostShoppedProps) {
     if (collections.length === 0) return null;
 
     return (
-        <section aria-label="Most shopped collections" className="py-2 sm:py-4 lg:py-4">
-            <SectionContainer className="px-6 sm:px-8 lg:px-16">
+        <section aria-label="Most shopped collections" className="py-2 md:py-4">
+            <SectionContainer>
                 <div className="flex items-center justify-between mb-6">
                     <h2 className="text-lg md:text-2xl font-bold text-gray-900">
                         Most Shopped
@@ -27,7 +27,7 @@ export default function MostShopped({ collections }: MostShoppedProps) {
                     </Link>
                 </div>
 
-                <div className="flex md:grid md:grid-cols-8 gap-2 lg:gap-4 overflow-x-auto md:overflow-visible scrollbar-hide">
+                <div className="flex md:grid md:grid-cols-8 gap-2 lg:gap-2 overflow-x-auto md:overflow-visible [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                     {collections.map((collection) => (
                         <div key={collection.id} className="w-1/2 md:w-auto shrink-0">
                             <MostShoppedCard
