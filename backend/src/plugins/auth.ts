@@ -10,6 +10,7 @@ import {
     normalizeAdminRole,
 } from "../lib/rbac.js";
 import type { Permission } from "../lib/rbac.js";
+import { db, schema, eq } from "../lib/db.js";
 
 declare module "fastify" {
     interface FastifyRequest {
@@ -43,12 +44,23 @@ export default fp(async (fastify) => {
         if (session) {
             request.session = session.session;
             request.user = session.user;
-            request.permissions = await getPermissionsForRoleAsync(session.user?.role);
 
-            const normalizedRole = normalizeAdminRole(session.user?.role);
-            if (normalizedRole) {
-                request.user.role = normalizedRole;
+            // Fallback: if Better Auth did not include the role additionalField,
+            // read it directly from the DB.
+            let role = session.user?.role;
+            if (!normalizeAdminRole(role)) {
+                const [dbUser] = await db
+                    .select({ role: schema.users.role })
+                    .from(schema.users)
+                    .where(eq(schema.users.id, session.user.id))
+                    .limit(1);
+                if (dbUser?.role) {
+                    role = dbUser.role;
+                }
             }
+
+            request.user.role = role;
+            request.permissions = await getPermissionsForRoleAsync(role);
         } else {
             request.session = null;
             request.user = null;

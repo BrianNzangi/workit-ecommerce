@@ -9,6 +9,7 @@ import { toast } from '@/hooks/use-toast';
 import { InvoiceDisplay } from '@/components/admin/orders/InvoiceDisplay';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { getCookieValue } from '@/lib/auth/csrf';
 
 interface OrderLine {
     id: string;
@@ -89,9 +90,13 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
 
         setUpdatingStatus(true);
         try {
+            const csrfToken = getCookieValue('XSRF-TOKEN');
             const response = await fetch(`/api/admin/orders/${id}/status`, {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(csrfToken ? { 'x-xsrf-token': csrfToken } : {}),
+                },
                 body: JSON.stringify({ state: newState })
             });
 

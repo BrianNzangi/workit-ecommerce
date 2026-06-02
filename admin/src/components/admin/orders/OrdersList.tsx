@@ -5,6 +5,7 @@ import { ShoppingCart, Loader2, Printer, Download } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
+import { useReactToPrint } from 'react-to-print';
 
 interface Order {
     id: string;
@@ -48,22 +49,56 @@ interface InvoiceOrder extends Order {
     lines?: InvoiceLine[];
 }
 
-declare global {
-    interface Window {
-        html2canvas?: (element: HTMLElement, options?: Record<string, any>) => Promise<HTMLCanvasElement>;
-        jspdf?: {
-            jsPDF: new (...args: any[]) => any;
-        };
-    }
-}
-
 export function OrdersList() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [downloadingOrderId, setDownloadingOrderId] = useState<string | null>(null);
-    const pdfLibsPromiseRef = useRef<Promise<void> | null>(null);
     const invoiceCacheRef = useRef<Map<string, InvoiceOrder>>(new Map());
+    const cleanupPrintRef = useRef<(() => void) | null>(null);
+    const titleRef = useRef('invoice');
+
+    const handleDownloadPdf = useReactToPrint({
+        documentTitle: () => titleRef.current,
+        pageStyle: `
+            @page { size: A4; margin: 10mm; }
+            @media print {
+                body {
+                    margin: 0;
+                    -webkit-print-color-adjust: exact;
+                    print-color-adjust: exact;
+                    display: flex;
+                    justify-content: center;
+                }
+                .invoice-export-root {
+                    width: 100% !important;
+                    max-width: 190mm !important;
+                    margin: 0 auto !important;
+                    padding: 10mm !important;
+                    box-shadow: none !important;
+                }
+                .items-table tr {
+                    page-break-inside: avoid;
+                }
+            }
+        `,
+        onAfterPrint: () => {
+            cleanupPrintRef.current?.();
+            cleanupPrintRef.current = null;
+            setDownloadingOrderId(null);
+        },
+        onPrintError: (_errorLocation, error) => {
+            console.error('Print error:', error);
+            toast({
+                title: 'Download failed',
+                description: error.message || 'Failed to generate invoice PDF.',
+                variant: 'error',
+            });
+            cleanupPrintRef.current?.();
+            cleanupPrintRef.current = null;
+            setDownloadingOrderId(null);
+        },
+    });
 
     useEffect(() => {
         fetchOrders();
@@ -132,59 +167,6 @@ export function OrdersList() {
         window.open(url, '_blank', 'noopener,noreferrer');
     };
 
-    const loadExternalScript = (src: string) => {
-        return new Promise<void>((resolve, reject) => {
-            const existing = document.querySelector(`script[data-pdf-lib="${src}"]`) as HTMLScriptElement | null;
-            if (existing) {
-                if (existing.dataset.loaded === 'true') {
-                    resolve();
-                    return;
-                }
-                existing.addEventListener('load', () => resolve(), { once: true });
-                existing.addEventListener('error', () => reject(new Error(`Failed loading ${src}`)), { once: true });
-                return;
-            }
-
-            const script = document.createElement('script');
-            script.src = src;
-            script.async = true;
-            script.dataset.pdfLib = src;
-            script.onload = () => {
-                script.dataset.loaded = 'true';
-                resolve();
-            };
-            script.onerror = () => reject(new Error(`Failed loading ${src}`));
-            document.body.appendChild(script);
-        });
-    };
-
-    const ensurePdfLibs = () => {
-        if (!pdfLibsPromiseRef.current) {
-            pdfLibsPromiseRef.current = Promise.all([
-                loadExternalScript('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js'),
-                loadExternalScript('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js'),
-            ]).then(() => undefined);
-        }
-        return pdfLibsPromiseRef.current;
-    };
-
-    const waitForImages = (root: HTMLElement) => {
-        const images = Array.from(root.querySelectorAll('img'));
-        return Promise.all(
-            images.map(
-                (img) =>
-                    new Promise<void>((resolve) => {
-                        if (img.complete) {
-                            resolve();
-                            return;
-                        }
-                        img.onload = () => resolve();
-                        img.onerror = () => resolve();
-                    })
-            )
-        );
-    };
-
     const escapeHtml = (value: string) =>
         value
             .replace(/&/g, '&amp;')
@@ -204,34 +186,47 @@ export function OrdersList() {
     };
 
     const buildInvoiceMarkup = (order: InvoiceOrder) => {
-        const created = new Date(order.createdAt).toLocaleDateString('en-US', {
-            month: '2-digit',
-            day: '2-digit',
-            year: 'numeric',
+        const created = new Date(order.createdAt);
+        const issueDate = created.toLocaleDateString('en-US', {
+            month: 'short', day: 'numeric', year: 'numeric',
         });
+        const dueDate = new Date(created.getTime() + 7 * 24 * 60 * 60 * 1000)
+            .toLocaleDateString('en-US', {
+                month: 'short', day: 'numeric', year: 'numeric',
+            });
 
+        const logoSrc = `${window.location.origin}/workit-logo.png`;
         const customerName = `${order.customer?.firstName || ''} ${order.customer?.lastName || ''}`.trim() || 'Customer';
         const customerEmail = order.customer?.email || '-';
-        const logoSrc = `${window.location.origin}/workit-logo.png`;
+        const ship = order.shippingAddress;
+        const customerAddress = ship
+            ? `${escapeHtml(ship.streetLine1 || '')}${ship.streetLine2 ? ', ' + escapeHtml(ship.streetLine2) : ''}<br />${escapeHtml(ship.city || '')}${ship.city && ship.province ? ', ' : ''}${escapeHtml(ship.province || '')}${ship.phoneNumber ? '<br />Phone: ' + escapeHtml(ship.phoneNumber) : ''}`
+            : '-';
+
         const lines = Array.isArray(order.lines) ? order.lines : [];
+        const subTotal = order.subTotal || 0;
+        const totalTax = order.tax || 0;
+        const total = order.total || 0;
 
         const lineRows = lines
             .map((line, idx) => {
                 const name = escapeHtml(getLineName(line, idx));
                 const qty = line.quantity || 0;
-                const unit = line.linePrice || 0;
-                const amount = unit * qty;
+                const unitPrice = line.linePrice || 0;
+                const lineTotal = unitPrice * qty;
+                const lineTax = subTotal > 0 ? Math.round((lineTotal / subTotal) * totalTax * 100) / 100 : 0;
                 return `
                 <tr>
-                  <td class="item-cell">
-                    <div class="item-name">${name}</div>
-                  </td>
+                  <td class="item-name-cell">${name}</td>
                   <td class="qty-cell">${qty}</td>
-                  <td class="price-cell">${escapeHtml(formatCurrency(unit))}</td>
-                  <td class="amount-cell">${escapeHtml(formatCurrency(amount))}</td>
+                  <td class="price-cell">${escapeHtml(formatCurrency(unitPrice))}</td>
+                  <td class="tax-cell">${escapeHtml(formatCurrency(lineTax))}</td>
+                  <td class="total-cell">${escapeHtml(formatCurrency(lineTotal))}</td>
                 </tr>`;
             })
             .join('');
+
+        const status = (order.state || 'CREATED').replace(/_/g, ' ');
 
         return `
         <div class="invoice-export-root">
@@ -241,124 +236,186 @@ export function OrdersList() {
               background: #ffffff;
               color: #111827;
               font-family: "Hanken Grotesk", Arial, sans-serif;
-              border: 1px solid #e5e7eb;
-              border-radius: 2px;
               box-sizing: border-box;
               margin: 0 auto;
+              padding: 40px;
             }
-            .invoice-inner { padding: 34px; }
-            .invoice-top {
+            .invoice-header {
               display: flex;
               justify-content: space-between;
               align-items: flex-start;
-              margin-bottom: 18px;
+              margin-bottom: 8px;
             }
+            .header-left { flex: 1; }
             .invoice-logo {
               width: 170px;
               height: 54px;
               object-fit: contain;
               object-position: left center;
             }
-            .invoice-meta { text-align: right; }
-            .invoice-number {
-              font-weight: 800;
-              font-size: 12px;
-              letter-spacing: 0.05em;
-              margin: 0 0 6px;
-            }
-            .invoice-label {
-              margin: 0;
-              color: #6b7280;
-              font-size: 10px;
-              font-weight: 700;
-              letter-spacing: 0.08em;
-              text-transform: uppercase;
-            }
-            .invoice-date {
-              margin: 4px 0 0;
-              color: #374151;
-              font-size: 14px;
-              font-weight: 700;
-              letter-spacing: 0.02em;
-            }
-            .bar { height: 1px; background: #e5e7eb; margin: 16px 0 28px; }
-            .brand-title {
-              margin: 0 0 12px;
-              font-size: 48px;
-              line-height: 1;
+            .header-brand {
+              margin: 8px 0 4px;
+              font-size: 26px;
               font-weight: 900;
-              letter-spacing: -0.04em;
+              letter-spacing: -0.02em;
               color: #111827;
             }
-            .brand-subtitle {
-              margin: 0;
+            .header-sub {
+              margin: 0 0 4px;
+              font-size: 14px;
               color: #6b7280;
-              font-size: 19px;
-              line-height: 1.5;
-              font-weight: 500;
-              max-width: 680px;
+              font-weight: 600;
             }
-            .bill-grid {
+            .header-address {
+              margin: 0;
+              font-size: 12px;
+              color: #6b7280;
+              line-height: 1.6;
+            }
+            .header-right { flex-shrink: 0; }
+            .invoice-details-box {
+              border: 1px solid #e5e7eb;
+              border-radius: 8px;
+              padding: 18px 22px;
+              min-width: 260px;
+            }
+            .detail-row {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              padding: 3px 0;
+            }
+            .detail-label {
+              font-size: 11px;
+              color: #6b7280;
+              font-weight: 700;
+              text-transform: uppercase;
+              letter-spacing: 0.06em;
+            }
+            .detail-value {
+              font-size: 12px;
+              color: #111827;
+              font-weight: 700;
+            }
+            .detail-value.amount {
+              font-size: 15px;
+              color: #e71333;
+              font-weight: 800;
+            }
+            .detail-value.status-value {
+              color: #059669;
+            }
+            .detail-separator {
+              height: 1px;
+              background: #e5e7eb;
+              margin: 6px 0;
+            }
+            .status-badge-wrapper {
+              text-align: center;
+              margin: 16px 0 24px;
+            }
+            .status-badge {
+              display: inline-block;
+              padding: 7px 44px;
+              font-size: 16px;
+              font-weight: 800;
+              letter-spacing: 0.2em;
+              color: #ffffff;
+              background: #059669;
+              border-radius: 4px;
+            }
+            .address-grid {
               display: grid;
               grid-template-columns: 1fr 1fr;
-              column-gap: 64px;
-              margin-top: 34px;
+              gap: 40px;
+              margin-bottom: 28px;
             }
             .section-label {
-              margin: 0 0 14px;
-              font-size: 12px;
+              margin: 0 0 10px;
+              font-size: 10px;
               color: #6b7280;
               font-weight: 800;
               letter-spacing: 0.16em;
               text-transform: uppercase;
             }
             .section-name {
-              margin: 0 0 8px;
-              font-size: 22px;
-              line-height: 1.2;
+              margin: 0 0 6px;
+              font-size: 16px;
+              line-height: 1.3;
               color: #111827;
               font-weight: 800;
             }
             .section-line {
-              margin: 0;
-              font-size: 17px;
-              line-height: 1.35;
+              margin: 0 0 3px;
+              font-size: 13px;
+              line-height: 1.5;
               color: #4b5563;
               font-weight: 500;
             }
             .items-table {
               width: 100%;
               border-collapse: collapse;
-              margin-top: 34px;
+              margin-bottom: 24px;
             }
             .items-table thead th {
               text-align: left;
               color: #6b7280;
-              font-size: 16px;
-              font-weight: 600;
-              padding: 14px 10px 14px 0;
+              font-size: 11px;
+              font-weight: 700;
+              text-transform: uppercase;
+              letter-spacing: 0.08em;
+              padding: 10px 10px 10px 0;
               border-bottom: 2px solid #111827;
             }
             .items-table thead th.right { text-align: right; padding-right: 0; }
             .items-table tbody td {
               border-bottom: 1px solid #f3f4f6;
-              padding: 16px 10px 16px 0;
+              padding: 12px 10px 12px 0;
               vertical-align: middle;
+              font-size: 13px;
             }
-            .item-name { font-size: 18px; color: #111827; font-weight: 700; }
-            .qty-cell, .price-cell { text-align: right; color: #4b5563; font-size: 16px; font-weight: 600; }
-            .amount-cell { text-align: right; color: #111827; font-size: 18px; font-weight: 800; padding-right: 0 !important; }
-            .summary-wrap { margin-top: 34px; display: flex; justify-content: flex-end; }
-            .summary { width: 360px; }
+            .item-name-cell {
+              font-weight: 700;
+              color: #111827;
+            }
+            .qty-cell,
+            .price-cell,
+            .tax-cell {
+              text-align: right;
+              color: #4b5563;
+              font-weight: 600;
+            }
+            .total-cell {
+              text-align: right;
+              color: #111827;
+              font-weight: 800;
+              padding-right: 0 !important;
+            }
+            .summary-wrap {
+              display: flex;
+              justify-content: flex-end;
+              margin-bottom: 28px;
+            }
+            .summary {
+              width: 300px;
+              padding: 16px 20px;
+              background: #f9fafb;
+              border-radius: 8px;
+            }
             .summary-row {
               display: flex;
               justify-content: space-between;
-              margin-bottom: 14px;
-              font-size: 16px;
+              margin-bottom: 8px;
+              font-size: 13px;
             }
             .summary-label { color: #6b7280; }
             .summary-value { color: #111827; font-weight: 700; }
-            .summary-divider { height: 1px; background: #e5e7eb; margin: 16px 0 14px; }
+            .summary-value.discount { color: #e71333; }
+            .summary-divider {
+              height: 1px;
+              background: #d1d5db;
+              margin: 10px 0;
+            }
             .summary-total {
               display: flex;
               justify-content: space-between;
@@ -366,128 +423,149 @@ export function OrdersList() {
             }
             .summary-total-label {
               color: #111827;
-              font-size: 20px;
+              font-size: 14px;
               font-weight: 800;
-              letter-spacing: 0.02em;
               text-transform: uppercase;
             }
             .summary-total-value {
               color: #111827;
-              font-size: 34px;
+              font-size: 22px;
               font-weight: 900;
-              letter-spacing: -0.02em;
             }
             .footer {
-              margin-top: 34px;
-              padding-top: 24px;
-              border-top: 1px solid #e5e7eb;
-              text-align: left;
+              padding: 18px 20px;
+              background: #f9fafb;
+              border-radius: 8px;
             }
             .footer-title {
-              margin: 0 0 8px;
-              font-size: 12px;
+              margin: 0 0 6px;
+              font-size: 10px;
               color: #111827;
               font-weight: 800;
-              letter-spacing: 0.08em;
+              letter-spacing: 0.16em;
               text-transform: uppercase;
             }
             .footer-text {
               margin: 0;
-              font-size: 12px;
+              font-size: 11px;
               color: #6b7280;
-              line-height: 1.5;
-            }
-            .footer-email { color: #cc0000; font-weight: 700; }
-            .footer-note {
-              margin: 8px 0 0;
-              font-size: 10px;
-              color: #9ca3af;
-              font-style: italic;
+              line-height: 1.6;
             }
           </style>
 
-          <div class="invoice-inner">
-            <div class="invoice-top">
+          <div class="invoice-header">
+            <div class="header-left">
               <img class="invoice-logo" src="${logoSrc}" alt="Workit" />
-              <div class="invoice-meta">
-                <p class="invoice-number">INVOICE # ${escapeHtml(order.code)}</p>
-                <p class="invoice-label">ISSUE DATE</p>
-                <p class="invoice-date">${escapeHtml(created)}</p>
-              </div>
+              <div class="header-brand">Workit</div>
+              <div class="header-sub">Admin.</div>
+              <p class="header-address">
+                1728 Bangar St<br />
+                Houston, ME 83743, United States<br />
+                Phone: (+1) 142-5328-010
+              </p>
             </div>
-
-            <div class="bar"></div>
-
-            <h1 class="brand-title">Workit</h1>
-            <p class="brand-subtitle">Thank you for your purchase. We appreciate your confidence in our products and services.</p>
-
-            <div class="bill-grid">
-              <div>
-                <p class="section-label">Billed By</p>
-                <p class="section-name">Workit Enterprises</p>
-                <p class="section-line">Nairobi, Kenya</p>
-              </div>
-              <div>
-                <p class="section-label">Bill To</p>
-                <p class="section-name">${escapeHtml(customerName)}</p>
-                <p class="section-line">${escapeHtml(customerEmail)}</p>
-              </div>
-            </div>
-
-            <table class="items-table">
-              <thead>
-                <tr>
-                  <th>Item</th>
-                  <th class="right">Qty</th>
-                  <th class="right">Price</th>
-                  <th class="right">Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${lineRows}
-              </tbody>
-            </table>
-
-            <div class="summary-wrap">
-              <div class="summary">
-                <div class="summary-row"><span class="summary-label">Subtotal</span><span class="summary-value">${escapeHtml(formatCurrency(order.subTotal || 0))}</span></div>
-                <div class="summary-row"><span class="summary-label">Delivery</span><span class="summary-value">${escapeHtml(formatCurrency(order.shipping || 0))}</span></div>
-                <div class="summary-row"><span class="summary-label">VAT 16.0%</span><span class="summary-value">${escapeHtml(formatCurrency(order.tax || 0))}</span></div>
-                <div class="summary-divider"></div>
-                <div class="summary-total">
-                  <span class="summary-total-label">TOTAL</span>
-                  <span class="summary-total-value">${escapeHtml(formatCurrency(order.total || 0))}</span>
+            <div class="header-right">
+              <div class="invoice-details-box">
+                <div class="detail-row">
+                  <span class="detail-label">Invoice No</span>
+                  <span class="detail-value">#${escapeHtml(order.code)}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Issue Date</span>
+                  <span class="detail-value">${escapeHtml(issueDate)}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Due Date</span>
+                  <span class="detail-value">${escapeHtml(dueDate)}</span>
+                </div>
+                <div class="detail-separator"></div>
+                <div class="detail-row">
+                  <span class="detail-label">Amount</span>
+                  <span class="detail-value amount">${escapeHtml(formatCurrency(total))}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Status</span>
+                  <span class="detail-value status-value">${escapeHtml(status)}</span>
                 </div>
               </div>
             </div>
+          </div>
 
-            <div class="footer">
-              <p class="footer-title">Questions about your order?</p>
-              <p class="footer-text">Visit our help center or contact our support team at <span class="footer-email">support@workit.co.ke</span>.</p>
-              <p class="footer-note">Standard terms and conditions apply to all purchases.</p>
+          <div class="status-badge-wrapper">
+            <span class="status-badge">${escapeHtml(status)}</span>
+          </div>
+
+          <div class="address-grid">
+            <div class="address-col">
+              <p class="section-label">Issue From</p>
+              <p class="section-name">Workit Enterprises INC</p>
+              <p class="section-line">
+                2437 Romana Street<br />
+                Cambridge, MA 02141<br />
+                Phone: (+31) 782-417-2804<br />
+                Email: support@workit.co.ke
+              </p>
             </div>
+            <div class="address-col">
+              <p class="section-label">Issue For</p>
+              <p class="section-name">${escapeHtml(customerName)}</p>
+              <p class="section-line">
+                ${customerAddress}<br />
+                Email: ${escapeHtml(customerEmail)}
+              </p>
+            </div>
+          </div>
+
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th>Product Name</th>
+                <th class="right">Qty</th>
+                <th class="right">Price</th>
+                <th class="right">Tax</th>
+                <th class="right">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${lineRows}
+            </tbody>
+          </table>
+
+          <div class="summary-wrap">
+            <div class="summary">
+              <div class="summary-row">
+                <span class="summary-label">Sub Total</span>
+                <span class="summary-value">${escapeHtml(formatCurrency(subTotal))}</span>
+              </div>
+              <div class="summary-row">
+                <span class="summary-label">Discount</span>
+                <span class="summary-value discount">- ${escapeHtml(formatCurrency(0))}</span>
+              </div>
+              <div class="summary-row">
+                <span class="summary-label">Estimated Tax</span>
+                <span class="summary-value">${escapeHtml(formatCurrency(totalTax))}</span>
+              </div>
+              <div class="summary-divider"></div>
+              <div class="summary-total">
+                <span class="summary-total-label">Grand Amount</span>
+                <span class="summary-total-value">${escapeHtml(formatCurrency(total))}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="footer">
+            <p class="footer-title">NOTICE</p>
+            <p class="footer-text">All accounts are to be paid within 7 days from receipt of invoice. To be paid by cheque, credit card, or direct payment online. If account is not paid within 7 days, the credit details supplied as confirmation of work undertaken will be charged the agreed quoted fee noted above.</p>
           </div>
         </div>`;
     };
 
-    useEffect(() => {
-        ensurePdfLibs().catch(() => {
-            // Lazy retry during click if preload fails
-            pdfLibsPromiseRef.current = null;
-        });
-    }, []);
-
     const handleDownloadInvoicePdf = async (orderId: string, orderCode: string) => {
-        let frame: HTMLIFrameElement | null = null;
         setDownloadingOrderId(orderId);
 
+        let container: HTMLDivElement | null = null;
+
         try {
-            await ensurePdfLibs();
-
-            if (!window.html2canvas || !window.jspdf?.jsPDF) {
-                throw new Error('PDF libraries failed to initialize.');
-            }
-
             let order = invoiceCacheRef.current.get(orderId);
             if (!order) {
                 const response = await fetch(`/api/admin/orders/${orderId}`, {
@@ -501,86 +579,42 @@ export function OrdersList() {
                 invoiceCacheRef.current.set(orderId, order);
             }
 
-            frame = document.createElement('iframe');
-            frame.style.position = 'fixed';
-            frame.style.left = '-10000px';
-            frame.style.top = '0';
-            frame.style.width = '1024px';
-            frame.style.height = '1600px';
-            frame.style.opacity = '0';
-            frame.style.border = '0';
-            document.body.appendChild(frame);
+            titleRef.current = `invoice-${orderCode}`;
 
-            const frameDoc = frame.contentDocument;
-            if (!frameDoc) {
-                throw new Error('Failed to initialize invoice renderer.');
-            }
+            container = document.createElement('div');
+            container.style.position = 'fixed';
+            container.style.left = '-10000px';
+            container.style.top = '0';
+            container.style.width = '1080px';
+            container.style.height = 'auto';
+            container.style.zIndex = '-1';
+            container.innerHTML = buildInvoiceMarkup(order);
+            document.body.appendChild(container);
 
-            frameDoc.open();
-            frameDoc.write(`<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Invoice PDF Render</title>
-  </head>
-  <body style="margin:0;padding:0;background:#ffffff;">
-    ${buildInvoiceMarkup(order)}
-  </body>
-</html>`);
-            frameDoc.close();
-
-            const invoiceElement = frameDoc.querySelector('.invoice-export-root') as HTMLElement | null;
+            const invoiceElement = container.querySelector('.invoice-export-root') as HTMLElement | null;
             if (!invoiceElement) {
-                throw new Error('Failed to prepare invoice canvas.');
+                throw new Error('Failed to prepare invoice.');
             }
 
-            await waitForImages(invoiceElement);
+            const images = Array.from(invoiceElement.querySelectorAll('img'));
+            await Promise.all(
+                images.map(
+                    (img) =>
+                        new Promise<void>((resolve) => {
+                            if (img.complete) { resolve(); return; }
+                            img.onload = () => resolve();
+                            img.onerror = () => resolve();
+                        })
+                )
+            );
 
-            const canvas = await window.html2canvas(invoiceElement, {
-                scale: 1.5,
-                useCORS: true,
-                backgroundColor: '#ffffff',
-                logging: false,
-                onclone: (clonedDoc: Document) => {
-                    // Keep only invoice-local styles to avoid unsupported lab/oklch parsing.
-                    const styles = clonedDoc.querySelectorAll('style,link[rel="stylesheet"]');
-                    styles.forEach((styleNode: Element) => {
-                        const text = styleNode.textContent || '';
-                        const href = (styleNode as HTMLLinkElement).href || '';
-                        const isInvoiceStyle = text.includes('.invoice-export-root');
-                        const isExternalStyle = href.length > 0;
-                        if (!isInvoiceStyle || isExternalStyle) {
-                            styleNode.remove();
-                        }
-                    });
-                },
-            });
+            cleanupPrintRef.current = () => {
+                if (container && container.parentNode) {
+                    container.parentNode.removeChild(container);
+                }
+            };
 
-            const imageData = canvas.toDataURL('image/jpeg', 0.92);
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF('p', 'pt', 'a4');
-            const pageWidth = pdf.internal.pageSize.getWidth();
-            const pageHeight = pdf.internal.pageSize.getHeight();
-            const margin = 16;
-            const imageWidth = pageWidth - margin * 2;
-            const imageHeight = (canvas.height * imageWidth) / canvas.width;
-            const usableHeight = pageHeight - margin * 2;
-
-            let heightLeft = imageHeight;
-            let y = margin;
-
-            pdf.addImage(imageData, 'JPEG', margin, y, imageWidth, imageHeight, undefined, 'FAST');
-            heightLeft -= usableHeight;
-
-            while (heightLeft > 0) {
-                y = margin - (imageHeight - heightLeft);
-                pdf.addPage();
-                pdf.addImage(imageData, 'JPEG', margin, y, imageWidth, imageHeight, undefined, 'FAST');
-                heightLeft -= usableHeight;
-            }
-
-            pdf.save(`${orderCode}.pdf`);
+            handleDownloadPdf(() => invoiceElement);
         } catch (err) {
             console.error('Failed to download invoice PDF:', err);
             toast({
@@ -588,9 +622,8 @@ export function OrdersList() {
                 description: err instanceof Error ? err.message : 'Failed to generate invoice PDF.',
                 variant: 'error',
             });
-        } finally {
-            if (frame && frame.parentNode) {
-                frame.parentNode.removeChild(frame);
+            if (container && container.parentNode) {
+                container.parentNode.removeChild(container);
             }
             setDownloadingOrderId(null);
         }
