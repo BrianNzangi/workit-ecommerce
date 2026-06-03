@@ -122,9 +122,9 @@ export default function HeroSection({ banners }: HeroSectionProps) {
             aria-roledescription="carousel"
             aria-label="Homepage banner carousel"
         >
-            <SectionContainer className="py-4">
+            <SectionContainer className="px-0 sm:px-4 pt-0 sm:pt-4 pb-4">
                 <div
-                    className="relative w-full overflow-hidden rounded-sm bg-secondary-900"
+                    className="relative w-full overflow-hidden rounded-none sm:rounded-sm bg-secondary-900"
                     onTouchStart={onTouchStart}
                     onTouchMove={onTouchMove}
                     onTouchEnd={onTouchEnd}
@@ -194,7 +194,7 @@ export default function HeroSection({ banners }: HeroSectionProps) {
                                 variant="ghost"
                                 size="icon"
                                 onClick={prevSlide}
-                                className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 bg-white/80 hover:bg-white text-secondary-800 shadow-xs rounded-full"
+                                className="hidden sm:flex absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 bg-white/80 hover:bg-white text-secondary-800 shadow-xs rounded-full"
                                 aria-label="Previous slide"
                             >
                                 <ChevronLeft className="size-4" />
@@ -218,7 +218,7 @@ export default function HeroSection({ banners }: HeroSectionProps) {
                                 variant="ghost"
                                 size="icon"
                                 onClick={nextSlide}
-                                className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 bg-white/80 hover:bg-white text-secondary-800 shadow-xs rounded-full"
+                                className="hidden sm:flex absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 bg-white/80 hover:bg-white text-secondary-800 shadow-xs rounded-full"
                                 aria-label="Next slide"
                             >
                                 <ChevronRight className="size-4" />

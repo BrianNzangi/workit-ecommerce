@@ -45,6 +45,16 @@ export default function MainHeader({
             <div className="font-sans text-secondary-900 border-b border-gray-300">
                 <SectionContainer className="py-4">
                   <div className="flex items-center justify-between gap-4 flex-wrap md:flex-nowrap">
+                    <div className="md:hidden flex items-center">
+                        <button
+                            onClick={onToggleMobileMenu}
+                            className="text-secondary-900"
+                            aria-label="Toggle Menu"
+                        >
+                            <Menu className="w-6 h-6" />
+                        </button>
+                    </div>
+
                     <Link
                         href="/"
                         onClick={handleLogoClick}
@@ -83,7 +93,7 @@ export default function MainHeader({
                         </button>
                     </div>
 
-                    <div className="md:hidden flex items-center gap-2">
+                    <div className="md:hidden flex items-center">
                         <button onClick={onOpenCart} className="relative text-secondary-900">
                             <div className="relative">
                                 <ShoppingBag className="h-6 w-6" />
@@ -94,21 +104,13 @@ export default function MainHeader({
                                 )}
                             </div>
                         </button>
-
-                        <button
-                            onClick={onToggleMobileMenu}
-                            className="text-secondary-900"
-                            aria-label="Toggle Menu"
-                        >
-                            <Menu className="w-6 h-6" />
-                        </button>
                     </div>
                     </div>
                 </SectionContainer>
 
-                <div className="md:hidden px-6 pb-4">
+                <SectionContainer className="md:hidden pb-4">
                     <SearchBar />
-                </div>
+                </SectionContainer>
 
                 <div
                     className={`fixed inset-0 z-50 transition-colors duration-300 ${mobileMenuOpen ? 'bg-black/40 pointer-events-auto' : 'bg-transparent pointer-events-none'
