@@ -91,7 +91,7 @@ export default function CollectionProducts({
   useEffect(() => {
     if (!currentCollectionSlug) return;
     setFeaturedBrandsLoading(true);
-    fetch(`/api/brands/featured?collectionSlug=${currentCollectionSlug}`)
+    fetch(`/api/brands/featured?collectionSlug=${currentCollectionSlug}`, { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
         setFeaturedBrands(data.brands || []);

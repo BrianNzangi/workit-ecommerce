@@ -26,7 +26,10 @@ export async function GET(request: NextRequest) {
     if (searchTerm) params.append('q', searchTerm);
 
     // Fetch from backend via proxy
-    const response = await proxyFetch(`/store/products?${params.toString()}`);
+    const response = await proxyFetch(`/store/products?${params.toString()}`, {
+      method: 'GET',
+      cache: 'no-store',
+    });
 
     if (!response.ok) {
       console.error(`Backend API returned ${response.status}`);
@@ -46,6 +49,10 @@ export async function GET(request: NextRequest) {
       total: products.length, // backend doesn't return total yet in this endpoint
       totalPages: Math.ceil(products.length / limit) || 1,
       page: page,
+    }, {
+      headers: {
+        'Cache-Control': 'no-store',
+      },
     });
   } catch (error) {
     console.error('Error fetching products from backend:', error);

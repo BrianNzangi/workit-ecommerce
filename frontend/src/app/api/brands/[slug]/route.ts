@@ -9,7 +9,7 @@ export async function GET(
     const { slug } = await params;
     const response = await proxyFetch(`/store/brands/${slug}`, {
       method: 'GET',
-      next: { revalidate: 3600 },
+      cache: 'no-store',
     });
 
     if (!response.ok) {
@@ -21,7 +21,11 @@ export async function GET(
     }
 
     const data = await response.json();
-    return NextResponse.json(data);
+    return NextResponse.json(data, {
+      headers: {
+        'Cache-Control': 'no-store',
+      },
+    });
   } catch (err) {
     console.error('Brand proxy error:', err);
     return NextResponse.json({ error: 'Failed to fetch brand' }, { status: 500 });

@@ -27,7 +27,7 @@ interface BrandData {
   productCount?: number;
 }
 
-export const revalidate = 300;
+export const revalidate = 0;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const resolvedParams = await params;
@@ -35,8 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   try {
     const brandResponse = await proxyFetch(`/store/brands/${slug}`, {
-      cache: 'force-cache',
-      next: { revalidate },
+      cache: 'no-store',
       useRequestContext: false,
     });
 
@@ -85,8 +84,7 @@ export default async function BrandDetailPage({ params }: Props) {
   let brand: BrandData | null = null;
   try {
     const brandResponse = await proxyFetch(`/store/brands/${slug}`, {
-      cache: 'force-cache',
-      next: { revalidate },
+      cache: 'no-store',
       useRequestContext: false,
     });
 
@@ -123,8 +121,7 @@ export default async function BrandDetailPage({ params }: Props) {
     const productsResponse = await proxyFetch(
       `/store/products?brand=${brand.id}&limit=20&offset=0&sortBy=popularity`,
       {
-        cache: 'force-cache',
-        next: { revalidate },
+        cache: 'no-store',
         useRequestContext: false,
       },
     );

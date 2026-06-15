@@ -316,7 +316,7 @@ export async function getHomepageCollections(
 
     const response = await proxyFetch(`/store/homepage-collections?${params.toString()}`, {
         method: 'GET',
-        next: { revalidate: 300 },
+        cache: 'no-store',
     });
 
     if (!response.ok) {

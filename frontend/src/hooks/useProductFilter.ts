@@ -39,7 +39,9 @@ export const useProductFilter = (initialCategoryId?: number) => {
         params.append('brand', filters.brand[0].toString()); // For now, handle single brand if that's what backend expects or multiple if it handles it
       }
 
-      const response = await fetch(`/api/products?${params.toString()}`);
+      const response = await fetch(`/api/products?${params.toString()}`, {
+        cache: 'no-store',
+      });
       if (!response.ok) throw new Error('Failed to fetch products');
       const data = await response.json();
       return data.products || [];

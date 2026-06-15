@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     // If no collection specified, fetch all brands from backend
     const response = await proxyFetch('/store/brands', {
       method: 'GET',
-      next: { revalidate: 3600 }, // Brands don't change often, cache for 1 hour
+      cache: 'no-store',
     });
 
     if (!response.ok) {
@@ -76,7 +76,11 @@ export async function GET(request: NextRequest) {
       count: brand._count?.products || 0,
     })) : [];
 
-    return NextResponse.json(transformedBrands);
+    return NextResponse.json(transformedBrands, {
+      headers: {
+        'Cache-Control': 'no-store',
+      },
+    });
   } catch (err) {
     console.error('❌ Brands Proxy Error:', err);
     return NextResponse.json([], { status: 200 });

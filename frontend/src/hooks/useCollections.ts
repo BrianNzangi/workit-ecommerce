@@ -58,8 +58,8 @@ async function fetchFilterData(collectionSlug?: string): Promise<FiltersResponse
         : '/api/brands';
 
     const [categoriesRes, brandsRes] = await Promise.all([
-        fetch('/api/collections?includeChildren=true'),
-        fetch(brandsUrl),
+        fetch('/api/collections?includeChildren=true', { cache: 'no-store' }),
+        fetch(brandsUrl, { cache: 'no-store' }),
     ]);
 
     let categoriesData: Category[] = [];

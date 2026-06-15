@@ -31,6 +31,11 @@ export function BrandsTable({ brands, onDelete }: BrandsTableProps) {
         );
     }
 
+    const summarizeDescription = (description: string, maxLength = 48) => {
+        if (description.length <= maxLength) return description;
+        return `${description.slice(0, maxLength).trimEnd()}...`;
+    };
+
     return (
         <Card className="border-gray-200">
             <CardContent className="p-0">
@@ -74,8 +79,11 @@ export function BrandsTable({ brands, onDelete }: BrandsTableProps) {
                                                     {brand.name}
                                                 </p>
                                                 {brand.description && (
-                                                    <p className="truncate text-xs text-gray-500">
-                                                        {brand.description}
+                                                    <p
+                                                        className="truncate text-xs text-gray-500"
+                                                        title={brand.description}
+                                                    >
+                                                        {summarizeDescription(brand.description)}
                                                     </p>
                                                 )}
                                             </div>

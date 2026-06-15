@@ -34,13 +34,13 @@ export default function TopBrandsSection() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch('/api/brands/homepage-featured');
+        const res = await fetch('/api/brands/homepage-featured', { cache: 'no-store' });
         const data = await res.json();
         const featured = data.brands || [];
         if (featured.length > 0) {
           if (!cancelled) setBrands(featured);
         } else {
-          const allRes = await fetch('/api/brands');
+          const allRes = await fetch('/api/brands', { cache: 'no-store' });
           const allBrands = await allRes.json();
           if (!cancelled) setBrands(Array.isArray(allBrands) ? allBrands : []);
         }

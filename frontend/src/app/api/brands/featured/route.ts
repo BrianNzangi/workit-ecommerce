@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
 
     const response = await proxyFetch(`/store/brands/featured?collectionSlug=${collectionSlug}`, {
       method: 'GET',
-      next: { revalidate: 900 },
+      cache: 'no-store',
     });
 
     if (!response.ok) {
@@ -23,7 +23,11 @@ export async function GET(request: NextRequest) {
     const data = await response.json();
     const brands = data.brands || [];
 
-    return NextResponse.json({ brands });
+    return NextResponse.json({ brands }, {
+      headers: {
+        'Cache-Control': 'no-store',
+      },
+    });
   } catch (err) {
     console.error('Featured brands proxy error:', err);
     return NextResponse.json({ brands: [] }, { status: 200 });
