@@ -10,6 +10,7 @@ import HorizontalBanner from '@/components/banners/HorizontalBanner';
 import AboutWorkit from '@/components/home/AboutWorkit';
 import {
     getFeaturedBlogs,
+    getHomepageCollections,
     getHomepageBanners,
     getMostShoppedCollections,
 } from '@/lib/homepage/homepage-data';
@@ -20,6 +21,7 @@ import {
     DealsSkeleton,
     BannerSkeleton,
     BlogGridSkeleton,
+    CollectionSkeleton,
 } from '@/components/home/PageSkeletons';
 
 export const metadata: Metadata = {
@@ -90,6 +92,26 @@ async function FeaturedBlogsWrapper() {
     } catch { return null; }
 }
 
+async function HomepageCollectionsWrapper() {
+    try {
+        const collections = await getHomepageCollections({ status: 'active' });
+        if (!collections.length) return null;
+
+        return (
+            <>
+                {collections.map((collection) => (
+                    <CollectionSection
+                        key={collection.id}
+                        collection={collection}
+                    />
+                ))}
+            </>
+        );
+    } catch {
+        return null;
+    }
+}
+
 export default async function Home() {
     return (
         <div className="bg-white">
@@ -109,25 +131,17 @@ export default async function Home() {
                 <HorizontalBannerWrapper />
             </Suspense>
 
-            <CollectionSection slug="daily-offers" title="Daily Offers" index={0} />
-            <CollectionSection slug="best-selling-laptops" title="Best Selling Laptops" index={1} />
-            <CollectionSection slug="bluetooth-speakers" title="Bluetooth Speakers" index={2} />
+            <Suspense fallback={<CollectionSkeleton />}>
+                <HomepageCollectionsWrapper />
+            </Suspense>
 
             <Suspense fallback={<BannerSkeleton />}>
                 <MiddleBannerWrapper />
             </Suspense>
 
-            <CollectionSection slug="top-monitors" title="Top Monitors" index={3} />
-            <CollectionSection slug="featured-televisions" title="Featured Televisions" index={4} />
-            <CollectionSection slug="home-audio" title="Home Audio" index={5} />
-
             <Suspense fallback={<BannerSkeleton />}>
                 <BottomBannerWrapper />
             </Suspense>
-
-            <CollectionSection slug="featured-home-kitchen" title="Featured Home & Kitchen" index={6} />
-            <CollectionSection slug="popular-networking-devices" title="Popular Networking Devices" index={7} />
-            <CollectionSection slug="featured-smartphones" title="Featured Smartphones" index={8} />
 
             <Suspense fallback={null}>
                 <TopBrandsSection />

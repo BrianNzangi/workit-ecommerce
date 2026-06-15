@@ -105,6 +105,7 @@ async function fetchHomepageCollections(
 
     const response = await fetch(`/api/home-collection?${params.toString()}`, {
         method: 'GET',
+        cache: 'no-store',
         headers: {
             'Content-Type': 'application/json',
         },
