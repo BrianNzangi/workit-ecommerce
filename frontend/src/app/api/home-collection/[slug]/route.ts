@@ -11,7 +11,7 @@ export async function GET(
     try {
         const response = await proxyFetch(`/store/homepage-collections?slug=${encodeURIComponent(slug)}&status=active`, {
             method: 'GET',
-            next: { revalidate: 300 },
+            cache: 'no-store',
         });
 
         if (!response.ok) {
@@ -53,6 +53,10 @@ export async function GET(
         return NextResponse.json({
             success: true,
             data: { collection: transformed },
+        }, {
+            headers: {
+                'Cache-Control': 'no-store',
+            },
         });
     } catch (error) {
         console.error(`Error fetching collection "${slug}":`, error);

@@ -49,7 +49,11 @@ export async function GET(request: NextRequest) {
         link: `/brand/${brand.slug}`,
       }));
 
-      return NextResponse.json(brands);
+      return NextResponse.json(brands, {
+        headers: {
+          'Cache-Control': 'no-store',
+        },
+      });
     }
 
     // If no collection specified, fetch all brands from backend

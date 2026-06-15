@@ -28,12 +28,11 @@ export async function GET(req: Request) {
   params.append('status', status);
   if (limit) params.append('limit', limit);
 
-  try {
-    const response = await proxyFetch(`/store/homepage-collections?${params.toString()}`, {
-      method: 'GET',
-      // Cache for 5 minutes
-      next: { revalidate: 300 },
-    });
+    try {
+        const response = await proxyFetch(`/store/homepage-collections?${params.toString()}`, {
+            method: 'GET',
+            cache: 'no-store',
+        });
 
     if (!response.ok) {
       console.error(`Backend API error: ${response.status} ${response.statusText}`);
@@ -66,10 +65,14 @@ export async function GET(req: Request) {
 
     // Return the transformed data
     return NextResponse.json({
-      success: true,
-      data: {
-        homepageCollections: transformedCollections
-      }
+        success: true,
+        data: {
+          homepageCollections: transformedCollections
+        }
+    }, {
+        headers: {
+            'Cache-Control': 'no-store',
+        },
     });
   } catch (error) {
     console.error('Error fetching homepage collections:', error);

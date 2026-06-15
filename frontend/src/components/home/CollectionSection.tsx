@@ -40,6 +40,10 @@ export default function CollectionSection({ slug, title, index }: CollectionSect
 
     const { data: collection, isLoading, isError, refetch } = useCollectionBySlug(slug, inView);
 
+    if (!isLoading && !isError && (!collection || collection.products.length === 0)) {
+        return null;
+    }
+
     return (
         <section ref={ref} aria-label={title}>
             <SectionContainer className="py-4">

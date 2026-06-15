@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     twitter: DEFAULT_TWITTER,
 };
 
-export const revalidate = 300;
+export const revalidate = 0;
 
 async function HeroSectionWrapper() {
     try {

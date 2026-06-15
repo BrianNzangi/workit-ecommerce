@@ -12,8 +12,14 @@ interface CollectionResponse {
     };
 }
 
-async function fetchCollectionBySlug(slug: string): Promise<HomepageCollectionData> {
-    const res = await fetch(`/api/home-collection/${slug}`);
+async function fetchCollectionBySlug(slug: string): Promise<HomepageCollectionData | null> {
+    const res = await fetch(`/api/home-collection/${slug}`, {
+        cache: 'no-store',
+    });
+
+    if (res.status === 404) {
+        return null;
+    }
 
     if (!res.ok) {
         throw new Error(`Failed to fetch collection: ${res.status}`);
@@ -33,8 +39,8 @@ export function useCollectionBySlug(slug: string, enabled: boolean) {
         queryKey: ['homepage', slug],
         queryFn: () => fetchCollectionBySlug(slug),
         enabled,
-        staleTime: 10 * 60 * 1000,
-        gcTime: 30 * 60 * 1000,
+        staleTime: 0,
+        gcTime: 5 * 60 * 1000,
         refetchOnWindowFocus: false,
         refetchOnReconnect: false,
         retry: 1,
